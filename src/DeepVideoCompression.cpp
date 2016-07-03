@@ -158,3 +158,4 @@ int main()
 // zweites video dabei, was die differenzframes drin hat
 // anfang vom neuronalen netz koennte der codec sein und nur der FC-Layer waere das eigentliche Video
 // oder low-bitrate-video so nachverbessern? https://arxiv.org/pdf/1504.06993.pdf
+// bias fuer layer, filter oder neurons?

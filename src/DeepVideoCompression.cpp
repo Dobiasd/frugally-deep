@@ -91,16 +91,30 @@ filter random_filter(const size3d& size)
 }
 
 
-
-cv::Mat filter2DMatMult(const cv::Mat& img, const cv::Mat& cv_kernel)
+layer_ptr cv_kernel_to_layer(const cv::Mat& cv_kernel)
 {
-    matrix3d in_vol = cv_bgr_img_to_matrix3d(img);
     std::vector<filter> filters = {
         filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 0)),
         filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 1)),
         filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 2))
     };
-    std::vector<layer_ptr> layers = {std::make_shared<conv_layer>(filters)};
+    return std::make_shared<conv_layer>(filters);
+}
+
+cv::Mat filter2DNet(const cv::Mat& img, const cv::Mat& cv_kernel)
+{
+    matrix3d in_vol = cv_bgr_img_to_matrix3d(img);
+    std::vector<layer_ptr> layers = {cv_kernel_to_layer(cv_kernel)};
+    conv_net net = conv_net(layers);
+    auto out_vol = net.forward_pass(in_vol);
+    cv::Mat result = matrix3d_to_cv_bgr_img(out_vol);
+    return result;
+}
+
+cv::Mat filter2DsNet(const cv::Mat& img, const std::vector<cv::Mat>& cv_kernels)
+{
+    matrix3d in_vol = cv_bgr_img_to_matrix3d(img);
+    auto layers = fplus::transform(cv_kernel_to_layer, cv_kernels);
     conv_net net = conv_net(layers);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img(out_vol);
@@ -111,23 +125,26 @@ int main()
 {
     cv::Mat img = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
 
-    cv::Mat kernel(cv::Size(3,3), CV_32FC1, cv::Scalar(0));
-    kernel.at<float>(0,0) =   3.0f / 32.0f;
-    kernel.at<float>(1,0) =  10.0f / 32.0f;
-    kernel.at<float>(2,0) =   3.0f / 32.0f;
-    kernel.at<float>(0,1) =   0.0f / 32.0f;
-    kernel.at<float>(1,1) =   0.0f / 32.0f;
-    kernel.at<float>(2,1) =   0.0f / 32.0f;
-    kernel.at<float>(0,2) =  -3.0f / 32.0f;
-    kernel.at<float>(1,2) = -10.0f / 32.0f;
-    kernel.at<float>(2,2) =  -3.0f / 32.0f;
+    cv::Mat kernel_scharr_x(cv::Size(3,3), CV_32FC1, cv::Scalar(0));
+    kernel_scharr_x.at<float>(0,0) =   3.0f / 32.0f;
+    kernel_scharr_x.at<float>(1,0) =  10.0f / 32.0f;
+    kernel_scharr_x.at<float>(2,0) =   3.0f / 32.0f;
+    kernel_scharr_x.at<float>(0,1) =   0.0f / 32.0f;
+    kernel_scharr_x.at<float>(1,1) =   0.0f / 32.0f;
+    kernel_scharr_x.at<float>(2,1) =   0.0f / 32.0f;
+    kernel_scharr_x.at<float>(0,2) =  -3.0f / 32.0f;
+    kernel_scharr_x.at<float>(1,2) = -10.0f / 32.0f;
+    kernel_scharr_x.at<float>(2,2) =  -3.0f / 32.0f;
+
+    cv::Mat kernel_blur(cv::Size(3,3), CV_32FC1, cv::Scalar(1.0f/9.0f));
 
     cv::Mat filtered1;
-    filter2D(img, filtered1, -1, kernel);
+    filter2D(img, filtered1, -1, kernel_scharr_x);
+    filter2D(filtered1, filtered1, -1, kernel_scharr_x);
     cv::imwrite("lenna_512x512_filtered1.png", filtered1);
 
-    cv::Mat filtered3 = filter2DMatMult(img, kernel);
-    cv::imwrite("lenna_512x512_filtered3.png", filtered3);
+    cv::Mat filtered2 = filter2DsNet(img, {kernel_scharr_x, kernel_scharr_x});
+    cv::imwrite("lenna_512x512_filtered2.png", filtered2);
 }
 
 
@@ -139,8 +156,5 @@ int main()
 // Affine layer- flow layer?
 
 // zweites video dabei, was die differenzframes drin hat
-
 // anfang vom neuronalen netz koennte der codec sein und nur der FC-Layer waere das eigentliche Video
-
-
 // oder low-bitrate-video so nachverbessern? https://arxiv.org/pdf/1504.06993.pdf

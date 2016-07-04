@@ -22,6 +22,7 @@ else:
 VariantDir(build_dir, 'src', duplicate=0)
 source_files = [s.replace('src', build_dir, 1) for s in source_files]
 env.Append(LIBS=['opencv_core', 'opencv_imgproc',
-                 'opencv_highgui', 'opencv_imgcodecs'])
-env.Append(CXXFLAGS='-std=c++11 -O3 -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast -pthread')
+                 'opencv_highgui', 'opencv_imgcodecs',
+                 'pthread'])
+env.Append(CXXFLAGS='-std=c++11 -O3 -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast')
 env.Program(target='release/DeepVideoCompression', source=source_files)

@@ -159,3 +159,21 @@ int main()
 // anfang vom neuronalen netz koennte der codec sein und nur der FC-Layer waere das eigentliche Video
 // oder low-bitrate-video so nachverbessern? https://arxiv.org/pdf/1504.06993.pdf
 // bias fuer layer, filter oder neurons?
+
+// image compression
+// http://cs.stanford.edu/people/karpathy/convnetjs/demo/image_regression.html
+// http://cs.stanford.edu/people/karpathy/convnetjs/
+
+// statt affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
+
+// Frameworks:
+// http://caffe.berkeleyvision.org
+// http://torch.ch
+// http://deeplearning.net/software/theano
+// https://github.com/Lasagne/Lasagne
+// http://keras.io
+// https://www.tensorflow.org
+
+// mal bilder von papers oder pharma klassifizieren lassen
+
+// tiny-cnn: mal autoencoder bauen mit deconv-layer und fit statt train

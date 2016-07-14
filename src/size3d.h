@@ -37,4 +37,10 @@ private:
     std::size_t width_;
 };
 
-bool operator == (const size3d& lhs, const size3d& rhs);
+inline bool operator == (const size3d& lhs, const size3d& rhs)
+{
+    return
+        lhs.depth() == rhs.depth() &&
+        lhs.height() == rhs.height() &&
+        lhs.width() == rhs.width();
+}

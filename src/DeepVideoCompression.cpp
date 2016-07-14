@@ -174,6 +174,7 @@ int main()
 
 
 // todo:
+// think of name for net and put in namespace
 // transposed convolution layer aka deconv
 // pooling layer (template max or average)
 // unpooling layer

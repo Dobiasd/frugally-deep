@@ -174,16 +174,17 @@ int main()
 
 
 // todo:
-// Conv as free func
 // transposed convolution layer aka deconv
 // pooling layer (template max or average)
 // unpooling layer
-// relu layer#
+// relu layer and other activation layers (activation func as templ param?)
 // fully connected layer
 // Affine layer- flow layer?
 // Local Response Normalization layer?
 // loss als layer? softmax, sigmoid cross entropy, euclidian (l2)
 // bias fuer layer, filter oder neurons?
+// different paddings
+// different steps
 
 // Skip connection aka computational graph?
 

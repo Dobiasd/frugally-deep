@@ -21,6 +21,8 @@ matrix3d convolve_loops(const std::vector<filter>& filters,
                 const size3d& filt_size = filters[k].size();
                 for (std::size_t z = 0; z < filt_size.depth(); ++z)
                 {
+                    // todo: performance optimization:
+                    // special versions for filters of size 3*3, 5*5 etc
                     for (std::size_t yf = 0; yf < filt_size.height(); ++yf)
                     {
                         for (std::size_t xf = 0; xf < filt_size.width(); ++xf)
@@ -39,7 +41,7 @@ matrix3d convolve_loops(const std::vector<filter>& filters,
 
 matrix3d convolve(const std::vector<filter>& filters, const matrix3d& in_vol)
 {
-    // todo: convolve_matrix_mult
+    // todo: convolve_matrix_mult instead of convolve_loops
     //     use im_to_col and matrix multiplication for performance (?)
     return convolve_loops(filters, in_vol);
 }

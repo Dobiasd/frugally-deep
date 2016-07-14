@@ -17,7 +17,7 @@ if sys.platform[:3] == 'win':
 
 # Linux etc.
 else:
-    env = Environment(CXX='clang++-3.6')
+    env = Environment(CXX='clang++')
 
 VariantDir(build_dir, 'src', duplicate=0)
 source_files = [s.replace('src', build_dir, 1) for s in source_files]

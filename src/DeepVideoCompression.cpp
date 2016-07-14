@@ -174,22 +174,30 @@ int main()
 
 
 // todo:
-// Conv free func
-// transposed convolution layer
-// Skip conn aka comp graph
-// was ist ein softmax-layer nochmal?
+// Conv as free func
+// transposed convolution layer aka deconv
+// pooling layer (template max or average)
+// unpooling layer
+// relu layer#
+// fully connected layer
 // Affine layer- flow layer?
+// Local Response Normalization layer?
+// loss als layer? softmax, sigmoid cross entropy, euclidian (l2)
+// bias fuer layer, filter oder neurons?
+
+// Skip connection aka computational graph?
+
+// evolutionary optimization instread of backprop?
+
+// regularization (prevent overfitting? not needed for autoencoder)
+
+// Spatio-temporal video autoencoder? would mean Matrix4d
 
 // zweites video dabei, was die differenzframes drin hat
 // anfang vom neuronalen netz koennte der codec sein und nur der FC-Layer waere das eigentliche Video
 // oder low-bitrate-video so nachverbessern? https://arxiv.org/pdf/1504.06993.pdf
-// bias fuer layer, filter oder neurons?
 
-// image compression
-// http://cs.stanford.edu/people/karpathy/convnetjs/demo/image_regression.html
-// http://cs.stanford.edu/people/karpathy/convnetjs/
-
-// statt affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
+// instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 
 // Frameworks:
 // http://caffe.berkeleyvision.org
@@ -199,6 +207,7 @@ int main()
 // http://keras.io
 // https://www.tensorflow.org
 
-// mal bilder von papers oder pharma klassifizieren lassen
-
-// tiny-cnn: mal autoencoder bauen mit deconv-layer und fit statt train
+// goals:
+// image autoencoder
+// image classification
+// video autoencoder? (perhaps)

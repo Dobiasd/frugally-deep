@@ -3,6 +3,7 @@
 #include "typedefs.h"
 
 #include <cstddef>
+#include <cstdlib>
 
 class size3d
 {

@@ -30,7 +30,7 @@ public:
     }
 
 private:
-    std::size_t idx(std::size_t y, size_t x) const
+    std::size_t idx(std::size_t y, std::size_t x) const
     {
         return size().width() + y * size().width() + x;
     };

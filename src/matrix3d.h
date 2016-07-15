@@ -16,7 +16,7 @@ public:
         values_(size.area(), 0.0f)
     {
     }
-    float_t get(std::size_t z, std::size_t y, size_t x) const
+    float_t get(std::size_t z, std::size_t y, std::size_t x) const
     {
         return values_[idx(z, y, x)];
     }

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "typedefs.h"
-
+#include "convolution.h"
 #include "convolution.h"
 #include "filter.h"
 

@@ -213,3 +213,38 @@ int main()
 // image autoencoder
 // image classification
 // video autoencoder? (perhaps)
+
+
+Frugally-deep
+=============
+
+* **is a very simplistic C++ deep learning framework.**
+
+* supports the creation and training of convolutional neural networks.
+* is a header-only library.
+* only has one dependency ([FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus))
+* can use multiple CPUs.
+* does not make use of GPUs.
+* is quite slow.
+* is merely intended to be a personal learning project.
+* possibly has some unknown bugs.
+* should probably not be used for anything serious. ;-)
+
+layer und netz muessen gleiche basisklasse haben
+Memoization fuer wenn sich irgendwas gar nicht mehr veraendert?
+mini-batches
+json rausschreiben zwischendurch (temp, rename), html viewer dazu
+start one async task per filter in layer? (fplus::execute_paralelly?)
+memory arrangement in matrix good for speed? (cache locallity)
+Vanishing gradient
+Weight initialization
+typedefs.h wo value_t als float drin steht
+activation functions (identity, relu, sigmoid) als layer-template
+regularization (dropout)?
+loss calculation: softmax, euclidian
+learning momentum?
+local response normalization
+die eine Vorlesung nochmal gucken
+Caffee import?
+Opencv in own header file
+frugally-deep, namespace fd

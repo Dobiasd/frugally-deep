@@ -1,6 +1,12 @@
 frugally-deep
 =============
 
+**is just a bunch of random code, indended for my personal learning pleasure.**
+
+The goal is that someday the following things will be true:
+
+**frugally-deep**
+
 * **is a very simplistic deep learning framework written in C++.**
 * supports the creation and training of convolutional neural networks.
 * is a header-only library.

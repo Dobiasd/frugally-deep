@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "layer.h"
 
 #include <fplus/fplus.h>
@@ -8,10 +10,10 @@
 #include <cstddef>
 #include <vector>
 
-class conv_net : public layer
+class multi_layer_net : public layer
 {
 public:
-    explicit conv_net(const std::vector<layer_ptr>& layer_ptrs) :
+    explicit multi_layer_net(const std::vector<layer_ptr>& layer_ptrs) :
         layer_ptrs_(layer_ptrs)
     {
         assert(is_layer_ptr_chain_valid(layer_ptrs_));
@@ -32,14 +34,14 @@ public:
             layer_ptrs_);
         return fplus::sum(counts);
     }
-    std::vector<float> get_params() const override
+    float_vec get_params() const override
     {
         return fplus::concat(
             fplus::transform(
                 [](const layer_ptr& l) { return l->get_params(); },
                 layer_ptrs_));
     }
-    void set_params(const std::vector<float>& params) override
+    void set_params(const float_vec& params) override
     {
         auto layer_param_counts = fplus::transform(
             [](const layer_ptr& l) { return l->param_count(); },

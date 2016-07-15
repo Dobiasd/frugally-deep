@@ -26,7 +26,6 @@ todo
 namespace fd
 layer und netz muessen gleiche basisklasse haben
 is memory arrangement in matrix good for speed? (cache locallity)
-typedefs.h wo value_t als float drin steht
 Opencv in own header file
 different paddings
 different steps

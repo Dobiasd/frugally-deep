@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "size3d.h"
 
 #include <cstddef>
@@ -14,11 +16,11 @@ public:
         values_(size.area(), 0.0f)
     {
     }
-    float get(std::size_t z, std::size_t y, size_t x) const
+    float_t get(std::size_t z, std::size_t y, size_t x) const
     {
         return values_[idx(z, y, x)];
     }
-    void set(std::size_t z, std::size_t y, size_t x, float value)
+    void set(std::size_t z, std::size_t y, size_t x, float_t value)
     {
         values_[idx(z, y, x)] = value;
     }
@@ -33,7 +35,7 @@ private:
         return z * size().height() * size().width() + y * size().width() + x;
     };
     size3d size_;
-    std::vector<float> values_;
+    float_vec values_;
 };
 
 inline std::string show_matrix3d(const matrix3d& m)

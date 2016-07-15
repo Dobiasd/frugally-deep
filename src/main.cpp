@@ -1,4 +1,4 @@
-#include "conv_net.h"
+#include "multi_layer_net.h"
 #include "conv_layer.h"
 #include "filter.h"
 #include "matrix3d.h"
@@ -101,7 +101,7 @@ cv::Mat filter2DNet(const cv::Mat& img, const cv::Mat& cv_kernel)
 {
     matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
     std::vector<layer_ptr> layers = {cv_kernel_to_layer(cv_kernel)};
-    conv_net net = conv_net(layers);
+    multi_layer_net net(layers);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;
@@ -111,7 +111,7 @@ cv::Mat filter2DsNet(const cv::Mat& img, const std::vector<cv::Mat>& cv_kernels)
 {
     matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
     auto layers = fplus::transform(cv_kernel_to_layer, cv_kernels);
-    conv_net net = conv_net(layers);
+    multi_layer_net net(layers);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "matrix3d.h"
 #include "size3d.h"
 
@@ -24,13 +26,13 @@ public:
     {
         return m_;
     }
-    float get(std::size_t z, std::size_t y, size_t x) const
+    float_t get(std::size_t z, std::size_t y, size_t x) const
     {
         return m_.get(z, y, x);
     }
-    std::vector<float> get_params() const
+    float_vec get_params() const
     {
-        std::vector<float> params;
+        float_vec params;
         params.reserve(param_count());
         for (std::size_t z = 0; z < m_.size().depth(); ++z)
         {
@@ -44,7 +46,7 @@ public:
         }
         return params;
     }
-    void set_params(const std::vector<float>& params)
+    void set_params(const float_vec& params)
     {
         assert(params.size() == param_count());
         std::size_t i = 0;

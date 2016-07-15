@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "convolution.h"
 #include "filter.h"
 
@@ -32,14 +34,14 @@ public:
             filters_);
         return fplus::sum(counts);
     }
-    std::vector<float> get_params() const override
+    float_vec get_params() const override
     {
         return fplus::concat(
             fplus::transform(
                 [](const filter& f) { return f.get_params(); },
                 filters_));
     }
-    void set_params(const std::vector<float>& params) override
+    void set_params(const float_vec& params) override
     {
         assert(params.size() == param_count());
         auto params_per_filter =

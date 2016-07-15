@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "size2d.h"
 
 #include <cstddef>
@@ -14,11 +16,11 @@ public:
         values_(size.area(), 0.0f)
     {
     }
-    float get(std::size_t y, size_t x) const
+    float_t get(std::size_t y, size_t x) const
     {
         return values_[idx(y, x)];
     }
-    void set(std::size_t y, size_t x, float value)
+    void set(std::size_t y, size_t x, float_t value)
     {
         values_[idx(y, x)] = value;
     }
@@ -33,7 +35,7 @@ private:
         return size().width() + y * size().width() + x;
     };
     size2d size_;
-    std::vector<float> values_;
+    float_vec values_;
 };
 
 inline std::string show_matrix2d(const matrix2d& m)

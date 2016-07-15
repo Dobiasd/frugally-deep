@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include <cstddef>
 
 class size2d

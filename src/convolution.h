@@ -1,5 +1,7 @@
 #pragma once
 
+#include "typedefs.h"
+
 #include "filter.h"
 
 #include <cassert>
@@ -23,7 +25,7 @@ namespace internal
             {
                 for (std::size_t x = 1; x < in_vol.size().width() - 1; ++x)
                 {
-                    float val = 0.0f;
+                    float_t val = 0;
                     const size3d& filt_size = filters[k].size();
                     for (std::size_t z = 0; z < filt_size.depth(); ++z)
                     {

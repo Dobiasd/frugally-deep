@@ -39,7 +39,7 @@ loss functions: sigmoid cross entropy, manhattan (l1), euclidian (l2)
 
 watch again: https://www.youtube.com/watch?v=ue4RJdI8yRA
 mini-batches
-Vanishing gradient problem?
+Vanishing gradient problem? ReLU hilft
 Weight initialization
 regularization? (dropout, prevent overfitting? not needed for autoencoder)
 learning momentum?

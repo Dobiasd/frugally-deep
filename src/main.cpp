@@ -12,10 +12,86 @@
 #include <opencv2/opencv.hpp>
 
 #include <cassert>
+#include <fstream>
 #include <iostream>
+
+// http://stackoverflow.com/a/21802936
+std::vector<unsigned char> read_file(const std::string& filename)
+{
+    // open the file:
+    std::ifstream file(filename, std::ios::binary);
+
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
+
+    // get its size:
+    std::streampos fileSize;
+
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // reserve capacity
+    std::vector<unsigned char> vec;
+    vec.reserve(static_cast<std::size_t>(fileSize));
+
+    // read the data:
+    vec.insert(vec.begin(),
+               std::istream_iterator<unsigned char>(file),
+               std::istream_iterator<unsigned char>());
+
+    return vec;
+}
+
+fd::input_with_output parse_cifar_10_bin_line(
+    const std::vector<unsigned char>& vec)
+{
+    assert(vec.size() == 3073);
+    fd::matrix3d output(fd::size3d(1, 1, 10));
+    output.set(0, 0, vec[0], 1);
+    fd::matrix3d input(fd::size3d(3, 32, 32));
+    std::size_t vec_i = 0;
+    for (std::size_t z = 0; z < input.size().depth(); ++z)
+    {
+        for (std::size_t y = 0; y < input.size().height(); ++y)
+        {
+            for (std::size_t x = 0; x < input.size().depth(); ++x)
+            {
+                input.set(z, y, x, vec[++vec_i]);
+            }
+        }
+    }
+    return {input, output};
+}
+
+fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path)
+{
+    const auto bytes = read_file(file_path);
+    assert(bytes.size() == 30730000);
+    const auto lines = fplus::split_every(3073, bytes);
+    assert(lines.size() == 10000);
+    return fplus::transform(parse_cifar_10_bin_line, lines);
+}
+
+fd::input_with_output_vec load_cifar_10_bin_training()
+{
+    return fplus::concat(std::vector<fd::input_with_output_vec>({
+        load_cifar_10_bin_file("data_batch_1.bin"),
+        load_cifar_10_bin_file("data_batch_2.bin"),
+        load_cifar_10_bin_file("data_batch_3.bin"),
+        load_cifar_10_bin_file("data_batch_4.bin"),
+        load_cifar_10_bin_file("data_batch_5.bin")}));
+}
+
+fd::input_with_output_vec load_cifar_10_bin_test()
+{
+    return load_cifar_10_bin_file("test_batch.bin");
+}
 
 int main()
 {
+    auto test_pairs = load_cifar_10_bin_test();
+
     cv::Mat img_uchar = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
 

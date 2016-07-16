@@ -7,7 +7,6 @@
 #pragma once
 
 #include "frugally_deep/convolution.h"
-#include "frugally_deep/convolution.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/layer.h"
 

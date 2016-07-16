@@ -33,11 +33,13 @@ int main()
     cv::Mat filtered1;
     cv::filter2D(img, filtered1, CV_32FC3, kernel_scharr_x);
     cv::filter2D(filtered1, filtered1, -1, kernel_scharr_x);
+    cv::resize(filtered1, filtered1, cv::Size(0,0), 0.5, 0.5, cv::INTER_AREA);
     filtered1 = normalize_float_img(filtered1);
     filtered1 = float_ing_to_uchar_img(filtered1);
     cv::imwrite("lenna_512x512_filtered1.png", filtered1);
 
     cv::Mat filtered2 = filter2Ds_via_net(img, {kernel_scharr_x, kernel_scharr_x});
+    filtered2 = shrink_via_net(filtered2, 2);
     filtered2 = normalize_float_img(filtered2);
     filtered2 = float_ing_to_uchar_img(filtered2);
     cv::imwrite("lenna_512x512_filtered2.png", filtered2);

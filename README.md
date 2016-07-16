@@ -31,13 +31,9 @@ different paddings
 different steps
 
 layers:
-conv
-pooling layer (template max or average)
 transposed convolution layer aka deconv
-unpooling layer
-activation functions (identity, relu, sigmoid) als layer-template
 fully connected layer
-loss functions: softmax, sigmoid cross entropy, euclidian (l2)
+loss functions: sigmoid cross entropy, manhattan (l1), euclidian (l2)
 
 watch again: https://www.youtube.com/watch?v=ue4RJdI8yRA
 mini-batches

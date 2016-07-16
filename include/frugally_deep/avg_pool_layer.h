@@ -18,7 +18,7 @@ public:
             pool_layer(scale_factor)
     {
     }
-private:
+protected:
     matrix3d pool(const matrix3d& in_vol) const override
     {
         float_t pool_helper_acc_init = 0;

@@ -4,7 +4,7 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
-#include "frugally_deep/opencv_helpers.h"
+#include "opencv_helpers.h"
 
 #include <fplus/fplus.h>
 #include <opencv2/opencv.hpp>

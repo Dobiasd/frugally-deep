@@ -86,7 +86,7 @@ inline fd::layer_ptr cv_kernel_to_layer(const cv::Mat& cv_kernel)
     return std::make_shared<fd::conv_layer>(filters);
 }
 
-cv::Mat filter2D_via_net(const cv::Mat& img, const cv::Mat& cv_kernel)
+inline cv::Mat filter2D_via_net(const cv::Mat& img, const cv::Mat& cv_kernel)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
     std::vector<fd::layer_ptr> layers = {cv_kernel_to_layer(cv_kernel)};
@@ -96,18 +96,19 @@ cv::Mat filter2D_via_net(const cv::Mat& img, const cv::Mat& cv_kernel)
     return result;
 }
 
-cv::Mat filter2Ds_via_net(const cv::Mat& img,
+inline cv::Mat filter2Ds_via_net(const cv::Mat& img,
     const std::vector<cv::Mat>& cv_kernels)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
     auto layers = fplus::transform(cv_kernel_to_layer, cv_kernels);
     fd::multi_layer_net net(layers);
     auto out_vol = net.forward_pass(in_vol);
+    //std::cout << fplus::show_cont(net.get_params()) << std::endl;
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;
 }
 
-cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
+inline cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
 {
     assert(uchar_img.type() == CV_8UC3);
     cv::Mat result;
@@ -115,7 +116,7 @@ cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
     return result;
 }
 
-cv::Mat float_ing_to_uchar_img(const cv::Mat& floatImg)
+inline cv::Mat float_ing_to_uchar_img(const cv::Mat& floatImg)
 {
     assert(floatImg.type() == CV_32FC3);
     cv::Mat result;
@@ -123,7 +124,7 @@ cv::Mat float_ing_to_uchar_img(const cv::Mat& floatImg)
     return result;
 }
 
-cv::Mat normalize_float_img(const cv::Mat& floatImg)
+inline cv::Mat normalize_float_img(const cv::Mat& floatImg)
 {
     assert(floatImg.type() == CV_32FC3);
     cv::Mat result;

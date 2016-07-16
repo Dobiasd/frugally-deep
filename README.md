@@ -46,7 +46,7 @@ learning momentum?
 bias fuer layer, filter oder neurons?
 
 evolutionary optimization instread of backprop? (recombination?)
-json rausschreiben zwischendurch (temp, rename), html viewer dazu
+json rausschreiben zwischendurch (losses, weight distribution) (temp, rename), html viewer dazu
 start one async task per filter in layer? (fplus::execute_paralelly?)
 
 Affine layer- flow layer?

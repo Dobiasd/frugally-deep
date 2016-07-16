@@ -25,4 +25,4 @@ env.Append(LIBS=['opencv_core', 'opencv_imgproc',
                  'opencv_highgui', 'opencv_imgcodecs',
                  'pthread'])
 env.Append(CXXFLAGS='-std=c++11 -O3 -Iinclude -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast')
-env.Program(target='release/DeepVideoCompression', source=source_files)
+env.Program(target='release/frugally_deep_main', source=source_files)

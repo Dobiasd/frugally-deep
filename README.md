@@ -5,7 +5,7 @@ frugally-deep
 
 The goal is that someday the following things will be true:
 
-![logo](logo/frugally_deep.png)
+![logo](logo/frugally_deep.jpg)
 
 **frugally-deep**
 

@@ -23,6 +23,8 @@ class filter
 public:
     explicit filter(const matrix3d& m) : m_(m)
     {
+        assert(m_.size().width() %2 == 1);
+        assert(m_.size().height() %2 == 1);
     }
     std::size_t param_count() const
     {

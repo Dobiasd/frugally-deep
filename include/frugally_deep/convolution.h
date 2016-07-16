@@ -59,8 +59,8 @@ namespace internal
 
 inline matrix3d convolve(const std::vector<filter>& filters, const matrix3d& in_vol)
 {
-    // todo: convolve_matrix_mult instead of convolve_loops
-    //     use im_to_col and matrix multiplication for performance (?)
+    // todo: convolve_matrix_mult instead of convolve_loops?
+    //     (use im_to_col and matrix multiplication for performance)
     return internal::convolve_loops(filters, in_vol);
 }
 

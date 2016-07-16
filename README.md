@@ -23,6 +23,8 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+overall_include_file
+virtual dtors
 is memory arrangement in matrix good for speed? (cache locallity)
 use cmake with google tests (see fplus)
 different paddings

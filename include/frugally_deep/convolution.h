@@ -6,13 +6,16 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
-#include "filter.h"
+#include "frugally_deep/filter.h"
 
 #include <cassert>
 #include <cstddef>
 #include <vector>
+
+namespace fd
+{
 
 namespace internal
 {
@@ -60,3 +63,5 @@ inline matrix3d convolve(const std::vector<filter>& filters, const matrix3d& in_
     //     use im_to_col and matrix multiplication for performance (?)
     return internal::convolve_loops(filters, in_vol);
 }
+
+} // namespace fd

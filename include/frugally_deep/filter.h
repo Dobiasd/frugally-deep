@@ -6,14 +6,17 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
-#include "matrix3d.h"
-#include "size3d.h"
+#include "frugally_deep/matrix3d.h"
+#include "frugally_deep/size3d.h"
 
 #include <cassert>
 #include <cstddef>
 #include <vector>
+
+namespace fd
+{
 
 class filter
 {
@@ -71,3 +74,5 @@ public:
 private:
     matrix3d m_;
 };
+
+} // namespace fd

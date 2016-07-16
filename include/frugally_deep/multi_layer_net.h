@@ -6,15 +6,18 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
-#include "layer.h"
+#include "frugally_deep/layer.h"
 
 #include <fplus/fplus.h>
 
 #include <cassert>
 #include <cstddef>
 #include <vector>
+
+namespace fd
+{
 
 class multi_layer_net : public layer
 {
@@ -94,3 +97,5 @@ private:
     }
     std::vector<layer_ptr> layer_ptrs_;
 };
+
+} // namespace fd

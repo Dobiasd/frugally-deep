@@ -6,16 +6,19 @@
 
 #pragma once
 
-#include "convolution.h"
-#include "convolution.h"
-#include "filter.h"
-#include "layer.h"
+#include "frugally_deep/convolution.h"
+#include "frugally_deep/convolution.h"
+#include "frugally_deep/filter.h"
+#include "frugally_deep/layer.h"
 
 #include <fplus/fplus.h>
 
 #include <cassert>
 #include <cstddef>
 #include <vector>
+
+namespace fd
+{
 
 class conv_layer : public layer
 {
@@ -68,3 +71,5 @@ public:
 private:
     std::vector<filter> filters_;
 };
+
+} // namespace fd

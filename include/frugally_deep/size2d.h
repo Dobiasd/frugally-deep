@@ -6,10 +6,13 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
 #include <cstddef>
 #include <cstdlib>
+
+namespace fd
+{
 
 class size2d
 {
@@ -40,3 +43,5 @@ private:
 };
 
 bool operator == (const size2d& lhs, const size2d& rhs);
+
+} // namespace fd

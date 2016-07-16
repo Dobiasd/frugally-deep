@@ -6,13 +6,16 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
-#include "size3d.h"
+#include "frugally_deep/size3d.h"
 
 #include <cstddef>
 #include <string>
 #include <vector>
+
+namespace fd
+{
 
 class matrix3d
 {
@@ -64,3 +67,5 @@ inline std::string show_matrix3d(const matrix3d& m)
     str += "]";
     return str;
 }
+
+} // namespace fd

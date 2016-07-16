@@ -23,10 +23,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-namespace fd
-layer und netz muessen gleiche basisklasse haben
 is memory arrangement in matrix good for speed? (cache locallity)
-licence in sources
 use cmake with google tests (see fplus)
 different paddings
 different steps
@@ -40,9 +37,6 @@ activation functions (identity, relu, sigmoid) als layer-template
 fully connected layer
 loss functions: softmax, sigmoid cross entropy, euclidian (l2)
 
-json rausschreiben zwischendurch (temp, rename), html viewer dazu
-start one async task per filter in layer? (fplus::execute_paralelly?)
-
 watch again: https://www.youtube.com/watch?v=ue4RJdI8yRA
 mini-batches
 Vanishing gradient problem?
@@ -50,7 +44,10 @@ Weight initialization
 regularization? (dropout, prevent overfitting? not needed for autoencoder)
 learning momentum?
 bias fuer layer, filter oder neurons?
+
 evolutionary optimization instread of backprop? (recombination?)
+json rausschreiben zwischendurch (temp, rename), html viewer dazu
+start one async task per filter in layer? (fplus::execute_paralelly?)
 
 Affine layer- flow layer?
 or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html

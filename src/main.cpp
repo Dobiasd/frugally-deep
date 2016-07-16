@@ -4,7 +4,7 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
-#include "opencv_helpers.h"
+#include "frugally_deep/opencv_helpers.h"
 
 #include <fplus/fplus.h>
 #include <opencv2/opencv.hpp>
@@ -31,8 +31,8 @@ int main()
     cv::Mat kernel_blur(cv::Size(3,3), CV_32FC1, cv::Scalar(1.0f/9.0f));
 
     cv::Mat filtered1;
-    filter2D(img, filtered1, CV_32FC3, kernel_scharr_x);
-    filter2D(filtered1, filtered1, -1, kernel_scharr_x);
+    cv::filter2D(img, filtered1, CV_32FC3, kernel_scharr_x);
+    cv::filter2D(filtered1, filtered1, -1, kernel_scharr_x);
     filtered1 = normalize_float_img(filtered1);
     filtered1 = float_ing_to_uchar_img(filtered1);
     cv::imwrite("lenna_512x512_filtered1.png", filtered1);

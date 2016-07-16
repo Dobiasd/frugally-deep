@@ -6,12 +6,15 @@
 
 #pragma once
 
-#include "typedefs.h"
+#include "frugally_deep/typedefs.h"
 
-#include "matrix3d.h"
+#include "frugally_deep/matrix3d.h"
 
 #include <cstddef>
 #include <memory>
+
+namespace fd
+{
 
 class layer
 {
@@ -28,3 +31,5 @@ public:
 };
 
 typedef std::shared_ptr<layer> layer_ptr;
+
+} // namespace fd

@@ -14,9 +14,11 @@ The goal is that someday the following things will be true:
 * can use multiple CPUs.
 * does not make use of GPUs.
 * is quite slow.
-* is merely intended to be a personal learning project.
 * possibly has some unknown bugs.
-* should probably not be used for anything serious. ;-)
+* is a badly reinvented wheel.
+* should probably not be used for anything serious.
+* is merely intended to be a personal learning project.
+
 
 
 

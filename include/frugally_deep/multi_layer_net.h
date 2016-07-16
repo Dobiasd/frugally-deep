@@ -76,6 +76,8 @@ private:
     static bool is_layer_transition_valid(
         const std::pair<layer_ptr, layer_ptr>& layer_ptr_pair)
     {
+        // todo
+        return true;
         return
             layer_ptr_pair.first->output_depth() ==
             layer_ptr_pair.second->input_depth();

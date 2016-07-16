@@ -31,7 +31,6 @@ different paddings
 different steps
 
 layers:
-softplus layer
 transposed convolution layer aka deconv
 fully connected layer
 loss functions: sigmoid cross entropy, manhattan (l1), euclidian (l2)

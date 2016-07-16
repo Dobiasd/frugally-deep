@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include "frugally_deep/conv_layer.h"
+#include "frugally_deep/layers/conv_layer.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/matrix3d.h"
 #include "frugally_deep/multi_layer_net.h"
-#include "frugally_deep/avg_pool_layer.h"
-#include "frugally_deep/max_pool_layer.h"
-#include "frugally_deep/unpool_layer.h"
+#include "frugally_deep/layers/avg_pool_layer.h"
+#include "frugally_deep/layers/max_pool_layer.h"
+#include "frugally_deep/layers/unpool_layer.h"
 
 #include <opencv2/opencv.hpp>
 

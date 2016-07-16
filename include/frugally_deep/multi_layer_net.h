@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/layer.h"
+#include "frugally_deep/layers/layer.h"
 
 #include <fplus/fplus.h>
 

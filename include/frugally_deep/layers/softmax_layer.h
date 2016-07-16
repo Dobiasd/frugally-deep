@@ -6,20 +6,20 @@
 
 #pragma once
 
-#include "frugally_deep/actication_layer.h"
+#include "frugally_deep/layers/actication_layer.h"
 
 namespace fd
 {
 
-// fast sigmoid: f(x) = x / (1 + abs(x))
-class sigmoid_layer : public actication_layer
+class softmax_layer : public actication_layer
 {
 private:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         auto actication_function = [](float_t x) -> float_t
         {
-            return x / (1 + std::abs(x));
+            // todo
+            return x;
         };
         return transform_helper(actication_function, in_vol);
     }

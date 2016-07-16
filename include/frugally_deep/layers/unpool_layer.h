@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/layer.h"
+#include "frugally_deep/layers/layer.h"
 
 #include <fplus/fplus.h>
 
@@ -17,13 +17,16 @@
 namespace fd
 {
 
-// Abstract base class for actication layers
-class actication_layer : public layer
+class unpool_layer : public layer
 {
 public:
+    explicit unpool_layer(std::size_t scale_factor) :
+        scale_factor_(scale_factor)
+    {
+    }
     matrix3d forward_pass(const matrix3d& input) const override
     {
-        return transform_input(input);
+        return unpool(input);
     }
     std::size_t param_count() const override
     {
@@ -49,27 +52,30 @@ public:
         return 0;
     }
 protected:
-    virtual matrix3d transform_input(const matrix3d& input) const = 0;
-
-    template <typename ActivationFunc>
-    static matrix3d transform_helper(
-            ActivationFunc actication_func,
-            const matrix3d& in_vol)
+    std::size_t scale_factor_;
+    matrix3d unpool(const matrix3d& in_vol) const
     {
         matrix3d out_vol(
             size3d(
                 in_vol.size().depth(),
-                in_vol.size().height(),
-                in_vol.size().width()));
+                in_vol.size().height() * scale_factor_,
+                in_vol.size().width() * scale_factor_));
         for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
         {
-            for (std::size_t y = 0; y < in_vol.size().height(); ++y)
+            for (std::size_t y = 0; y < out_vol.size().height(); ++y)
             {
-                for (std::size_t x = 0; x < in_vol.size().width(); ++x)
+                std::size_t y_in = y / scale_factor_;
+                for (std::size_t x = 0; x < out_vol.size().width(); ++x)
                 {
-                    out_vol.set(z, y, x,
-                        actication_func(
-                            in_vol.get(z, y, x)));
+                    std::size_t x_in = x / scale_factor_;
+                    float_t val = in_vol.get(z, y_in, x_in);
+                    for (std::size_t yf = 0; yf < scale_factor_; ++yf)
+                    {
+                        for (std::size_t xf = 0; xf < scale_factor_; ++xf)
+                        {
+                            out_vol.set(z, y, x, val);
+                        }
+                    }
                 }
             }
         }

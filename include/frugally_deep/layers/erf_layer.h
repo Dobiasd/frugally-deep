@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/actication_layer.h"
+#include "frugally_deep/layers/actication_layer.h"
 
 namespace fd
 {

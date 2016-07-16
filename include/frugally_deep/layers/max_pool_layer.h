@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/pool_layer.h"
+#include "frugally_deep/layers/pool_layer.h"
 
 namespace fd
 {

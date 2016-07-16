@@ -2,6 +2,7 @@ build
 release
 images
 videos
+stuff
 *.png
 *sublime*
 .sconsign.dblite

@@ -5,6 +5,8 @@ frugally-deep
 
 The goal is that someday the following things will be true:
 
+![logo](logo/frugally_deep.png)
+
 **frugally-deep**
 
 * **is a very simplistic deep learning framework written in C++.**

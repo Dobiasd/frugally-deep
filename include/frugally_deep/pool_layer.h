@@ -69,6 +69,7 @@ namespace fd
     private:
         matrix3d pool(const matrix3d& in_vol) const override
         {
+            // todo: code mit max_pool_layer teilen
             assert(in_vol.size().height() % scale_factor_ == 0);
             assert(in_vol.size().width() % scale_factor_ == 0);
             matrix3d out_vol(

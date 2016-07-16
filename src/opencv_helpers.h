@@ -112,7 +112,7 @@ inline cv::Mat filter2Ds_via_net(const cv::Mat& img,
 inline cv::Mat shrink_via_net(const cv::Mat& img, std::size_t scale_factor)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
-    fd::avg_pool_layer net(scale_factor);
+    fd::max_pool_layer net(scale_factor);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;

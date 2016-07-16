@@ -19,10 +19,21 @@
 namespace fd
 {
 
-class conv_layer : public layer
+class convolutional_layer : public layer
 {
 public:
-    explicit conv_layer(const std::vector<filter>& filters) :
+    static std::vector<filter> generate_filters(
+        std::size_t depth, std::size_t f, std::size_t k)
+    {
+        return std::vector<filter>(k, filter(matrix3d(size3d(depth, f, f))));
+    }
+    explicit convolutional_layer(
+            std::size_t depth, std::size_t f, std::size_t k)
+        : convolutional_layer(generate_filters(depth, f, k))
+    {
+    }
+    // todo: remove this ctor. It was just here for testing purposes.
+    explicit convolutional_layer(const std::vector<filter>& filters) :
         filters_(filters)
     {
         assert(fplus::is_not_empty(filters));

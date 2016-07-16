@@ -21,6 +21,8 @@ std::vector<unsigned char> read_file(const std::string& filename)
     // open the file:
     std::ifstream file(filename, std::ios::binary);
 
+    assert(file.good());
+
     // Stop eating new lines in binary mode!!!
     file.unsetf(std::ios::skipws);
 
@@ -55,9 +57,10 @@ fd::input_with_output parse_cifar_10_bin_line(
     {
         for (std::size_t y = 0; y < input.size().height(); ++y)
         {
-            for (std::size_t x = 0; x < input.size().depth(); ++x)
+            for (std::size_t x = 0; x < input.size().width(); ++x)
             {
-                input.set(z, y, x, vec[++vec_i]);
+                input.set(input.size().depth() - (z + 1), y, x,
+                    vec[++vec_i] / static_cast<float_t>(256));
             }
         }
     }
@@ -73,25 +76,33 @@ fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path)
     return fplus::transform(parse_cifar_10_bin_line, lines);
 }
 
-fd::input_with_output_vec load_cifar_10_bin_training()
+fd::input_with_output_vec load_cifar_10_bin_training(
+    const std::string& base_directory)
 {
     return fplus::concat(std::vector<fd::input_with_output_vec>({
-        load_cifar_10_bin_file("data_batch_1.bin"),
-        load_cifar_10_bin_file("data_batch_2.bin"),
-        load_cifar_10_bin_file("data_batch_3.bin"),
-        load_cifar_10_bin_file("data_batch_4.bin"),
-        load_cifar_10_bin_file("data_batch_5.bin")}));
+        load_cifar_10_bin_file(base_directory + "/data_batch_1.bin"),
+        load_cifar_10_bin_file(base_directory + "/data_batch_2.bin"),
+        load_cifar_10_bin_file(base_directory + "/data_batch_3.bin"),
+        load_cifar_10_bin_file(base_directory + "/data_batch_4.bin"),
+        load_cifar_10_bin_file(base_directory + "/data_batch_5.bin")}));
 }
 
-fd::input_with_output_vec load_cifar_10_bin_test()
+fd::input_with_output_vec load_cifar_10_bin_test(
+    const std::string& base_directory)
 {
-    return load_cifar_10_bin_file("test_batch.bin");
+    return load_cifar_10_bin_file(base_directory + "/test_batch.bin");
 }
 
-int main()
+fd::classification_dataset load_cifar_10_bin(
+    const std::string& base_directory)
 {
-    auto test_pairs = load_cifar_10_bin_test();
+    return {
+        load_cifar_10_bin_training(base_directory),
+        load_cifar_10_bin_test(base_directory)};
+}
 
+void lenna_filter_test()
+{
     cv::Mat img_uchar = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
 
@@ -114,13 +125,52 @@ int main()
     cv::resize(filtered1, filtered1, cv::Size(0,0), 0.5, 0.5, cv::INTER_AREA);
     cv::resize(filtered1, filtered1, cv::Size(0,0), 2, 2, cv::INTER_NEAREST);
     filtered1 = normalize_float_img(filtered1);
-    filtered1 = float_ing_to_uchar_img(filtered1);
+    filtered1 = float_img_to_uchar_img(filtered1);
     cv::imwrite("lenna_512x512_filtered1.png", filtered1);
 
     cv::Mat filtered2 = filter2Ds_via_net(img, {kernel_scharr_x, kernel_scharr_x});
     filtered2 = shrink_via_net(filtered2, 2);
     filtered2 = grow_via_net(filtered2, 2);
     filtered2 = normalize_float_img(filtered2);
-    filtered2 = float_ing_to_uchar_img(filtered2);
+    filtered2 = float_img_to_uchar_img(filtered2);
     cv::imwrite("lenna_512x512_filtered2.png", filtered2);
+}
+
+void cifar_10_classification_test()
+{
+    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin");
+    classifcation_data.training_data_ =
+        fplus::sample(
+            classifcation_data.training_data_.size() / 100,
+            classifcation_data.training_data_);
+    classifcation_data.test_data_ =
+        fplus::sample(
+            classifcation_data.test_data_.size() / 100,
+            classifcation_data.test_data_);
+
+    using namespace fd;
+    layer_ptrs layers = {
+        conv(3, 3, 8), leaky_relu(0.01f),
+        conv(8, 3, 8), leaky_relu(0.01f),
+        max_pool(2),
+        conv(8, 3, 16), leaky_relu(0.01f),
+        conv(16, 3, 16), leaky_relu(0.01f),
+        max_pool(2),
+        conv(32, 3, 32), leaky_relu(0.01f),
+        conv(32, 3, 32), leaky_relu(0.01f),
+        conv(32, 1, 32), leaky_relu(0.01f),
+        max_pool(2),
+        fc(4*4*32, 256),
+        fc(256, 256),
+        fc(256, 10),
+        softmax()
+        };
+    fd::multi_layer_net net(layers);
+    net.train(classifcation_data.training_data_);
+    net.test(classifcation_data.test_data_);
+}
+
+int main()
+{
+    cifar_10_classification_test();
 }

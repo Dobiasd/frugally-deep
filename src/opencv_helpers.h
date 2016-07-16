@@ -80,7 +80,7 @@ inline fd::layer_ptr cv_kernel_to_layer(const cv::Mat& cv_kernel)
         fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 1)),
         fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 2))
     };
-    return std::make_shared<fd::conv_layer>(filters);
+    return std::make_shared<fd::convolutional_layer>(filters);
 }
 
 inline cv::Mat filter2D_via_net(const cv::Mat& img, const cv::Mat& cv_kernel)
@@ -131,7 +131,7 @@ inline cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
     return result;
 }
 
-inline cv::Mat float_ing_to_uchar_img(const cv::Mat& floatImg)
+inline cv::Mat float_img_to_uchar_img(const cv::Mat& floatImg)
 {
     assert(floatImg.type() == CV_32FC3);
     cv::Mat result;

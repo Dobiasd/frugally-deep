@@ -31,5 +31,6 @@ public:
 };
 
 typedef std::shared_ptr<layer> layer_ptr;
+typedef std::vector<layer_ptr> layer_ptrs;
 
 } // namespace fd

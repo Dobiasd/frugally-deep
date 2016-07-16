@@ -19,13 +19,6 @@
 namespace fd
 {
 
-struct input_with_output
-{
-    matrix3d input_;
-    matrix3d output_;
-};
-typedef std::vector<input_with_output> input_with_output_vec;
-
 class multi_layer_net : public layer
 {
 public:

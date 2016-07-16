@@ -5,6 +5,7 @@
 #include "matrix3d.h"
 #include "size3d.h"
 
+#include <cassert>
 #include <cstddef>
 #include <vector>
 

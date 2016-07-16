@@ -3,6 +3,7 @@
 #include "convolution.h"
 #include "convolution.h"
 #include "filter.h"
+#include "layer.h"
 
 #include <fplus/fplus.h>
 

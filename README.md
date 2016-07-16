@@ -26,7 +26,8 @@ todo
 namespace fd
 layer und netz muessen gleiche basisklasse haben
 is memory arrangement in matrix good for speed? (cache locallity)
-Opencv in own header file
+licence in sources
+use cmake with google tests (see fplus)
 different paddings
 different steps
 

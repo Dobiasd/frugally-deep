@@ -11,14 +11,14 @@
 namespace fd
 {
 
-class sigmoid_layer : public actication_layer
+class fast_sigmoid_layer : public actication_layer
 {
 private:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         auto actication_function = [](float_t x) -> float_t
         {
-            return 1 / (1 + std::exp(-x));
+            return x / (1 + std::abs(x));
         };
         return transform_helper(actication_function, in_vol);
     }

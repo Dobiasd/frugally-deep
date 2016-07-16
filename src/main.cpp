@@ -1,3 +1,9 @@
+// Copyright 2016, Tobias Hermann.
+// https://github.com/Dobiasd/frugally-deep
+// Distributed under the MIT License.
+// (See accompanying LICENSE file or at
+//  https://opensource.org/licenses/MIT)
+
 #include "opencv_helpers.h"
 
 #include <fplus/fplus.h>

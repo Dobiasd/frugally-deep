@@ -8,6 +8,9 @@
 
 #include "frugally_deep/typedefs.h"
 
+#include "frugally_deep/size2d.h"
+#include "frugally_deep/size3d.h"
+
 #include "frugally_deep/layers/avg_pool_layer.h"
 #include "frugally_deep/layers/convolutional_layer.h"
 #include "frugally_deep/layers/elu_layer.h"
@@ -44,10 +47,10 @@ struct classification_dataset
 };
 
 // todo steps, kann man naemlich statt pool benutzen
-layer_ptr conv(const size3d& size_in, const std::size_t& f,
+layer_ptr conv(const size3d& size_in, const size2d& filter_size,
     std::size_t k, std::size_t stride)
 {
-    return std::make_shared<convolutional_layer>(size_in, f, k, stride);
+    return std::make_shared<convolutional_layer>(size_in, filter_size, k, stride);
 }
 
 layer_ptr leaky_relu(const size3d& size_in, float_t alpha)

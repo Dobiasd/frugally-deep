@@ -8,6 +8,8 @@
 
 #include "frugally_deep/convolution.h"
 #include "frugally_deep/filter.h"
+#include "frugally_deep/size2d.h"
+#include "frugally_deep/size3d.h"
 #include "frugally_deep/layers/layer.h"
 
 #include <fplus/fplus.h>
@@ -23,14 +25,15 @@ class convolutional_layer : public layer
 {
 public:
     static std::vector<filter> generate_filters(
-        std::size_t depth, std::size_t f, std::size_t k)
+        std::size_t depth, const size2d& filter_size, std::size_t k)
     {
-        return std::vector<filter>(k, filter(matrix3d(size3d(depth, f, f))));
+        return std::vector<filter>(k, filter(matrix3d(
+            size3d(depth, filter_size.height(), filter_size.width()))));
     }
     explicit convolutional_layer(
-            const size3d& size_in, std::size_t f,
+            const size3d& size_in, const size2d& filter_size,
             std::size_t k, std::size_t stride)
-        : size_in_(size_in), filters_(generate_filters(size_in.depth(), f, k))
+        : size_in_(size_in), filters_(generate_filters(size_in.depth(), filter_size, k))
     {
         assert(stride == 1); // todo: allow different strides
     }

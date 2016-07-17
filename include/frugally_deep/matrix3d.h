@@ -99,4 +99,9 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
     return out_vol;
 }
 
+matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
+{
+    return matrix3d(out_size, in_vol.as_vector());
+}
+
 } // namespace fd

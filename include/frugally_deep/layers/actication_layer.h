@@ -21,6 +21,9 @@ namespace fd
 class actication_layer : public layer
 {
 public:
+    explicit actication_layer(const size3d& size_in) : size_in_(size_in)
+    {
+    }
     matrix3d forward_pass(const matrix3d& input) const override
     {
         return transform_input(input);
@@ -37,18 +40,16 @@ public:
     {
         assert(params.size() == param_count());
     }
-    std::size_t input_depth() const override
+    const size3d& input_size() const override
     {
-        // todo: everything goes
-        // perhaps instead fplus::maybe<std::size_t> fixed_input_depth()
-        return 0;
+        return size_in_;
     }
-    std::size_t output_depth() const override
+    size3d output_size() const override
     {
-        // todo: same_as_input
-        return 0;
+        return size_in_;
     }
 protected:
+    size3d size_in_;
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
 };
 

@@ -63,37 +63,39 @@ public:
             layer_ptrs_[i]->set_params(params_per_layer[i]);
         }
     }
-    std::size_t input_depth() const override
+    const size3d& input_size() const override
     {
-        return layer_ptrs_.front()->input_depth();
+        return layer_ptrs_.front()->input_size();
     }
-    std::size_t output_depth() const override
+    size3d output_size() const override
     {
-        return layer_ptrs_.back()->output_depth();
+        return layer_ptrs_.back()->output_size();
     }
 
 private:
     static bool is_layer_transition_valid(
         const std::pair<layer_ptr, layer_ptr>& layer_ptr_pair)
     {
-        // todo
-        return true;
         return
-            layer_ptr_pair.first->output_depth() ==
-            layer_ptr_pair.second->input_depth();
+            layer_ptr_pair.first->output_size() ==
+            layer_ptr_pair.second->input_size();
     }
     static bool is_layer_ptr_chain_valid(
         const std::vector<layer_ptr>& layer_ptrs)
     {
-        // todo: what about non-conv-layers like FC?
-        return
-            fplus::all_by(
+        if (!fplus::all_by(
                 [](const layer_ptr& ptr) -> bool
                 {
                     return static_cast<bool>(ptr);
                 },
-                layer_ptrs) &&
-            fplus::all_by(
+                layer_ptrs))
+        {
+            // todo exception mit beschreibung
+            return false;
+        }
+
+        // todo exception mit beschreibung
+        return fplus::all_by(
                 is_layer_transition_valid,
                 fplus::overlapping_pairs(layer_ptrs));
     }

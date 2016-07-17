@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <string>
 
 namespace fd
 {
@@ -43,5 +44,13 @@ private:
 };
 
 bool operator == (const size2d& lhs, const size2d& rhs);
+
+std::string show_size2d(const size2d& size)
+{
+    return std::string(
+        "(" + std::to_string(size.height()) +
+        "," + std::to_string(size.width()) +
+        ")");
+}
 
 } // namespace fd

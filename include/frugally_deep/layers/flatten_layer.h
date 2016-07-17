@@ -8,38 +8,31 @@
 
 #include "frugally_deep/layers/layer.h"
 
-#include "frugally_deep/matrix2d.h"
-
 namespace fd
 {
 
-class fully_connected_layer : public layer
+class flatten_layer : public layer
 {
 public:
-    fully_connected_layer(std::size_t n_in, std::size_t n_out)
-        : size_in_(size3d(1, 1, n_in)),
-            size_out_(1, 1, n_out),
-            params_(size2d(n_in, n_out))
+    explicit flatten_layer(const size3d& size_in) :
+            size_in_(size_in)
     {
     }
     matrix3d forward_pass(const matrix3d& input) const override
     {
-        // todo
-        return input;
+        return reshape_matrix3d(input, output_size());
     }
     std::size_t param_count() const override
     {
-        return params_.size().height() * params_.size().width();
+        return 0;
     }
     float_vec get_params() const override
     {
-        // todo params_ flatten
         return {};
     }
     void set_params(const float_vec& params) override
     {
         assert(params.size() == param_count());
-        // todo
     }
     const size3d& input_size() const override
     {
@@ -47,12 +40,10 @@ public:
     }
     size3d output_size() const override
     {
-        return size_out_;
+        return size3d(1, 1, size_in_.volume());
     }
-private:
+protected:
     size3d size_in_;
-    size3d size_out_;
-    matrix2d params_;
 };
 
 } // namespace fd

@@ -20,8 +20,8 @@ namespace fd
 class unpool_layer : public layer
 {
 public:
-    explicit unpool_layer(std::size_t scale_factor) :
-        scale_factor_(scale_factor)
+    explicit unpool_layer(const size3d& size_in, std::size_t scale_factor) :
+        size_in_(size_in), scale_factor_(scale_factor)
     {
     }
     matrix3d forward_pass(const matrix3d& input) const override
@@ -40,18 +40,19 @@ public:
     {
         assert(params.size() == param_count());
     }
-    std::size_t input_depth() const override
+    const size3d& input_size() const override
     {
-        // todo: everything goes
-        // perhaps instead fplus::maybe<std::size_t> fixed_input_depth()
-        return 0;
+        return size_in_;
     }
-    std::size_t output_depth() const override
+    size3d output_size() const override
     {
-        // todo: same_as_input
-        return 0;
+        return size3d(
+            size_in_.depth(),
+            size_in_.height() * scale_factor_,
+            size_in_.width() * scale_factor_);
     }
 protected:
+    size3d size_in_;
     std::size_t scale_factor_;
     matrix3d unpool(const matrix3d& in_vol) const
     {

@@ -73,6 +73,7 @@ inline cv::Mat matrix3d_to_cv_bgr_img_float(const fd::matrix3d& m)
     return img;
 }
 
+/*
 inline fd::layer_ptr cv_kernel_to_layer(const cv::Mat& cv_kernel)
 {
     std::vector<fd::filter> filters = {
@@ -122,6 +123,7 @@ inline cv::Mat grow_via_net(const cv::Mat& img, std::size_t scale_factor)
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;
 }
+*/
 
 inline cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
 {

@@ -14,7 +14,8 @@ namespace fd
 class elu_layer : public actication_layer
 {
 public:
-    explicit elu_layer(float_t alpha) : alpha_(alpha)
+    explicit elu_layer(const size3d& size_in, float_t alpha)
+        : actication_layer(size_in), alpha_(alpha)
     {
     }
 private:

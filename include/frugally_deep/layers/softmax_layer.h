@@ -13,6 +13,11 @@ namespace fd
 
 class softmax_layer : public actication_layer
 {
+public:
+    explicit softmax_layer(const size3d& size_in)
+        : actication_layer(size_in)
+    {
+    }
 private:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {

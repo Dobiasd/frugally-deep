@@ -14,8 +14,8 @@ namespace fd
 class max_pool_layer : public pool_layer
 {
 public:
-    explicit max_pool_layer(std::size_t scale_factor) :
-            pool_layer(scale_factor)
+    explicit max_pool_layer(const size3d& size_in, std::size_t scale_factor) :
+            pool_layer(size_in, scale_factor)
     {
     }
 protected:

@@ -100,7 +100,7 @@ fd::classification_dataset load_cifar_10_bin(
         load_cifar_10_bin_training(base_directory),
         load_cifar_10_bin_test(base_directory)};
 }
-
+/*
 void lenna_filter_test()
 {
     cv::Mat img_uchar = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
@@ -135,7 +135,7 @@ void lenna_filter_test()
     filtered2 = float_img_to_uchar_img(filtered2);
     cv::imwrite("lenna_512x512_filtered2.png", filtered2);
 }
-
+*/
 void cifar_10_classification_test()
 {
     auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin");
@@ -150,24 +150,27 @@ void cifar_10_classification_test()
 
     using namespace fd;
     layer_ptrs layers = {
-        conv(3, 3, 8), leaky_relu(0.01f),
-        conv(8, 3, 8), leaky_relu(0.01f),
-        max_pool(2),
-        conv(8, 3, 16), leaky_relu(0.01f),
-        conv(16, 3, 16), leaky_relu(0.01f),
-        max_pool(2),
-        conv(32, 3, 32), leaky_relu(0.01f),
-        conv(32, 3, 32), leaky_relu(0.01f),
-        conv(32, 1, 32), leaky_relu(0.01f),
-        max_pool(2),
-        fc(4*4*32, 256),
+        conv(size3d(3, 32, 32), 3, 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
+        conv(size3d(8, 32, 32), 3, 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
+        max_pool(size3d(8, 32, 32), 2),
+        conv(size3d(8, 16, 16), 3, 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
+        conv(size3d(16, 16, 16), 3, 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
+        max_pool(size3d(16, 16, 16), 2),
+        conv(size3d(16, 8, 8), 3, 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
+        conv(size3d(32, 8, 8), 3, 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
+        max_pool(size3d(32, 8, 8), 2),
+        conv(size3d(32, 4, 4), 3, 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
+        conv(size3d(64, 4, 4), 3, 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
+        conv(size3d(64, 4, 4), 1, 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
+        flatten(size3d(64, 4, 4)),
+        fc(size3d(64, 4, 4).volume(), 256),
         fc(256, 256),
         fc(256, 10),
-        softmax()
+        softmax(size3d(1,1,10))
         };
     fd::multi_layer_net net(layers);
-    net.train(classifcation_data.training_data_);
-    net.test(classifcation_data.test_data_);
+    //net.train(classifcation_data.training_data_);
+    //net.test(classifcation_data.test_data_);
 }
 
 int main()

@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <string>
 
 namespace fd
 {
@@ -55,6 +56,15 @@ inline bool operator == (const size3d& lhs, const size3d& rhs)
         lhs.depth() == rhs.depth() &&
         lhs.height() == rhs.height() &&
         lhs.width() == rhs.width();
+}
+
+std::string show_size3d(const size3d& size)
+{
+    return std::string(
+        "(" + std::to_string(size.depth()) +
+        "," + std::to_string(size.height()) +
+        "," + std::to_string(size.width()) +
+        ")");
 }
 
 } // namespace fd

@@ -14,6 +14,10 @@ namespace fd
 class relu_layer : public actication_layer
 {
 private:
+    explicit relu_layer(const size3d& size_in)
+        : actication_layer(size_in)
+    {
+    }
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         auto actication_function = [](float_t x) -> float_t

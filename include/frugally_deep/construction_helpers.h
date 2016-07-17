@@ -13,6 +13,7 @@
 #include "frugally_deep/layers/elu_layer.h"
 #include "frugally_deep/layers/erf_layer.h"
 #include "frugally_deep/layers/fast_sigmoid_layer.h"
+#include "frugally_deep/layers/flatten_layer.h"
 #include "frugally_deep/layers/fully_connected_layer.h"
 #include "frugally_deep/layers/layer.h"
 #include "frugally_deep/layers/leaky_relu_layer.h"
@@ -43,19 +44,25 @@ struct classification_dataset
 };
 
 // todo steps, kann man naemlich statt pool benutzen
-layer_ptr conv(std::size_t depth, std::size_t f, std::size_t k)
+layer_ptr conv(const size3d& size_in, const std::size_t& f,
+    std::size_t k, std::size_t stride)
 {
-    return std::make_shared<convolutional_layer>(depth, f, k);
+    return std::make_shared<convolutional_layer>(size_in, f, k, stride);
 }
 
-layer_ptr leaky_relu(float_t alpha)
+layer_ptr leaky_relu(const size3d& size_in, float_t alpha)
 {
-    return std::make_shared<leaky_relu_layer>(alpha);
+    return std::make_shared<leaky_relu_layer>(size_in, alpha);
 }
 
-layer_ptr max_pool(std::size_t scale_factor)
+layer_ptr max_pool(const size3d& size_in, std::size_t scale_factor)
 {
-    return std::make_shared<max_pool_layer>(scale_factor);
+    return std::make_shared<max_pool_layer>(size_in, scale_factor);
+}
+
+layer_ptr flatten(const size3d& size_in)
+{
+    return std::make_shared<flatten_layer>(size_in);
 }
 
 layer_ptr fc(std::size_t n_in, std::size_t n_out)
@@ -63,9 +70,9 @@ layer_ptr fc(std::size_t n_in, std::size_t n_out)
     return std::make_shared<fully_connected_layer>(n_in, n_out);
 }
 
-layer_ptr softmax()
+layer_ptr softmax(const size3d& size_in)
 {
-    return std::make_shared<softmax_layer>();
+    return std::make_shared<softmax_layer>(size_in);
 }
 
 } // namespace fd

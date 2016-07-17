@@ -28,18 +28,11 @@ public:
         return std::vector<filter>(k, filter(matrix3d(size3d(depth, f, f))));
     }
     explicit convolutional_layer(
-            std::size_t depth, std::size_t f, std::size_t k)
-        : convolutional_layer(generate_filters(depth, f, k))
+            const size3d& size_in, std::size_t f,
+            std::size_t k, std::size_t stride)
+        : size_in_(size_in), filters_(generate_filters(size_in.depth(), f, k))
     {
-    }
-    explicit convolutional_layer(const std::vector<filter>& filters) :
-        filters_(filters)
-    {
-        assert(fplus::is_not_empty(filters));
-        auto filter_sizes =
-            fplus::transform([](const filter& f) { return f.size(); },
-            filters_);
-        assert(fplus::all_the_same(filter_sizes));
+        assert(stride == 1); // todo: allow different strides
     }
     matrix3d forward_pass(const matrix3d& input) const override
     {
@@ -69,15 +62,16 @@ public:
             filters_[i].set_params(params_per_filter[i]);
         }
     }
-    std::size_t input_depth() const override
+    const size3d& input_size() const override
     {
-        return filters_.front().get_matrix3d().size().depth();
+        return size_in_;
     }
-    std::size_t output_depth() const override
+    size3d output_size() const override
     {
-        return filters_.size();
+        return size3d(filters_.size(), size_in_.height(), size_in_.width());
     }
 private:
+    size3d size_in_;
     std::vector<filter> filters_;
 };
 

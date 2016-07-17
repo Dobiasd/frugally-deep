@@ -14,7 +14,8 @@ namespace fd
 class leaky_relu_layer : public actication_layer
 {
 public:
-    explicit leaky_relu_layer(float_t alpha) : alpha_(alpha)
+    explicit leaky_relu_layer(const size3d& size_in, float_t alpha)
+        : actication_layer(size_in), alpha_(alpha)
     {
     }
 private:

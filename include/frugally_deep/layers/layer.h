@@ -26,8 +26,8 @@ public:
     virtual std::size_t param_count() const = 0;
     virtual float_vec get_params() const = 0;
     virtual void set_params(const float_vec& params) = 0;
-    virtual std::size_t input_depth() const = 0;
-    virtual std::size_t output_depth() const = 0;
+    virtual const size3d& input_size() const = 0;
+    virtual size3d output_size() const = 0;
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

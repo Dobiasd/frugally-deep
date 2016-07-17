@@ -74,19 +74,24 @@ inline std::string show_matrix2d(const matrix2d& m)
 }
 
 template <typename F>
-matrix2d transform_matrix2d(F f, const matrix2d& in_vol)
+matrix2d transform_matrix2d(F f, const matrix2d& m)
 {
     matrix2d out_vol(size2d(
-        in_vol.size().height(),
-        in_vol.size().width()));
-    for (std::size_t y = 0; y < in_vol.size().height(); ++y)
+        m.size().height(),
+        m.size().width()));
+    for (std::size_t y = 0; y < m.size().height(); ++y)
     {
-        for (std::size_t x = 0; x < in_vol.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width(); ++x)
         {
-            out_vol.set(y, x, f(in_vol.get(y, x)));
+            out_vol.set(y, x, f(m.get(y, x)));
         }
     }
     return out_vol;
+}
+
+matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
+{
+    return matrix2d(out_size, m.as_vector());
 }
 
 } // namespace fd

@@ -20,7 +20,7 @@ private:
         {
             return x / (1 + std::abs(x));
         };
-        return transform_helper(actication_function, in_vol);
+        return transform_matrix3d(actication_function, in_vol);
     }
 };
 

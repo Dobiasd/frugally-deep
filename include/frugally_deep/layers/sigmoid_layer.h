@@ -20,7 +20,7 @@ private:
         {
             return 1 / (1 + std::exp(-x));
         };
-        return transform_helper(actication_function, in_vol);
+        return transform_matrix3d(actication_function, in_vol);
     }
 };
 

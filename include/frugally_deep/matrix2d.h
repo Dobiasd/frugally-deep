@@ -20,6 +20,12 @@ namespace fd
 class matrix2d
 {
 public:
+    explicit matrix2d(const size2d& size, const float_vec& values) :
+        size_(size),
+        values_(values)
+    {
+        assert(size.area() == values.size());
+    }
     explicit matrix2d(const size2d& size) :
         size_(size),
         values_(size.area(), 0.0f)
@@ -36,6 +42,10 @@ public:
     const size2d& size() const
     {
         return size_;
+    }
+    const float_vec& as_vector() const
+    {
+        return values_;
     }
 
 private:
@@ -61,6 +71,22 @@ inline std::string show_matrix2d(const matrix2d& m)
     }
     str += "]";
     return str;
+}
+
+template <typename F>
+matrix2d transform_matrix2d(F f, const matrix2d& in_vol)
+{
+    matrix2d out_vol(size2d(
+        in_vol.size().height(),
+        in_vol.size().width()));
+    for (std::size_t y = 0; y < in_vol.size().height(); ++y)
+    {
+        for (std::size_t x = 0; x < in_vol.size().width(); ++x)
+        {
+            out_vol.set(y, x, f(in_vol.get(y, x)));
+        }
+    }
+    return out_vol;
 }
 
 } // namespace fd

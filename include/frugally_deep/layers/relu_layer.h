@@ -20,7 +20,7 @@ private:
         {
             return std::max<float_t>(x, 0);
         };
-        return transform_helper(actication_function, in_vol);
+        return transform_matrix3d(actication_function, in_vol);
     }
 };
 

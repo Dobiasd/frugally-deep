@@ -10,6 +10,7 @@
 
 #include "frugally_deep/size3d.h"
 
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -20,9 +21,15 @@ namespace fd
 class matrix3d
 {
 public:
+    explicit matrix3d(const size3d& size, const float_vec& values) :
+        size_(size),
+        values_(values)
+    {
+        assert(size.volume() == values.size());
+    }
     explicit matrix3d(const size3d& size) :
         size_(size),
-        values_(size.area(), 0.0f)
+        values_(size.volume(), 0.0f)
     {
     }
     float_t get(std::size_t z, std::size_t y, std::size_t x) const
@@ -36,6 +43,10 @@ public:
     const size3d& size() const
     {
         return size_;
+    }
+    const float_vec& as_vector() const
+    {
+        return values_;
     }
 
 private:
@@ -66,6 +77,26 @@ inline std::string show_matrix3d(const matrix3d& m)
     }
     str += "]";
     return str;
+}
+
+template <typename F>
+matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
+{
+    matrix3d out_vol(size3d(
+        in_vol.size().depth(),
+        in_vol.size().height(),
+        in_vol.size().width()));
+    for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
+    {
+        for (std::size_t y = 0; y < in_vol.size().height(); ++y)
+        {
+            for (std::size_t x = 0; x < in_vol.size().width(); ++x)
+            {
+                out_vol.set(z, y, x, f(in_vol.get(z, y, x)));
+            }
+        }
+    }
+    return out_vol;
 }
 
 } // namespace fd

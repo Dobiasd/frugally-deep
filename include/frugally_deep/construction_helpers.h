@@ -36,7 +36,6 @@ struct input_with_output
 };
 typedef std::vector<input_with_output> input_with_output_vec;
 
-// todo: helper alle auslagern
 struct classification_dataset
 {
     input_with_output_vec training_data_;

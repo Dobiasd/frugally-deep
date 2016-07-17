@@ -32,7 +32,6 @@ public:
         : convolutional_layer(generate_filters(depth, f, k))
     {
     }
-    // todo: remove this ctor. It was just here for testing purposes.
     explicit convolutional_layer(const std::vector<filter>& filters) :
         filters_(filters)
     {

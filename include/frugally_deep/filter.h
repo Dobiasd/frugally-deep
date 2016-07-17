@@ -28,7 +28,7 @@ public:
     }
     std::size_t param_count() const
     {
-        return m_.size().area();
+        return m_.size().volume();
     }
     const size3d& size() const
     {

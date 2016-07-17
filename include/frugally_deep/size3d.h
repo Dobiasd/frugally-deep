@@ -38,7 +38,7 @@ public:
     {
         return width_;
     }
-    std::size_t area() const
+    std::size_t volume() const
     {
         return depth() * height() * width();
     }

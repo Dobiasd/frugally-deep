@@ -50,31 +50,6 @@ public:
     }
 protected:
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
-
-    template <typename ActivationFunc>
-    static matrix3d transform_helper(
-            ActivationFunc actication_func,
-            const matrix3d& in_vol)
-    {
-        matrix3d out_vol(
-            size3d(
-                in_vol.size().depth(),
-                in_vol.size().height(),
-                in_vol.size().width()));
-        for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
-        {
-            for (std::size_t y = 0; y < in_vol.size().height(); ++y)
-            {
-                for (std::size_t x = 0; x < in_vol.size().width(); ++x)
-                {
-                    out_vol.set(z, y, x,
-                        actication_func(
-                            in_vol.get(z, y, x)));
-                }
-            }
-        }
-        return out_vol;
-    }
 };
 
 } // namespace fd

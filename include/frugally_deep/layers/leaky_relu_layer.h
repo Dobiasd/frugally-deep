@@ -25,7 +25,7 @@ private:
         {
             return x > 0 ? x : alpha_ * x;
         };
-        return transform_helper(actication_function, in_vol);
+        return transform_matrix3d(actication_function, in_vol);
     }
 };
 

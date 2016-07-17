@@ -45,7 +45,9 @@ regularization? (dropout, prevent overfitting? not needed for autoencoder)
 learning momentum?
 bias fuer layer, filter oder neurons?
 
-evolutionary optimization instread of backprop? (recombination?)
+evolutionary optimization instread of backprop? (momentum mutations? recombination?)
+particle swarm optimization? verteilen, gute habe gravitation, andere fliegen dahin, momentum, random speed changes annealing, best reproduces with mutation and worst dies
+
 json rausschreiben zwischendurch (losses, weight distribution) (temp, rename), html viewer dazu
 start one async task per filter in layer? (fplus::execute_paralelly?)
 

@@ -175,7 +175,7 @@ void cifar_10_classification_test()
     */
     layer_ptrs layers = {
         conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
-        bottleneck_sandwich_3x3_dims_individual(
+        bottleneck_sandwich_dims_individual(
             size3d(8, 32, 32),
             size2d(3, 3),
             leaky_relu(size3d(4, 32, 32), 0.01f),
@@ -183,7 +183,7 @@ void cifar_10_classification_test()
         max_pool(size3d(8, 32, 32), 2),
 
         conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
-        bottleneck_sandwich_3x3_dims_individual(
+        bottleneck_sandwich_dims_individual(
             size3d(16, 16, 16),
             size2d(3, 3),
             leaky_relu(size3d(8, 16, 16), 0.01f),
@@ -191,7 +191,7 @@ void cifar_10_classification_test()
         max_pool(size3d(16, 16, 16), 2),
 
         conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
-        bottleneck_sandwich_3x3_dims_individual(
+        bottleneck_sandwich_dims_individual(
             size3d(32, 8, 8),
             size2d(3, 3),
             leaky_relu(size3d(16, 8, 8), 0.01f),
@@ -199,13 +199,13 @@ void cifar_10_classification_test()
         max_pool(size3d(32, 8, 8), 2),
 
         conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
-        bottleneck_sandwich_3x3_dims_individual(
+        bottleneck_sandwich_dims_individual(
             size3d(64, 4, 4),
             size2d(3, 3),
             leaky_relu(size3d(32, 4, 4), 0.01f),
             leaky_relu(size3d(64, 4, 4), 0.01f)),
         conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), leaky_relu(size3d(32, 4, 4), 0.01f),
-        bottleneck_sandwich_3x3_dims_individual(
+        bottleneck_sandwich_dims_individual(
             size3d(32, 4, 4),
             size2d(3, 3),
             leaky_relu(size3d(16, 4, 4), 0.01f),

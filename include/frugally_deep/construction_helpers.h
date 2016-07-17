@@ -58,7 +58,7 @@ layer_ptr conv(const size3d& size_in, const size2d& filter_size,
 // conv 1*x, c/2 filters
 // conv y*1, c/2 filters
 // conv 1*1, c filters
-layer_ptr bottleneck_sandwich_3x3_dims_individual(
+layer_ptr bottleneck_sandwich_dims_individual(
     const size3d& size_in,
     const size2d& filter_size,
     const layer_ptr& actication_layer_intermediate,

@@ -83,6 +83,19 @@ private:
     static bool is_layer_ptr_chain_valid(
         const std::vector<layer_ptr>& layer_ptrs)
     {
+        // todo raus
+        size3d last(0,0,0);
+        for (const auto& p : layer_ptrs)
+        {
+            if (!(last == size3d(0,0,0) || last == p->input_size() ))
+            {
+                std::cout << "aaaaaaaaa" << std::endl;
+            }
+            last = p->output_size();
+            std::cout << "in  " << show_size3d(p->input_size()) << std::endl;
+            std::cout << "out " << show_size3d(p->output_size()) << std::endl;
+        }
+
         if (!fplus::all_by(
                 [](const layer_ptr& ptr) -> bool
                 {

@@ -30,6 +30,7 @@ todo
 instead of 3*3 use 3*1 + 3*1
 use 1*1 to reduce depth
 template in convolution for loop unrolling (idx-calculation also inline?)
+unique_ptr statt shared_ptr
 is memory arrangement in matrix good for speed? (cache locallity)
 use cmake with google tests (see fplus)
 different paddings

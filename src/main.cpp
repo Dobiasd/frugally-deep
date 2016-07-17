@@ -4,6 +4,9 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
+// todo raus
+#include <iostream>
+
 #include "opencv_helpers.h"
 
 #include "frugally_deep/frugally_deep.h"
@@ -149,6 +152,7 @@ void cifar_10_classification_test()
             classifcation_data.test_data_);
 
     using namespace fd;
+    /*
     layer_ptrs layers = {
         conv(size3d(3, 32, 32), size2d(3, 3), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
         conv(size3d(8, 32, 32), size2d(3, 3), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
@@ -168,7 +172,54 @@ void cifar_10_classification_test()
         fc(256, 10),
         softmax(size3d(1,1,10))
         };
+    */
+    layer_ptrs layers = {
+        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
+        bottleneck_sandwich_3x3_dims_individual(
+            size3d(8, 32, 32),
+            size2d(3, 3),
+            leaky_relu(size3d(4, 32, 32), 0.01f),
+            leaky_relu(size3d(8, 32, 32), 0.01f)),
+        max_pool(size3d(8, 32, 32), 2),
+
+        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
+        bottleneck_sandwich_3x3_dims_individual(
+            size3d(16, 16, 16),
+            size2d(3, 3),
+            leaky_relu(size3d(8, 16, 16), 0.01f),
+            leaky_relu(size3d(16, 16, 16), 0.01f)),
+        max_pool(size3d(16, 16, 16), 2),
+
+        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
+        bottleneck_sandwich_3x3_dims_individual(
+            size3d(32, 8, 8),
+            size2d(3, 3),
+            leaky_relu(size3d(16, 8, 8), 0.01f),
+            leaky_relu(size3d(32, 8, 8), 0.01f)),
+        max_pool(size3d(32, 8, 8), 2),
+
+        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
+        bottleneck_sandwich_3x3_dims_individual(
+            size3d(64, 4, 4),
+            size2d(3, 3),
+            leaky_relu(size3d(32, 4, 4), 0.01f),
+            leaky_relu(size3d(64, 4, 4), 0.01f)),
+        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), leaky_relu(size3d(32, 4, 4), 0.01f),
+        bottleneck_sandwich_3x3_dims_individual(
+            size3d(32, 4, 4),
+            size2d(3, 3),
+            leaky_relu(size3d(16, 4, 4), 0.01f),
+            leaky_relu(size3d(32, 4, 4), 0.01f)),
+        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), leaky_relu(size3d(16, 4, 4), 0.01f),
+
+        flatten(size3d(16, 4, 4)),
+        fc(size3d(16, 4, 4).volume(), 64),
+        fc(64, 32),
+        fc(32, 10),
+        softmax(size3d(1, 1,10))
+        };
     fd::multi_layer_net net(layers);
+    std::cout << "net.param_count() " << net.param_count() << std::endl;
     //net.train(classifcation_data.training_data_);
     //net.test(classifcation_data.test_data_);
 }

@@ -6,18 +6,19 @@
 
 #pragma once
 
-#include "frugally_deep/layers/actication_layer.h"
+#include "frugally_deep/layers/activation_layer.h"
 
 namespace fd
 {
 
-class softplus_layer : public actication_layer
+class softplus_layer : public activation_layer
 {
-private:
+public:
     explicit softplus_layer(const size3d& size_in)
-        : actication_layer(size_in)
+        : activation_layer(size_in)
     {
     }
+protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         auto actication_function = [](float_t x) -> float_t

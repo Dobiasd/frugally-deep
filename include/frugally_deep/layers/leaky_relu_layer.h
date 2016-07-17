@@ -6,19 +6,19 @@
 
 #pragma once
 
-#include "frugally_deep/layers/actication_layer.h"
+#include "frugally_deep/layers/activation_layer.h"
 
 namespace fd
 {
 
-class leaky_relu_layer : public actication_layer
+class leaky_relu_layer : public activation_layer
 {
 public:
     explicit leaky_relu_layer(const size3d& size_in, float_t alpha)
-        : actication_layer(size_in), alpha_(alpha)
+        : activation_layer(size_in), alpha_(alpha)
     {
     }
-private:
+protected:
     float_t alpha_;
     matrix3d transform_input(const matrix3d& in_vol) const override
     {

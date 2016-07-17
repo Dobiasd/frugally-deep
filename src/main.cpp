@@ -147,11 +147,11 @@ void cifar_10_classification_test()
     std::cout << " done" << std::endl;
     classifcation_data.training_data_ =
         fplus::sample(
-            classifcation_data.training_data_.size() / 100,
+            classifcation_data.training_data_.size() / 1000,
             classifcation_data.training_data_);
     classifcation_data.test_data_ =
         fplus::sample(
-            classifcation_data.test_data_.size() / 100,
+            classifcation_data.test_data_.size() / 1000,
             classifcation_data.test_data_);
 
     using namespace fd;
@@ -176,55 +176,59 @@ void cifar_10_classification_test()
         softmax(size3d(1,1,10))
         };
     */
+
     layer_ptrs layers = {
-        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
+        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), tanh(size3d(8, 32, 32)),
         bottleneck_sandwich_dims_individual(
             size3d(8, 32, 32),
             size2d(3, 3),
-            leaky_relu(size3d(4, 32, 32), 0.01f),
-            leaky_relu(size3d(8, 32, 32), 0.01f)),
+            tanh(size3d(4, 32, 32)),
+            tanh(size3d(8, 32, 32))),
         max_pool(size3d(8, 32, 32), 2),
 
-        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
+        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), tanh(size3d(16, 16, 16)),
         bottleneck_sandwich_dims_individual(
             size3d(16, 16, 16),
             size2d(3, 3),
-            leaky_relu(size3d(8, 16, 16), 0.01f),
-            leaky_relu(size3d(16, 16, 16), 0.01f)),
+            tanh(size3d(8, 16, 16)),
+            tanh(size3d(16, 16, 16))),
         max_pool(size3d(16, 16, 16), 2),
 
-        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
+        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), tanh(size3d(32, 8, 8)),
         bottleneck_sandwich_dims_individual(
             size3d(32, 8, 8),
             size2d(3, 3),
-            leaky_relu(size3d(16, 8, 8), 0.01f),
-            leaky_relu(size3d(32, 8, 8), 0.01f)),
+            tanh(size3d(16, 8, 8)),
+            tanh(size3d(32, 8, 8))),
         max_pool(size3d(32, 8, 8), 2),
 
-        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
+        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), tanh(size3d(64, 4, 4)),
         bottleneck_sandwich_dims_individual(
             size3d(64, 4, 4),
             size2d(3, 3),
-            leaky_relu(size3d(32, 4, 4), 0.01f),
-            leaky_relu(size3d(64, 4, 4), 0.01f)),
-        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), leaky_relu(size3d(32, 4, 4), 0.01f),
+            tanh(size3d(32, 4, 4)),
+            tanh(size3d(64, 4, 4))),
+        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), tanh(size3d(32, 4, 4)),
         bottleneck_sandwich_dims_individual(
             size3d(32, 4, 4),
             size2d(3, 3),
-            leaky_relu(size3d(16, 4, 4), 0.01f),
-            leaky_relu(size3d(32, 4, 4), 0.01f)),
-        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), leaky_relu(size3d(16, 4, 4), 0.01f),
+            tanh(size3d(16, 4, 4)),
+            tanh(size3d(32, 4, 4))),
+        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), tanh(size3d(16, 4, 4)),
 
         flatten(size3d(16, 4, 4)),
         fc(size3d(16, 4, 4).volume(), 64),
+        tanh(size3d(1, 1, 64)),
         fc(64, 32),
+        tanh(size3d(1, 1, 32)),
         fc(32, 10),
-        softmax(size3d(1, 1,10))
+        tanh(size3d(1, 1, 10)),
+        softmax(size3d(1, 1, 10))
         };
-    fd::multi_layer_net net(layers);
-    std::cout << "net.param_count() " << net.param_count() << std::endl;
-    //net.train(classifcation_data.training_data_);
-    //net.test(classifcation_data.test_data_);
+    auto tobinet = net(layers);
+    std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
+    train(tobinet, classifcation_data.training_data_, 100000, 0.01f);
+    test(tobinet, classifcation_data.test_data_);
 }
 
 int main()

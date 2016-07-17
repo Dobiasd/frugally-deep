@@ -18,10 +18,10 @@ namespace fd
 {
 
 // Abstract base class for actication layers
-class actication_layer : public layer
+class activation_layer : public layer
 {
 public:
-    explicit actication_layer(const size3d& size_in) : size_in_(size_in)
+    explicit activation_layer(const size3d& size_in) : size_in_(size_in)
     {
     }
     matrix3d forward_pass(const matrix3d& input) const override

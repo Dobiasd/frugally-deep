@@ -19,13 +19,22 @@ public:
     fully_connected_layer(std::size_t n_in, std::size_t n_out)
         : size_in_(size3d(1, 1, n_in)),
             size_out_(1, 1, n_out),
-            params_(size2d(n_in, n_out))
+            params_(size2d(n_out, n_in))
     {
     }
     matrix3d forward_pass(const matrix3d& input) const override
     {
-        // todo
-        return input;
+        matrix3d output(output_size());
+        for (std::size_t x_out = 0; x_out < output.size().width(); ++x_out)
+        {
+            float_t out_val = 0;
+            for (std::size_t x_in = 0; x_in < input.size().width(); ++x_in)
+            {
+                out_val += params_.get(x_out, x_in) * input.get(0, 0, x_in);
+            }
+            output.set(0, 0, x_out, out_val);
+        }
+        return output;
     }
     std::size_t param_count() const override
     {
@@ -33,13 +42,12 @@ public:
     }
     float_vec get_params() const override
     {
-        // todo params_ flatten
-        return {};
+        return params_.as_vector();
     }
     void set_params(const float_vec& params) override
     {
         assert(params.size() == param_count());
-        // todo
+        params_ = matrix2d(params_.size(), params);
     }
     const size3d& input_size() const override
     {

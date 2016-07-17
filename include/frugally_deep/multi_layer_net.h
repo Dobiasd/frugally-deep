@@ -84,6 +84,7 @@ private:
         const std::vector<layer_ptr>& layer_ptrs)
     {
         // todo raus
+        /*
         size3d last(0,0,0);
         for (const auto& p : layer_ptrs)
         {
@@ -95,7 +96,7 @@ private:
             std::cout << "in  " << show_size3d(p->input_size()) << std::endl;
             std::cout << "out " << show_size3d(p->output_size()) << std::endl;
         }
-
+        */
         if (!fplus::all_by(
                 [](const layer_ptr& ptr) -> bool
                 {

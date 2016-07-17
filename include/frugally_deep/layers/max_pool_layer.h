@@ -8,6 +8,8 @@
 
 #include "frugally_deep/layers/pool_layer.h"
 
+#include <limits>
+
 namespace fd
 {
 

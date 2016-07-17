@@ -6,19 +6,19 @@
 
 #pragma once
 
-#include "frugally_deep/layers/actication_layer.h"
+#include "frugally_deep/layers/activation_layer.h"
 
 namespace fd
 {
 
-class softmax_layer : public actication_layer
+class softmax_layer : public activation_layer
 {
 public:
     explicit softmax_layer(const size3d& size_in)
-        : actication_layer(size_in)
+        : activation_layer(size_in)
     {
     }
-private:
+protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         // http://stackoverflow.com/q/9906136/1866775

@@ -34,6 +34,10 @@ public:
     {
         return m_.size();
     }
+    size2d size_without_depth() const
+    {
+        return size2d(m_.size().height(), m_.size().width());
+    }
     matrix3d get_matrix3d() const
     {
         return m_;
@@ -68,7 +72,7 @@ public:
             {
                 for (std::size_t x = 0; x < m_.size().width(); ++x)
                 {
-                    m_.set(z, y, x, params[++i]);
+                    m_.set(z, y, x, params[i++]);
                 }
             }
         }

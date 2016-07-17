@@ -73,21 +73,36 @@ inline cv::Mat matrix3d_to_cv_bgr_img_float(const fd::matrix3d& m)
     return img;
 }
 
-/*
-inline fd::layer_ptr cv_kernel_to_layer(const cv::Mat& cv_kernel)
+inline fd::layer_ptr cv_kernel_to_layer(const fd::size3d& in_size,
+    const cv::Mat& cv_kernel)
 {
     std::vector<fd::filter> filters = {
         fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 0)),
         fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 1)),
         fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 2))
     };
-    return std::make_shared<fd::convolutional_layer>(filters);
+    fd::layer_ptr kernel_layer = std::make_shared<fd::convolutional_layer>(
+        in_size,
+        filters[0].size_without_depth(),
+        filters.size(),
+        1);
+    auto all_filter_params = fplus::transform_and_concat(
+        [](const fd::filter& f)
+        {
+            return f.get_params();
+        }, filters);
+    assert(kernel_layer->param_count() == all_filter_params.size());
+    kernel_layer->set_params(all_filter_params);
+    assert(kernel_layer->get_params() == all_filter_params);
+    return kernel_layer;
 }
 
 inline cv::Mat filter2D_via_net(const cv::Mat& img, const cv::Mat& cv_kernel)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
-    std::vector<fd::layer_ptr> layers = {cv_kernel_to_layer(cv_kernel)};
+    std::vector<fd::layer_ptr> layers = {
+        cv_kernel_to_layer(in_vol.size(), cv_kernel)
+    };
     fd::multi_layer_net net(layers);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
@@ -98,7 +113,9 @@ inline cv::Mat filter2Ds_via_net(const cv::Mat& img,
     const std::vector<cv::Mat>& cv_kernels)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
-    auto layers = fplus::transform(cv_kernel_to_layer, cv_kernels);
+    auto layers = fplus::transform(
+        fplus::bind_1st_of_2(cv_kernel_to_layer, in_vol.size()),
+        cv_kernels);
     fd::multi_layer_net net(layers);
     auto out_vol = net.forward_pass(in_vol);
     //std::cout << fplus::show_cont(net.get_params()) << std::endl;
@@ -109,7 +126,7 @@ inline cv::Mat filter2Ds_via_net(const cv::Mat& img,
 inline cv::Mat shrink_via_net(const cv::Mat& img, std::size_t scale_factor)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
-    fd::avg_pool_layer net(scale_factor);
+    fd::avg_pool_layer net(in_vol.size(), scale_factor);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;
@@ -118,12 +135,11 @@ inline cv::Mat shrink_via_net(const cv::Mat& img, std::size_t scale_factor)
 inline cv::Mat grow_via_net(const cv::Mat& img, std::size_t scale_factor)
 {
     fd::matrix3d in_vol = cv_bgr_img_float_to_matrix3d(img);
-    fd::unpool_layer net(scale_factor);
+    fd::unpool_layer net(in_vol.size(), scale_factor);
     auto out_vol = net.forward_pass(in_vol);
     cv::Mat result = matrix3d_to_cv_bgr_img_float(out_vol);
     return result;
 }
-*/
 
 inline cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
 {

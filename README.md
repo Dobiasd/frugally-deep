@@ -26,8 +26,7 @@ The goal is that someday the following things will be true:
 
 todo
 ----
-
-template in convolution for loop unrolling (idx-calculation also inline?)
+check parameter count
 unique_ptr statt shared_ptr
 is memory arrangement in matrix good for speed? (cache locallity)
 use cmake with google tests (see fplus)

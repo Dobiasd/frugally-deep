@@ -103,7 +103,7 @@ fd::classification_dataset load_cifar_10_bin(
         load_cifar_10_bin_training(base_directory),
         load_cifar_10_bin_test(base_directory)};
 }
-/*
+
 void lenna_filter_test()
 {
     cv::Mat img_uchar = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
@@ -138,10 +138,13 @@ void lenna_filter_test()
     filtered2 = float_img_to_uchar_img(filtered2);
     cv::imwrite("lenna_512x512_filtered2.png", filtered2);
 }
-*/
+
 void cifar_10_classification_test()
 {
+    lenna_filter_test();
+    std::cout << "loading cifar-10 ..." << std::flush;
     auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin");
+    std::cout << " done" << std::endl;
     classifcation_data.training_data_ =
         fplus::sample(
             classifcation_data.training_data_.size() / 100,

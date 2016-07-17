@@ -36,10 +36,12 @@ struct classification_dataset
 float_vec randomly_change_params(const float_vec& old_params)
 {
     // todo: develop optimization strategy
+
+    // todo seed
     std::random_device rd;
     std::mt19937 gen(rd());
     std::normal_distribution<> d(0, 1);
-    auto new_params = old_params;
+    float_vec new_params = old_params;
     for (std::size_t i = 0; i < new_params.size(); ++i)
     {
         new_params[i] += d(gen);
@@ -48,17 +50,27 @@ float_vec randomly_change_params(const float_vec& old_params)
 }
 
 void optimize_net(layer_ptr& net,
-    const std::function<float_t(const layer_ptr& net,
-    const input_with_output_vec& dataset)>& calc_error,
+    const std::function<float_t(
+        const layer_ptr& net,
+        const input_with_output_vec& dataset)>& calc_error,
     const input_with_output_vec& dataset)
 {
     auto old_error = calc_error(net, dataset);
-    auto old_params = net->get_params();
-    auto new_params = randomly_change_params(old_params);
+    float_vec old_params = net->get_params();
+    float_vec new_params = randomly_change_params(old_params);
     net->set_params(new_params);
     auto new_error = calc_error(net, dataset);
+    std::cout << "todo remove, new_error, old_error " << new_error << ", " << old_error << std::endl;
     if (new_error > old_error)
     {
+        std::cout << "todo remove net->set_params(old_params);" << std::endl;
+        // todo remove
+        net->set_params(old_params);
+        assert(net->get_params() == old_params);
+        net->set_params(new_params);
+        assert(net->get_params() == new_params);
+        assert(new_params != old_params);
+
         net->set_params(old_params);
     }
 }
@@ -73,10 +85,15 @@ float_t calc_mean_error(
         auto result = net->forward_pass(data.input_);
         auto error = abs_diff_matrix3ds(result, data.output_);
         error_matrices.push_back(error);
+        //std::cout << "todo remove show_matrix3d(result) " << show_matrix3d(result) << std::endl;
     }
-    auto mean_error_matrix =
-        fplus::fold_left_1(add_matrix3ds, error_matrices);
-    return matrix3d_sum_all_values(mean_error_matrix);
+    auto error_matrix_sum =
+        fplus::fold_left_1(add_matrix3ds, error_matrices) /
+        static_cast<float_t>(error_matrices.size());
+    std::cout << "todo remove error_matrices.size() " << error_matrices.size() << std::endl;
+    std::cout << "todo remove error_matrix_sum.size().width() " << error_matrix_sum.size().width() << std::endl;
+    return matrix3d_sum_all_values(error_matrix_sum) /
+        static_cast<float_t>(error_matrix_sum.size().width());
 }
 
 void train(layer_ptr& net,
@@ -91,7 +108,7 @@ void train(layer_ptr& net,
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
-        if (iter % 100)
+        if (iter % 10 == 0)
         {
             show_progress(iter, error);
         }

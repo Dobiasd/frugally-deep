@@ -147,7 +147,7 @@ void cifar_10_classification_test()
     std::cout << " done" << std::endl;
     classifcation_data.training_data_ =
         fplus::sample(
-            classifcation_data.training_data_.size() / 1000,
+            classifcation_data.training_data_.size() / 10000,
             classifcation_data.training_data_);
     classifcation_data.test_data_ =
         fplus::sample(
@@ -225,9 +225,16 @@ void cifar_10_classification_test()
         tanh(size3d(1, 1, 10)),
         softmax(size3d(1, 1, 10))
         };
+
+    // todo raus
+    layers = {
+        flatten(size3d(3, 32, 32)),
+        fc(size3d(3, 32, 32).volume(), 10),
+        softmax(size3d(1, 1, 10))
+    };
     auto tobinet = net(layers);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
-    train(tobinet, classifcation_data.training_data_, 100000, 0.01f);
+    train(tobinet, classifcation_data.training_data_, 100000, 0.001f);
     test(tobinet, classifcation_data.test_data_);
 }
 

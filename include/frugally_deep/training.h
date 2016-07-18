@@ -44,7 +44,7 @@ float_vec randomly_change_params(const float_vec& old_params)
     float_vec new_params = old_params;
     for (std::size_t i = 0; i < new_params.size(); ++i)
     {
-        new_params[i] += d(gen);
+        new_params[i] += static_cast<float_t>(d(gen));
     }
     return new_params;
 }
@@ -63,6 +63,7 @@ void optimize_net(layer_ptr& net,
     std::cout << "todo remove, new_error, old_error " << new_error << ", " << old_error << std::endl;
     if (new_error > old_error)
     {
+    	/*
         std::cout << "todo remove net->set_params(old_params);" << std::endl;
         // todo remove
         net->set_params(old_params);
@@ -70,6 +71,7 @@ void optimize_net(layer_ptr& net,
         net->set_params(new_params);
         assert(net->get_params() == new_params);
         assert(new_params != old_params);
+        */
 
         net->set_params(old_params);
     }
@@ -90,8 +92,8 @@ float_t calc_mean_error(
     auto error_matrix_sum =
         fplus::fold_left_1(add_matrix3ds, error_matrices) /
         static_cast<float_t>(error_matrices.size());
-    std::cout << "todo remove error_matrices.size() " << error_matrices.size() << std::endl;
-    std::cout << "todo remove error_matrix_sum.size().width() " << error_matrix_sum.size().width() << std::endl;
+    //std::cout << "todo remove error_matrices.size() " << error_matrices.size() << std::endl;
+    //std::cout << "todo remove error_matrix_sum.size().width() " << error_matrix_sum.size().width() << std::endl;
     return matrix3d_sum_all_values(error_matrix_sum) /
         static_cast<float_t>(error_matrix_sum.size().width());
 }

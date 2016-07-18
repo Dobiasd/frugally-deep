@@ -63,15 +63,21 @@ void optimize_net(layer_ptr& net,
     std::cout << "todo remove, new_error, old_error " << new_error << ", " << old_error << std::endl;
     if (new_error > old_error)
     {
-    	/*
         std::cout << "todo remove net->set_params(old_params);" << std::endl;
+
         // todo remove
+        assert(new_params != old_params);
+
         net->set_params(old_params);
         assert(net->get_params() == old_params);
+        auto old_error_2 = calc_error(net, dataset);
+        std::cout << "todo remove, old_error_2, old_error " << old_error_2 << ", " << old_error << std::endl;
+        assert(old_error_2 == old_error);
+
         net->set_params(new_params);
-        assert(net->get_params() == new_params);
-        assert(new_params != old_params);
-        */
+        auto new_error_2 = calc_error(net, dataset);
+        std::cout << "todo remove, new_error_2, new_error " << new_error_2 << ", " << new_error << std::endl;
+        assert(new_error_2 == new_error);
 
         net->set_params(old_params);
     }

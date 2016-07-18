@@ -19,7 +19,8 @@
 #include <iostream>
 
 // http://stackoverflow.com/a/21802936
-std::vector<unsigned char> read_file(const std::string& filename)
+std::vector<unsigned char> read_file(const std::string& filename,
+    std::size_t max_bytes)
 {
     // open the file:
     std::ifstream file(filename, std::ios::binary);
@@ -34,16 +35,18 @@ std::vector<unsigned char> read_file(const std::string& filename)
 
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
+    assert(fileSize == 30730000);
+    if (max_bytes != 0)
+    {
+    	fileSize = static_cast<std::streamoff>(max_bytes);
+    }
     file.seekg(0, std::ios::beg);
 
-    // reserve capacity
-    std::vector<unsigned char> vec;
-    vec.reserve(static_cast<std::size_t>(fileSize));
+    // reserve memory and fill with zeroes
+    std::vector<unsigned char> vec(static_cast<std::size_t>(fileSize), 0);
 
     // read the data:
-    vec.insert(vec.begin(),
-               std::istream_iterator<unsigned char>(file),
-               std::istream_iterator<unsigned char>());
+    file.read(reinterpret_cast<char*>(&vec[0]), fileSize);
 
     return vec;
 }
@@ -70,38 +73,44 @@ fd::input_with_output parse_cifar_10_bin_line(
     return {input, output};
 }
 
-fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path)
+fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
+		bool mini_version)
 {
-    const auto bytes = read_file(file_path);
-    assert(bytes.size() == 30730000);
+    std::size_t mini_version_img_count = 10;
+	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
+    const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
-    assert(lines.size() == 10000);
+    assert(mini_version && lines.size() == mini_version_img_count ||
+        lines.size() == 10000);
     return fplus::transform(parse_cifar_10_bin_line, lines);
 }
 
 fd::input_with_output_vec load_cifar_10_bin_training(
-    const std::string& base_directory)
+    const std::string& base_directory,
+	bool mini_version)
 {
     return fplus::concat(std::vector<fd::input_with_output_vec>({
-        load_cifar_10_bin_file(base_directory + "/data_batch_1.bin"),
-        load_cifar_10_bin_file(base_directory + "/data_batch_2.bin"),
-        load_cifar_10_bin_file(base_directory + "/data_batch_3.bin"),
-        load_cifar_10_bin_file(base_directory + "/data_batch_4.bin"),
-        load_cifar_10_bin_file(base_directory + "/data_batch_5.bin")}));
+        load_cifar_10_bin_file(base_directory + "/data_batch_1.bin", mini_version),
+        load_cifar_10_bin_file(base_directory + "/data_batch_2.bin", mini_version),
+        load_cifar_10_bin_file(base_directory + "/data_batch_3.bin", mini_version),
+        load_cifar_10_bin_file(base_directory + "/data_batch_4.bin", mini_version),
+        load_cifar_10_bin_file(base_directory + "/data_batch_5.bin", mini_version)}));
 }
 
 fd::input_with_output_vec load_cifar_10_bin_test(
-    const std::string& base_directory)
+    const std::string& base_directory,
+	bool mini_version)
 {
-    return load_cifar_10_bin_file(base_directory + "/test_batch.bin");
+    return load_cifar_10_bin_file(base_directory + "/test_batch.bin", mini_version);
 }
 
 fd::classification_dataset load_cifar_10_bin(
-    const std::string& base_directory)
+    const std::string& base_directory,
+	bool mini_version = false)
 {
     return {
-        load_cifar_10_bin_training(base_directory),
-        load_cifar_10_bin_test(base_directory)};
+        load_cifar_10_bin_training(base_directory, mini_version),
+        load_cifar_10_bin_test(base_directory, mini_version)};
 }
 
 void lenna_filter_test()
@@ -143,8 +152,9 @@ void cifar_10_classification_test()
 {
     lenna_filter_test();
     std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin");
+    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true);
     std::cout << " done" << std::endl;
+    /*
     classifcation_data.training_data_ =
         fplus::sample(
             classifcation_data.training_data_.size() / 10000,
@@ -153,6 +163,7 @@ void cifar_10_classification_test()
         fplus::sample(
             classifcation_data.test_data_.size() / 1000,
             classifcation_data.test_data_);
+     */
 
     using namespace fd;
     /*
@@ -176,7 +187,7 @@ void cifar_10_classification_test()
         softmax(size3d(1,1,10))
         };
     */
-
+/*
     layer_ptrs layers = {
         conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), tanh(size3d(8, 32, 32)),
         bottleneck_sandwich_dims_individual(
@@ -225,14 +236,13 @@ void cifar_10_classification_test()
         tanh(size3d(1, 1, 10)),
         softmax(size3d(1, 1, 10))
         };
-
-    // todo raus
-    layers = {
+*/
+    layer_ptrs layers_test = {
         flatten(size3d(3, 32, 32)),
         fc(size3d(3, 32, 32).volume(), 10),
         softmax(size3d(1, 1, 10))
     };
-    auto tobinet = net(layers);
+    auto tobinet = net(layers_test);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     train(tobinet, classifcation_data.training_data_, 100000, 0.001f);
     test(tobinet, classifcation_data.test_data_);

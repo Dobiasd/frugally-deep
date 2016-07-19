@@ -35,7 +35,7 @@ std::vector<unsigned char> read_file(const std::string& filename,
 
     file.seekg(0, std::ios::end);
     fileSize = file.tellg();
-    assert(fileSize == 30730000);
+    assert(fileSize == static_cast<std::streamoff>(30730000));
     if (max_bytes != 0)
     {
     	fileSize = static_cast<std::streamoff>(max_bytes);
@@ -187,7 +187,7 @@ void cifar_10_classification_test()
         softmax(size3d(1,1,10))
         };
     */
-/*
+
     layer_ptrs layers = {
         conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), tanh(size3d(8, 32, 32)),
         bottleneck_sandwich_dims_individual(
@@ -236,13 +236,8 @@ void cifar_10_classification_test()
         tanh(size3d(1, 1, 10)),
         softmax(size3d(1, 1, 10))
         };
-*/
-    layer_ptrs layers_test = {
-        flatten(size3d(3, 32, 32)),
-        fc(size3d(3, 32, 32).volume(), 10),
-        softmax(size3d(1, 1, 10))
-    };
-    auto tobinet = net(layers_test);
+
+    auto tobinet = net(layers);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     train(tobinet, classifcation_data.training_data_, 100000, 0.001f);
     test(tobinet, classifcation_data.test_data_);

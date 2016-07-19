@@ -59,13 +59,13 @@ fd::input_with_output parse_cifar_10_bin_line(
     output.set(0, 0, vec[0], 1);
     fd::matrix3d input(fd::size3d(3, 32, 32));
     std::size_t vec_i = 0;
-    for (std::size_t z = 0; z < input.size().depth(); ++z)
+    for (std::size_t z = 0; z < input.size().depth_; ++z)
     {
-        for (std::size_t y = 0; y < input.size().height(); ++y)
+        for (std::size_t y = 0; y < input.size().height_; ++y)
         {
-            for (std::size_t x = 0; x < input.size().width(); ++x)
+            for (std::size_t x = 0; x < input.size().width_; ++x)
             {
-                input.set(input.size().depth() - (z + 1), y, x,
+                input.set(input.size().depth_ - (z + 1), y, x,
                     vec[++vec_i] / static_cast<float_t>(256));
             }
         }
@@ -80,7 +80,7 @@ fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
-    assert(mini_version && lines.size() == mini_version_img_count ||
+    assert((mini_version && lines.size() == mini_version_img_count) ||
         lines.size() == 10000);
     return fplus::transform(parse_cifar_10_bin_line, lines);
 }
@@ -276,9 +276,6 @@ void cifar_10_classification_test()
 
 int main()
 {
-    unsigned int i = 42;
-    float f = i;
-    std::cout << f << std::endl;
     xor_as_net_test();
     //lenna_filter_test();
     //cifar_10_classification_test();

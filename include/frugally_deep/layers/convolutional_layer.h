@@ -28,12 +28,12 @@ public:
         std::size_t depth, const size2d& filter_size, std::size_t k)
     {
         return std::vector<filter>(k, filter(matrix3d(
-            size3d(depth, filter_size.height(), filter_size.width()))));
+            size3d(depth, filter_size.height_, filter_size.width_))));
     }
     explicit convolutional_layer(
             const size3d& size_in, const size2d& filter_size,
             std::size_t k, std::size_t stride)
-        : size_in_(size_in), filters_(generate_filters(size_in.depth(), filter_size, k))
+        : size_in_(size_in), filters_(generate_filters(size_in.depth_, filter_size, k))
     {
         assert(stride == 1); // todo: allow different strides
     }
@@ -71,7 +71,7 @@ public:
     }
     size3d output_size() const override
     {
-        return size3d(filters_.size(), size_in_.height(), size_in_.width());
+        return size3d(filters_.size(), size_in_.height_, size_in_.width_);
     }
 private:
     size3d size_in_;

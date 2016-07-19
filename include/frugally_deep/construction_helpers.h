@@ -52,11 +52,11 @@ layer_ptr bottleneck_sandwich_dims_individual(
     const layer_ptr& activation_layer)
 {
     assert(activation_layer);
-    assert(size_in.depth() % 2 == 0);
-    std::size_t c = size_in.depth();
-    size2d filter_size_x(1, filter_size.width());
-    size2d filter_size_y(filter_size.height(), 1);
-    size3d size_intermediate(c / 2, size_in.height(), size_in.width());
+    assert(size_in.depth_ % 2 == 0);
+    std::size_t c = size_in.depth_;
+    size2d filter_size_x(1, filter_size.width_);
+    size2d filter_size_y(filter_size.height_, 1);
+    size3d size_intermediate(c / 2, size_in.height_, size_in.width_);
     layer_ptrs layers = {
         conv(size_in, size2d(1, 1), c / 2, 1), activation_layer_intermediate,
         conv(size_intermediate, filter_size_x, c / 2, 1), activation_layer_intermediate,

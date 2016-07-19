@@ -27,20 +27,7 @@ public:
             x_(x)
     {
     }
-    std::size_t z() const
-    {
-        return z_;
-    }
-    std::size_t y() const
-    {
-        return y_;
-    }
-    std::size_t x() const
-    {
-        return x_;
-    }
 
-private:
     std::size_t z_;
     std::size_t y_;
     std::size_t x_;
@@ -49,17 +36,17 @@ private:
 inline bool operator == (const matrix3d_pos& lhs, const matrix3d_pos& rhs)
 {
     return
-        lhs.z() == rhs.z() &&
-        lhs.y() == rhs.y() &&
-        lhs.x() == rhs.x();
+        lhs.z_ == rhs.z_ &&
+        lhs.y_ == rhs.y_ &&
+        lhs.x_ == rhs.x_;
 }
 
 std::string show_matrix3d_pos(const matrix3d_pos& pos)
 {
     return std::string(
-        "(" + std::to_string(pos.z()) +
-        "," + std::to_string(pos.y()) +
-        "," + std::to_string(pos.x()) +
+        "(" + std::to_string(pos.z_) +
+        "," + std::to_string(pos.y_) +
+        "," + std::to_string(pos.x_) +
         ")");
 }
 

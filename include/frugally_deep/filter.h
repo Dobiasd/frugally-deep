@@ -23,8 +23,8 @@ class filter
 public:
     explicit filter(const matrix3d& m) : m_(m)
     {
-        assert(m_.size().width() %2 == 1);
-        assert(m_.size().height() %2 == 1);
+        assert(m_.size().width_ %2 == 1);
+        assert(m_.size().height_ %2 == 1);
     }
     std::size_t param_count() const
     {
@@ -36,7 +36,7 @@ public:
     }
     size2d size_without_depth() const
     {
-        return size2d(m_.size().height(), m_.size().width());
+        return size2d(m_.size().height_, m_.size().width_);
     }
     matrix3d get_matrix3d() const
     {
@@ -50,11 +50,11 @@ public:
     {
         float_vec params;
         params.reserve(param_count());
-        for (std::size_t z = 0; z < m_.size().depth(); ++z)
+        for (std::size_t z = 0; z < m_.size().depth_; ++z)
         {
-            for (std::size_t y = 0; y < m_.size().height(); ++y)
+            for (std::size_t y = 0; y < m_.size().height_; ++y)
             {
-                for (std::size_t x = 0; x < m_.size().width(); ++x)
+                for (std::size_t x = 0; x < m_.size().width_; ++x)
                 {
                     params.push_back(m_.get(z, y, x));
                 }
@@ -66,11 +66,11 @@ public:
     {
         assert(params.size() == param_count());
         std::size_t i = 0;
-        for (std::size_t z = 0; z < m_.size().depth(); ++z)
+        for (std::size_t z = 0; z < m_.size().depth_; ++z)
         {
-            for (std::size_t y = 0; y < m_.size().height(); ++y)
+            for (std::size_t y = 0; y < m_.size().height_; ++y)
             {
-                for (std::size_t x = 0; x < m_.size().width(); ++x)
+                for (std::size_t x = 0; x < m_.size().width_; ++x)
                 {
                     m_.set(z, y, x, params[i++]);
                 }

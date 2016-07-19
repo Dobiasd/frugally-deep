@@ -25,15 +25,15 @@ namespace fd
 class matrix3d
 {
 public:
-    matrix3d(const size3d& size, const float_vec& values) :
-        size_(size),
+    matrix3d(const size3d& shape, const float_vec& values) :
+        size_(shape),
         values_(values)
     {
-        assert(size.volume() == values.size());
+        assert(shape.volume() == values.size());
     }
-    explicit matrix3d(const size3d& size) :
-        size_(size),
-        values_(size.volume(), 0.0f)
+    explicit matrix3d(const size3d& shape) :
+        size_(shape),
+        values_(shape.volume(), 0.0f)
     {
     }
     float_t get(std::size_t z, std::size_t y, std::size_t x) const
@@ -56,7 +56,7 @@ public:
 private:
     std::size_t idx(std::size_t z, std::size_t y, size_t x) const
     {
-        return z * size().height() * size().width() + y * size().width() + x;
+        return z * size().height_ * size().width_ + y * size().width_ + x;
     };
     size3d size_;
     float_vec values_;
@@ -66,12 +66,12 @@ inline std::string show_matrix3d(const matrix3d& m)
 {
     std::string str;
     str += "[";
-    for (std::size_t z = 0; z < m.size().depth(); ++z)
+    for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
         str += "[";
-        for (std::size_t y = 0; y < m.size().height(); ++y)
+        for (std::size_t y = 0; y < m.size().height_; ++y)
         {
-            for (std::size_t x = 0; x < m.size().width(); ++x)
+            for (std::size_t x = 0; x < m.size().width_; ++x)
             {
                 str += std::to_string(m.get(z, y, x)) + ",";
             }
@@ -88,14 +88,14 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
 {
     // todo: use as_vector instead to avoid nested loops
     matrix3d out_vol(size3d(
-        in_vol.size().depth(),
-        in_vol.size().height(),
-        in_vol.size().width()));
-    for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
+        in_vol.size().depth_,
+        in_vol.size().height_,
+        in_vol.size().width_));
+    for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
     {
-        for (std::size_t y = 0; y < in_vol.size().height(); ++y)
+        for (std::size_t y = 0; y < in_vol.size().height_; ++y)
         {
-            for (std::size_t x = 0; x < in_vol.size().width(); ++x)
+            for (std::size_t x = 0; x < in_vol.size().width_; ++x)
             {
                 out_vol.set(z, y, x, f(in_vol.get(z, y, x)));
             }
@@ -113,11 +113,11 @@ matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
 {
     matrix3d_pos result(0, 0, 0);
     float_t value = std::numeric_limits<float_t>::min();
-    for (std::size_t z = 0; z < vol.size().depth(); ++z)
+    for (std::size_t z = 0; z < vol.size().depth_; ++z)
     {
-        for (std::size_t y = 0; y < vol.size().height(); ++y)
+        for (std::size_t y = 0; y < vol.size().height_; ++y)
         {
-            for (std::size_t x = 0; x < vol.size().width(); ++x)
+            for (std::size_t x = 0; x < vol.size().width_; ++x)
             {
                 auto current_value = vol.get(z, y, x);
                 if (current_value > value)

@@ -30,7 +30,7 @@ protected:
         };
         auto pool_helper_identity = [this](float_t acc) -> float_t
         {
-            return acc / scale_factor_ * scale_factor_;
+            return acc;
         };
         return pool_helper(
             scale_factor_,

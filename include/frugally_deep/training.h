@@ -130,9 +130,9 @@ float_t calc_mean_error(
         fplus::fold_left_1(add_matrix3ds, error_matrices) /
         static_cast<float_t>(error_matrices.size());
     //std::cout << "todo remove error_matrices.size() " << error_matrices.size() << std::endl;
-    //std::cout << "todo remove error_matrix_sum.size().width() " << error_matrix_sum.size().width() << std::endl;
+    //std::cout << "todo remove error_matrix_sum.size().width_ " << error_matrix_sum.size().width_ << std::endl;
     return matrix3d_sum_all_values(error_matrix_sum) /
-        static_cast<float_t>(error_matrix_sum.size().width());
+        static_cast<float_t>(error_matrix_sum.size().width_);
 }
 
 void train(layer_ptr& net,
@@ -176,8 +176,8 @@ void test(layer_ptr& net, const input_with_output_vec& dataset)
     {
         assert(data.output_.size() == net->output_size());
         auto out_vol = net->forward_pass(data.input_);
-        auto classification_result = matrix3d_max_pos(out_vol).x();
-        auto wanted_result = matrix3d_max_pos(data.output_).x();
+        auto classification_result = matrix3d_max_pos(out_vol).x_;
+        auto wanted_result = matrix3d_max_pos(data.output_).x_;
         if (classification_result == wanted_result)
         {
             ++correct_count;

@@ -28,10 +28,10 @@ public:
     matrix3d forward_pass(const matrix3d& input) const override
     {
         matrix3d output(output_size());
-        for (std::size_t x_out = 0; x_out < output.size().width(); ++x_out)
+        for (std::size_t x_out = 0; x_out < output.size().width_; ++x_out)
         {
             float_t out_val = 0;
-            for (std::size_t x_in = 0; x_in < input.size().width(); ++x_in)
+            for (std::size_t x_in = 0; x_in < input.size().width_; ++x_in)
             {
                 out_val += params_.get(x_out, x_in) * input.get(0, 0, x_in);
             }

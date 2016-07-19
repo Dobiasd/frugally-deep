@@ -25,20 +25,11 @@ public:
             width_(width)
     {
     }
-    std::size_t height() const
-    {
-        return height_;
-    }
-    std::size_t width() const
-    {
-        return width_;
-    }
     std::size_t area() const
     {
-        return height() * width();
+        return height_ * width_;
     }
 
-private:
     std::size_t height_;
     std::size_t width_;
 };
@@ -48,8 +39,8 @@ bool operator == (const size2d& lhs, const size2d& rhs);
 std::string show_size2d(const size2d& size)
 {
     return std::string(
-        "(" + std::to_string(size.height()) +
-        "," + std::to_string(size.width()) +
+        "(" + std::to_string(size.height_) +
+        "," + std::to_string(size.width_) +
         ")");
 }
 

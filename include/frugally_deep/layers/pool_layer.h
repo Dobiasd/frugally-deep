@@ -48,9 +48,9 @@ public:
     size3d output_size() const override
     {
         return size3d(
-            size_in_.depth(),
-            size_in_.height() / scale_factor_,
-            size_in_.width() / scale_factor_);
+            size_in_.depth_,
+            size_in_.height_ / scale_factor_,
+            size_in_.width_ / scale_factor_);
     }
 protected:
     size3d size_in_;
@@ -65,19 +65,19 @@ protected:
             FinalizePixelFunc finalize_pixel_func,
             const matrix3d& in_vol)
     {
-        assert(in_vol.size().height() % scale_factor == 0);
-        assert(in_vol.size().width() % scale_factor == 0);
+        assert(in_vol.size().height_ % scale_factor == 0);
+        assert(in_vol.size().width_ % scale_factor == 0);
         matrix3d out_vol(
             size3d(
-                in_vol.size().depth(),
-                in_vol.size().height() / scale_factor,
-                in_vol.size().width() / scale_factor));
-        for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
+                in_vol.size().depth_,
+                in_vol.size().height_ / scale_factor,
+                in_vol.size().width_ / scale_factor));
+        for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
         {
-            for (std::size_t y = 0; y < out_vol.size().height(); ++y)
+            for (std::size_t y = 0; y < out_vol.size().height_; ++y)
             {
                 std::size_t y_in = y * scale_factor;
-                for (std::size_t x = 0; x < out_vol.size().width(); ++x)
+                for (std::size_t x = 0; x < out_vol.size().width_; ++x)
                 {
                     std::size_t x_in = x * scale_factor;
                     float_t acc = acc_init;

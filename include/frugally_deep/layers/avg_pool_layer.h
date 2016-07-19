@@ -28,7 +28,7 @@ protected:
         };
         auto pool_helper_div = [this](float_t acc) -> float_t
         {
-            return acc / scale_factor_ * scale_factor_;
+            return acc / static_cast<float_t>(scale_factor_ * scale_factor_);
         };
         return pool_helper(
             scale_factor_,

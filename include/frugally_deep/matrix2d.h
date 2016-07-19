@@ -20,15 +20,15 @@ namespace fd
 class matrix2d
 {
 public:
-    matrix2d(const size2d& size, const float_vec& values) :
-        size_(size),
+    matrix2d(const size2d& shape, const float_vec& values) :
+        size_(shape),
         values_(values)
     {
-        assert(size.area() == values.size());
+        assert(shape.area() == values.size());
     }
-    explicit matrix2d(const size2d& size) :
-        size_(size),
-        values_(size.area(), 0.0f)
+    explicit matrix2d(const size2d& shape) :
+        size_(shape),
+        values_(shape.area(), 0.0f)
     {
     }
     float_t get(std::size_t y, size_t x) const
@@ -51,7 +51,7 @@ public:
 private:
     std::size_t idx(std::size_t y, std::size_t x) const
     {
-        return y * size().width() + x;
+        return y * size().width_ + x;
     };
     size2d size_;
     float_vec values_;
@@ -61,9 +61,9 @@ inline std::string show_matrix2d(const matrix2d& m)
 {
     std::string str;
     str += "[";
-    for (std::size_t y = 0; y < m.size().height(); ++y)
+    for (std::size_t y = 0; y < m.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             str += std::to_string(m.get(y, x)) + ",";
         }
@@ -77,11 +77,11 @@ template <typename F>
 matrix2d transform_matrix2d(F f, const matrix2d& m)
 {
     matrix2d out_vol(size2d(
-        m.size().height(),
-        m.size().width()));
-    for (std::size_t y = 0; y < m.size().height(); ++y)
+        m.size().height_,
+        m.size().width_));
+    for (std::size_t y = 0; y < m.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             out_vol.set(y, x, f(m.get(y, x)));
         }

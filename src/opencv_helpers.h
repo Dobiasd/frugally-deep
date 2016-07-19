@@ -19,9 +19,9 @@ inline fd::matrix3d cv_bgr_img_float_to_matrix3d(const cv::Mat& img)
         3,
         static_cast<std::size_t>(img.cols),
         static_cast<std::size_t>(img.rows)));
-    for (std::size_t y = 0; y < m.size().height(); ++y)
+    for (std::size_t y = 0; y < m.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             cv::Vec3f col =
                 img.at<cv::Vec3f>(static_cast<int>(y), static_cast<int>(x));
@@ -43,9 +43,9 @@ inline fd::matrix3d cv_float_kernel_to_matrix3d(const cv::Mat& kernel,
         depth,
         static_cast<std::size_t>(kernel.cols),
         static_cast<std::size_t>(kernel.rows)));
-    for (std::size_t y = 0; y < m.size().height(); ++y)
+    for (std::size_t y = 0; y < m.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             float val =
                 kernel.at<float>(static_cast<int>(y), static_cast<int>(x));
@@ -57,14 +57,14 @@ inline fd::matrix3d cv_float_kernel_to_matrix3d(const cv::Mat& kernel,
 
 inline cv::Mat matrix3d_to_cv_bgr_img_float(const fd::matrix3d& m)
 {
-    assert(m.size().depth() == 3);
+    assert(m.size().depth_ == 3);
     cv::Mat img(
-        static_cast<int>(m.size().height()),
-        static_cast<int>(m.size().width()),
+        static_cast<int>(m.size().height_),
+        static_cast<int>(m.size().width_),
         CV_32FC3);
-    for (std::size_t y = 0; y < m.size().height(); ++y)
+    for (std::size_t y = 0; y < m.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width(); ++x)
+        for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             cv::Vec3f col(m.get(0, y, x), m.get(1, y, x), m.get(2, y, x));
             img.at<cv::Vec3f>(static_cast<int>(y), static_cast<int>(x)) = col;

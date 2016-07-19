@@ -30,20 +30,20 @@ namespace internal
         // todo: padding
         assert(!filters.empty());
         const size3d& filt_size = filters[0].size();
-        assert(filter_height == filt_size.height());
-        assert(filter_width == filt_size.width());
+        assert(filter_height == filt_size.height_);
+        assert(filter_width == filt_size.width_);
         matrix3d out_vol(size3d(
             filters.size(),
-            in_vol.size().height(),
-            in_vol.size().width()));
+            in_vol.size().height_,
+            in_vol.size().width_));
         for (std::size_t k = 0; k < filters.size(); ++k)
         {
-            for (std::size_t y = 1; y < in_vol.size().height() - 1; ++y)
+            for (std::size_t y = 1; y < in_vol.size().height_ - 1; ++y)
             {
-                for (std::size_t x = 1; x < in_vol.size().width() - 1; ++x)
+                for (std::size_t x = 1; x < in_vol.size().width_ - 1; ++x)
                 {
                     float_t val = 0;
-                    for (std::size_t z = 0; z < filt_size.depth(); ++z)
+                    for (std::size_t z = 0; z < filt_size.depth_; ++z)
                     {
                         // todo: performance optimization:
                         // special versions for filters of size 3*3, 5*5 etc
@@ -69,39 +69,39 @@ namespace internal
         // todo: padding
         assert(!filters.empty());
         const size3d& filt_size = filters[0].size();
-        assert(in_vol.size().depth() == filt_size.depth());
-        if (filt_size.height() == 1 && filt_size.width() == 1)
+        assert(in_vol.size().depth_ == filt_size.depth_);
+        if (filt_size.height_ == 1 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<1, 1>(filters, in_vol);
-        if (filt_size.height() == 1 && filt_size.width() == 3)
+        if (filt_size.height_ == 1 && filt_size.width_ == 3)
             return convolve_loops_fixed_filter_size<1, 3>(filters, in_vol);
-        if (filt_size.height() == 3 && filt_size.width() == 1)
+        if (filt_size.height_ == 3 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<3, 1>(filters, in_vol);
-        if (filt_size.height() == 3 && filt_size.width() == 3)
+        if (filt_size.height_ == 3 && filt_size.width_ == 3)
             return convolve_loops_fixed_filter_size<3, 3>(filters, in_vol);
-        if (filt_size.height() == 1 && filt_size.width() == 5)
+        if (filt_size.height_ == 1 && filt_size.width_ == 5)
             return convolve_loops_fixed_filter_size<1, 5>(filters, in_vol);
-        if (filt_size.height() == 5 && filt_size.width() == 1)
+        if (filt_size.height_ == 5 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<5, 1>(filters, in_vol);
-        if (filt_size.height() == 5 && filt_size.width() == 5)
+        if (filt_size.height_ == 5 && filt_size.width_ == 5)
             return convolve_loops_fixed_filter_size<5, 5>(filters, in_vol);
         matrix3d out_vol(size3d(
             filters.size(),
-            in_vol.size().height(),
-            in_vol.size().width()));
+            in_vol.size().height_,
+            in_vol.size().width_));
         for (std::size_t k = 0; k < filters.size(); ++k)
         {
-            for (std::size_t y = 1; y < in_vol.size().height() - 1; ++y)
+            for (std::size_t y = 1; y < in_vol.size().height_ - 1; ++y)
             {
-                for (std::size_t x = 1; x < in_vol.size().width() - 1; ++x)
+                for (std::size_t x = 1; x < in_vol.size().width_ - 1; ++x)
                 {
                     float_t val = 0;
-                    for (std::size_t z = 0; z < filt_size.depth(); ++z)
+                    for (std::size_t z = 0; z < filt_size.depth_; ++z)
                     {
                         // todo: performance optimization:
                         // special versions for filters of size 3*3, 5*5 etc
-                        for (std::size_t yf = 0; yf < filt_size.height(); ++yf)
+                        for (std::size_t yf = 0; yf < filt_size.height_; ++yf)
                         {
-                            for (std::size_t xf = 0; xf < filt_size.width(); ++xf)
+                            for (std::size_t xf = 0; xf < filt_size.width_; ++xf)
                             {
                                 val += filters[k].get(z, yf, xf) *
                                     in_vol.get(z, y - 1 + yf, x - 1 + xf);

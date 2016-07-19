@@ -27,24 +27,11 @@ public:
             width_(width)
     {
     }
-    std::size_t depth() const
-    {
-        return depth_;
-    }
-    std::size_t height() const
-    {
-        return height_;
-    }
-    std::size_t width() const
-    {
-        return width_;
-    }
     std::size_t volume() const
     {
-        return depth() * height() * width();
+        return depth_ * height_ * width_;
     }
 
-private:
     std::size_t depth_;
     std::size_t height_;
     std::size_t width_;
@@ -53,17 +40,17 @@ private:
 inline bool operator == (const size3d& lhs, const size3d& rhs)
 {
     return
-        lhs.depth() == rhs.depth() &&
-        lhs.height() == rhs.height() &&
-        lhs.width() == rhs.width();
+        lhs.depth_ == rhs.depth_ &&
+        lhs.height_ == rhs.height_ &&
+        lhs.width_ == rhs.width_;
 }
 
 std::string show_size3d(const size3d& size)
 {
     return std::string(
-        "(" + std::to_string(size.depth()) +
-        "," + std::to_string(size.height()) +
-        "," + std::to_string(size.width()) +
+        "(" + std::to_string(size.depth_) +
+        "," + std::to_string(size.height_) +
+        "," + std::to_string(size.width_) +
         ")");
 }
 

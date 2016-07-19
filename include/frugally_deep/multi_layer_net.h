@@ -22,17 +22,17 @@ namespace fd
 class multi_layer_net : public layer
 {
 public:
-    explicit multi_layer_net(const std::vector<layer_ptr>& layer_ptrs) :
-        layer_ptrs_(layer_ptrs)
+    explicit multi_layer_net(const std::vector<layer_ptr>& layers) :
+        layers_(layers)
     {
-        assert(is_layer_ptr_chain_valid(layer_ptrs_));
+        assert(is_layer_ptr_chain_valid(layers));
     }
     matrix3d forward_pass(const matrix3d& input) const override
     {
         auto current_volume = input;
-        for (const auto& layer_ptr : layer_ptrs_)
+        for (const auto& current_layer : layers_)
         {
-            current_volume = layer_ptr->forward_pass(current_volume);
+            current_volume = current_layer->forward_pass(current_volume);
         }
         return current_volume;
     }
@@ -40,7 +40,7 @@ public:
     {
         auto counts = fplus::transform(
             [](const layer_ptr& l) { return l->param_count(); },
-            layer_ptrs_);
+            layers_);
         return fplus::sum(counts);
     }
     float_vec get_params() const override
@@ -48,28 +48,28 @@ public:
         return fplus::concat(
             fplus::transform(
                 [](const layer_ptr& l) { return l->get_params(); },
-                layer_ptrs_));
+                layers_));
     }
     void set_params(const float_vec& params) override
     {
         auto layer_param_counts = fplus::transform(
             [](const layer_ptr& l) { return l->param_count(); },
-            layer_ptrs_);
+            layers_);
         auto split_idxs =
             fplus::scan_left_1(std::plus<std::size_t>(), layer_param_counts);
         auto params_per_layer = fplus::split_at_idxs(split_idxs, params);
-        for (std::size_t i = 0; i < layer_ptrs_.size(); ++i)
+        for (std::size_t i = 0; i < layers_.size(); ++i)
         {
-            layer_ptrs_[i]->set_params(params_per_layer[i]);
+            layers_[i]->set_params(params_per_layer[i]);
         }
     }
     const size3d& input_size() const override
     {
-        return layer_ptrs_.front()->input_size();
+        return layers_.front()->input_size();
     }
     size3d output_size() const override
     {
-        return layer_ptrs_.back()->output_size();
+        return layers_.back()->output_size();
     }
 
 private:
@@ -81,12 +81,12 @@ private:
             layer_ptr_pair.second->input_size();
     }
     static bool is_layer_ptr_chain_valid(
-        const std::vector<layer_ptr>& layer_ptrs)
+        const std::vector<layer_ptr>& layers)
     {
         // todo raus
         /*
         size3d last(0,0,0);
-        for (const auto& p : layer_ptrs)
+        for (const auto& p : layers)
         {
             if (!(last == size3d(0,0,0) || last == p->input_size() ))
             {
@@ -102,7 +102,7 @@ private:
                 {
                     return static_cast<bool>(ptr);
                 },
-                layer_ptrs))
+                layers))
         {
             // todo exception mit beschreibung
             return false;
@@ -111,9 +111,9 @@ private:
         // todo exception mit beschreibung
         return fplus::all_by(
                 is_layer_transition_valid,
-                fplus::overlapping_pairs(layer_ptrs));
+                fplus::overlapping_pairs(layers));
     }
-    std::vector<layer_ptr> layer_ptrs_;
+    std::vector<layer_ptr> layers_;
 };
 
 } // namespace fd

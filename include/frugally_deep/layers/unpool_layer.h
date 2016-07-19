@@ -47,9 +47,9 @@ public:
     size3d output_size() const override
     {
         return size3d(
-            size_in_.depth(),
-            size_in_.height() * scale_factor_,
-            size_in_.width() * scale_factor_);
+            size_in_.depth_,
+            size_in_.height_ * scale_factor_,
+            size_in_.width_ * scale_factor_);
     }
 protected:
     size3d size_in_;
@@ -58,15 +58,15 @@ protected:
     {
         matrix3d out_vol(
             size3d(
-                in_vol.size().depth(),
-                in_vol.size().height() * scale_factor_,
-                in_vol.size().width() * scale_factor_));
-        for (std::size_t z = 0; z < in_vol.size().depth(); ++z)
+                in_vol.size().depth_,
+                in_vol.size().height_ * scale_factor_,
+                in_vol.size().width_ * scale_factor_));
+        for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
         {
-            for (std::size_t y = 0; y < out_vol.size().height(); ++y)
+            for (std::size_t y = 0; y < out_vol.size().height_; ++y)
             {
                 std::size_t y_in = y / scale_factor_;
-                for (std::size_t x = 0; x < out_vol.size().width(); ++x)
+                for (std::size_t x = 0; x < out_vol.size().width_; ++x)
                 {
                     std::size_t x_in = x / scale_factor_;
                     float_t val = in_vol.get(z, y_in, x_in);

@@ -71,6 +71,11 @@ layer_ptr leaky_relu(const size3d& size_in, float_t alpha)
     return std::make_shared<leaky_relu_layer>(size_in, alpha);
 }
 
+layer_ptr relu(const size3d& size_in)
+{
+    return std::make_shared<relu_layer>(size_in);
+}
+
 layer_ptr tanh(const size3d& size_in)
 {
     return std::make_shared<tanh_layer>(size_in);

@@ -72,8 +72,8 @@ void optimize_net_gradient(layer_ptr& net,
         const input_with_output_vec& dataset)>& calc_error,
     const input_with_output_vec& dataset)
 {
-    const float_t gradient_delta = 0.01f;
-    const float_t speed_factor = 0.01f;
+    const float_t gradient_delta = 0.001f;
+    const float_t speed_factor = 0.7f;
 
     float_vec params = net->get_params();
 
@@ -94,8 +94,8 @@ void optimize_net_gradient(layer_ptr& net,
         float_t minus_error = calc_error(net, dataset);
 
         net->set_params(curr_params);
-
-        return plus_error - minus_error;
+        auto gradient = plus_error - minus_error;
+        return gradient;
     };
 
     float_vec gradient(params.size(), 0);
@@ -106,6 +106,7 @@ void optimize_net_gradient(layer_ptr& net,
         gradient[i] = dim_gradient;
     }
 
+    //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
     for (std::size_t i = 0; i < params.size(); ++i)
     {
         params[i] -= gradient[i] * speed_factor;
@@ -151,7 +152,7 @@ void train(layer_ptr& net,
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
-        if (iter % 1000 == 0)
+        if (iter % 100 == 0)
         {
             show_progress(iter, error);
             show_params(net);

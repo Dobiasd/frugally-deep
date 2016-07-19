@@ -155,8 +155,19 @@ void xor_as_net_test()
     using namespace fd;
 
     layer_ptrs layers = {
+        fc(2, 4),
+        tanh(size3d(1, 1, 4)),
+        fc(4, 4),
+        tanh(size3d(1, 1, 4)),
+        fc(4, 1),
+        tanh(size3d(1, 1, 1)),
+        };
+
+    layer_ptrs layers_min = {
         fc(2, 2),
-        fc(2, 1)
+        tanh(size3d(1, 1, 2)),
+        fc(2, 1),
+        tanh(size3d(1, 1, 1)),
         };
 
     auto xor_net = net(layers);
@@ -176,7 +187,8 @@ void xor_as_net_test()
         xor_table
     };
 
-    train(xor_net, classifcation_data.training_data_, 10000000, 0.001f);
+    xor_net->set_params(randomly_change_params(xor_net->get_params()));
+    train(xor_net, classifcation_data.training_data_, 100000, 0.001f);
     test(xor_net, classifcation_data.test_data_);
 }
 
@@ -270,6 +282,7 @@ void cifar_10_classification_test()
 
     auto tobinet = net(layers);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
+    tobinet->set_params(randomly_change_params(tobinet->get_params()));
     train(tobinet, classifcation_data.training_data_, 100000, 0.001f);
     test(tobinet, classifcation_data.test_data_);
 }

@@ -22,11 +22,11 @@ protected:
     float_t alpha_;
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        auto actication_function = [this](float_t x) -> float_t
+        auto activation_function = [this](float_t x) -> float_t
         {
             return x > 0 ? x : alpha_ * x;
         };
-        return transform_matrix3d(actication_function, in_vol);
+        return transform_matrix3d(activation_function, in_vol);
     }
 };
 

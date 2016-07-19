@@ -28,8 +28,28 @@ inline fd::matrix3d cv_bgr_img_float_to_matrix3d(const cv::Mat& img)
             for (std::size_t c = 0; c < 3; ++c)
             {
                 m.set(c, y, x,
-                    static_cast<float>(col[static_cast<int>(c)]));
+                    static_cast<float_t>(col[static_cast<int>(c)]));
             }
+        }
+    }
+    return m;
+}
+
+inline fd::matrix3d cv_gray_img_float_to_matrix3d(const cv::Mat& img)
+{
+    assert(img.type() == CV_32FC1);
+    fd::matrix3d m(fd::size3d(
+        1,
+        static_cast<std::size_t>(img.cols),
+        static_cast<std::size_t>(img.rows)));
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            unsigned char col = img.at<unsigned char>(
+                static_cast<int>(y), static_cast<int>(x));
+            m.set(0, y, x,
+                static_cast<float_t>(col));
         }
     }
     return m;
@@ -147,23 +167,41 @@ inline cv::Mat grow_via_net(const cv::Mat& img, std::size_t scale_factor)
 
 inline cv::Mat uchar_img_to_float_img(const cv::Mat& uchar_img)
 {
-    assert(uchar_img.type() == CV_8UC3);
     cv::Mat result;
-    uchar_img.convertTo(result, CV_32FC3, 1.0f/255.0f);
+    if (uchar_img.type() == CV_8UC3)
+    {
+        uchar_img.convertTo(result, CV_32FC3, 1.0f/255.0f);
+        return result;
+    }
+    else if (uchar_img.type() == CV_8UC1)
+    {
+        uchar_img.convertTo(result, CV_32FC1, 1.0f/255.0f);
+        return result;
+    }
+    assert(false);
     return result;
 }
 
 inline cv::Mat float_img_to_uchar_img(const cv::Mat& floatImg)
 {
-    assert(floatImg.type() == CV_32FC3);
     cv::Mat result;
-    floatImg.convertTo(result, CV_8UC3, 255.0f);
+    if (floatImg.type() == CV_32FC3)
+    {
+        floatImg.convertTo(result, CV_8UC3, 255.0f);
+        return result;
+    }
+    else if (floatImg.type() == CV_32FC1)
+    {
+        floatImg.convertTo(result, CV_8UC1, 255.0f);
+        return result;
+    }
+    assert(false);
     return result;
 }
 
 inline cv::Mat normalize_float_img(const cv::Mat& floatImg)
 {
-    assert(floatImg.type() == CV_32FC3);
+    assert(floatImg.type() == CV_32FC3 || floatImg.type() == CV_32FC1);
     cv::Mat result;
     cv::normalize(floatImg, result, 0, 1, cv::NORM_MINMAX);
     return result;

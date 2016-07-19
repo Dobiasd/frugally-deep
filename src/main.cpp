@@ -192,23 +192,30 @@ void xor_as_net_test()
     test(xor_net, classifcation_data.test_data_);
 }
 
-fd::matrix3d load_image_as_matrix3d(const std::string& file_path)
+fd::matrix3d load_col_image_as_matrix3d(const std::string& file_path)
 {
     cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
     return cv_bgr_img_float_to_matrix3d(img);
 }
 
+fd::matrix3d load_gray_image_as_matrix3d(const std::string& file_path)
+{
+    cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_GRAYSCALE);
+    cv::Mat img = uchar_img_to_float_img(img_uchar);
+    return cv_gray_img_float_to_matrix3d(img);
+}
+
 fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
 {
     fd::input_with_output_vec image_list =
     {
-       {load_image_as_matrix3d(base_dir + "/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_image_as_matrix3d(base_dir + "/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_image_as_matrix3d(base_dir + "/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_image_as_matrix3d(base_dir + "/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
-       {load_image_as_matrix3d(base_dir + "/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
-       {load_image_as_matrix3d(base_dir + "/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+       {load_gray_image_as_matrix3d(base_dir + "/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_gray_image_as_matrix3d(base_dir + "/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_gray_image_as_matrix3d(base_dir + "/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_gray_image_as_matrix3d(base_dir + "/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
+       {load_gray_image_as_matrix3d(base_dir + "/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
+       {load_gray_image_as_matrix3d(base_dir + "/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
     };
 
     fd::classification_dataset classifcation_data =
@@ -227,16 +234,31 @@ void gradients_classification_test()
     using namespace fd;
 
     layer_ptrs layers = {
-        conv(size3d(3, 32, 32), size2d(3, 3), 2, 1), tanh(size3d(2, 32, 32)),
+        conv(size3d(1, 32, 32), size2d(3, 3), 2, 1), relu(size3d(2, 32, 32)),
         max_pool(size3d(2, 32, 32), 32),
         flatten(size3d(2, 1, 1)),
+        fc(size3d(2, 1, 1).volume(), 2),
+        tanh(size3d(1, 1, 2)),
         softmax(size3d(1, 1, 2))
         };
 
     auto gradnet = net(layers);
     std::cout << "net.param_count() " << gradnet->param_count() << std::endl;
+    //gradnet->set_params(randomly_change_params(gradnet->get_params()));
+    gradnet->set_params(
+    {
+        -1, -2, -1,
+         2,  4,  2,
+        -1, -2, -1,
+        0,
+        -1,  2, -1,
+        -2,  4, -2,
+        -1,  2, -1,
+        0,
+        1,0,0,1,0,0
+    });
     gradnet->set_params(randomly_change_params(gradnet->get_params()));
-    train(gradnet, classifcation_data.training_data_, 1000, 0.001f, 0.3f);
+    train(gradnet, classifcation_data.training_data_, 10000, 0.001f, 0.00001f);
     test(gradnet, classifcation_data.test_data_);
 }
 
@@ -353,6 +375,18 @@ void cifar_10_classification_test()
 
 int main()
 {
+    /*
+    // softmax test)
+    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
+        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {0.1f, 0.3f}))) << std::endl;
+    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
+        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {0.1f, 3.3f}))) << std::endl;
+    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
+        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {123.1f, -23.3f}))) << std::endl;
+    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
+        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {-123.1f, -23.3f}))) << std::endl;
+    return 0;
+    */
     //lenna_filter_test();
     //xor_as_net_test();
     gradients_classification_test();

@@ -21,11 +21,11 @@ public:
 protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        auto actication_function = [](float_t x) -> float_t
+        auto activation_function = [](float_t x) -> float_t
         {
             return std::max<float_t>(x, 0);
         };
-        return transform_matrix3d(actication_function, in_vol);
+        return transform_matrix3d(activation_function, in_vol);
     }
 };
 

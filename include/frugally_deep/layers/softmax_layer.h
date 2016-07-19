@@ -24,11 +24,11 @@ protected:
         // http://stackoverflow.com/q/9906136/1866775
         const auto& in_vol_values = in_vol.as_vector();
         float_t in_vol_max = fplus::maximum(in_vol_values);
-        auto actication_function = [in_vol_max](float_t x) -> float_t
+        auto activation_function = [in_vol_max](float_t x) -> float_t
         {
             return std::exp(x - in_vol_max);
         };
-        auto unnormalized = transform_matrix3d(actication_function, in_vol);
+        auto unnormalized = transform_matrix3d(activation_function, in_vol);
 
         auto unnormalized_sum = fplus::sum(unnormalized.as_vector());
         auto make_sum_equal_to_one = [unnormalized_sum](float_t x) -> float_t

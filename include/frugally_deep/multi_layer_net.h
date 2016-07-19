@@ -52,6 +52,7 @@ public:
     }
     void set_params(const float_vec& params) override
     {
+        assert(params.size() == param_count());
         auto layer_param_counts = fplus::transform(
             [](const layer_ptr& l) { return l->param_count(); },
             layers_);

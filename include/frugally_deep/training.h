@@ -51,8 +51,6 @@ struct classification_dataset
 
 float_vec randomly_change_params(const float_vec& old_params)
 {
-    // todo: develop optimization strategy
-
     // todo seed
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -164,6 +162,7 @@ float_t calc_mean_error(
         error_matrices.push_back(error);
         //std::cout << "todo remove show_matrix3d(result) " << show_matrix3d(result) << std::endl;
     }
+    //std::cout << "todo remove ____" << std::endl;
     auto error_matrix_sum =
         fplus::fold_left_1(add_matrix3ds, error_matrices) /
         static_cast<float_t>(error_matrices.size());
@@ -194,11 +193,11 @@ void train(layer_ptr& net,
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
-        if (stopwatch.elapsed() > 0.5)
+        if (iter == 0 || stopwatch.elapsed() > 0.5)
         {
             stopwatch.reset();
             show_progress(iter, error, learning_rate);
-            //show_params(net);
+            show_params(net);
         }
         if (error < mean_error_goal)
         {

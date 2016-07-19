@@ -86,6 +86,11 @@ layer_ptr max_pool(const size3d& size_in, std::size_t scale_factor)
     return std::make_shared<max_pool_layer>(size_in, scale_factor);
 }
 
+layer_ptr avg_pool(const size3d& size_in, std::size_t scale_factor)
+{
+    return std::make_shared<avg_pool_layer>(size_in, scale_factor);
+}
+
 layer_ptr flatten(const size3d& size_in)
 {
     return std::make_shared<flatten_layer>(size_in);

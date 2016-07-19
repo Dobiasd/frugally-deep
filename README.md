@@ -27,7 +27,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-implement backprop
+implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/)
 bias for which layer types?
 let all layers check if input matches input_size and if output matches output_size
 would it be better if fc layers had their values along the z axis and not the x axis in the matrix3d?

@@ -51,7 +51,7 @@ public:
 private:
     std::size_t idx(std::size_t y, std::size_t x) const
     {
-        return size().width() + y * size().width() + x;
+        return y * size().width() + x;
     };
     size2d size_;
     float_vec values_;

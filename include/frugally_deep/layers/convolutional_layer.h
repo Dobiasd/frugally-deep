@@ -28,7 +28,7 @@ public:
         std::size_t depth, const size2d& filter_size, std::size_t k)
     {
         return std::vector<filter>(k, filter(matrix3d(
-            size3d(depth, filter_size.height_, filter_size.width_))));
+            size3d(depth, filter_size.height_, filter_size.width_)), 0));
     }
     explicit convolutional_layer(
             const size3d& size_in, const size2d& filter_size,

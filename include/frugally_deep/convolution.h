@@ -56,6 +56,7 @@ namespace internal
                             }
                         }
                     }
+                    val += filters[k].get_bias();
                     out_vol.set(k, y, x, val);
                 }
             }
@@ -108,6 +109,7 @@ namespace internal
                             }
                         }
                     }
+                    val += filters[k].get_bias();
                     out_vol.set(k, y, x, val);
                 }
             }

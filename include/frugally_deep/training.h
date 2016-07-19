@@ -20,6 +20,22 @@
 namespace fd
 {
 
+// http://stackoverflow.com/a/19471595/1866775
+class timer
+{
+public:
+    timer() : beg_(clock_::now()) {}
+    void reset() { beg_ = clock_::now(); }
+    double elapsed() const {
+        return std::chrono::duration_cast<second_>
+            (clock_::now() - beg_).count(); }
+
+private:
+    typedef std::chrono::high_resolution_clock clock_;
+    typedef std::chrono::duration<double, std::ratio<1> > second_;
+    std::chrono::time_point<clock_> beg_;
+};
+
 struct input_with_output
 {
     matrix3d input_;
@@ -66,16 +82,30 @@ void optimize_net_random(layer_ptr& net,
     }
 }
 
-void optimize_net_gradient(layer_ptr& net,
+float_t test_params(
+    const float_vec& params,
+    layer_ptr& net,
     const std::function<float_t(
         const layer_ptr& net,
         const input_with_output_vec& dataset)>& calc_error,
     const input_with_output_vec& dataset)
 {
-    const float_t gradient_delta = 0.001f;
-    const float_t speed_factor = 0.7f;
+    float_vec old_params = net->get_params();
+    net->set_params(params);
+    float_t error = calc_error(net, dataset);
+    net->set_params(old_params);
+    return error;
+}
 
-    float_vec params = net->get_params();
+void optimize_net_gradient(
+    layer_ptr& net,
+    const std::function<float_t(
+        const layer_ptr& net,
+        const input_with_output_vec& dataset)>& calc_error,
+    const input_with_output_vec& dataset,
+    float_t& speed_factor)
+{
+    const float_t gradient_delta = 0.001f;
 
     auto calculate_gradient_dim =
         [&net, gradient_delta, &calc_error, &dataset]
@@ -87,32 +117,39 @@ void optimize_net_gradient(layer_ptr& net,
         params_plus[i] += gradient_delta;
         params_minus[i] -= gradient_delta;
 
-        net->set_params(params_plus);
-        float_t plus_error = calc_error(net, dataset);
+        float_t plus_error = test_params(params_plus, net, calc_error, dataset);
+        float_t minus_error = test_params(params_minus, net, calc_error, dataset);
 
-        net->set_params(params_minus);
-        float_t minus_error = calc_error(net, dataset);
-
-        net->set_params(curr_params);
-        auto gradient = plus_error - minus_error;
+        auto gradient = (plus_error - minus_error) / gradient_delta;
         return gradient;
     };
 
-    float_vec gradient(params.size(), 0);
+    float_vec old_params = net->get_params();
+    float_vec gradient(old_params.size(), 0);
 
-    for (std::size_t i = 0; i < params.size(); ++i)
+    for (std::size_t i = 0; i < old_params.size(); ++i)
     {
-        float_t dim_gradient = calculate_gradient_dim(params, i);
+        float_t dim_gradient = calculate_gradient_dim(old_params, i);
         gradient[i] = dim_gradient;
     }
 
+    float_vec new_params = old_params;
     //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
-    for (std::size_t i = 0; i < params.size(); ++i)
+    for (std::size_t i = 0; i < old_params.size(); ++i)
     {
-        params[i] -= gradient[i] * speed_factor;
+        new_params[i] -= gradient[i] * speed_factor;
     }
 
-    net->set_params(params);
+    float_t old_error = calc_error(net, dataset);
+    float_t new_error = test_params(new_params, net, calc_error, dataset);
+
+    if (new_error >= old_error)
+    {
+        speed_factor *= 0.99f;
+        //return;
+    }
+
+    net->set_params(new_params);
 }
 
 float_t calc_mean_error(
@@ -139,33 +176,39 @@ float_t calc_mean_error(
 void train(layer_ptr& net,
     const input_with_output_vec& dataset,
     std::size_t max_iters,
-    float_t mean_error_goal)
+    float_t mean_error_goal,
+    float_t learning_rate)
 {
-    auto show_progress = [](std::size_t iter, float_t error)
+    auto show_progress = [](std::size_t iter, float_t error, float_t current_learning_rate)
     {
-        std::cout << "iteration " << iter << ", error " << error << std::endl;
+        std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)
+        << ", learning rate " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(current_learning_rate))
+        << ", error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(error))
+        << std::endl;
     };
     auto show_params = [](const layer_ptr& current_net)
     {
         std::cout << "params " << fplus::show_cont(current_net->get_params()) << std::endl;
     };
+    timer stopwatch;
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
-        if (iter % 100 == 0)
+        if (stopwatch.elapsed() > 0.5)
         {
-            show_progress(iter, error);
-            show_params(net);
+            stopwatch.reset();
+            show_progress(iter, error, learning_rate);
+            //show_params(net);
         }
         if (error < mean_error_goal)
         {
-            show_progress(iter, error);
+            show_progress(iter, error, learning_rate);
             show_params(net);
             return;
         }
-        optimize_net_gradient(net, calc_mean_error, dataset);
+        optimize_net_gradient(net, calc_mean_error, dataset, learning_rate);
     }
-    show_progress(max_iters, calc_mean_error(net, dataset));
+    show_progress(max_iters, calc_mean_error(net, dataset), learning_rate);
     show_params(net);
 }
 

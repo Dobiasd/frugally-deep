@@ -76,7 +76,7 @@ fd::input_with_output parse_cifar_10_bin_line(
 fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 		bool mini_version)
 {
-    std::size_t mini_version_img_count = 10;
+    std::size_t mini_version_img_count = 1;
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
@@ -188,8 +188,56 @@ void xor_as_net_test()
     };
 
     xor_net->set_params(randomly_change_params(xor_net->get_params()));
-    train(xor_net, classifcation_data.training_data_, 100000, 0.001f);
+    train(xor_net, classifcation_data.training_data_, 10000, 0.1f, 0.01f);
     test(xor_net, classifcation_data.test_data_);
+}
+
+fd::matrix3d load_image_as_matrix3d(const std::string& file_path)
+{
+    cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_COLOR);
+    cv::Mat img = uchar_img_to_float_img(img_uchar);
+    return cv_bgr_img_float_to_matrix3d(img);
+}
+
+fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
+{
+    fd::input_with_output_vec image_list =
+    {
+       {load_image_as_matrix3d(base_dir + "/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_image_as_matrix3d(base_dir + "/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_image_as_matrix3d(base_dir + "/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
+       {load_image_as_matrix3d(base_dir + "/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
+       {load_image_as_matrix3d(base_dir + "/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
+       {load_image_as_matrix3d(base_dir + "/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+    };
+
+    fd::classification_dataset classifcation_data =
+    {
+        image_list,
+        image_list
+    };
+
+    return classifcation_data;
+}
+
+void gradients_classification_test()
+{
+    auto classifcation_data = load_gradient_dataset("images/datasets/classification/gradients");
+
+    using namespace fd;
+
+    layer_ptrs layers = {
+        conv(size3d(3, 32, 32), size2d(3, 3), 2, 1), tanh(size3d(2, 32, 32)),
+        max_pool(size3d(2, 32, 32), 32),
+        flatten(size3d(2, 1, 1)),
+        softmax(size3d(1, 1, 2))
+        };
+
+    auto gradnet = net(layers);
+    std::cout << "net.param_count() " << gradnet->param_count() << std::endl;
+    gradnet->set_params(randomly_change_params(gradnet->get_params()));
+    train(gradnet, classifcation_data.training_data_, 1000, 0.001f, 0.3f);
+    test(gradnet, classifcation_data.test_data_);
 }
 
 void cifar_10_classification_test()
@@ -280,16 +328,33 @@ void cifar_10_classification_test()
         softmax(size3d(1, 1, 10))
         };
 
-    auto tobinet = net(layers);
+    layer_ptrs layers_tiny = {
+        max_pool(size3d(3, 32, 32), 16),
+        flatten(size3d(3, 2, 2)),
+        fc(size3d(3, 2, 2).volume(), 10),
+        tanh(size3d(1, 1, 10)),
+        softmax(size3d(1, 1, 10))
+        };
+
+    layer_ptrs layers_very_tiny = {
+        max_pool(size3d(3, 32, 32), 32),
+        flatten(size3d(3, 1, 1)),
+        fc(size3d(3, 1, 1).volume(), 10),
+        tanh(size3d(1, 1, 10)),
+        softmax(size3d(1, 1, 10))
+        };
+
+    auto tobinet = net(layers_very_tiny);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->set_params(randomly_change_params(tobinet->get_params()));
-    train(tobinet, classifcation_data.training_data_, 100000, 0.001f);
+    train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 200.6f);
     test(tobinet, classifcation_data.test_data_);
 }
 
 int main()
 {
-    xor_as_net_test();
     //lenna_filter_test();
+    //xor_as_net_test();
+    gradients_classification_test();
     //cifar_10_classification_test();
 }

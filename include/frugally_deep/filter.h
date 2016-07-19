@@ -21,22 +21,18 @@ namespace fd
 class filter
 {
 public:
-    explicit filter(const matrix3d& m) : m_(m)
+    filter(const matrix3d& m, float_t bias) : m_(m), bias_(bias)
     {
         assert(m_.size().width_ %2 == 1);
         assert(m_.size().height_ %2 == 1);
     }
     std::size_t param_count() const
     {
-        return m_.size().volume();
+        return m_.size().volume() + 1; // +1 for bias
     }
     const size3d& size() const
     {
         return m_.size();
-    }
-    size2d size_without_depth() const
-    {
-        return size2d(m_.size().height_, m_.size().width_);
     }
     matrix3d get_matrix3d() const
     {
@@ -45,6 +41,10 @@ public:
     float_t get(std::size_t z, std::size_t y, size_t x) const
     {
         return m_.get(z, y, x);
+    }
+    float_t get_bias() const
+    {
+        return bias_;
     }
     float_vec get_params() const
     {
@@ -60,6 +60,7 @@ public:
                 }
             }
         }
+        params.push_back(bias_);
         return params;
     }
     void set_params(const float_vec& params)
@@ -76,9 +77,11 @@ public:
                 }
             }
         }
+        bias_ = params[i++];
     }
 private:
     matrix3d m_;
+    float_t bias_;
 };
 
 } // namespace fd

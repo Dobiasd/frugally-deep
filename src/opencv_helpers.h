@@ -77,13 +77,17 @@ inline fd::layer_ptr cv_kernel_to_layer(const fd::size3d& in_size,
     const cv::Mat& cv_kernel)
 {
     std::vector<fd::filter> filters = {
-        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 0)),
-        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 1)),
-        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 2))
+        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 0), 0),
+        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 1), 0),
+        fd::filter(cv_float_kernel_to_matrix3d(cv_kernel, 3, 2), 0)
+    };
+    auto size_without_depth = [](const fd::filter& f) -> fd::size2d
+    {
+        return fd::size2d(f.get_matrix3d().size().height_, f.get_matrix3d().size().width_);
     };
     fd::layer_ptr kernel_layer = std::make_shared<fd::convolutional_layer>(
         in_size,
-        filters[0].size_without_depth(),
+        size_without_depth(filters[0]),
         filters.size(),
         1);
     auto all_filter_params = fplus::transform_and_concat(

@@ -49,7 +49,7 @@ float_vec randomly_change_params(const float_vec& old_params)
     return new_params;
 }
 
-void optimize_net(layer_ptr& net,
+void optimize_net_random(layer_ptr& net,
     const std::function<float_t(
         const layer_ptr& net,
         const input_with_output_vec& dataset)>& calc_error,
@@ -64,6 +64,54 @@ void optimize_net(layer_ptr& net,
     {
         net->set_params(old_params);
     }
+}
+
+void optimize_net_gradient(layer_ptr& net,
+    const std::function<float_t(
+        const layer_ptr& net,
+        const input_with_output_vec& dataset)>& calc_error,
+    const input_with_output_vec& dataset)
+{
+    const float_t gradient_delta = 0.01f;
+    const float_t speed_factor = 0.01f;
+
+    float_vec params = net->get_params();
+
+    auto calculate_gradient_dim =
+        [&net, gradient_delta, &calc_error, &dataset]
+        (const float_vec& curr_params, std::size_t i) -> float_t
+    {
+        float_vec params_plus = curr_params;
+        float_vec params_minus = curr_params;
+
+        params_plus[i] += gradient_delta;
+        params_minus[i] -= gradient_delta;
+
+        net->set_params(params_plus);
+        float_t plus_error = calc_error(net, dataset);
+
+        net->set_params(params_minus);
+        float_t minus_error = calc_error(net, dataset);
+
+        net->set_params(curr_params);
+
+        return plus_error - minus_error;
+    };
+
+    float_vec gradient(params.size(), 0);
+
+    for (std::size_t i = 0; i < params.size(); ++i)
+    {
+        float_t dim_gradient = calculate_gradient_dim(params, i);
+        gradient[i] = dim_gradient;
+    }
+
+    for (std::size_t i = 0; i < params.size(); ++i)
+    {
+        params[i] -= gradient[i] * speed_factor;
+    }
+
+    net->set_params(params);
 }
 
 float_t calc_mean_error(
@@ -96,21 +144,28 @@ void train(layer_ptr& net,
     {
         std::cout << "iteration " << iter << ", error " << error << std::endl;
     };
+    auto show_params = [](const layer_ptr& current_net)
+    {
+        std::cout << "params " << fplus::show_cont(current_net->get_params()) << std::endl;
+    };
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
         if (iter % 1000 == 0)
         {
             show_progress(iter, error);
+            show_params(net);
         }
         if (error < mean_error_goal)
         {
             show_progress(iter, error);
+            show_params(net);
             return;
         }
-        optimize_net(net, calc_mean_error, dataset);
+        optimize_net_gradient(net, calc_mean_error, dataset);
     }
     show_progress(max_iters, calc_mean_error(net, dataset));
+    show_params(net);
 }
 
 void test(layer_ptr& net, const input_with_output_vec& dataset)

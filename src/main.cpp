@@ -176,7 +176,7 @@ void xor_as_net_test()
         xor_table
     };
 
-    train(xor_net, classifcation_data.training_data_, 100000, 0.001f);
+    train(xor_net, classifcation_data.training_data_, 10000000, 0.001f);
     test(xor_net, classifcation_data.test_data_);
 }
 
@@ -276,6 +276,9 @@ void cifar_10_classification_test()
 
 int main()
 {
+    unsigned int i = 42;
+    float f = i;
+    std::cout << f << std::endl;
     xor_as_net_test();
     //lenna_filter_test();
     //cifar_10_classification_test();

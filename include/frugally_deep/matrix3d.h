@@ -25,7 +25,7 @@ namespace fd
 class matrix3d
 {
 public:
-    explicit matrix3d(const size3d& size, const float_vec& values) :
+    matrix3d(const size3d& size, const float_vec& values) :
         size_(size),
         values_(values)
     {
@@ -189,7 +189,7 @@ matrix3d operator * (const matrix3d& m, float_t factor)
 
 matrix3d operator / (const matrix3d& m, float_t divisor)
 {
-    return divide_matrix3d(m, 1 / divisor);
+    return divide_matrix3d(m, divisor);
 }
 
 } // namespace fd

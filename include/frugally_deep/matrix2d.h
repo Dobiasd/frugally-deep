@@ -20,7 +20,7 @@ namespace fd
 class matrix2d
 {
 public:
-    explicit matrix2d(const size2d& size, const float_vec& values) :
+    matrix2d(const size2d& size, const float_vec& values) :
         size_(size),
         values_(values)
     {

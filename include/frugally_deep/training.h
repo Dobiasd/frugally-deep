@@ -99,7 +99,7 @@ void train(layer_ptr& net,
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         auto error = calc_mean_error(net, dataset);
-        if (iter % 10 == 0)
+        if (iter % 1000 == 0)
         {
             show_progress(iter, error);
         }
@@ -115,11 +115,10 @@ void train(layer_ptr& net,
 
 void test(layer_ptr& net, const input_with_output_vec& dataset)
 {
+    std::cout << "running test" << std::endl;
     std::size_t correct_count = 0;
-    for (const auto& data_idx_and_data : fplus::enumerate(dataset))
+    for (const auto& data : dataset)
     {
-        const auto& data_idx = data_idx_and_data.first;
-        const auto& data = data_idx_and_data.second;
         assert(data.output_.size() == net->output_size());
         auto out_vol = net->forward_pass(data.input_);
         auto classification_result = matrix3d_max_pos(out_vol).x();
@@ -128,12 +127,12 @@ void test(layer_ptr& net, const input_with_output_vec& dataset)
         {
             ++correct_count;
         }
-        int percent = fplus::round<int>(
-            100 * static_cast<double>(correct_count) /
-            static_cast<double>(dataset.size()));
-        std::cout << "test accuracy: " << percent << " % ("
-            << correct_count << "/" << data_idx << ")" << std::endl;
     }
+    int percent = fplus::round<int>(
+        100 * static_cast<double>(correct_count) /
+        static_cast<double>(dataset.size()));
+    std::cout << "test accuracy: " << percent << " % ("
+        << correct_count << "/" << dataset.size() << ")" << std::endl;
 }
 
 } // namespace fd

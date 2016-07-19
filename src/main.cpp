@@ -148,9 +148,40 @@ void lenna_filter_test()
     cv::imwrite("lenna_512x512_filtered2.png", filtered2);
 }
 
+void xor_as_net_test()
+{
+    std::cout << "xor_as_net_test" << std::endl;
+
+    using namespace fd;
+
+    layer_ptrs layers = {
+        fc(2, 2),
+        fc(2, 1)
+        };
+
+    auto xor_net = net(layers);
+    std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
+
+    input_with_output_vec xor_table =
+    {
+       {{size3d(1,1,2), {0, 0}}, {size3d(1,1,1), {0}}},
+       {{size3d(1,1,2), {0, 1}}, {size3d(1,1,1), {1}}},
+       {{size3d(1,1,2), {1, 0}}, {size3d(1,1,1), {1}}},
+       {{size3d(1,1,2), {1, 1}}, {size3d(1,1,1), {0}}},
+    };
+
+    classification_dataset classifcation_data =
+    {
+        xor_table,
+        xor_table
+    };
+
+    train(xor_net, classifcation_data.training_data_, 100000, 0.001f);
+    test(xor_net, classifcation_data.test_data_);
+}
+
 void cifar_10_classification_test()
 {
-    lenna_filter_test();
     std::cout << "loading cifar-10 ..." << std::flush;
     auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true);
     std::cout << " done" << std::endl;
@@ -245,5 +276,7 @@ void cifar_10_classification_test()
 
 int main()
 {
-    cifar_10_classification_test();
+    xor_as_net_test();
+    //lenna_filter_test();
+    //cifar_10_classification_test();
 }

@@ -46,7 +46,7 @@ inline fd::matrix3d cv_gray_img_float_to_matrix3d(const cv::Mat& img)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
         {
-            unsigned char col = img.at<unsigned char>(
+            float col = img.at<float>(
                 static_cast<int>(y), static_cast<int>(x));
             m.set(0, y, x,
                 static_cast<float_t>(col));

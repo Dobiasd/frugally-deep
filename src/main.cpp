@@ -243,11 +243,12 @@ void gradients_classification_test()
     using namespace fd;
 
     layer_ptrs layers = {
-        conv(size3d(1, 32, 32), size2d(3, 3), 2, 1), relu(size3d(2, 32, 32)),
-        max_pool(size3d(2, 32, 32), 32),
+        conv(size3d(1, 32, 32), size2d(3, 3), 2, 1),
+        relu(size3d(2, 32, 32)),
+        avg_pool(size3d(2, 32, 32), 32),
         flatten(size3d(2, 1, 1)),
         fc(size3d(2, 1, 1).volume(), 2),
-        tanh(size3d(1, 1, 2)),
+        //tanh(size3d(1, 1, 2)),
         softmax(size3d(1, 1, 2))
         };
 
@@ -256,18 +257,18 @@ void gradients_classification_test()
     //gradnet->set_params(randomly_change_params(gradnet->get_params()));
     gradnet->set_params(
     {
-        -1, -2, -1,
-         2,  4,  2,
-        -1, -2, -1,
+         3,  0,  -3,
+        10,  0, -10,
+         3,  0,  -3,
         0,
-        -1,  2, -1,
-        -2,  4, -2,
-        -1,  2, -1,
+         3,  10,  3,
+         0,   0,  0,
+        -3, -10, -3,
         0,
         1,0,0,1,0,0
     });
-    gradnet->set_params(randomly_change_params(gradnet->get_params()));
-    train(gradnet, classifcation_data.training_data_, 10000, 0.001f, 0.00001f);
+    //gradnet->set_params(randomly_change_params(gradnet->get_params()));
+    train(gradnet, classifcation_data.training_data_, 10000, 0.001f, 0.01f);
     test(gradnet, classifcation_data.test_data_);
 }
 

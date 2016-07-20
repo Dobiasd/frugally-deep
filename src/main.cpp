@@ -165,10 +165,10 @@ void xor_as_net_test()
 
     input_with_output_vec xor_table =
     {
-       {{size3d(1,1,2), {0, 0}}, {size3d(1,1,1), {0}}},
-       {{size3d(1,1,2), {0, 1}}, {size3d(1,1,1), {1}}},
-       {{size3d(1,1,2), {1, 0}}, {size3d(1,1,1), {1}}},
-       {{size3d(1,1,2), {1, 1}}, {size3d(1,1,1), {0}}},
+       {{size3d(1,2,1), {0, 0}}, {size3d(1,1,1), {0}}},
+       {{size3d(1,2,1), {0, 1}}, {size3d(1,1,1), {1}}},
+       {{size3d(1,2,1), {1, 0}}, {size3d(1,1,1), {1}}},
+       {{size3d(1,2,1), {1, 1}}, {size3d(1,1,1), {0}}},
     };
 
     classification_dataset classifcation_data =
@@ -201,7 +201,7 @@ void xor_as_net_test()
          1.5f
     };
 
-    auto xor_net = net(layers_min)(size3d(1, 1, 2));
+    auto xor_net = net(layers_min)(size3d(1, 2, 1));
     std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
 
     xor_net->set_params(layers_min_good_params);
@@ -236,20 +236,20 @@ fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
     fd::classification_dataset classifcation_data =
     {
         {
-            {load_gray_image_as_matrix3d(base_dir + "/training/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/training/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/training/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/training/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
-            {load_gray_image_as_matrix3d(base_dir + "/training/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
-            {load_gray_image_as_matrix3d(base_dir + "/training/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/001.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/002.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/003.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/001.png"), {fd::size3d(1,2,1), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/002.png"), {fd::size3d(1,2,1), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/003.png"), {fd::size3d(1,2,1), {0,1}}}
         },
         {
-            {load_gray_image_as_matrix3d(base_dir + "/test/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/test/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/test/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
-            {load_gray_image_as_matrix3d(base_dir + "/test/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
-            {load_gray_image_as_matrix3d(base_dir + "/test/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
-            {load_gray_image_as_matrix3d(base_dir + "/test/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/001.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/002.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/003.png"), {fd::size3d(1,2,1), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/001.png"), {fd::size3d(1,2,1), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/002.png"), {fd::size3d(1,2,1), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/003.png"), {fd::size3d(1,2,1), {0,1}}}
         }
     };
 

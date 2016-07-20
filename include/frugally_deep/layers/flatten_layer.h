@@ -11,6 +11,7 @@
 namespace fd
 {
 
+// Converts a volume into single column volume (size3d(1, n, 1)).
 class flatten_layer : public layer
 {
 public:
@@ -36,7 +37,7 @@ public:
     }
     size3d output_size() const override
     {
-        return size3d(1, 1, size_in_.volume());
+        return size3d(1, size_in_.volume(), 1);
     }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override

@@ -107,8 +107,8 @@ pre_layer fc(std::size_t n_out)
     return [=](const size3d& size_in) -> layer_ptr
     {
         assert(size_in.depth_ == 1);
-        assert(size_in.height_ == 1);
-        return std::make_shared<fully_connected_layer>(size_in.width_, n_out);
+        assert(size_in.width_ == 1);
+        return std::make_shared<fully_connected_layer>(size_in.height_, n_out);
     };
 }
 

@@ -15,12 +15,13 @@
 namespace fd
 {
 
+// Takes a single column volume (size3d(1, n, 1)) as input.
 class fully_connected_layer : public layer
 {
 public:
     fully_connected_layer(std::size_t n_in, std::size_t n_out)
-        : size_in_(size3d(1, 1, n_in)),
-            size_out_(1, 1, n_out),
+        : size_in_(size3d(1, n_in, 1)),
+            size_out_(1, n_out, 1),
             params_(size2d(n_out, n_in)),
             biases_(n_out, 0)
     {
@@ -58,10 +59,10 @@ protected:
             float_t out_val = 0;
             for (std::size_t x_in = 0; x_in < input.size().width_; ++x_in)
             {
-                out_val += params_.get(x_out, x_in) * input.get(0, 0, x_in);
+                out_val += params_.get(x_out, x_in) * input.get(0, x_in, 0);
             }
             out_val += biases_[x_out];
-            output.set(0, 0, x_out, out_val);
+            output.set(0, x_out, 0, out_val);
         }
         return output;
     }

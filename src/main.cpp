@@ -178,20 +178,20 @@ void xor_as_net_test()
     };
 
 
-    layer_ptrs layers = {
-        fc(2, 4),
-        sigmoid(4),
-        fc(4, 4),
-        sigmoid(4),
-        fc(4, 1),
-        sigmoid(4),
+    pre_layers layers = {
+        fc(4),
+        sigmoid(),
+        fc(4),
+        sigmoid(),
+        fc(1),
+        sigmoid(),
         };
 
-    layer_ptrs layers_min = {
-        fc(2, 2),
-        sigmoid(2),
-        fc(2, 1),
-        sigmoid(1),
+    pre_layers layers_min = {
+        fc(2),
+        sigmoid(),
+        fc(1),
+        sigmoid(),
         };
     float_vec layers_min_good_params =
     {
@@ -201,7 +201,7 @@ void xor_as_net_test()
          1.5f
     };
 
-    auto xor_net = net(layers_min);
+    auto xor_net = net(layers_min)(size3d(1, 1, 2));
     std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
 
     xor_net->set_params(layers_min_good_params);
@@ -265,17 +265,17 @@ void gradients_classification_test()
 
     using namespace fd;
 
-    layer_ptrs layers = {
-        conv(size3d(1, 32, 32), size2d(3, 3), 2, 1),
-        relu(size3d(2, 32, 32)),
-        max_pool(size3d(2, 32, 32), 32),
-        flatten(size3d(2, 1, 1)),
-        fc(size3d(2, 1, 1).volume(), 2),
-        //sigmoid(size3d(1, 1, 2)),
-        softmax(2)
+    pre_layers layers = {
+        conv(size2d(3, 3), 2, 1),
+        relu(),
+        max_pool(32),
+        flatten(),
+        fc(2),
+        //sigmoid(),
+        softmax()
         };
 
-    auto gradnet = net(layers);
+    auto gradnet = net(layers)(size3d(1, 32, 32));
     std::cout << "net.param_count() " << gradnet->param_count() << std::endl;
 
     float_vec good_params =
@@ -339,72 +339,67 @@ void cifar_10_classification_test()
         };
     */
 
-    layer_ptrs layers = {
-        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), relu(size3d(8, 32, 32)),
+    pre_layers layers = {
+        conv(size2d(1, 1), 8, 1), relu(),
         bottleneck_sandwich_dims_individual(
-            size3d(8, 32, 32),
             size2d(3, 3),
-            relu(size3d(4, 32, 32)),
-            relu(size3d(8, 32, 32))),
-        max_pool(size3d(8, 32, 32), 2),
+            relu(),
+            relu()),
+        max_pool(2),
 
-        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), relu(size3d(16, 16, 16)),
+        conv(size2d(3, 3), 16, 1), relu(),
         bottleneck_sandwich_dims_individual(
-            size3d(16, 16, 16),
             size2d(3, 3),
-            relu(size3d(8, 16, 16)),
-            relu(size3d(16, 16, 16))),
-        max_pool(size3d(16, 16, 16), 2),
+            relu(),
+            relu()),
+        max_pool(2),
 
-        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), relu(size3d(32, 8, 8)),
+        conv(size2d(3, 3), 32, 1), relu(),
         bottleneck_sandwich_dims_individual(
-            size3d(32, 8, 8),
             size2d(3, 3),
-            relu(size3d(16, 8, 8)),
-            relu(size3d(32, 8, 8))),
-        max_pool(size3d(32, 8, 8), 2),
+            relu(),
+            relu()),
+        max_pool(2),
 
-        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), relu(size3d(64, 4, 4)),
+        conv(size2d(3, 3), 64, 1), relu(),
         bottleneck_sandwich_dims_individual(
-            size3d(64, 4, 4),
             size2d(3, 3),
-            relu(size3d(32, 4, 4)),
-            relu(size3d(64, 4, 4))),
-        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), relu(size3d(32, 4, 4)),
+            relu(),
+            relu()),
+        conv(size2d(1, 1), 32, 1), relu(),
         bottleneck_sandwich_dims_individual(
-            size3d(32, 4, 4),
             size2d(3, 3),
-            relu(size3d(16, 4, 4)),
-            relu(size3d(32, 4, 4))),
-        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), relu(size3d(16, 4, 4)),
+            relu(),
+            relu()),
+        conv(size2d(1, 1), 16, 1), relu(),
 
-        flatten(size3d(16, 4, 4)),
-        fc(size3d(16, 4, 4).volume(), 64),
-        sigmoid(size3d(1, 1, 64)),
-        fc(64, 32),
-        sigmoid(size3d(1, 1, 32)),
-        fc(32, 10),
-        sigmoid(10),
-        softmax(10)
+        flatten(),
+        fc(64),
+        sigmoid(),
+        fc(32),
+        sigmoid(),
+        fc(10),
+        sigmoid(),
+        softmax()
         };
 
-    layer_ptrs layers_tiny = {
-        max_pool(size3d(3, 32, 32), 16),
-        flatten(size3d(3, 2, 2)),
-        fc(size3d(3, 2, 2).volume(), 10),
-        sigmoid(10),
-        softmax(10)
+    pre_layers layers_tiny = {
+        max_pool(16),
+        flatten(),
+        fc(10),
+        sigmoid(),
+        softmax()
         };
 
-    layer_ptrs layers_very_tiny = {
-        max_pool(size3d(3, 32, 32), 32),
-        flatten(size3d(3, 1, 1)),
-        fc(size3d(3, 1, 1).volume(), 10),
-        sigmoid(10),
-        softmax(10)
+    pre_layers layers_very_tiny = {
+        max_pool(32),
+        flatten(),
+        fc(10),
+        sigmoid(),
+        softmax()
         };
 
-    auto tobinet = net(layers_very_tiny);
+    auto tobinet = net(layers_very_tiny)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
     train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 0.1f);

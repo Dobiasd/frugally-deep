@@ -115,7 +115,7 @@ fd::classification_dataset load_cifar_10_bin(
 
 void lenna_filter_test()
 {
-    cv::Mat img_uchar = cv::imread("images/lenna_512x512.png", cv::IMREAD_COLOR);
+    cv::Mat img_uchar = cv::imread("test_images/lenna_512x512.png", cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
 
     cv::Mat kernel_scharr_x(cv::Size(3,3), CV_32FC1, cv::Scalar(0));
@@ -138,14 +138,14 @@ void lenna_filter_test()
     cv::resize(filtered1, filtered1, cv::Size(0,0), 2, 2, cv::INTER_NEAREST);
     filtered1 = normalize_float_img(filtered1);
     filtered1 = float_img_to_uchar_img(filtered1);
-    cv::imwrite("lenna_512x512_filtered1.png", filtered1);
+    cv::imwrite("stuff/lenna_512x512_filtered1.png", filtered1);
 
     cv::Mat filtered2 = filter2Ds_via_net(img, {kernel_scharr_x, kernel_scharr_x});
     filtered2 = shrink_via_net(filtered2, 2);
     filtered2 = grow_via_net(filtered2, 2);
     filtered2 = normalize_float_img(filtered2);
     filtered2 = float_img_to_uchar_img(filtered2);
-    cv::imwrite("lenna_512x512_filtered2.png", filtered2);
+    cv::imwrite("stuff/lenna_512x512_filtered2.png", filtered2);
 }
 
 void xor_as_net_test()
@@ -236,7 +236,7 @@ fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
 
 void gradients_classification_test()
 {
-    auto classifcation_data = load_gradient_dataset("images/datasets/classification/gradients");
+    auto classifcation_data = load_gradient_dataset("test_images/datasets/classification/gradients");
     assert(!classifcation_data.training_data_.empty());
     assert(!classifcation_data.test_data_.empty());
 

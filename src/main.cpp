@@ -215,20 +215,24 @@ fd::matrix3d load_gray_image_as_matrix3d(const std::string& file_path)
 
 fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
 {
-    fd::input_with_output_vec image_list =
-    {
-       {load_gray_image_as_matrix3d(base_dir + "/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_gray_image_as_matrix3d(base_dir + "/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_gray_image_as_matrix3d(base_dir + "/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
-       {load_gray_image_as_matrix3d(base_dir + "/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
-       {load_gray_image_as_matrix3d(base_dir + "/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
-       {load_gray_image_as_matrix3d(base_dir + "/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
-    };
-
     fd::classification_dataset classifcation_data =
     {
-        image_list,
-        image_list
+        {
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/training/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+        },
+        {
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/001.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/002.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/x/003.png"), {fd::size3d(1,1,2), {1,0}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/001.png"), {fd::size3d(1,1,2), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/002.png"), {fd::size3d(1,1,2), {0,1}}},
+            {load_gray_image_as_matrix3d(base_dir + "/test/y/003.png"), {fd::size3d(1,1,2), {0,1}}}
+        }
     };
 
     return classifcation_data;
@@ -254,7 +258,7 @@ void gradients_classification_test()
 
     auto gradnet = net(layers);
     std::cout << "net.param_count() " << gradnet->param_count() << std::endl;
-    //gradnet->set_params(randomly_change_params(gradnet->get_params()));
+
     gradnet->set_params(
     {
          3,  0,  -3,
@@ -267,8 +271,10 @@ void gradients_classification_test()
         0,
         1,0,0,1,0,0
     });
-    //gradnet->set_params(randomly_change_params(gradnet->get_params()));
-    train(gradnet, classifcation_data.training_data_, 10000, 0.001f, 0.01f);
+
+    gradnet->set_params(randomly_change_params(gradnet->get_params()));
+
+    train(gradnet, classifcation_data.training_data_, 1000, 0.01f, 0.1f);
     test(gradnet, classifcation_data.test_data_);
 }
 

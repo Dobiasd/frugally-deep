@@ -144,7 +144,6 @@ void optimize_net_gradient(
     if (new_error >= old_error)
     {
         speed_factor *= 0.99f;
-        //return;
     }
 
     net->set_params(new_params);
@@ -199,7 +198,7 @@ void train(layer_ptr& net,
             show_progress(iter, error, learning_rate);
             show_params(net);
         }
-        if (error < mean_error_goal)
+        if (error < mean_error_goal || learning_rate < 0.0000001f)
         {
             show_progress(iter, error, learning_rate);
             show_params(net);

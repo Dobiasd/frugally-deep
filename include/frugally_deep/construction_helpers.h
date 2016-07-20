@@ -12,24 +12,7 @@
 #include "frugally_deep/size3d.h"
 #include "frugally_deep/multi_layer_net.h"
 
-#include "frugally_deep/layers/avg_pool_layer.h"
-#include "frugally_deep/layers/convolutional_layer.h"
-#include "frugally_deep/layers/elu_layer.h"
-#include "frugally_deep/layers/erf_layer.h"
-#include "frugally_deep/layers/fast_sigmoid_layer.h"
-#include "frugally_deep/layers/flatten_layer.h"
-#include "frugally_deep/layers/fully_connected_layer.h"
-#include "frugally_deep/layers/layer.h"
-#include "frugally_deep/layers/leaky_relu_layer.h"
-#include "frugally_deep/layers/max_pool_layer.h"
-#include "frugally_deep/layers/pool_layer.h"
-#include "frugally_deep/layers/relu_layer.h"
-#include "frugally_deep/layers/sigmoid_layer.h"
-#include "frugally_deep/layers/softmax_layer.h"
-#include "frugally_deep/layers/softplus_layer.h"
-#include "frugally_deep/layers/sigmoid_layer.h"
-#include "frugally_deep/layers/tanh_layer.h"
-#include "frugally_deep/layers/unpool_layer.h"
+#include "frugally_deep/layers.h"
 
 namespace fd
 {
@@ -71,14 +54,39 @@ layer_ptr leaky_relu(const size3d& size_in, float_t alpha)
     return std::make_shared<leaky_relu_layer>(size_in, alpha);
 }
 
+layer_ptr leaky_relu(std::size_t width_in, float_t alpha)
+{
+    return std::make_shared<leaky_relu_layer>(size3d(1, 1, width_in), alpha);
+}
+
 layer_ptr relu(const size3d& size_in)
 {
     return std::make_shared<relu_layer>(size_in);
 }
 
+layer_ptr relu(std::size_t width_in)
+{
+    return std::make_shared<relu_layer>(size3d(1, 1, width_in));
+}
+
 layer_ptr tanh(const size3d& size_in)
 {
     return std::make_shared<tanh_layer>(size_in);
+}
+
+layer_ptr tanh(std::size_t width_in)
+{
+    return std::make_shared<tanh_layer>(size3d(1, 1, width_in));
+}
+
+layer_ptr sigmoid(const size3d& size_in)
+{
+    return std::make_shared<sigmoid_layer>(size_in);
+}
+
+layer_ptr sigmoid(std::size_t width_in)
+{
+    return std::make_shared<sigmoid_layer>(size3d(1, 1, width_in));
 }
 
 layer_ptr max_pool(const size3d& size_in, std::size_t scale_factor)
@@ -104,6 +112,21 @@ layer_ptr fc(std::size_t n_in, std::size_t n_out)
 layer_ptr softmax(const size3d& size_in)
 {
     return std::make_shared<softmax_layer>(size_in);
+}
+
+layer_ptr softmax(std::size_t width_in)
+{
+    return std::make_shared<softmax_layer>(size3d(1, 1, width_in));
+}
+
+layer_ptr step(const size3d& size_in)
+{
+    return std::make_shared<step_layer>(size_in);
+}
+
+layer_ptr step(std::size_t width_in)
+{
+    return std::make_shared<step_layer>(size3d(1, 1, width_in));
 }
 
 layer_ptr net(const layer_ptrs& layers)

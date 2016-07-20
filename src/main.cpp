@@ -113,8 +113,17 @@ fd::classification_dataset load_cifar_10_bin(
         load_cifar_10_bin_test(base_directory, mini_version)};
 }
 
+std::string frame_string(const std::string& str)
+{
+    return
+        std::string(str.size(), '-') + "\n" +
+        str + "\n" +
+        std::string(str.size(), '-');
+}
+
 void lenna_filter_test()
 {
+    std::cout << frame_string("lenna_filter_test") << std::endl;
     cv::Mat img_uchar = cv::imread("test_images/lenna_512x512.png", cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
 
@@ -150,28 +159,9 @@ void lenna_filter_test()
 
 void xor_as_net_test()
 {
-    std::cout << "xor_as_net_test" << std::endl;
+    std::cout << frame_string("xor_as_net_test") << std::endl;
 
     using namespace fd;
-
-    layer_ptrs layers = {
-        fc(2, 4),
-        tanh(size3d(1, 1, 4)),
-        fc(4, 4),
-        tanh(size3d(1, 1, 4)),
-        fc(4, 1),
-        tanh(size3d(1, 1, 1)),
-        };
-
-    layer_ptrs layers_min = {
-        fc(2, 2),
-        tanh(size3d(1, 1, 2)),
-        fc(2, 1),
-        tanh(size3d(1, 1, 1)),
-        };
-
-    auto xor_net = net(layers);
-    std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
 
     input_with_output_vec xor_table =
     {
@@ -187,8 +177,36 @@ void xor_as_net_test()
         xor_table
     };
 
+
+    layer_ptrs layers = {
+        fc(2, 4),
+        sigmoid(4),
+        fc(4, 4),
+        sigmoid(4),
+        fc(4, 1),
+        sigmoid(4),
+        };
+
+    layer_ptrs layers_min = {
+        fc(2, 2),
+        sigmoid(2),
+        fc(2, 1),
+        sigmoid(1),
+        };
+    float_vec layers_min_good_params =
+    {
+         1, 1, -1, -1,
+         0.5f, -1.5f,
+         1, 1,
+         1.5f
+    };
+
+    auto xor_net = net(layers_min);
+    std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
+
+    xor_net->set_params(layers_min_good_params);
     xor_net->set_params(randomly_change_params(xor_net->get_params(), 0.1f));
-    train(xor_net, classifcation_data.training_data_, 10000, 0.1f, 0.01f);
+    train(xor_net, classifcation_data.training_data_, 100000, 0.1f, 0.1f);
     test(xor_net, classifcation_data.test_data_);
 }
 
@@ -240,6 +258,7 @@ fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
 
 void gradients_classification_test()
 {
+    std::cout << frame_string("gradients_classification_test") << std::endl;
     auto classifcation_data = load_gradient_dataset("test_images/datasets/classification/gradients");
     assert(!classifcation_data.training_data_.empty());
     assert(!classifcation_data.test_data_.empty());
@@ -252,8 +271,8 @@ void gradients_classification_test()
         max_pool(size3d(2, 32, 32), 32),
         flatten(size3d(2, 1, 1)),
         fc(size3d(2, 1, 1).volume(), 2),
-        //tanh(size3d(1, 1, 2)),
-        softmax(size3d(1, 1, 2))
+        //sigmoid(size3d(1, 1, 2)),
+        softmax(2)
         };
 
     auto gradnet = net(layers);
@@ -282,6 +301,7 @@ void gradients_classification_test()
 
 void cifar_10_classification_test()
 {
+    std::cout << frame_string("cifar_10_classification_test") << std::endl;
     std::cout << "loading cifar-10 ..." << std::flush;
     auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true);
     std::cout << " done" << std::endl;
@@ -320,93 +340,81 @@ void cifar_10_classification_test()
     */
 
     layer_ptrs layers = {
-        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), tanh(size3d(8, 32, 32)),
+        conv(size3d(3, 32, 32), size2d(1, 1), 8, 1), relu(size3d(8, 32, 32)),
         bottleneck_sandwich_dims_individual(
             size3d(8, 32, 32),
             size2d(3, 3),
-            tanh(size3d(4, 32, 32)),
-            tanh(size3d(8, 32, 32))),
+            relu(size3d(4, 32, 32)),
+            relu(size3d(8, 32, 32))),
         max_pool(size3d(8, 32, 32), 2),
 
-        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), tanh(size3d(16, 16, 16)),
+        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), relu(size3d(16, 16, 16)),
         bottleneck_sandwich_dims_individual(
             size3d(16, 16, 16),
             size2d(3, 3),
-            tanh(size3d(8, 16, 16)),
-            tanh(size3d(16, 16, 16))),
+            relu(size3d(8, 16, 16)),
+            relu(size3d(16, 16, 16))),
         max_pool(size3d(16, 16, 16), 2),
 
-        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), tanh(size3d(32, 8, 8)),
+        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), relu(size3d(32, 8, 8)),
         bottleneck_sandwich_dims_individual(
             size3d(32, 8, 8),
             size2d(3, 3),
-            tanh(size3d(16, 8, 8)),
-            tanh(size3d(32, 8, 8))),
+            relu(size3d(16, 8, 8)),
+            relu(size3d(32, 8, 8))),
         max_pool(size3d(32, 8, 8), 2),
 
-        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), tanh(size3d(64, 4, 4)),
+        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), relu(size3d(64, 4, 4)),
         bottleneck_sandwich_dims_individual(
             size3d(64, 4, 4),
             size2d(3, 3),
-            tanh(size3d(32, 4, 4)),
-            tanh(size3d(64, 4, 4))),
-        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), tanh(size3d(32, 4, 4)),
+            relu(size3d(32, 4, 4)),
+            relu(size3d(64, 4, 4))),
+        conv(size3d(64, 4, 4), size2d(1, 1), 32, 1), relu(size3d(32, 4, 4)),
         bottleneck_sandwich_dims_individual(
             size3d(32, 4, 4),
             size2d(3, 3),
-            tanh(size3d(16, 4, 4)),
-            tanh(size3d(32, 4, 4))),
-        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), tanh(size3d(16, 4, 4)),
+            relu(size3d(16, 4, 4)),
+            relu(size3d(32, 4, 4))),
+        conv(size3d(32, 4, 4), size2d(1, 1), 16, 1), relu(size3d(16, 4, 4)),
 
         flatten(size3d(16, 4, 4)),
         fc(size3d(16, 4, 4).volume(), 64),
-        tanh(size3d(1, 1, 64)),
+        sigmoid(size3d(1, 1, 64)),
         fc(64, 32),
-        tanh(size3d(1, 1, 32)),
+        sigmoid(size3d(1, 1, 32)),
         fc(32, 10),
-        tanh(size3d(1, 1, 10)),
-        softmax(size3d(1, 1, 10))
+        sigmoid(10),
+        softmax(10)
         };
 
     layer_ptrs layers_tiny = {
         max_pool(size3d(3, 32, 32), 16),
         flatten(size3d(3, 2, 2)),
         fc(size3d(3, 2, 2).volume(), 10),
-        tanh(size3d(1, 1, 10)),
-        softmax(size3d(1, 1, 10))
+        sigmoid(10),
+        softmax(10)
         };
 
     layer_ptrs layers_very_tiny = {
         max_pool(size3d(3, 32, 32), 32),
         flatten(size3d(3, 1, 1)),
         fc(size3d(3, 1, 1).volume(), 10),
-        tanh(size3d(1, 1, 10)),
-        softmax(size3d(1, 1, 10))
+        sigmoid(10),
+        softmax(10)
         };
 
     auto tobinet = net(layers_very_tiny);
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
-    train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 200.6f);
+    train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 0.1f);
     test(tobinet, classifcation_data.test_data_);
 }
 
 int main()
 {
-    /*
-    // softmax test)
-    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
-        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {0.1f, 0.3f}))) << std::endl;
-    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
-        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {0.1f, 3.3f}))) << std::endl;
-    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
-        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {123.1f, -23.3f}))) << std::endl;
-    std::cout << fd::show_matrix3d(fd::softmax(fd::size3d(1,1,2)
-        )->forward_pass(fd::matrix3d(fd::size3d(1,1,2), {-123.1f, -23.3f}))) << std::endl;
-    return 0;
-    */
-    //lenna_filter_test();
-    //xor_as_net_test();
+    lenna_filter_test();
+    xor_as_net_test();
     gradients_classification_test();
     //cifar_10_classification_test();
 }

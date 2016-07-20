@@ -27,8 +27,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/)
-bias for which layer types?
+implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
 let all layers check if input matches input_size and if output matches output_size
 would it be better if fc layers had their values along the z axis and not the x axis in the matrix3d?
 unique_ptr statt shared_ptr
@@ -60,6 +59,7 @@ Affine layer- flow layer?
 or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 Local Response Normalization layer?
 batch normalization (as layer?) (zero mean/unit variance)
+or at least normalize input and outputs to zero mean/unit variance
 
 Skip connection aka computational graph?
 Caffee import?

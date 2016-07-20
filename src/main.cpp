@@ -192,8 +192,14 @@ void xor_as_net_test()
     test(xor_net, classifcation_data.test_data_);
 }
 
+bool file_exists(const std::string& file_path)
+{
+    return static_cast<bool>(std::ifstream(file_path));
+}
+
 fd::matrix3d load_col_image_as_matrix3d(const std::string& file_path)
 {
+    assert(file_exists(file_path));
     cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_COLOR);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
     return cv_bgr_img_float_to_matrix3d(img);
@@ -201,6 +207,7 @@ fd::matrix3d load_col_image_as_matrix3d(const std::string& file_path)
 
 fd::matrix3d load_gray_image_as_matrix3d(const std::string& file_path)
 {
+    assert(file_exists(file_path));
     cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_GRAYSCALE);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
     return cv_gray_img_float_to_matrix3d(img);
@@ -230,6 +237,8 @@ fd::classification_dataset load_gradient_dataset(const std::string& base_dir)
 void gradients_classification_test()
 {
     auto classifcation_data = load_gradient_dataset("images/datasets/classification/gradients");
+    assert(!classifcation_data.training_data_.empty());
+    assert(!classifcation_data.test_data_.empty());
 
     using namespace fd;
 

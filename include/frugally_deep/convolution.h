@@ -71,6 +71,8 @@ namespace internal
         assert(!filters.empty());
         const size3d& filt_size = filters[0].size();
         assert(in_vol.size().depth_ == filt_size.depth_);
+        assert(in_vol.size().height_ >= filt_size.height_);
+        assert(in_vol.size().width_ >= filt_size.width_);
         if (filt_size.height_ == 1 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<1, 1>(filters, in_vol);
         if (filt_size.height_ == 1 && filt_size.width_ == 3)

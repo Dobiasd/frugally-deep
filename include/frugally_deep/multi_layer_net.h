@@ -27,15 +27,6 @@ public:
     {
         assert(is_layer_ptr_chain_valid(layers));
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        auto current_volume = input;
-        for (const auto& current_layer : layers_)
-        {
-            current_volume = current_layer->forward_pass(current_volume);
-        }
-        return current_volume;
-    }
     std::size_t param_count() const override
     {
         auto counts = fplus::transform(
@@ -73,7 +64,16 @@ public:
         return layers_.back()->output_size();
     }
 
-private:
+protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        auto current_volume = input;
+        for (const auto& current_layer : layers_)
+        {
+            current_volume = current_layer->forward_pass(current_volume);
+        }
+        return current_volume;
+    }
     static bool is_layer_transition_valid(
         const std::pair<layer_ptr, layer_ptr>& layer_ptr_pair)
     {

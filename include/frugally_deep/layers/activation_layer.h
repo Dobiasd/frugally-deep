@@ -24,10 +24,6 @@ public:
     explicit activation_layer(const size3d& size_in) : size_in_(size_in)
     {
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        return transform_input(input);
-    }
     std::size_t param_count() const override
     {
         return 0;
@@ -49,6 +45,10 @@ public:
         return size_in_;
     }
 protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        return transform_input(input);
+    }
     size3d size_in_;
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
 };

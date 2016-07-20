@@ -45,8 +45,6 @@ namespace internal
                     float_t val = 0;
                     for (std::size_t z = 0; z < filt_size.depth_; ++z)
                     {
-                        // todo: performance optimization:
-                        // special versions for filters of size 3*3, 5*5 etc
                         for (std::size_t yf = 0; yf < filter_height; ++yf)
                         {
                             for (std::size_t xf = 0; xf < filter_width; ++xf)

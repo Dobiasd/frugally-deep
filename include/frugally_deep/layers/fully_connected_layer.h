@@ -25,21 +25,6 @@ public:
             biases_(n_out, 0)
     {
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        matrix3d output(output_size());
-        for (std::size_t x_out = 0; x_out < output.size().width_; ++x_out)
-        {
-            float_t out_val = 0;
-            for (std::size_t x_in = 0; x_in < input.size().width_; ++x_in)
-            {
-                out_val += params_.get(x_out, x_in) * input.get(0, 0, x_in);
-            }
-            out_val += biases_[x_out];
-            output.set(0, 0, x_out, out_val);
-        }
-        return output;
-    }
     std::size_t param_count() const override
     {
         return params_.size().area() + biases_.size();
@@ -64,7 +49,22 @@ public:
     {
         return size_out_;
     }
-private:
+protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        matrix3d output(output_size());
+        for (std::size_t x_out = 0; x_out < output.size().width_; ++x_out)
+        {
+            float_t out_val = 0;
+            for (std::size_t x_in = 0; x_in < input.size().width_; ++x_in)
+            {
+                out_val += params_.get(x_out, x_in) * input.get(0, 0, x_in);
+            }
+            out_val += biases_[x_out];
+            output.set(0, 0, x_out, out_val);
+        }
+        return output;
+    }
     size3d size_in_;
     size3d size_out_;
     matrix2d params_;

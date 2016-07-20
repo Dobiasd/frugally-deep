@@ -37,10 +37,6 @@ public:
     {
         assert(stride == 1); // todo: allow different strides
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        return convolve(filters_, input);
-    }
     std::size_t param_count() const override
     {
         auto counts = fplus::transform(
@@ -73,7 +69,11 @@ public:
     {
         return size3d(filters_.size(), size_in_.height_, size_in_.width_);
     }
-private:
+protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        return convolve(filters_, input);
+    }
     size3d size_in_;
     std::vector<filter> filters_;
 };

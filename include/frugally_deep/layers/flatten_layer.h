@@ -18,10 +18,6 @@ public:
             size_in_(size_in)
     {
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        return reshape_matrix3d(input, output_size());
-    }
     std::size_t param_count() const override
     {
         return 0;
@@ -43,6 +39,10 @@ public:
         return size3d(1, 1, size_in_.volume());
     }
 protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        return reshape_matrix3d(input, output_size());
+    }
     size3d size_in_;
 };
 

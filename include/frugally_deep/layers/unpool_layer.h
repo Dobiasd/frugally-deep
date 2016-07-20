@@ -24,10 +24,6 @@ public:
         size_in_(size_in), scale_factor_(scale_factor)
     {
     }
-    matrix3d forward_pass(const matrix3d& input) const override
-    {
-        return unpool(input);
-    }
     std::size_t param_count() const override
     {
         return 0;
@@ -52,6 +48,10 @@ public:
             size_in_.width_ * scale_factor_);
     }
 protected:
+    matrix3d forward_pass_impl(const matrix3d& input) const override
+    {
+        return unpool(input);
+    }
     size3d size_in_;
     std::size_t scale_factor_;
     matrix3d unpool(const matrix3d& in_vol) const

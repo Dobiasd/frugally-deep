@@ -49,12 +49,12 @@ struct classification_dataset
     input_with_output_vec test_data_;
 };
 
-float_vec randomly_change_params(const float_vec& old_params)
+float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
 {
     // todo seed
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(0, 1);
+    std::normal_distribution<float_t> d(0, stddev);
     float_vec new_params = old_params;
     for (std::size_t i = 0; i < new_params.size(); ++i)
     {
@@ -71,7 +71,7 @@ void optimize_net_random(layer_ptr& net,
 {
     auto old_error = calc_error(net, dataset);
     float_vec old_params = net->get_params();
-    float_vec new_params = randomly_change_params(old_params);
+    float_vec new_params = randomly_change_params(old_params, 0.1f);
     net->set_params(new_params);
     auto new_error = calc_error(net, dataset);
     if (new_error > old_error)

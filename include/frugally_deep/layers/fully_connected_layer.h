@@ -69,6 +69,11 @@ protected:
     size3d size_in_;
     size3d size_out_;
     matrix2d params_;
+
+    // To cover the biases also with the matrix multiplication
+    // they could be an additional column in params_
+    // instead of a separate member.
+    // Input would then need to be padded with an additional trailing one.
     float_vec biases_;
 };
 

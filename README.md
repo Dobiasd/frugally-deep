@@ -45,9 +45,11 @@ watch again: https://www.youtube.com/watch?v=ue4RJdI8yRA
 mini-batches
 Vanishing gradient problem? ReLU hilft
 Weight initialization
-regularization? (dropout, prevent overfitting? not needed for autoencoder)
+regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)
+
+Softmax layer numerical stability trick
+
 learning momentum?
-bias fuer layer, filter oder neurons?
 
 evolutionary optimization instread of backprop? (momentum mutations? recombination?)
 particle swarm optimization? verteilen, gute habe gravitation, andere fliegen dahin, momentum, random speed changes annealing, best reproduces with mutation and worst dies
@@ -60,6 +62,7 @@ or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 Local Response Normalization layer?
 batch normalization (as layer?) (zero mean/unit variance)
 or at least normalize input and outputs to zero mean/unit variance
+write function that does this with a dataset
 
 Skip connection aka computational graph?
 Caffee import?

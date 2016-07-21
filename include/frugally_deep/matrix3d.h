@@ -36,13 +36,21 @@ public:
         values_(shape.volume(), 0.0f)
     {
     }
+    float_t get(const matrix3d_pos& pos) const
+    {
+        return values_[idx(pos)];
+    }
     float_t get(std::size_t z, std::size_t y, std::size_t x) const
     {
-        return values_[idx(z, y, x)];
+        return get(matrix3d_pos(z, y, x));
     }
-    void set(std::size_t z, std::size_t y, size_t x, float_t value)
+    void set(const matrix3d_pos& pos, float_t value)
     {
-        values_[idx(z, y, x)] = value;
+        values_[idx(pos)] = value;
+    }
+    void set(std::size_t z, std::size_t y, std::size_t x, float_t value)
+    {
+        set(matrix3d_pos(z, y, x), value);
     }
     const size3d& size() const
     {
@@ -54,9 +62,12 @@ public:
     }
 
 private:
-    std::size_t idx(std::size_t z, std::size_t y, size_t x) const
+    std::size_t idx(const matrix3d_pos& pos) const
     {
-        return z * size().height_ * size().width_ + y * size().width_ + x;
+        return
+            pos.z_ * size().height_ * size().width_ +
+            pos.y_ * size().width_ +
+            pos.x_;
     };
     size3d size_;
     float_vec values_;
@@ -109,10 +120,13 @@ matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
     return matrix3d(out_size, in_vol.as_vector());
 }
 
-matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
+std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
+    const matrix3d& vol)
 {
-    matrix3d_pos result(0, 0, 0);
-    float_t value = std::numeric_limits<float_t>::min();
+    matrix3d_pos result_min(0, 0, 0);
+    matrix3d_pos result_max(0, 0, 0);
+    float_t value_max = std::numeric_limits<float_t>::min();
+    float_t value_min = std::numeric_limits<float_t>::max();
     for (std::size_t z = 0; z < vol.size().depth_; ++z)
     {
         for (std::size_t y = 0; y < vol.size().height_; ++y)
@@ -120,15 +134,47 @@ matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
             for (std::size_t x = 0; x < vol.size().width_; ++x)
             {
                 auto current_value = vol.get(z, y, x);
-                if (current_value > value)
+                if (current_value > value_max)
                 {
-                    result = matrix3d_pos(z, y, x);
-                    value = current_value;
+                    result_max = matrix3d_pos(z, y, x);
+                    value_max = current_value;
+                }
+                if (current_value < value_min)
+                {
+                    result_min = matrix3d_pos(z, y, x);
+                    value_min = current_value;
                 }
             }
         }
     }
-    return result;
+    return std::make_pair(result_min, result_max);
+}
+
+matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
+{
+    return matrix3d_min_max_pos(vol).second;
+}
+
+matrix3d_pos matrix3d_min_pos(const matrix3d& vol)
+{
+    return matrix3d_min_max_pos(vol).second;
+}
+
+std::pair<float_t, float_t> matrix3d_min_max_value(const matrix3d& vol)
+{
+    auto min_max_positions = matrix3d_min_max_pos(vol);
+    return std::make_pair(
+        vol.get(min_max_positions.first), vol.get(min_max_positions.second));
+}
+
+float_t matrix3d_max_value(const matrix3d& m)
+{
+    return m.get(matrix3d_max_pos(m));
+}
+
+float_t matrix3d_min_value(const matrix3d& m)
+{
+    return m.get(matrix3d_min_pos(m));
 }
 
 matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)

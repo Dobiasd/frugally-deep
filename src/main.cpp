@@ -177,21 +177,22 @@ void xor_as_net_test()
         xor_table
     };
 
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
     pre_layers layers = {
         fc(4),
-        sigmoid(),
+        tanh(),
         fc(4),
-        sigmoid(),
+        tanh(),
         fc(1),
-        sigmoid(),
+        tanh(),
         };
 
     pre_layers layers_min = {
         fc(2),
-        sigmoid(),
+        tanh(),
         fc(1),
-        sigmoid(),
+        tanh(),
         };
     float_vec layers_min_good_params =
     {
@@ -263,6 +264,8 @@ void gradients_classification_test()
     assert(!classifcation_data.training_data_.empty());
     assert(!classifcation_data.test_data_.empty());
 
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
+
     using namespace fd;
 
     pre_layers layers = {
@@ -305,6 +308,9 @@ void cifar_10_classification_test()
     std::cout << "loading cifar-10 ..." << std::flush;
     auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true);
     std::cout << " done" << std::endl;
+
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
+
     /*
     classifcation_data.training_data_ =
         fplus::sample(

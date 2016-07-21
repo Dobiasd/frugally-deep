@@ -49,6 +49,62 @@ struct classification_dataset
     input_with_output_vec test_data_;
 };
 
+// todo https://en.wikipedia.org/wiki/Feature_scaling
+// x' = (x - mean(x)) / stddev(x)
+classification_dataset normalize_classification_dataset(
+    const classification_dataset& dataset,
+    bool normalize_output_too)
+{
+    float_t min_value = std::numeric_limits<float_t>::max();
+    float_t max_value = std::numeric_limits<float_t>::min();
+
+    const auto update_min_and_max_value = [&]
+        (const std::pair<float_t, float_t>& min_max_value)
+    {
+        min_value = std::min(min_value, min_max_value.first);
+        max_value = std::max(max_value, min_max_value.second);
+    };
+
+    for (const auto& in_with_out : dataset.training_data_)
+    {
+        update_min_and_max_value(matrix3d_min_max_value(in_with_out.input_));
+        if (normalize_output_too)
+        {
+            update_min_and_max_value(matrix3d_min_max_value(in_with_out.output_));
+        }
+    }
+    for (const auto& in_with_out : dataset.test_data_)
+    {
+        update_min_and_max_value(matrix3d_min_max_value(in_with_out.input_));
+        if (normalize_output_too)
+        {
+            update_min_and_max_value(matrix3d_min_max_value(in_with_out.output_));
+        }
+    }
+
+    const float_t value_factor = 2 / (max_value - min_value);
+    const auto adjust_value = [min_value, value_factor]
+        (float_t val) -> float_t
+    {
+        return ((val - min_value) * value_factor) - 1;
+    };
+
+    const auto adjust_mat = fplus::bind_1st_of_2(
+        transform_matrix3d<decltype(adjust_value)>, adjust_value);
+    const auto adjust_input_and_output = [adjust_mat, normalize_output_too]
+        (const input_with_output& in_with_out) -> input_with_output
+    {
+        return {
+            adjust_mat(in_with_out.input_),
+            normalize_output_too ? adjust_mat(in_with_out.output_) : in_with_out.output_
+        };
+    };
+    return {
+        fplus::transform(adjust_input_and_output, dataset.training_data_),
+        fplus::transform(adjust_input_and_output, dataset.test_data_)
+    };
+}
+
 float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
 {
     // todo seed

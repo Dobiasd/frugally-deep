@@ -9,15 +9,16 @@ The goal is that someday the following things will be true:
 
 **frugally-deep**
 
-* **is a very simplistic deep learning framework written in C++.**
+* **is a header-only deep learning framework written in C++.**
+* is frugal because it is minimalistic and tries to consume not so much memory.
 * supports the creation and training of convolutional neural networks.
-* is a header-only library.
 * only has one dependency ([FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus))
 * can use multiple CPUs.
+* is quite slow nonetheless.
 * does not make use of GPUs.
-* is quite slow.
-* possibly has some unknown bugs.
 * is a needlessly reinvented wheel.
+* possibly has some unknown bugs.
+* is poorly documented.
 * should probably not be used for anything serious.
 * is merely intended to be a personal learning project.
 
@@ -27,9 +28,10 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
+normalization: input and outputs to zero mean/unit variance
+write function that does this with a dataset
 
-unique_ptr statt shared_ptr
+implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
 
 use cmake with google tests (see fplus)
 convolution: different paddings, different steps
@@ -59,10 +61,6 @@ Affine layer- flow layer?
 or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 Local Response Normalization layer?
 
-normalization: input and outputs to zero mean/unit variance
-write function that does this with a dataset
-can also be used for single mini-batches
-
 Skip connection aka computational graph?
 Caffee import?
 Memoization fuer wenn sich irgendwas gar nicht mehr veraendert?
@@ -74,7 +72,9 @@ image autoencoder
 
 image classification
 
-video autoencoder? (Spatio-temporal? would mean Matrix4d)
+neural style
+
+video autoencoder? (Spatio-temporal? would mean matrix4d)
 
 Video compression
 zweites video dabei, was die differenzframes drin hat

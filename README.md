@@ -17,7 +17,7 @@ The goal is that someday the following things will be true:
 * does not make use of GPUs.
 * is quite slow.
 * possibly has some unknown bugs.
-* is a badly reinvented wheel.
+* is a needlessly reinvented wheel.
 * should probably not be used for anything serious.
 * is merely intended to be a personal learning project.
 
@@ -28,26 +28,21 @@ todo
 ----
 
 implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
-let all layers check if input matches input_size and if output matches output_size
-would it be better if fc layers had their values along the z axis and not the x axis in the matrix3d?
+
 unique_ptr statt shared_ptr
-is memory arrangement in matrix good for speed? (cache locallity)
+
 use cmake with google tests (see fplus)
-different paddings
-different steps
+convolution: different paddings, different steps
 
-layers:
-transposed convolution layer aka deconv
-fully connected layer
-loss functions: sigmoid cross entropy, manhattan (l1), euclidian (l2)
+layers to implement:
+transposed convolution layer aka deconv aka unconv aka fractional step conv
+loss layers additionally to sigmoid cross entropy?: Multiclass Support Vector Machine loss (SVM) manhattan (l1)?, euclidian (l2)?
 
-watch again: https://www.youtube.com/watch?v=ue4RJdI8yRA
 mini-batches
-Vanishing gradient problem? ReLU hilft
-Weight initialization
-regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)
 
-Softmax layer numerical stability trick
+Weight initialization strategies
+
+regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)
 
 learning momentum?
 
@@ -55,14 +50,16 @@ evolutionary optimization instread of backprop? (momentum mutations? recombinati
 particle swarm optimization? verteilen, gute habe gravitation, andere fliegen dahin, momentum, random speed changes annealing, best reproduces with mutation and worst dies
 
 json rausschreiben zwischendurch (losses, weight distribution) (temp, rename), html viewer dazu
+visualize layer and filters as images
 start one async task per filter in layer? (fplus::execute_paralelly?)
 
 Affine layer- flow layer?
 or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 Local Response Normalization layer?
-batch normalization (as layer?) (zero mean/unit variance)
-or at least normalize input and outputs to zero mean/unit variance
+
+normalization: input and outputs to zero mean/unit variance
 write function that does this with a dataset
+can also be used for single mini-batches
 
 Skip connection aka computational graph?
 Caffee import?

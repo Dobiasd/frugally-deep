@@ -25,7 +25,9 @@ public:
     matrix3d forward_pass(const matrix3d& input) const
     {
         assert(input.size() == input_size());
-        return forward_pass_impl(input);
+        auto output = forward_pass_impl(input);
+        assert(output.size() == output_size());
+        return output;
     }
     virtual std::size_t param_count() const = 0;
     virtual float_vec get_params() const = 0;

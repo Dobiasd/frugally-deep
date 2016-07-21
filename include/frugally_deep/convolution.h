@@ -27,7 +27,7 @@ namespace internal
         const std::vector<filter>& filters,
         const matrix3d& in_vol)
     {
-        // todo: padding
+        // todo: padding, step
         assert(!filters.empty());
         const size3d& filt_size = filters[0].size();
         assert(filter_height == filt_size.height_);

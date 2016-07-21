@@ -295,7 +295,7 @@ void gradients_classification_test()
 
     gradnet->set_params(randomly_change_params(gradnet->get_params(), 0.1f));
 
-    train(gradnet, classifcation_data.training_data_, 10000, 0.0001f, 0.1f);
+    train(gradnet, classifcation_data.training_data_, 10000, 0.01f, 0.1f);
     test(gradnet, classifcation_data.test_data_);
 }
 

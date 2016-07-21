@@ -118,7 +118,7 @@ void optimize_net_gradient(
         float_t plus_error = test_params(params_plus, net, calc_error, dataset);
         float_t minus_error = test_params(params_minus, net, calc_error, dataset);
 
-        auto gradient = (plus_error - minus_error) / gradient_delta;
+        auto gradient = (plus_error - minus_error) / (2 * gradient_delta);
         return gradient;
     };
 
@@ -166,7 +166,7 @@ float_t calc_mean_error(
         fplus::fold_left_1(add_matrix3ds, error_matrices) /
         static_cast<float_t>(error_matrices.size());
     //std::cout << "todo remove error_matrices.size() " << error_matrices.size() << std::endl;
-    //std::cout << "todo remove error_matrix_sum.size().width_ " << error_matrix_sum.size().width_ << std::endl;
+    //std::cout << "todo remove eFrror_matrix_sum.size().width_ " << error_matrix_sum.size().width_ << std::endl;
     return matrix3d_sum_all_values(error_matrix_sum) /
         static_cast<float_t>(error_matrix_sum.size().width_);
 }

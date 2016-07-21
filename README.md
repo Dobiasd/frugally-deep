@@ -27,7 +27,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
+implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
 
 unique_ptr statt shared_ptr
 

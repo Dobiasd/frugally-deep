@@ -40,6 +40,8 @@ loss layers additionally to sigmoid cross entropy?: Multiclass Support Vector Ma
 
 mini-batches
 
+split a validation set from the training set to optimize the hyperparameters
+
 Weight initialization strategies
 
 regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)

@@ -242,7 +242,8 @@ void train(layer_ptr& net,
     };
     auto show_params = [](const layer_ptr& current_net)
     {
-        std::cout << "params " << fplus::show_cont(current_net->get_params()) << std::endl;
+        auto show = fplus::show_float_fill_left<float_t>(' ', 8, 4);
+        std::cout << "params " << fplus::show_cont(fplus::transform(show, current_net->get_params())) << std::endl;
     };
     timer stopwatch;
     for (std::size_t iter = 0; iter < max_iters; ++iter)

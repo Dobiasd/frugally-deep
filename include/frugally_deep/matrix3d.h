@@ -78,6 +78,7 @@ inline std::string show_matrix3d(const matrix3d& m)
 {
     std::string str;
     str += "[";
+    auto show = fplus::show_float_fill_left<float_t>(' ', 8, 4);
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
         str += "[";
@@ -85,7 +86,7 @@ inline std::string show_matrix3d(const matrix3d& m)
         {
             for (std::size_t x = 0; x < m.size().width_; ++x)
             {
-                str += std::to_string(m.get(z, y, x)) + ",";
+                str += show(m.get(z, y, x)) + ",";
             }
             str += "]\n";
         }

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/construction_helpers.h"
+#include "frugally_deep/construction.h"
 #include "frugally_deep/convolution.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/frugally_deep.h"

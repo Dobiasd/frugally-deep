@@ -264,7 +264,7 @@ void gradients_classification_test()
     assert(!classifcation_data.training_data_.empty());
     assert(!classifcation_data.test_data_.empty());
 
-    //classifcation_data = normalize_classification_dataset(classifcation_data, false);
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
     using namespace fd;
 
@@ -294,7 +294,7 @@ void gradients_classification_test()
         1,0,0,1,0,0
     };
 
-    gradnet->set_params(good_params);
+    //gradnet->set_params(good_params);
 
     gradnet->set_params(randomly_change_params(gradnet->get_params(), 0.1f));
 

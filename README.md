@@ -27,6 +27,8 @@ The goal is that someday the following things will be true:
 
 todo
 ----
+flatten nestes multilayer nets? Ideally directly create them that way
+
 normalization: input and outputs to zero mean/unit variance (fplus::mean_stddev schreiben, und transform_classificytion_Data und as_vector() dafuer)
 write function that does this with a dataset
 

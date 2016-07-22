@@ -96,16 +96,16 @@ inline matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
     return matrix2d(out_size, m.as_vector());
 }
 
-// todo: templates fuer dinger mit nur einer zeile oder spalte
 inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
 {
     assert(a.size().width_ == b.size().height_);
+
     std::size_t inner = a.size().width_;
     matrix2d m(size2d(a.size().height_, b.size().width_));
 
-    for (std::size_t y = 0; y < m.size().height_; ++y)
+    for (std::size_t y = 0; y < a.size().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width_; ++x)
+        for (std::size_t x = 0; x < b.size().width_; ++x)
         {
             float_t sum = 0;
             for (std::size_t i = 0; i < inner; ++i)

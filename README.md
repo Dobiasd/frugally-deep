@@ -27,7 +27,6 @@ The goal is that someday the following things will be true:
 
 todo
 ----
-matrix multiply rausziehen, fc damit machen
 normalization: input and outputs to zero mean/unit variance (fplus::mean_stddev schreiben, und transform_classificytion_Data und as_vector() dafuer)
 write function that does this with a dataset
 

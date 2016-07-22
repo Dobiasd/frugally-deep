@@ -27,8 +27,8 @@ The goal is that someday the following things will be true:
 
 todo
 ----
-
-normalization: input and outputs to zero mean/unit variance
+matrix multiply rausziehen, fc damit machen
+normalization: input and outputs to zero mean/unit variance (fplus::mean_stddev schreiben, und transform_classificytion_Data und as_vector() dafuer)
 write function that does this with a dataset
 
 implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)

@@ -23,6 +23,13 @@ class multi_layer_net : public layer
 {
 public:
     explicit multi_layer_net(const std::vector<layer_ptr>& layers) :
+        layer(
+            layers.empty() || !layers.front()
+                ? size3d(0,0,0)
+                : layers.front()->input_size(),
+            layers.empty() || !layers.back()
+                ? size3d(0,0,0)
+                : layers.back()->output_size()),
         layers_(layers)
     {
         assert(is_layer_ptr_chain_valid(layers));
@@ -54,14 +61,6 @@ public:
         {
             layers_[i]->set_params(params_per_layer[i]);
         }
-    }
-    const size3d& input_size() const override
-    {
-        return layers_.front()->input_size();
-    }
-    size3d output_size() const override
-    {
-        return layers_.back()->output_size();
     }
 
 protected:

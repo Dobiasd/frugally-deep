@@ -21,7 +21,8 @@ namespace fd
 class activation_layer : public layer
 {
 public:
-    explicit activation_layer(const size3d& size_in) : size_in_(size_in)
+    explicit activation_layer(const size3d& size_in) :
+        layer(size_in, size_in)
     {
     }
     std::size_t param_count() const override
@@ -36,20 +37,11 @@ public:
     {
         assert(params.size() == param_count());
     }
-    const size3d& input_size() const override
-    {
-        return size_in_;
-    }
-    size3d output_size() const override
-    {
-        return size_in_;
-    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         return transform_input(input);
     }
-    size3d size_in_;
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
 };
 

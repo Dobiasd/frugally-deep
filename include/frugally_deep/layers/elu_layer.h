@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    float_t alpha_;
+    const float_t alpha_;
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         auto activation_function = [this](float_t x) -> float_t

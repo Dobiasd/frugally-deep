@@ -19,23 +19,40 @@ namespace fd
 class layer
 {
 public:
+    layer(const size3d& size_in, const size3d& size_out)
+        : size_in_(size_in),
+        size_out_(size_out),
+        last_input_(size_in_)
+    {
+
+    }
     virtual ~layer()
     {
     }
-    matrix3d forward_pass(const matrix3d& input) const
+    virtual matrix3d forward_pass(const matrix3d& input) final
     {
         assert(input.size() == input_size());
         auto output = forward_pass_impl(input);
         assert(output.size() == output_size());
+        last_input_ = input;
         return output;
     }
     virtual std::size_t param_count() const = 0;
     virtual float_vec get_params() const = 0;
     virtual void set_params(const float_vec& params) = 0;
-    virtual const size3d& input_size() const = 0;
-    virtual size3d output_size() const = 0;
+    virtual const size3d& input_size() const final
+    {
+        return size_in_;
+    }
+    virtual const size3d& output_size() const final
+    {
+        return size_out_;
+    }
 
 protected:
+    const size3d size_in_;
+    const size3d size_out_;
+    matrix3d last_input_;
     virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
 };
 

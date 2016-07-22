@@ -16,7 +16,7 @@ class flatten_layer : public layer
 {
 public:
     explicit flatten_layer(const size3d& size_in) :
-            size_in_(size_in)
+            layer(size_in, size3d(1, size_in.volume(), 1))
     {
     }
     std::size_t param_count() const override
@@ -31,20 +31,11 @@ public:
     {
         assert(params.size() == param_count());
     }
-    const size3d& input_size() const override
-    {
-        return size_in_;
-    }
-    size3d output_size() const override
-    {
-        return size3d(1, size_in_.volume(), 1);
-    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         return reshape_matrix3d(input, output_size());
     }
-    size3d size_in_;
 };
 
 } // namespace fd

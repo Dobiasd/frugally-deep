@@ -19,11 +19,10 @@ namespace fd
 class fully_connected_layer : public layer
 {
 public:
-    fully_connected_layer(std::size_t n_in, std::size_t n_out)
-        : size_in_(size3d(1, n_in, 1)),
-            size_out_(1, n_out, 1),
-            params_(size2d(n_out, n_in)),
-            biases_(n_out, 0)
+    fully_connected_layer(std::size_t n_in, std::size_t n_out) :
+        layer(size3d(1, n_in, 1), size3d(1, n_out, 1)),
+        params_(size2d(n_out, n_in)),
+        biases_(n_out, 0)
     {
     }
     std::size_t param_count() const override
@@ -42,14 +41,6 @@ public:
         assert(splitted.second.size() == biases_.size());
         biases_ = float_vec(splitted.second);
     }
-    const size3d& input_size() const override
-    {
-        return size_in_;
-    }
-    size3d output_size() const override
-    {
-        return size_out_;
-    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
@@ -66,15 +57,13 @@ protected:
         }
         return output;
     }
-    size3d size_in_;
-    size3d size_out_;
-    matrix2d params_;
+    const matrix2d params_;
 
     // To cover the biases also with the matrix multiplication
     // they could be an additional column in params_
     // instead of a separate member.
     // Input would then need to be padded with an additional trailing one.
-    float_vec biases_;
+    const float_vec biases_;
 };
 
 } // namespace fd

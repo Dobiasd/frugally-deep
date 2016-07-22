@@ -21,7 +21,11 @@ class unpool_layer : public layer
 {
 public:
     explicit unpool_layer(const size3d& size_in, std::size_t scale_factor) :
-        size_in_(size_in), scale_factor_(scale_factor)
+        layer(size_in, size3d(
+            size_in.depth_,
+            size_in.height_ * scale_factor,
+            size_in.width_ * scale_factor)),
+        scale_factor_(scale_factor)
     {
     }
     std::size_t param_count() const override
@@ -36,24 +40,12 @@ public:
     {
         assert(params.size() == param_count());
     }
-    const size3d& input_size() const override
-    {
-        return size_in_;
-    }
-    size3d output_size() const override
-    {
-        return size3d(
-            size_in_.depth_,
-            size_in_.height_ * scale_factor_,
-            size_in_.width_ * scale_factor_);
-    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         return unpool(input);
     }
-    size3d size_in_;
-    std::size_t scale_factor_;
+    const std::size_t scale_factor_;
     matrix3d unpool(const matrix3d& in_vol) const
     {
         matrix3d out_vol(

@@ -33,7 +33,8 @@ public:
     explicit convolutional_layer(
             const size3d& size_in, const size2d& filter_size,
             std::size_t k, std::size_t stride)
-        : size_in_(size_in), filters_(generate_filters(size_in.depth_, filter_size, k))
+        : layer(size_in, size3d(k, size_in.height_, size_in.width_)),
+        filters_(generate_filters(size_in.depth_, filter_size, k))
     {
         assert(stride == 1); // todo: allow different strides
     }
@@ -61,20 +62,11 @@ public:
             filters_[i].set_params(params_per_filter[i]);
         }
     }
-    const size3d& input_size() const override
-    {
-        return size_in_;
-    }
-    size3d output_size() const override
-    {
-        return size3d(filters_.size(), size_in_.height_, size_in_.width_);
-    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         return convolve(filters_, input);
     }
-    size3d size_in_;
     std::vector<filter> filters_;
 };
 

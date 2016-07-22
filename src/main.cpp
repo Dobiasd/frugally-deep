@@ -205,7 +205,7 @@ void xor_as_net_test()
     auto xor_net = net(layers_min)(size3d(1, 2, 1));
     std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
 
-    xor_net->set_params(layers_min_good_params);
+    //xor_net->set_params(layers_min_good_params);
     xor_net->set_params(randomly_change_params(xor_net->get_params(), 0.1f));
     train(xor_net, classifcation_data.training_data_, 100000, 0.1f, 0.1f);
     test(xor_net, classifcation_data.test_data_);
@@ -414,8 +414,8 @@ void cifar_10_classification_test()
 
 int main()
 {
-    //lenna_filter_test();
-    //xor_as_net_test();
+    lenna_filter_test();
+    xor_as_net_test();
     gradients_classification_test();
-    //cifar_10_classification_test();
+    cifar_10_classification_test();
 }

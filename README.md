@@ -27,10 +27,12 @@ The goal is that someday the following things will be true:
 
 todo
 ----
+
+fix error occuring with cifar-10 test
+
 flatten nestes multilayer nets? Ideally directly create them that way
 
-normalization: input and outputs to zero mean/unit variance (fplus::mean_stddev schreiben, und transform_classificytion_Data und as_vector() dafuer)
-write function that does this with a dataset
+write inline in front of all free functions
 
 implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
 

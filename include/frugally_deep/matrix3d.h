@@ -115,12 +115,12 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
     return out_vol;
 }
 
-matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
+inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
 {
     return matrix3d(out_size, in_vol.as_vector());
 }
 
-std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
+inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
     const matrix3d& vol)
 {
     matrix3d_pos result_min(0, 0, 0);
@@ -150,41 +150,41 @@ std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
     return std::make_pair(result_min, result_max);
 }
 
-matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
+inline matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
 {
     return matrix3d_min_max_pos(vol).second;
 }
 
-matrix3d_pos matrix3d_min_pos(const matrix3d& vol)
+inline matrix3d_pos matrix3d_min_pos(const matrix3d& vol)
 {
     return matrix3d_min_max_pos(vol).second;
 }
 
-std::pair<float_t, float_t> matrix3d_min_max_value(const matrix3d& vol)
+inline std::pair<float_t, float_t> matrix3d_min_max_value(const matrix3d& vol)
 {
     auto min_max_positions = matrix3d_min_max_pos(vol);
     return std::make_pair(
         vol.get(min_max_positions.first), vol.get(min_max_positions.second));
 }
 
-float_t matrix3d_max_value(const matrix3d& m)
+inline float_t matrix3d_max_value(const matrix3d& m)
 {
     return m.get(matrix3d_max_pos(m));
 }
 
-float_t matrix3d_min_value(const matrix3d& m)
+inline float_t matrix3d_min_value(const matrix3d& m)
 {
     return m.get(matrix3d_min_pos(m));
 }
 
-matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
+inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
 {
     assert(m1.size() == m2.size());
     return matrix3d(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
-matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
+inline matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
 {
     auto multiply_value_by_factor = [factor](const float_t x) -> float_t
     {
@@ -193,47 +193,47 @@ matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
     return transform_matrix3d(multiply_value_by_factor, m);
 }
 
-matrix3d divide_matrix3d(const matrix3d& m, float_t divisor)
+inline matrix3d divide_matrix3d(const matrix3d& m, float_t divisor)
 {
     return multiply_matrix3d(m, 1 / divisor);
 }
 
-matrix3d sub_matrix3d(const matrix3d& m1, const matrix3d& m2)
+inline matrix3d sub_matrix3d(const matrix3d& m1, const matrix3d& m2)
 {
     return add_matrix3ds(m1, multiply_matrix3d(m2, -1));
 }
 
-matrix3d abs_matrix3d_values(const matrix3d& m)
+inline matrix3d abs_matrix3d_values(const matrix3d& m)
 {
     return transform_matrix3d(fplus::abs<float_t>, m);
 }
 
-matrix3d abs_diff_matrix3ds(const matrix3d& m1, const matrix3d& m2)
+inline matrix3d abs_diff_matrix3ds(const matrix3d& m1, const matrix3d& m2)
 {
     return abs_matrix3d_values(sub_matrix3d(m1, m2));
 }
 
-float_t matrix3d_sum_all_values(const matrix3d& m)
+inline float_t matrix3d_sum_all_values(const matrix3d& m)
 {
     return fplus::sum(m.as_vector());
 }
 
-matrix3d operator + (const matrix3d& lhs, const matrix3d& rhs)
+inline matrix3d operator + (const matrix3d& lhs, const matrix3d& rhs)
 {
     return add_matrix3ds(lhs, rhs);
 }
 
-matrix3d operator - (const matrix3d& lhs, const matrix3d& rhs)
+inline matrix3d operator - (const matrix3d& lhs, const matrix3d& rhs)
 {
     return sub_matrix3d(lhs, rhs);
 }
 
-matrix3d operator * (const matrix3d& m, float_t factor)
+inline matrix3d operator * (const matrix3d& m, float_t factor)
 {
     return multiply_matrix3d(m, factor);
 }
 
-matrix3d operator / (const matrix3d& m, float_t divisor)
+inline matrix3d operator / (const matrix3d& m, float_t divisor)
 {
     return divide_matrix3d(m, divisor);
 }

@@ -76,6 +76,7 @@ inline std::string show_matrix2d(const matrix2d& m)
 template <typename F>
 matrix2d transform_matrix2d(F f, const matrix2d& m)
 {
+    // todo: use as_vector instead to avoid nested loops
     matrix2d out_vol(size2d(
         m.size().height_,
         m.size().width_));
@@ -89,9 +90,30 @@ matrix2d transform_matrix2d(F f, const matrix2d& m)
     return out_vol;
 }
 
-matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
+inline matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
 {
     return matrix2d(out_size, m.as_vector());
+}
+
+inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
+{
+    assert(a.size().width_ == b.size().height_);
+    std::size_t inner = a.size().width_;
+    matrix2d m(size2d(a.size().height_, b.size().width_));
+
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            float_t sum = 0;
+            for (std::size_t i = 0; i != inner; ++i)
+            {
+                sum += a.get(y, i) * b.get(i, x);
+            }
+            m.set(y, x, sum);
+        }
+    }
+    return m;
 }
 
 } // namespace fd

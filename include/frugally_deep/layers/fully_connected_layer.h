@@ -45,10 +45,10 @@ protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         matrix3d output(output_size());
-        for (std::size_t x_out = 0; x_out < output.size().width_; ++x_out)
+        for (std::size_t x_out = 0; x_out < output.size().height_; ++x_out)
         {
             float_t out_val = 0;
-            for (std::size_t x_in = 0; x_in < input.size().width_; ++x_in)
+            for (std::size_t x_in = 0; x_in < input.size().height_; ++x_in)
             {
                 out_val += params_.get(x_out, x_in) * input.get(0, x_in, 0);
             }
@@ -57,13 +57,13 @@ protected:
         }
         return output;
     }
-    const matrix2d params_;
+    matrix2d params_;
 
     // To cover the biases also with the matrix multiplication
     // they could be an additional column in params_
     // instead of a separate member.
     // Input would then need to be padded with an additional trailing one.
-    const float_vec biases_;
+    float_vec biases_;
 };
 
 } // namespace fd

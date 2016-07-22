@@ -10,6 +10,7 @@
 
 #include "frugally_deep/size2d.h"
 
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -95,6 +96,7 @@ inline matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
     return matrix2d(out_size, m.as_vector());
 }
 
+// todo: templates fuer dinger mit nur einer zeile oder spalte
 inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
 {
     assert(a.size().width_ == b.size().height_);
@@ -106,7 +108,7 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
         for (std::size_t x = 0; x < m.size().width_; ++x)
         {
             float_t sum = 0;
-            for (std::size_t i = 0; i != inner; ++i)
+            for (std::size_t i = 0; i < inner; ++i)
             {
                 sum += a.get(y, i) * b.get(i, x);
             }

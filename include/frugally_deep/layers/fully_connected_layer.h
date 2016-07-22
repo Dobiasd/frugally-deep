@@ -44,25 +44,22 @@ public:
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
-        matrix3d output(output_size());
+        auto output = matrix2d_to_matrix3d(
+            multiply(params_, depth_slice(0, input)));
         for (std::size_t x_out = 0; x_out < output.size().height_; ++x_out)
         {
-            float_t out_val = 0;
-            for (std::size_t x_in = 0; x_in < input.size().height_; ++x_in)
-            {
-                out_val += params_.get(x_out, x_in) * input.get(0, x_in, 0);
-            }
-            out_val += biases_[x_out];
-            output.set(0, x_out, 0, out_val);
+            output.set(0, x_out, 0, output.get(0, x_out, 0) + biases_[x_out]);
         }
         return output;
     }
     matrix2d params_;
 
+    // todo
     // To cover the biases also with the matrix multiplication
-    // they could be an additional column in params_
+    // they should be an additional column in params_
     // instead of a separate member.
     // Input would then need to be padded with an additional trailing one.
+    // This will make the backward pass easier.e.
     float_vec biases_;
 };
 

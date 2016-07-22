@@ -8,6 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
+#include "frugally_deep/matrix2d.h"
 #include "frugally_deep/matrix3d_pos.h"
 #include "frugally_deep/size3d.h"
 
@@ -118,6 +119,32 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
 inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
 {
     return matrix3d(out_size, in_vol.as_vector());
+}
+
+inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
+{
+    matrix2d result(size2d(m.size().height_, m.size().width_));
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            result.set(y, x, m.get(z, y, x));
+        }
+    }
+    return result;
+}
+
+inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)
+{
+    matrix3d result(size3d(1, m.size().height_, m.size().width_));
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            result.set(0, y, x, m.get(y, x));
+        }
+    }
+    return result;
 }
 
 inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
@@ -236,6 +263,16 @@ inline matrix3d operator * (const matrix3d& m, float_t factor)
 inline matrix3d operator / (const matrix3d& m, float_t divisor)
 {
     return divide_matrix3d(m, divisor);
+}
+
+inline bool operator == (const matrix3d& a, const matrix3d& b)
+{
+    return a.size() == b.size() && a.as_vector() == b.as_vector();
+}
+
+inline bool operator != (const matrix3d& a, const matrix3d& b)
+{
+    return !(a == b);
 }
 
 } // namespace fd

@@ -28,8 +28,6 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-fix error occuring with cifar-10 test
-
 flatten nestes multilayer nets? Ideally directly create them that way
 
 write inline in front of all free functions

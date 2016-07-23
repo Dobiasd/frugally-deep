@@ -126,7 +126,7 @@ float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
     return new_params;
 }
 
-matrix3d calc_mean_output_error(
+std::vector<matrix3d> calc_all_output_errors(
     const layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -134,53 +134,69 @@ matrix3d calc_mean_output_error(
     for (const auto& data : dataset)
     {
         auto result = net->forward_pass(data.input_);
-        const auto square = [](float_t x) -> float_t
-        {
-            return x * x;
-        };
-        auto error = transform_matrix3d(
-            square, abs_diff_matrix3ds(result, data.output_));
+        auto error = sub_matrix3d(result, data.output_);
         error_matrices.push_back(error);
-        //std::cout << "todo remove show_matrix3d(result) " << show_matrix3d(result) << std::endl;
     }
-    //std::cout << "todo remove ____" << std::endl;
-    return
-        fplus::fold_left_1(add_matrix3ds, error_matrices) /
-        static_cast<float_t>(error_matrices.size());
+    return error_matrices;
 }
 
-float_t calc_mean_error(
-    const layer_ptr& net,
-    const input_with_output_vec& dataset)
+matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
 {
-    auto error_matrix_mean = calc_mean_output_error(net, dataset);
-    return matrix3d_mean_value(error_matrix_mean);
+    return fplus::fold_left_1(add_matrix3ds, ms) /
+        static_cast<float_t>(ms.size());
 }
 
+float_t square_error_and_sum_div_2(const matrix3d& error)
+{
+    const auto square = [](float_t x) -> float_t
+    {
+        return x * x;
+    };
+    const auto squared_error = transform_matrix3d(square, error);
+    return matrix3d_sum_all_values(squared_error) / 2;
+}
+
+/*
 void optimize_net_random(layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    auto old_error = calc_mean_error(net, dataset);
+    auto old_error = calc_squared_error_sum_div_two(net, dataset);
     float_vec old_params = net->get_params();
     float_vec new_params = randomly_change_params(old_params, 0.1f);
     net->set_params(new_params);
-    auto new_error = calc_mean_error(net, dataset);
+    auto new_error = calc_squared_error_sum_div_two(net, dataset);
     if (new_error > old_error)
     {
         net->set_params(old_params);
     }
 }
+*/
 
 float_t test_params(
     const float_vec& params,
     layer_ptr& net,
-    const input_with_output_vec& dataset)
+    const input_with_output& data)
 {
     float_vec old_params = net->get_params();
     net->set_params(params);
-    float_t error = calc_mean_error(net, dataset);
+    auto net_result = net->forward_pass(data.input_);
+    auto error = sub_matrix3d(net_result, data.output_);
+    auto result = square_error_and_sum_div_2(error);
     net->set_params(old_params);
-    return error;
+    return result;
+}
+
+float_t test_params_dataset(const float_vec& params,
+    layer_ptr& net,
+    const input_with_output_vec& dataset)
+{
+    float_vec all_square_error_and_sum_div_2_s;
+    all_square_error_and_sum_div_2_s.reserve(dataset.size());
+    for (const auto& data : dataset)
+    {
+        test_params(params, net, data);
+    }
+    return fplus::mean<float_t>(all_square_error_and_sum_div_2_s);
 }
 
 float_vec calc_net_gradient(
@@ -189,9 +205,11 @@ float_vec calc_net_gradient(
 {
     const float_t gradient_delta = 0.01f;
 
-    auto calculate_gradient_dim =
-        [&net, gradient_delta, &dataset]
-        (const float_vec& curr_params, std::size_t i) -> float_t
+    const auto calculate_gradient_dim =
+        [&net, gradient_delta](
+            const float_vec& curr_params,
+            const input_with_output& data,
+            std::size_t i) -> float_t
     {
         float_vec params_plus = curr_params;
         float_vec params_minus = curr_params;
@@ -199,34 +217,51 @@ float_vec calc_net_gradient(
         params_plus[i] += gradient_delta;
         params_minus[i] -= gradient_delta;
 
-        float_t plus_error = test_params(params_plus, net, dataset);
-        float_t minus_error = test_params(params_minus, net, dataset);
+        float_t plus_error = test_params(params_plus, net, data);
+        float_t minus_error = test_params(params_minus, net, data);
 
-        const float_t two_times_gradient_delta = plus_error - minus_error;
-        auto gradient = two_times_gradient_delta / (2 * gradient_delta);
-        return -gradient;
+        return (plus_error - minus_error) / (2 * gradient_delta);
     };
 
-    float_vec old_params = net->get_params();
-    float_vec gradient(old_params.size(), 0);
-
-    for (std::size_t i = 0; i < old_params.size(); ++i)
+    const auto calc_gradient =
+        [&net, &calculate_gradient_dim]
+        (const input_with_output& data) -> float_vec
     {
-        float_t dim_gradient = calculate_gradient_dim(old_params, i);
-        gradient[i] = dim_gradient;
-    }
+        float_vec old_params = net->get_params();
+        float_vec gradient(old_params.size(), 0);
+        for (std::size_t i = 0; i < old_params.size(); ++i)
+        {
+            float_t dim_gradient = calculate_gradient_dim(old_params, data, i);
+            gradient[i] = dim_gradient;
+        }
+        return gradient;
+    };
 
-    return gradient;
+    std::vector<matrix3d> gradients;
+    gradients.reserve(dataset.size());
+    for (const auto& data : dataset)
+    {
+        float_vec gradient = calc_gradient(data);
+        gradients.push_back(matrix3d(size3d(1, gradient.size(), 1), gradient));
+    }
+    return mean_matrix3d(gradients).as_vector();
 }
 
 float_vec calc_net_gradient_backprop(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    auto mean_output_error = calc_mean_output_error(net, dataset);
-    float_vec gradient;
-    net->backward_pass(mean_output_error, gradient);
-    return gradient;
+    std::vector<matrix3d> gradients;
+    gradients.reserve(dataset.size());
+    for (const auto& data : dataset)
+    {
+        auto result = net->forward_pass(data.input_);
+        auto error = sub_matrix3d(result, data.output_);
+        float_vec gradient;
+        net->backward_pass(error, gradient);
+        gradients.push_back(matrix3d(size3d(1, gradient.size(), 1), gradient));
+    }
+    return mean_matrix3d(gradients).as_vector();
 }
 
 void optimize_net_gradient(
@@ -234,6 +269,7 @@ void optimize_net_gradient(
     const input_with_output_vec& dataset,
     float_t& speed_factor)
 {
+    // todo nur noch backprob wenn das fertig ist
     auto gradient = calc_net_gradient(net, dataset);
     auto gradient_backprop = calc_net_gradient_backprop(net, dataset);
 
@@ -244,8 +280,8 @@ void optimize_net_gradient(
         new_params[i] += gradient[i] * speed_factor;
     }
 
-    float_t old_error = calc_mean_error(net, dataset);
-    float_t new_error = test_params(new_params, net, dataset);
+    float_t old_error = test_params_dataset(net->get_params(), net, dataset);
+    float_t new_error = test_params_dataset(new_params, net, dataset);
 
     if (new_error >= old_error)
     {
@@ -276,7 +312,7 @@ void train(layer_ptr& net,
     timer stopwatch;
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
-        auto error = calc_mean_error(net, dataset);
+        auto error = test_params_dataset(net->get_params(), net, dataset);
         if (iter == 0 || stopwatch.elapsed() > 0.5)
         {
             stopwatch.reset();
@@ -291,7 +327,7 @@ void train(layer_ptr& net,
         }
         optimize_net_gradient(net, dataset, learning_rate);
     }
-    show_progress(max_iters, calc_mean_error(net, dataset), learning_rate);
+    show_progress(max_iters, test_params_dataset(net->get_params(), net, dataset), learning_rate);
     show_params(net);
 }
 

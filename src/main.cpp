@@ -418,14 +418,23 @@ void test_backprop_algorithm()
     using namespace fd;
     input_with_output_vec training_data =
     {
-        {{size3d(1,1,1), {1}}, {size3d(1,2,1), {1,2}}}
+        {{size3d(1,2,1), {-1.31,  2.26}}, {size3d(1,3,1), { 0.131, 0.241,0.576}}},
+        {{size3d(1,2,1), {-5.12,  6.13}}, {size3d(1,3,1), { 0.214,-0.452,0.157}}},
+        {{size3d(1,2,1), { 2.63, -3.85}}, {size3d(1,3,1), {-0.413,-0.003,1.752}}},
+        //{{size3d(1,1,1), {2}}, {size3d(1,5,1), {1.5,2.61,3.781,4.2,5.519}}}
+        //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {1,3}}},
+        //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {7,2}}}
+        //{{size3d(1,1,1), {1}}, {size3d(1,3,1), {1,2,3}}}
     };
     auto net_001 = net(
     {
-        fc(2)
-    })(size3d(1, 1, 1));
+        fc(2),
+        fc(4),
+        fc(3),
+//        tanh()
+    })(size3d(1, 2, 1));
 
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 4);
     const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));
@@ -433,20 +442,23 @@ void test_backprop_algorithm()
 
     for (int i = 0; i < 1000; ++i)
     {
-        //net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
-        const auto mean_output_error = calc_mean_output_error(net_001, training_data);
+        net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
         auto gradient = calc_net_gradient(net_001, training_data);
         auto gradient_backprop = calc_net_gradient_backprop(net_001, training_data);
-        std::cout << "todo remove mean_output_error " << show_gradient(mean_output_error.as_vector()) << std::endl;
-        std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
-        std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
-        std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
+        if(show_gradient(gradient_backprop) != show_gradient(gradient))
+        {
+            std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
+            std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
+            std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
+            assert(false);
+        }
         //calc_net_gradient
         //calc_net_gradient_backprop
     }
 }
 
 int main()
+
 {
     test_backprop_algorithm();
     //lenna_filter_test();

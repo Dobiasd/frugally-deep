@@ -47,19 +47,13 @@ protected:
             multiply(params_, input_slice_with_bias_neuron));
     }
 
-/*
     matrix3d backward_pass_impl(const matrix3d& input,
         float_deq& params_deltas) const override
     {
         auto output = matrix2d_to_matrix3d(
             multiply_transposed(params_, depth_slice(0, input)));
-        for (std::size_t x_out = 0; x_out < output.size().height_; ++x_out)
-        {
-            output.set(0, x_out, 0, output.get(0, x_out, 0) + biases_[x_out]);
-        }
-        return output;
+        return matrix3d(input_size(), fplus::init(output.as_vector()))
     }
-*/
 
     matrix2d params_;
 };

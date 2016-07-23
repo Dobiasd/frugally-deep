@@ -118,4 +118,9 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
     return m;
 }
 
+inline matrix2d transpose(const matrix2d& m)
+{
+    return matrix2d(size2d(m.size().width_, m.size().height_), m.as_vector());
+}
+
 } // namespace fd

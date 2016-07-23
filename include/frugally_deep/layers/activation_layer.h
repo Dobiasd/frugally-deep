@@ -42,7 +42,19 @@ protected:
     {
         return transform_input(input);
     }
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_vec&) const override
+    {
+        return transform_error_backward_pass(input);
+    }
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
+
+    // todo: make pure virtual
+    virtual matrix3d transform_error_backward_pass(const matrix3d&) const
+    {
+        // not implemented yet
+        assert(false);
+    }
 };
 
 } // namespace fd

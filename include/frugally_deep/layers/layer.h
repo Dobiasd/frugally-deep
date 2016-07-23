@@ -38,10 +38,10 @@ public:
         return output;
     }
     virtual matrix3d backward_pass(const matrix3d& input,
-        float_deq& params_deltas) final
+        float_vec& params_deltas_acc) final
     {
         assert(input.size() == output_size());
-        auto output = backward_pass_impl(input, params_deltas);
+        auto output = backward_pass_impl(input, params_deltas_acc);
         assert(output.size() == input_size());
         last_input_ = input;
         return output;
@@ -65,7 +65,7 @@ protected:
     virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
 
     // todo: make pure virtual
-    virtual matrix3d backward_pass_impl(const matrix3d&, float_deq&) const
+    virtual matrix3d backward_pass_impl(const matrix3d&, float_vec&) const
     {
         // not implemented yet error
         assert(false);

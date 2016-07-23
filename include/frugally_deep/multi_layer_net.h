@@ -73,6 +73,18 @@ protected:
         }
         return current_volume;
     }
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_vec& params_deltas_acc) const override
+    {
+        auto current_volume = input;
+        const auto layers_reversed = fplus::reverse(layers_);
+        for (const auto& current_layer : layers_reversed)
+        {
+            current_volume = current_layer->backward_pass(
+                current_volume, params_deltas_acc);
+        }
+        return current_volume;
+    }
     static bool is_layer_transition_valid(
         const std::pair<layer_ptr, layer_ptr>& layer_ptr_pair)
     {

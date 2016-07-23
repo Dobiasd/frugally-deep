@@ -212,6 +212,14 @@ inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
         m1.as_vector(), m2.as_vector()));
 }
 
+inline matrix3d multiply_matrix3ds_elementwise(
+    const matrix3d& m1, const matrix3d& m2)
+{
+    assert(m1.size() == m2.size());
+    return matrix3d(m1.size(), fplus::zip_with(std::multiplies<float_t>(),
+        m1.as_vector(), m2.as_vector()));
+}
+
 inline matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
 {
     auto multiply_value_by_factor = [factor](const float_t x) -> float_t
@@ -244,6 +252,13 @@ inline matrix3d abs_diff_matrix3ds(const matrix3d& m1, const matrix3d& m2)
 inline float_t matrix3d_sum_all_values(const matrix3d& m)
 {
     return fplus::sum(m.as_vector());
+}
+
+inline float_t matrix3d_mean_value(const matrix3d& m)
+{
+    return
+        matrix3d_sum_all_values(m) /
+        static_cast<float_t>(m.size().volume());
 }
 
 inline matrix3d operator + (const matrix3d& lhs, const matrix3d& rhs)

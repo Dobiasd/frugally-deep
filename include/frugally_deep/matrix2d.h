@@ -120,7 +120,15 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
 
 inline matrix2d transpose(const matrix2d& m)
 {
-    return matrix2d(size2d(m.size().width_, m.size().height_), m.as_vector());
+    matrix2d result(size2d(m.size().width_, m.size().height_));
+    for (std::size_t x = 0; x < m.size().width_; ++x)
+    {
+        for (std::size_t y = 0; y < m.size().height_; ++y)
+        {
+            result.set(x, y, m.get(y, x));
+        }
+    }
+    return result;
 }
 
 } // namespace fd

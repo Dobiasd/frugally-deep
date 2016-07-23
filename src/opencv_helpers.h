@@ -86,7 +86,10 @@ inline cv::Mat matrix3d_to_cv_bgr_img_float(const fd::matrix3d& m)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
         {
-            cv::Vec3f col(m.get(0, y, x), m.get(1, y, x), m.get(2, y, x));
+            cv::Vec3f col(
+                static_cast<float>(m.get(0, y, x)),
+                static_cast<float>(m.get(1, y, x)),
+                static_cast<float>(m.get(2, y, x)));
             img.at<cv::Vec3f>(static_cast<int>(y), static_cast<int>(x)) = col;
         }
     }

@@ -413,10 +413,44 @@ void cifar_10_classification_test()
     test(tobinet, classifcation_data.test_data_);
 }
 
+void test_backprop_algorithm()
+{
+    using namespace fd;
+    input_with_output_vec training_data =
+    {
+        {{size3d(1,1,1), {1}}, {size3d(1,2,1), {1,2}}}
+    };
+    auto net_001 = net(
+    {
+        fc(2)
+    })(size3d(1, 1, 1));
+
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
+    {
+        return fplus::show_cont(fplus::transform(show_one_value, xs));
+    };
+
+    for (int i = 0; i < 1000; ++i)
+    {
+        //net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
+        const auto mean_output_error = calc_mean_output_error(net_001, training_data);
+        auto gradient = calc_net_gradient(net_001, training_data);
+        auto gradient_backprop = calc_net_gradient_backprop(net_001, training_data);
+        std::cout << "todo remove mean_output_error " << show_gradient(mean_output_error.as_vector()) << std::endl;
+        std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
+        std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
+        std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
+        //calc_net_gradient
+        //calc_net_gradient_backprop
+    }
+}
+
 int main()
 {
-    lenna_filter_test();
-    xor_as_net_test();
-    gradients_classification_test();
+    test_backprop_algorithm();
+    //lenna_filter_test();
+    //xor_as_net_test();
+    //gradients_classification_test();
     //cifar_10_classification_test();
 }

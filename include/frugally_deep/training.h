@@ -126,38 +126,6 @@ float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
     return new_params;
 }
 
-void optimize_net_random(layer_ptr& net,
-    const std::function<float_t(
-        const layer_ptr& net,
-        const input_with_output_vec& dataset)>& calc_error,
-    const input_with_output_vec& dataset)
-{
-    auto old_error = calc_error(net, dataset);
-    float_vec old_params = net->get_params();
-    float_vec new_params = randomly_change_params(old_params, 0.1f);
-    net->set_params(new_params);
-    auto new_error = calc_error(net, dataset);
-    if (new_error > old_error)
-    {
-        net->set_params(old_params);
-    }
-}
-
-float_t test_params(
-    const float_vec& params,
-    layer_ptr& net,
-    const std::function<float_t(
-        const layer_ptr& net,
-        const input_with_output_vec& dataset)>& calc_error,
-    const input_with_output_vec& dataset)
-{
-    float_vec old_params = net->get_params();
-    net->set_params(params);
-    float_t error = calc_error(net, dataset);
-    net->set_params(old_params);
-    return error;
-}
-
 matrix3d calc_mean_output_error(
     const layer_ptr& net,
     const input_with_output_vec& dataset)
@@ -189,17 +157,40 @@ float_t calc_mean_error(
     return matrix3d_mean_value(error_matrix_mean);
 }
 
-float_vec calc_net_gradient(
-    layer_ptr& net,
-    const std::function<float_t(
-        const layer_ptr& net,
-        const input_with_output_vec& dataset)>& calc_error,
+void optimize_net_random(layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    const float_t gradient_delta = 0.000001f;
+    auto old_error = calc_mean_error(net, dataset);
+    float_vec old_params = net->get_params();
+    float_vec new_params = randomly_change_params(old_params, 0.1f);
+    net->set_params(new_params);
+    auto new_error = calc_mean_error(net, dataset);
+    if (new_error > old_error)
+    {
+        net->set_params(old_params);
+    }
+}
+
+float_t test_params(
+    const float_vec& params,
+    layer_ptr& net,
+    const input_with_output_vec& dataset)
+{
+    float_vec old_params = net->get_params();
+    net->set_params(params);
+    float_t error = calc_mean_error(net, dataset);
+    net->set_params(old_params);
+    return error;
+}
+
+float_vec calc_net_gradient(
+    layer_ptr& net,
+    const input_with_output_vec& dataset)
+{
+    const float_t gradient_delta = 0.01f;
 
     auto calculate_gradient_dim =
-        [&net, gradient_delta, &calc_error, &dataset]
+        [&net, gradient_delta, &dataset]
         (const float_vec& curr_params, std::size_t i) -> float_t
     {
         float_vec params_plus = curr_params;
@@ -208,11 +199,12 @@ float_vec calc_net_gradient(
         params_plus[i] += gradient_delta;
         params_minus[i] -= gradient_delta;
 
-        float_t plus_error = test_params(params_plus, net, calc_error, dataset);
-        float_t minus_error = test_params(params_minus, net, calc_error, dataset);
+        float_t plus_error = test_params(params_plus, net, dataset);
+        float_t minus_error = test_params(params_minus, net, dataset);
 
-        auto gradient = (plus_error - minus_error) / (2 * gradient_delta);
-        return gradient;
+        const float_t two_times_gradient_delta = plus_error - minus_error;
+        auto gradient = two_times_gradient_delta / (2 * gradient_delta);
+        return -gradient;
     };
 
     float_vec old_params = net->get_params();
@@ -239,33 +231,21 @@ float_vec calc_net_gradient_backprop(
 
 void optimize_net_gradient(
     layer_ptr& net,
-    const std::function<float_t(
-        const layer_ptr& net,
-        const input_with_output_vec& dataset)>& calc_error,
     const input_with_output_vec& dataset,
     float_t& speed_factor)
 {
-    auto gradient = calc_net_gradient(net, calc_error, dataset);
+    auto gradient = calc_net_gradient(net, dataset);
     auto gradient_backprop = calc_net_gradient_backprop(net, dataset);
-
-    const auto show_one_value = fplus::show_float_fill_left<float_t>(' ', 10, 6);
-    const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
-    {
-        return fplus::show_cont(fplus::transform(show_one_value, xs));
-    };
-
-    std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
-    std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
 
     float_vec new_params = net->get_params();
     //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
     for (std::size_t i = 0; i < new_params.size(); ++i)
     {
-        new_params[i] -= gradient[i] * speed_factor;
+        new_params[i] += gradient[i] * speed_factor;
     }
 
-    float_t old_error = calc_error(net, dataset);
-    float_t new_error = test_params(new_params, net, calc_error, dataset);
+    float_t old_error = calc_mean_error(net, dataset);
+    float_t new_error = test_params(new_params, net, dataset);
 
     if (new_error >= old_error)
     {
@@ -309,7 +289,7 @@ void train(layer_ptr& net,
             show_params(net);
             return;
         }
-        optimize_net_gradient(net, calc_mean_error, dataset, learning_rate);
+        optimize_net_gradient(net, dataset, learning_rate);
     }
     show_progress(max_iters, calc_mean_error(net, dataset), learning_rate);
     show_params(net);

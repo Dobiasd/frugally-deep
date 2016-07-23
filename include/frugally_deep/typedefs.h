@@ -11,7 +11,7 @@
 namespace fd
 {
 
-typedef float float_t;
+typedef double float_t;
 typedef std::vector<float_t> float_vec;
 
 } // namespace fd

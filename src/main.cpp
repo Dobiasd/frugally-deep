@@ -418,5 +418,5 @@ int main()
     lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();
-    cifar_10_classification_test();
+    //cifar_10_classification_test();
 }

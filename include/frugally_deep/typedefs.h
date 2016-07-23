@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <deque>
 #include <vector>
 
 namespace fd
@@ -13,5 +14,6 @@ namespace fd
 
 typedef float float_t;
 typedef std::vector<float_t> float_vec;
+typedef std::deque<float_t> float_deq;
 
 } // namespace fd

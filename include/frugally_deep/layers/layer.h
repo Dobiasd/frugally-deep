@@ -37,6 +37,15 @@ public:
         last_input_ = input;
         return output;
     }
+    virtual matrix3d backward_pass(const matrix3d& input,
+        float_deq& params_deltas) final
+    {
+        assert(input.size() == output_size());
+        auto output = backward_pass_impl(input, params_deltas);
+        assert(output.size() == input_size());
+        last_input_ = input;
+        return output;
+    }
     virtual std::size_t param_count() const = 0;
     virtual float_vec get_params() const = 0;
     virtual void set_params(const float_vec& params) = 0;
@@ -54,6 +63,13 @@ protected:
     const size3d size_out_;
     matrix3d last_input_;
     virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
+
+    // todo: make pure virtual
+    virtual matrix3d backward_pass_impl(const matrix3d&, float_deq&) const
+    {
+        // not implemented yet error
+        assert(false);
+    }
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

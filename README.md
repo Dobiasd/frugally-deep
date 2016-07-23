@@ -33,6 +33,8 @@ flatten nestes multilayer nets? Ideally directly create them that way
 write inline in front of all free functions
 
 implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
+give param-deriv out, then something like bfgs can be used
+confirm via numerical gradient checking
 
 use cmake with google tests (see fplus)
 convolution: different paddings, different steps
@@ -48,6 +50,7 @@ split a validation set from the training set to optimize the hyperparameters
 Weight initialization strategies
 
 regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)
+rule of thumb: 10 times more training examples than parameters
 
 learning momentum?
 

@@ -21,46 +21,47 @@ class fully_connected_layer : public layer
 public:
     fully_connected_layer(std::size_t n_in, std::size_t n_out) :
         layer(size3d(1, n_in, 1), size3d(1, n_out, 1)),
-        params_(size2d(n_out, n_in)),
-        biases_(n_out, 0)
+        params_(size2d(n_out, n_in + 1))
     {
     }
     std::size_t param_count() const override
     {
-        return params_.size().area() + biases_.size();
+        return params_.size().area();
     }
     float_vec get_params() const override
     {
-        return fplus::append(params_.as_vector(), biases_);
+        return params_.as_vector();
     }
     void set_params(const float_vec& params) override
     {
         assert(params.size() == param_count());
-        auto splitted = fplus::split_at_idx(params_.size().area(), params);
-        params_ = matrix2d(params_.size(), splitted.first);
-        assert(splitted.second.size() == biases_.size());
-        biases_ = float_vec(splitted.second);
+        params_ = matrix2d(params_.size(), params);
     }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
+        matrix2d input_slice_with_bias_neuron(
+            size2d(input.size().height_ + 1, 1),
+            fplus::append(input.as_vector(), {1}));
+        return matrix2d_to_matrix3d(
+            multiply(params_, input_slice_with_bias_neuron));
+    }
+
+/*
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_deq& params_deltas) const override
+    {
         auto output = matrix2d_to_matrix3d(
-            multiply(params_, depth_slice(0, input)));
+            multiply_transposed(params_, depth_slice(0, input)));
         for (std::size_t x_out = 0; x_out < output.size().height_; ++x_out)
         {
             output.set(0, x_out, 0, output.get(0, x_out, 0) + biases_[x_out]);
         }
         return output;
     }
-    matrix2d params_;
+*/
 
-    // todo
-    // To cover the biases also with the matrix multiplication
-    // they should be an additional column in params_
-    // instead of a separate member.
-    // Input would then need to be padded with an additional trailing one.
-    // This will make the backward pass easier.e.
-    float_vec biases_;
+    matrix2d params_;
 };
 
 } // namespace fd

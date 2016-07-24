@@ -46,7 +46,8 @@ backprop: give param-deriv out, then something like bfgs can be used
 confirm via numerical gradient checking
 
 use cmake with google tests (see fplus)
-convolution: different paddings, different steps
+convolution: different paddings, different steps. With step 2 one could get rid of pooling layers
+dilated convolutions? (http://cs231n.github.io/convolutional-networks/)
 
 layers to implement:
 transposed convolution layer aka deconv aka unconv aka fractional step conv

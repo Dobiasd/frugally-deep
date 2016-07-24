@@ -42,21 +42,20 @@ public:
         assert(params.size() == param_count());
     }
 protected:
-    matrix3d forward_pass_impl(const matrix3d& input) const override
+    matrix3d forward_pass_impl(const matrix3d& input) const override final
     {
         return pool(input);
     }
     matrix3d backward_pass_impl(const matrix3d& input,
-        float_vec& params_deltas_acc) const override
+        float_vec& params_deltas_acc) const override final
     {
-        // not yet implemented
-        assert(false);
-        std::cout << show_matrix3d(input) << std::endl;
-        std::cout << fplus::show_cont(params_deltas_acc) << std::endl;
+        return pool_backwards(input, params_deltas_acc);
     }
 
     const std::size_t scale_factor_;
     virtual matrix3d pool(const matrix3d& input) const = 0;
+    virtual matrix3d pool_backwards(const matrix3d& input,
+        float_vec& params_deltas_acc) const = 0;
 
     template <typename AccPixelFunc, typename FinalizePixelFunc>
     static matrix3d pool_helper(
@@ -91,6 +90,30 @@ protected:
                         }
                     }
                     out_vol.set(z, y, x, finalize_pixel_func(acc));
+                }
+            }
+        }
+        return out_vol;
+    }
+
+    template <typename FillOutVolSquareFunc>
+    matrix3d pool_backwards_helper(
+        FillOutVolSquareFunc fill_out_vol_square,
+        const matrix3d& err_vol) const
+    {
+        assert(err_vol.size().height_ * scale_factor_ == last_input_.size().height_);
+        assert(err_vol.size().width_ * scale_factor_ == last_input_.size().width_);
+        matrix3d out_vol(last_input_.size());
+        for (std::size_t z = 0; z < err_vol.size().depth_; ++z)
+        {
+            for (std::size_t y = 0; y < err_vol.size().height_; ++y)
+            {
+                std::size_t y_out = y * scale_factor_;
+                for (std::size_t x = 0; x < err_vol.size().width_; ++x)
+                {
+                    std::size_t x_out = x * scale_factor_;
+                    const float_t err_val = err_vol.get(z, y, x);
+                    fill_out_vol_square(z, y_out, x_out, err_val, out_vol);
                 }
             }
         }

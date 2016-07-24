@@ -37,6 +37,27 @@ protected:
             pool_helper_div,
             in_vol);
     }
+    matrix3d pool_backwards(const matrix3d& input,
+        float_vec&) const override
+    {
+        const auto& fill_out_vol_square = [this](
+            std::size_t z,
+            std::size_t y,
+            std::size_t x,
+            float_t err_val,
+            matrix3d& out_vol)
+        {
+            for (std::size_t yf = 0; yf < scale_factor_; ++yf)
+            {
+                for (std::size_t xf = 0; xf < scale_factor_; ++xf)
+                {
+                    out_vol.set(z, y + yf, x + xf, err_val);
+                }
+            }
+
+        };
+        return pool_backwards_helper(fill_out_vol_square, input);
+    }
 };
 
 } // namespace fd

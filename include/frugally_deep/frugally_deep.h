@@ -11,6 +11,7 @@
 #include "frugally_deep/filter.h"
 #include "frugally_deep/frugally_deep.h"
 #include "frugally_deep/matrix2d.h"
+#include "frugally_deep/matrix2d_pos.h"
 #include "frugally_deep/matrix3d.h"
 #include "frugally_deep/matrix3d_pos.h"
 #include "frugally_deep/multi_layer_net.h"

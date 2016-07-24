@@ -70,12 +70,10 @@ protected:
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc) const override
     {
-        // not yet implemented
-        assert(false);
-        std::cout << show_matrix3d(input) << std::endl;
-        std::cout << fplus::show_cont(params_deltas_acc) << std::endl;
+        return convolve(flip_filters_spatially(filters_), input);
+        params_deltas_acc = params_deltas_acc; // todo remove
     }
-    std::vector<filter> filters_;
+    filter_vec filters_;
 };
 
 } // namespace fd

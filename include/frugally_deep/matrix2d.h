@@ -9,6 +9,7 @@
 #include "frugally_deep/typedefs.h"
 
 #include "frugally_deep/size2d.h"
+#include "frugally_deep/matrix2d_pos.h"
 
 #include <cassert>
 #include <cstddef>
@@ -32,13 +33,21 @@ public:
         values_(shape.area(), 0.0f)
     {
     }
-    float_t get(std::size_t y, size_t x) const
+    float_t get(const matrix2d_pos& pos) const
     {
-        return values_[idx(y, x)];
+        return values_[idx(pos)];
     }
-    void set(std::size_t y, size_t x, float_t value)
+    float_t get(std::size_t y, std::size_t x) const
     {
-        values_[idx(y, x)] = value;
+        return get(matrix2d_pos(y, x));
+    }
+    void set(const matrix2d_pos& pos, float_t value)
+    {
+        values_[idx(pos)] = value;
+    }
+    void set(std::size_t y, std::size_t x, float_t value)
+    {
+        set(matrix2d_pos(y, x), value);
     }
     const size2d& size() const
     {
@@ -50,9 +59,11 @@ public:
     }
 
 private:
-    std::size_t idx(std::size_t y, std::size_t x) const
+    std::size_t idx(const matrix2d_pos& pos) const
     {
-        return y * size().width_ + x;
+        return
+            pos.y_ * size().width_ +
+            pos.x_;
     };
     size2d size_;
     float_vec values_;

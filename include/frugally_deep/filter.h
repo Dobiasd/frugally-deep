@@ -84,4 +84,37 @@ private:
     float_t bias_;
 };
 
+typedef std::vector<filter> filter_vec;
+
+inline filter_vec flip_filters_spatially(const filter_vec& fs)
+{
+    assert(!fs.empty());
+    std::size_t k = fs.size();
+    std::size_t d = fs.front().size().depth_;
+    size3d new_filter_size(
+        k,
+        fs.front().size().height_,
+        fs.front().size().width_);
+    filter_vec result;
+    result.reserve(d);
+    for (std::size_t i = 0; i < d; ++i)
+    {
+        matrix3d new_f_mat(new_filter_size);
+        float_t bias = 0;
+        for (std::size_t j = 0; j < k; ++j)
+        {
+            for (std::size_t y = 0; y < new_filter_size.height_; ++y)
+            {
+                for (std::size_t x = 0; x < new_filter_size.width_; ++x)
+                {
+                    new_f_mat.set(j, y, x, fs[j].get(i, y, x));
+                }
+            }
+            bias += fs[j].get_bias() / k;
+        }
+        result.push_back(filter(new_f_mat, bias));
+    }
+    return result;
+}
+
 } // namespace fd

@@ -417,6 +417,7 @@ fd::float_t relative_error(fd::float_t x, fd::float_t y)
 
 bool gradients_equal(fd::float_t max_diff, const fd::float_vec& xs, const fd::float_vec& ys)
 {
+    assert(xs.size() == ys.size());
     return fplus::all_by(
         fplus::is_less_or_equal_than<fd::float_t>(max_diff),
         fplus::zip_with(relative_error, xs, ys));
@@ -426,16 +427,14 @@ bool gradients_equal(fd::float_t max_diff, const fd::float_vec& xs, const fd::fl
 void gradient_check_backprop_implementation()
 {
     std::cout << frame_string("gradient_check_backprop_implementation") << std::endl;
+
     using namespace fd;
-    input_with_output_vec training_data =
+
+    input_with_output_vec training_data_net_001 =
     {
         {{size3d(1,1,2), {-1.31,  2.26}}, {size3d(1,3,1), { 0.131, 0.241,0.576}}},
         {{size3d(1,1,2), {-5.12,  6.13}}, {size3d(1,3,1), { 0.214,-0.452,0.157}}},
         {{size3d(1,1,2), { 2.63, -3.85}}, {size3d(1,3,1), {-0.413,-0.003,1.752}}},
-        //{{size3d(1,1,1), {2}}, {size3d(1,5,1), {1.5,2.61,3.781,4.2,5.519}}}
-        //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {1,3}}},
-        //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {7,2}}}
-        //{{size3d(1,1,1), {1}}, {size3d(1,3,1), {1,2,3}}}
     };
     auto net_001 = net(
     {
@@ -469,20 +468,66 @@ void gradient_check_backprop_implementation()
         return fplus::show_cont(fplus::transform(show_one_value, xs));
     };
 
-    for (int i = 0; i < 100; ++i)
+    const auto test_net_backprop = [&](
+        layer_ptr& net,
+        const input_with_output_vec& data)
     {
-        net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
-        auto gradient = calc_net_gradient(net_001, training_data);
-        auto gradient_backprop = calc_net_gradient_backprop(net_001, training_data);
-        if (!gradients_equal(0.001, gradient_backprop, gradient))
+        for (int i = 0; i < 100; ++i)
         {
-            std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
-            std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
-            std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
-            std::cout << "todo remove abs_diff          " << show_gradient(fplus::zip_with(relative_error, gradient, gradient_backprop)) << std::endl;
-            assert(false);
+            net->set_params(randomly_change_params(net->get_params(), 0.1f));
+            auto gradient = calc_net_gradient(net, data);
+            auto gradient_backprop = calc_net_gradient_backprop(net, data);
+            if (!gradients_equal(0.000001, gradient_backprop, gradient))
+            {
+                std::cout << "params            " << show_gradient(net->get_params()) << std::endl;
+                std::cout << "gradient          " << show_gradient(gradient) << std::endl;
+                std::cout << "gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
+                std::cout << "abs_diff          " << show_gradient(fplus::zip_with(relative_error, gradient, gradient_backprop)) << std::endl;
+                assert(false);
+            }
         }
-    }
+    };
+
+    test_net_backprop(net_001, training_data_net_001);
+
+
+    input_with_output_vec training_data_net_002 =
+    {
+        {{size3d(1,3,3), {1,2,3,4,5,6,7,8,9}}, {size3d(2,3,3), {6,5,2,1,6,3,2,1,2,5,2,1,2,3,1,2,3,4}}},
+    };
+
+    auto net_002 = net(
+    {
+        conv(size2d(3, 3), 2, 1),
+    })(size3d(1, 3, 3));
+
+    test_net_backprop(net_002, training_data_net_002);
+
+    // todo remove
+    return;
+
+
+
+    input_with_output_vec training_data_net_003 =
+    {
+        {{size3d(1,4,4), {1,2,3,4,5,6,7,8,9,8,7,6,5,4,3,2}}, {size3d(1,2,1), {0, 1}}},
+        {{size3d(1,4,4), {6,1,2,5,7,8,3,2,1,5,3,2,0,0,2,3}}, {size3d(1,2,1), {1, 0}}},
+    };
+
+    auto net_003 = net(
+    {
+        conv(size2d(3, 3), 4, 1), elu(1),
+        conv(size2d(1, 1), 2, 1), elu(1),
+        max_pool(2),
+        //avg_pool(2),
+        flatten(),
+        fc(4),
+        fc(2)
+    })(size3d(1, 4, 4));
+
+    test_net_backprop(net_003, training_data_net_003);
+
+
     std::cout << frame_string("Backprop implementation seems to be correct.") << std::endl;
 }
 

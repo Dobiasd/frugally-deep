@@ -446,6 +446,8 @@ void test_backprop_algorithm()
     auto net_001 = net(
     {
         fc(2),
+        softplus(),
+        fc(2),
         identity(),
         fc(4),
         sigmoid(),

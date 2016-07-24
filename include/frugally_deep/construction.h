@@ -54,6 +54,14 @@ inline pre_layer relu()
     };
 }
 
+inline pre_layer softplus()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<softplus_layer>(size_in);
+    };
+}
+
 inline pre_layer tanh()
 {
     return [=](const size3d& size_in) -> layer_ptr

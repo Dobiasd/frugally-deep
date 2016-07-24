@@ -413,6 +413,23 @@ void cifar_10_classification_test()
     test(tobinet, classifcation_data.test_data_);
 }
 
+fd::float_t relative_error(fd::float_t x, fd::float_t y)
+{
+    const auto divisor = fplus::max(x, y);
+    if (divisor < 0.0001f)
+        return 0;
+    else
+        return fplus::abs_diff(x, y) / divisor;
+}
+
+bool gradients_equal(fd::float_t max_diff, const fd::float_vec& xs, const fd::float_vec& ys)
+{
+    return fplus::all_by(
+        fplus::is_less_or_equal_than<fd::float_t>(max_diff),
+        fplus::zip_with(relative_error, xs, ys));
+}
+
+// http://cs231n.github.io/neural-networks-3/#gradcheck
 void test_backprop_algorithm()
 {
     using namespace fd;
@@ -429,12 +446,14 @@ void test_backprop_algorithm()
     auto net_001 = net(
     {
         fc(2),
+        identity(),
         fc(4),
+        sigmoid(),
         fc(3),
-//        tanh()
+        tanh()
     })(size3d(1, 2, 1));
 
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 4);
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 7 + 4, 7);
     const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));
@@ -445,11 +464,12 @@ void test_backprop_algorithm()
         net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
         auto gradient = calc_net_gradient(net_001, training_data);
         auto gradient_backprop = calc_net_gradient_backprop(net_001, training_data);
-        if(show_gradient(gradient_backprop) != show_gradient(gradient))
+        if (!gradients_equal(0.0001, gradient_backprop, gradient))
         {
             std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
             std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
             std::cout << "todo remove gradient_backprop " << show_gradient(gradient_backprop) << std::endl;
+            std::cout << "todo remove abs_diff          " << show_gradient(fplus::zip_with(relative_error, gradient, gradient_backprop)) << std::endl;
             assert(false);
         }
         //calc_net_gradient

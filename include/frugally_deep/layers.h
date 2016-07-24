@@ -13,6 +13,7 @@
 #include "frugally_deep/layers/fast_sigmoid_layer.h"
 #include "frugally_deep/layers/flatten_layer.h"
 #include "frugally_deep/layers/fully_connected_layer.h"
+#include "frugally_deep/layers/identity_layer.h"
 #include "frugally_deep/layers/layer.h"
 #include "frugally_deep/layers/leaky_relu_layer.h"
 #include "frugally_deep/layers/max_pool_layer.h"

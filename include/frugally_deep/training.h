@@ -203,7 +203,7 @@ float_vec calc_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    const float_t gradient_delta = 0.01f;
+    const float_t gradient_delta = 0.00001f;
 
     const auto calculate_gradient_dim =
         [&net, gradient_delta](

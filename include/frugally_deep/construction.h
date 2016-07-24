@@ -30,6 +30,14 @@ pre_layer conv(const size2d& filter_size,
     };
 }
 
+pre_layer identity()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<identity_layer>(size_in);
+    };
+}
+
 pre_layer leaky_relu(float_t alpha)
 {
     return [=](const size3d& size_in) -> layer_ptr

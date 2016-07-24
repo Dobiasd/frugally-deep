@@ -70,8 +70,40 @@ protected:
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc) const override
     {
-        return convolve(flip_filters_spatially(filters_), input);
-        params_deltas_acc = params_deltas_acc; // todo remove
+        const auto output = convolve(flip_filters_spatially(filters_), input);
+
+        float_vec params_deltas(param_count(), 0);
+
+        // see slide 10 of
+        // http://de.slideshare.net/kuwajima/cnnbp
+
+        //float_vec params_deltas = convolve(last_input_, input).as_vector();
+
+/*
+        for (std::size_t inc = 0; inc < last_input_.size().depth_; inc++)
+        {
+            for (std::size_t outc = 0; outc < input.size().depth_; outc++)
+            {
+                for (cnn_size_t wy = 0; wy < weight_.height_; wy++)
+                {
+                    for (cnn_size_t wx = 0; wx < weight_.width_; wx++)
+                    {
+                        float_t dst = float_t(0);
+                        const float_t * prevo = &prev_out[in_padded_.get_index(wx, wy, inc)];
+                        const float_t * delta = &curr_delta[out_.get_index(0, 0, outc)];
+
+                        for (cnn_size_t y = 0; y < out_.height_; y++) {
+                            dst += vectorize::dot(prevo + y * in_padded_.width_, delta + y * out_.width_, out_.width_);
+                        }
+                        dW[weight_.get_index(wx, wy, in_.depth_ * outc + inc)] += dst;
+                    }
+                }
+            }
+        }
+*/
+
+        params_deltas_acc = fplus::append(params_deltas, params_deltas_acc);
+        return output;
     }
     filter_vec filters_;
 };

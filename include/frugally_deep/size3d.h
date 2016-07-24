@@ -45,7 +45,7 @@ inline bool operator == (const size3d& lhs, const size3d& rhs)
         lhs.width_ == rhs.width_;
 }
 
-std::string show_size3d(const size3d& size)
+inline std::string show_size3d(const size3d& size)
 {
     return std::string(
         "(" + std::to_string(size.depth_) +

@@ -1,7 +1,7 @@
 frugally-deep
 =============
 
-**is just a bunch of random code, indended for my personal learning pleasure.**
+**is just a bunch of random code, intended solely for my personal learning pleasure.**
 
 The goal is that someday the following things will be true:
 
@@ -31,6 +31,8 @@ todo
 flatten nestes multilayer nets? Ideally directly create them that way
 
 write inline in front of all free functions
+
+clean up training.h
 
 implement backprop (http://ufldl.stanford.edu/tutorial/supervised/ConvolutionalNeuralNetwork/ , http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf , http://cs231n.github.io/optimization-2/)
 give param-deriv out, then something like bfgs can be used

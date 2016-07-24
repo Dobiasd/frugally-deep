@@ -41,7 +41,7 @@ inline bool operator == (const matrix3d_pos& lhs, const matrix3d_pos& rhs)
         lhs.x_ == rhs.x_;
 }
 
-std::string show_matrix3d_pos(const matrix3d_pos& pos)
+inline std::string show_matrix3d_pos(const matrix3d_pos& pos)
 {
     return std::string(
         "(" + std::to_string(pos.z_) +

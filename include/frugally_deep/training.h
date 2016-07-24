@@ -49,7 +49,7 @@ struct classification_dataset
     input_with_output_vec test_data_;
 };
 
-float_vec flatten_classification_dataset(
+inline float_vec flatten_classification_dataset(
     const classification_dataset& dataset,
     bool include_output)
 {
@@ -96,7 +96,7 @@ classification_dataset transform_classification_dataset(
 
 // zero mean/unit variance
 // https://en.wikipedia.org/wiki/Feature_scaling
-classification_dataset normalize_classification_dataset(
+inline classification_dataset normalize_classification_dataset(
     const classification_dataset& dataset,
     bool normalize_output_too)
 {
@@ -112,7 +112,7 @@ classification_dataset normalize_classification_dataset(
     return transform_classification_dataset(f, dataset, normalize_output_too);
 }
 
-float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
+inline float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
 {
     // todo seed
     std::random_device rd;
@@ -126,7 +126,7 @@ float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
     return new_params;
 }
 
-std::vector<matrix3d> calc_all_output_errors(
+inline std::vector<matrix3d> calc_all_output_errors(
     const layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -140,13 +140,13 @@ std::vector<matrix3d> calc_all_output_errors(
     return error_matrices;
 }
 
-matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
+inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
 {
     return fplus::fold_left_1(add_matrix3ds, ms) /
         static_cast<float_t>(ms.size());
 }
 
-float_t square_error_and_sum_div_2(const matrix3d& error)
+inline float_t square_error_and_sum_div_2(const matrix3d& error)
 {
     const auto square = [](float_t x) -> float_t
     {
@@ -172,7 +172,7 @@ void optimize_net_random(layer_ptr& net,
 }
 */
 
-float_t test_params(
+inline float_t test_params(
     const float_vec& params,
     layer_ptr& net,
     const input_with_output& data)
@@ -186,7 +186,7 @@ float_t test_params(
     return result;
 }
 
-float_t test_params_dataset(const float_vec& params,
+inline float_t test_params_dataset(const float_vec& params,
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -199,7 +199,7 @@ float_t test_params_dataset(const float_vec& params,
     return fplus::mean<float_t>(all_square_error_and_sum_div_2_s);
 }
 
-float_vec calc_net_gradient(
+inline float_vec calc_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -247,7 +247,7 @@ float_vec calc_net_gradient(
     return mean_matrix3d(gradients).as_vector();
 }
 
-float_vec calc_net_gradient_backprop(
+inline float_vec calc_net_gradient_backprop(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -264,7 +264,7 @@ float_vec calc_net_gradient_backprop(
     return mean_matrix3d(gradients).as_vector();
 }
 
-void optimize_net_gradient(
+inline void optimize_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset,
     float_t& speed_factor)
@@ -291,7 +291,7 @@ void optimize_net_gradient(
     net->set_params(new_params);
 }
 
-void train(layer_ptr& net,
+inline void train(layer_ptr& net,
     const input_with_output_vec& dataset,
     std::size_t max_iters,
     float_t mean_error_goal,
@@ -331,7 +331,7 @@ void train(layer_ptr& net,
     show_params(net);
 }
 
-void test(layer_ptr& net, const input_with_output_vec& dataset)
+inline void test(layer_ptr& net, const input_with_output_vec& dataset)
 {
     std::cout << "running test" << std::endl;
     std::size_t correct_count = 0;

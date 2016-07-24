@@ -21,7 +21,7 @@ typedef std::function<layer_ptr(const size3d& size_in)> pre_layer;
 typedef std::vector<pre_layer> pre_layers;
 
 // todo steps, kann man naemlich statt pool benutzen
-pre_layer conv(const size2d& filter_size,
+inline pre_layer conv(const size2d& filter_size,
     std::size_t k, std::size_t stride)
 {
     return [=](const size3d& size_in) -> layer_ptr
@@ -30,7 +30,7 @@ pre_layer conv(const size2d& filter_size,
     };
 }
 
-pre_layer identity()
+inline pre_layer identity()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -38,7 +38,7 @@ pre_layer identity()
     };
 }
 
-pre_layer leaky_relu(float_t alpha)
+inline pre_layer leaky_relu(float_t alpha)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -46,7 +46,7 @@ pre_layer leaky_relu(float_t alpha)
     };
 }
 
-pre_layer relu()
+inline pre_layer relu()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -54,7 +54,7 @@ pre_layer relu()
     };
 }
 
-pre_layer tanh()
+inline pre_layer tanh()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -62,7 +62,7 @@ pre_layer tanh()
     };
 }
 
-pre_layer sigmoid()
+inline pre_layer sigmoid()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -70,7 +70,7 @@ pre_layer sigmoid()
     };
 }
 
-pre_layer softmax()
+inline pre_layer softmax()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -78,7 +78,7 @@ pre_layer softmax()
     };
 }
 
-pre_layer step()
+inline pre_layer step()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -86,7 +86,7 @@ pre_layer step()
     };
 }
 
-pre_layer max_pool(std::size_t scale_factor)
+inline pre_layer max_pool(std::size_t scale_factor)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -94,7 +94,7 @@ pre_layer max_pool(std::size_t scale_factor)
     };
 }
 
-pre_layer avg_pool(std::size_t scale_factor)
+inline pre_layer avg_pool(std::size_t scale_factor)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -102,7 +102,7 @@ pre_layer avg_pool(std::size_t scale_factor)
     };
 }
 
-pre_layer flatten()
+inline pre_layer flatten()
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -110,7 +110,7 @@ pre_layer flatten()
     };
 }
 
-pre_layer fc(std::size_t n_out)
+inline pre_layer fc(std::size_t n_out)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -120,7 +120,7 @@ pre_layer fc(std::size_t n_out)
     };
 }
 
-pre_layer net(const pre_layers& layer_generators)
+inline pre_layer net(const pre_layers& layer_generators)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
@@ -141,7 +141,7 @@ pre_layer net(const pre_layers& layer_generators)
 // conv 1*x, c/2 filters
 // conv y*1, c/2 filters
 // conv 1*1, c filters
-pre_layer bottleneck_sandwich_dims_individual(
+inline pre_layer bottleneck_sandwich_dims_individual(
     const size2d& filter_size,
     const pre_layer& activation_layer_intermediate,
     const pre_layer& activation_layer)

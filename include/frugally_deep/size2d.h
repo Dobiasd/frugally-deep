@@ -34,9 +34,9 @@ public:
     std::size_t width_;
 };
 
-bool operator == (const size2d& lhs, const size2d& rhs);
+inline bool operator == (const size2d& lhs, const size2d& rhs);
 
-std::string show_size2d(const size2d& size)
+inline std::string show_size2d(const size2d& size)
 {
     return std::string(
         "(" + std::to_string(size.height_) +

@@ -156,6 +156,8 @@ void lenna_filter_test()
     filtered2 = normalize_float_img(filtered2);
     filtered2 = float_img_to_uchar_img(filtered2);
     cv::imwrite("stuff/lenna_512x512_filtered2.png", filtered2);
+
+    std::cout << frame_string("filtered images written to ./stuff/lenna_512x512_filtered*.png") << std::endl;
 }
 
 void xor_as_net_test()
@@ -271,7 +273,7 @@ void gradients_classification_test()
 
     pre_layers layers = {
         conv(size2d(3, 3), 2, 1),
-        relu(),
+        elu(1),
         max_pool(32),
         flatten(),
         fc(2),
@@ -347,46 +349,37 @@ void cifar_10_classification_test()
     */
 
     pre_layers layers = {
-        conv(size2d(1, 1), 8, 1), relu(),
-        bottleneck_sandwich_dims_individual(
-            size2d(3, 3),
-            relu(),
-            relu()),
+        conv(size2d(1, 1), 8, 1), elu(1),
+        conv(size2d(1, 1), 8, 1), elu(1),
         max_pool(2),
 
-        conv(size2d(3, 3), 16, 1), relu(),
-        bottleneck_sandwich_dims_individual(
-            size2d(3, 3),
-            relu(),
-            relu()),
+        conv(size2d(3, 3), 16, 1), elu(1),
+        conv(size2d(3, 3), 16, 1), elu(1),
         max_pool(2),
 
-        conv(size2d(3, 3), 32, 1), relu(),
-        bottleneck_sandwich_dims_individual(
-            size2d(3, 3),
-            relu(),
-            relu()),
+        conv(size2d(3, 3), 32, 1), elu(1),
+        conv(size2d(3, 3), 32, 1), elu(1),
         max_pool(2),
 
-        conv(size2d(3, 3), 64, 1), relu(),
-        bottleneck_sandwich_dims_individual(
-            size2d(3, 3),
-            relu(),
-            relu()),
-        conv(size2d(1, 1), 32, 1), relu(),
-        bottleneck_sandwich_dims_individual(
-            size2d(3, 3),
-            relu(),
-            relu()),
-        conv(size2d(1, 1), 16, 1), relu(),
+        conv(size2d(3, 3), 64, 1), elu(1),
+        conv(size2d(3, 3), 64, 1), elu(1),
+        max_pool(2),
+
+        conv(size2d(1, 1), 128, 1), elu(1),
+        conv(size2d(1, 1), 128, 1), elu(1),
+        max_pool(2),
+
+        conv(size2d(1, 1), 256, 1), elu(1),
+        conv(size2d(1, 1), 128, 1), elu(1),
+        conv(size2d(1, 1), 64, 1), elu(1),
+        conv(size2d(1, 1), 32, 1), elu(1),
+        conv(size2d(1, 1), 16, 1), elu(1),
 
         flatten(),
-        fc(64),
-        sigmoid(),
-        fc(32),
-        sigmoid(),
+        fc(16),
+        tanh(),
         fc(10),
-        sigmoid(),
+        tanh(),
         softmax()
         };
 
@@ -406,7 +399,7 @@ void cifar_10_classification_test()
         softmax()
         };
 
-    auto tobinet = net(layers_very_tiny)(size3d(3, 32, 32));
+    auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
     train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 0.1f);
@@ -430,14 +423,15 @@ bool gradients_equal(fd::float_t max_diff, const fd::float_vec& xs, const fd::fl
 }
 
 // http://cs231n.github.io/neural-networks-3/#gradcheck
-void test_backprop_algorithm()
+void gradient_check_backprop_implementation()
 {
+    std::cout << frame_string("gradient_check_backprop_implementation") << std::endl;
     using namespace fd;
     input_with_output_vec training_data =
     {
-        {{size3d(1,2,1), {-1.31,  2.26}}, {size3d(1,3,1), { 0.131, 0.241,0.576}}},
-        {{size3d(1,2,1), {-5.12,  6.13}}, {size3d(1,3,1), { 0.214,-0.452,0.157}}},
-        {{size3d(1,2,1), { 2.63, -3.85}}, {size3d(1,3,1), {-0.413,-0.003,1.752}}},
+        {{size3d(1,1,2), {-1.31,  2.26}}, {size3d(1,3,1), { 0.131, 0.241,0.576}}},
+        {{size3d(1,1,2), {-5.12,  6.13}}, {size3d(1,3,1), { 0.214,-0.452,0.157}}},
+        {{size3d(1,1,2), { 2.63, -3.85}}, {size3d(1,3,1), {-0.413,-0.003,1.752}}},
         //{{size3d(1,1,1), {2}}, {size3d(1,5,1), {1.5,2.61,3.781,4.2,5.519}}}
         //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {1,3}}},
         //{{size3d(1,1,1), {1}}, {size3d(1,2,1), {7,2}}}
@@ -445,15 +439,29 @@ void test_backprop_algorithm()
     };
     auto net_001 = net(
     {
+        flatten(),
         fc(2),
         softplus(),
         fc(2),
         identity(),
+        fc(2),
+        relu(),
+        fc(2),
+        leaky_relu(0.03),
+        fc(2),
+        elu(1),
+        fc(2),
+        erf(),
+        fc(2),
+        step(),
+        fc(2),
+        fast_sigmoid(),
         fc(4),
         sigmoid(),
         fc(3),
-        tanh()
-    })(size3d(1, 2, 1));
+        tanh(),
+        //softmax()
+    })(size3d(1, 1, 2));
 
     const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 7 + 4, 7);
     const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
@@ -461,12 +469,12 @@ void test_backprop_algorithm()
         return fplus::show_cont(fplus::transform(show_one_value, xs));
     };
 
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         net_001->set_params(randomly_change_params(net_001->get_params(), 0.1f));
         auto gradient = calc_net_gradient(net_001, training_data);
         auto gradient_backprop = calc_net_gradient_backprop(net_001, training_data);
-        if (!gradients_equal(0.0001, gradient_backprop, gradient))
+        if (!gradients_equal(0.001, gradient_backprop, gradient))
         {
             std::cout << "todo remove params            " << show_gradient(net_001->get_params()) << std::endl;
             std::cout << "todo remove gradient          " << show_gradient(gradient) << std::endl;
@@ -474,17 +482,15 @@ void test_backprop_algorithm()
             std::cout << "todo remove abs_diff          " << show_gradient(fplus::zip_with(relative_error, gradient, gradient_backprop)) << std::endl;
             assert(false);
         }
-        //calc_net_gradient
-        //calc_net_gradient_backprop
     }
+    std::cout << frame_string("Backprop implementation seems to be correct.") << std::endl;
 }
 
 int main()
-
 {
-    test_backprop_algorithm();
-    //lenna_filter_test();
-    //xor_as_net_test();
-    //gradients_classification_test();
+    gradient_check_backprop_implementation();
+    lenna_filter_test();
+    xor_as_net_test();
+    gradients_classification_test();
     //cifar_10_classification_test();
 }

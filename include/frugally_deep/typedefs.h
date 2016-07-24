@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <vector>
 
 namespace fd
@@ -14,5 +15,6 @@ namespace fd
 typedef double float_t;
 typedef std::vector<float_t> float_vec;
 typedef std::vector<float_vec> float_vecs;
+const float_t pi = std::acos(-1);
 
 } // namespace fd

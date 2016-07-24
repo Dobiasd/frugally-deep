@@ -20,13 +20,25 @@ public:
     }
 protected:
     const float_t alpha_;
+    static float_t activation_function(float_t alpha, float_t x)
+    {
+        return x >= 0 ? x : alpha * (std::exp(x) - 1);
+    }
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        auto activation_function = [this](float_t x) -> float_t
+        return transform_matrix3d(
+            fplus::bind_1st_of_2(activation_function, alpha_),
+            in_vol);
+    }
+    matrix3d transform_error_backward_pass(const matrix3d& e) const override
+    {
+        auto activation_function_deriv = [this](float_t x) -> float_t
         {
-            return x > 0 ? x : alpha_ * (std::exp(x) - 1);
+            return x > 0 ? 1 : activation_function(alpha_, x) + alpha_;
         };
-        return transform_matrix3d(activation_function, in_vol);
+        const auto last_input_derivs =
+            transform_matrix3d(activation_function_deriv, last_input_);
+        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

@@ -67,6 +67,14 @@ protected:
     {
         return convolve(filters_, input);
     }
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_vec& params_deltas_acc) const override
+    {
+        // not yet implemented
+        assert(false);
+        std::cout << show_matrix3d(input) << std::endl;
+        std::cout << fplus::show_cont(params_deltas_acc) << std::endl;
+    }
     std::vector<filter> filters_;
 };
 

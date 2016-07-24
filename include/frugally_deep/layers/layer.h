@@ -63,13 +63,7 @@ protected:
     const size3d size_out_;
     matrix3d last_input_;
     virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
-
-    // todo: make pure virtual
-    virtual matrix3d backward_pass_impl(const matrix3d&, float_vec&) const
-    {
-        // not implemented yet error
-        assert(false);
-    }
+    virtual matrix3d backward_pass_impl(const matrix3d&, float_vec&) const = 0;
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

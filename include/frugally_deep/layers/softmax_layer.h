@@ -15,27 +15,43 @@ class softmax_layer : public activation_layer
 {
 public:
     explicit softmax_layer(const size3d& size_in)
-        : activation_layer(size_in)
+        : activation_layer(size_in),
+        in_vol_max_(0),
+        unnormalized_sum_(0)
     {
     }
 protected:
+    mutable float_t in_vol_max_;
+    mutable float_t unnormalized_sum_;
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         // http://stackoverflow.com/q/9906136/1866775
         const auto& in_vol_values = in_vol.as_vector();
-        float_t in_vol_max = fplus::maximum(in_vol_values);
-        auto activation_function = [in_vol_max](float_t x) -> float_t
+        in_vol_max_ = fplus::maximum(in_vol_values);
+        auto activation_function = [this](float_t x) -> float_t
         {
-            return std::exp(x - in_vol_max);
+            return std::exp(x - in_vol_max_);
         };
         auto unnormalized = transform_matrix3d(activation_function, in_vol);
 
-        auto unnormalized_sum = fplus::sum(unnormalized.as_vector());
-        auto make_sum_equal_to_one = [unnormalized_sum](float_t x) -> float_t
+        unnormalized_sum_ = fplus::sum(unnormalized.as_vector());
+        auto make_sum_equal_to_one = [this](float_t x) -> float_t
         {
-            return x / unnormalized_sum;
+            return x / unnormalized_sum_;
         };
         return transform_matrix3d(make_sum_equal_to_one, unnormalized);
+    }
+    matrix3d transform_error_backward_pass(const matrix3d& e) const override
+    {
+        assert(false);
+        auto activation_function_deriv = [this](float_t x) -> float_t
+        {
+            const auto y = std::exp(x - in_vol_max_) / unnormalized_sum_;
+            return y * (1 - y);
+        };
+        const auto last_input_derivs =
+            transform_matrix3d(activation_function_deriv, last_input_);
+        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

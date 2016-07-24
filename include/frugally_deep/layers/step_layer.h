@@ -27,6 +27,16 @@ protected:
         };
         return transform_matrix3d(activation_function, in_vol);
     }
+    matrix3d transform_error_backward_pass(const matrix3d& e) const override
+    {
+        auto activation_function_deriv = [](float_t x) -> float_t
+        {
+            return x != 0 ? 0 : std::numeric_limits<float_t>::max();
+        };
+        const auto last_input_derivs =
+            transform_matrix3d(activation_function_deriv, last_input_);
+        return multiply_matrix3ds_elementwise(last_input_derivs, e);
+    }
 };
 
 } // namespace fd

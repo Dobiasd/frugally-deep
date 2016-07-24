@@ -46,6 +46,22 @@ inline pre_layer leaky_relu(float_t alpha)
     };
 }
 
+inline pre_layer elu(float_t alpha)
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<elu_layer>(size_in, alpha);
+    };
+}
+
+inline pre_layer erf()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<erf_layer>(size_in);
+    };
+}
+
 inline pre_layer relu()
 {
     return [=](const size3d& size_in) -> layer_ptr
@@ -75,6 +91,14 @@ inline pre_layer sigmoid()
     return [=](const size3d& size_in) -> layer_ptr
     {
         return std::make_shared<sigmoid_layer>(size_in);
+    };
+}
+
+inline pre_layer fast_sigmoid()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<fast_sigmoid_layer>(size_in);
     };
 }
 

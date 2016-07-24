@@ -36,6 +36,11 @@ protected:
     {
         return reshape_matrix3d(input, output_size());
     }
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_vec&) const override
+    {
+        return reshape_matrix3d(input, input_size());
+    }
 };
 
 } // namespace fd

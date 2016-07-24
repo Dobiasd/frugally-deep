@@ -46,6 +46,14 @@ protected:
     {
         return pool(input);
     }
+    matrix3d backward_pass_impl(const matrix3d& input,
+        float_vec& params_deltas_acc) const override
+    {
+        // not yet implemented
+        assert(false);
+        std::cout << show_matrix3d(input) << std::endl;
+        std::cout << fplus::show_cont(params_deltas_acc) << std::endl;
+    }
 
     const std::size_t scale_factor_;
     virtual matrix3d pool(const matrix3d& input) const = 0;

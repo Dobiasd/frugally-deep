@@ -190,12 +190,12 @@ inline float_t test_params_dataset(const float_vec& params,
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    float_vec all_square_error_and_sum_div_2_s;
-    all_square_error_and_sum_div_2_s.reserve(dataset.size());
-    for (const auto& data : dataset)
-    {
-        test_params(params, net, data);
-    }
+    float_vec all_square_error_and_sum_div_2_s =
+        fplus::transform([&](const input_with_output& data)
+        {
+            return test_params(params, net, data);
+        },
+        dataset);
     return fplus::mean<float_t>(all_square_error_and_sum_div_2_s);
 }
 
@@ -271,13 +271,13 @@ inline void optimize_net_gradient(
 {
     // todo nur noch backprob wenn das fertig ist
     auto gradient = calc_net_gradient(net, dataset);
-    auto gradient_backprop = calc_net_gradient_backprop(net, dataset);
+    //auto gradient_backprop = calc_net_gradient_backprop(net, dataset);
 
     float_vec new_params = net->get_params();
     //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
     for (std::size_t i = 0; i < new_params.size(); ++i)
     {
-        new_params[i] += gradient[i] * speed_factor;
+        new_params[i] -= gradient[i] * speed_factor;
     }
 
     float_t old_error = test_params_dataset(net->get_params(), net, dataset);
@@ -317,12 +317,12 @@ inline void train(layer_ptr& net,
         {
             stopwatch.reset();
             show_progress(iter, error, learning_rate);
-            show_params(net);
+            //show_params(net);
         }
         if (error < mean_error_goal || learning_rate < 0.0000001f)
         {
             show_progress(iter, error, learning_rate);
-            show_params(net);
+            //show_params(net);
             return;
         }
         optimize_net_gradient(net, dataset, learning_rate);

@@ -18,6 +18,7 @@ namespace fd
 {
 
 // Abstract base class for actication layers
+// https://en.wikipedia.org/wiki/Activation_function
 class activation_layer : public layer
 {
 public:
@@ -49,12 +50,7 @@ protected:
     }
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
 
-    // todo: make pure virtual
-    virtual matrix3d transform_error_backward_pass(const matrix3d&) const
-    {
-        // not implemented yet
-        assert(false);
-    }
+    virtual matrix3d transform_error_backward_pass(const matrix3d&) const = 0;
 };
 
 } // namespace fd

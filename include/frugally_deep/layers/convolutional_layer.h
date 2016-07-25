@@ -80,7 +80,7 @@ protected:
                 for (std::size_t x = 0; x < in_vol.size().width_; ++x)
                 {
                     out_vol.set(z, y + offset_y, x + offset_x,
-                        in_vol.get(z, y , x));
+                        in_vol.get(z, y, x));
                 }
             }
         }
@@ -105,7 +105,14 @@ protected:
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc) const override
     {
-        const auto flipped_filters = flip_filters_spatially(filters_);
+        const auto remove_filter_bias = [](const filter& f)
+        {
+            return filter(f.get_matrix3d(), 0);
+        };
+        const auto flipped_filters =
+            fplus::transform(
+                remove_filter_bias,
+                flip_filters_spatially(filters_));
         const auto output = convolve(
             flipped_filters,
             pad_matrix3d_for_filters(flipped_filters, input));

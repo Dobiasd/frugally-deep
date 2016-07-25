@@ -40,7 +40,8 @@ protected:
     matrix3d pool_backwards(const matrix3d& input,
         float_vec&) const override
     {
-        const auto& fill_out_vol_square = [this](
+        const float_t area = fplus::square(scale_factor_);
+        const auto& fill_out_vol_square = [this, area](
             std::size_t z,
             std::size_t y,
             std::size_t x,
@@ -51,10 +52,9 @@ protected:
             {
                 for (std::size_t xf = 0; xf < scale_factor_; ++xf)
                 {
-                    out_vol.set(z, y + yf, x + xf, err_val);
+                    out_vol.set(z, y + yf, x + xf, err_val / area);
                 }
             }
-
         };
         return pool_backwards_helper(fill_out_vol_square, input);
     }

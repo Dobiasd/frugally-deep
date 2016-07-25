@@ -23,7 +23,7 @@ public:
 protected:
     matrix3d pool(const matrix3d& in_vol) const override
     {
-        float_t pool_helper_acc_init = std::numeric_limits<float>::min();
+        float_t pool_helper_acc_init = std::numeric_limits<float>::lowest();
         auto pool_helper_max = [](float_t& acc, float_t val) -> void
         {
             acc = std::max(acc, val);
@@ -50,7 +50,7 @@ protected:
             matrix3d& out_vol)
         {
             matrix3d_pos max_pos(0, 0, 0);
-            float_t max_val = std::numeric_limits<float_t>::min();
+            float_t max_val = std::numeric_limits<float_t>::lowest();
             for (std::size_t yf = 0; yf < scale_factor_; ++yf)
             {
                 for (std::size_t xf = 0; xf < scale_factor_; ++xf)

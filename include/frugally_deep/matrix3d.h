@@ -192,7 +192,7 @@ inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
 {
     matrix3d_pos result_min(0, 0, 0);
     matrix3d_pos result_max(0, 0, 0);
-    float_t value_max = std::numeric_limits<float_t>::min();
+    float_t value_max = std::numeric_limits<float_t>::lowest();
     float_t value_min = std::numeric_limits<float_t>::max();
     for (std::size_t z = 0; z < vol.size().depth_; ++z)
     {

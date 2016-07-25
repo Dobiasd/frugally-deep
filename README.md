@@ -28,6 +28,8 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+backprob bias in conv layer
+
 backprop for conv, pool, unpool, softmax
 
 bias for conv layer
@@ -53,7 +55,7 @@ layers to implement:
 transposed convolution layer aka deconv aka unconv aka fractional step conv
 loss layers additionally to sigmoid cross entropy?: Multiclass Support Vector Machine loss (SVM) manhattan (l1)?, euclidian (l2)?
 
-mini-batches
+mini-batches (multiple images concatted in one pass)
 
 split a validation set from the training set to optimize the hyperparameters
 

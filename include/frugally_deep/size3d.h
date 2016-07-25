@@ -8,6 +8,8 @@
 
 #include "frugally_deep/typedefs.h"
 
+#include "frugally_deep/size2d.h"
+
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -32,6 +34,11 @@ public:
         return depth_ * height_ * width_;
     }
 
+    size2d without_depth() const
+    {
+        return size2d(height_, width_);
+    }
+
     std::size_t depth_;
     std::size_t height_;
     std::size_t width_;
@@ -43,6 +50,11 @@ inline bool operator == (const size3d& lhs, const size3d& rhs)
         lhs.depth_ == rhs.depth_ &&
         lhs.height_ == rhs.height_ &&
         lhs.width_ == rhs.width_;
+}
+
+inline bool operator != (const size3d& lhs, const size3d& rhs)
+{
+    return !(lhs == rhs);
 }
 
 inline std::string show_size3d(const size3d& size)

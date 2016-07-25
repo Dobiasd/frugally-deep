@@ -53,6 +53,7 @@ protected:
         assert(false);
         std::cout << show_matrix3d(input) << std::endl;
         std::cout << fplus::show_cont(params_deltas_acc) << std::endl;
+        return input;
     }
     matrix3d unpool(const matrix3d& in_vol) const
     {

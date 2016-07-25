@@ -34,8 +34,17 @@ public:
     std::size_t width_;
 };
 
-inline bool operator == (const size2d& lhs, const size2d& rhs);
+inline bool operator == (const size2d& lhs, const size2d& rhs)
+{
+    return
+        lhs.height_ == rhs.height_ &&
+        lhs.width_ == rhs.width_;
+}
 
+inline bool operator != (const size2d& lhs, const size2d& rhs)
+{
+    return !(lhs == rhs);
+}
 inline std::string show_size2d(const size2d& size)
 {
     return std::string(

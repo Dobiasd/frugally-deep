@@ -408,7 +408,7 @@ void cifar_10_classification_test()
 
 fd::float_t relative_error(fd::float_t x, fd::float_t y)
 {
-    const auto divisor = fplus::max(x, y);
+    const auto divisor = fplus::max(std::abs(x), std::abs(y));
     if (divisor < 0.0001f)
         return 0;
     else
@@ -462,7 +462,7 @@ void gradient_check_backprop_implementation()
         //softmax()
     })(size3d(1, 1, 2));
 
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 7 + 4, 7);
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 7 + 5, 7);
     const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));
@@ -470,9 +470,10 @@ void gradient_check_backprop_implementation()
 
     const auto test_net_backprop = [&](
         layer_ptr& net,
-        const input_with_output_vec& data)
+        const input_with_output_vec& data,
+        std::size_t repetitions)
     {
-        for (int i = 0; i < 100; ++i)
+        for (std::size_t i = 0; i < repetitions; ++i)
         {
             net->set_params(randomly_change_params(net->get_params(), 0.1f));
             auto gradient = calc_net_gradient(net, data);
@@ -488,7 +489,9 @@ void gradient_check_backprop_implementation()
         }
     };
 
-    test_net_backprop(net_001, training_data_net_001);
+    test_net_backprop(net_001, training_data_net_001, 10);
+
+
 
 
     input_with_output_vec training_data_net_002 =
@@ -501,10 +504,8 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 3, 3));
 
-    test_net_backprop(net_002, training_data_net_002);
+    test_net_backprop(net_002, training_data_net_002, 10);
 
-    // todo remove
-    return;
 
 
 
@@ -525,7 +526,7 @@ void gradient_check_backprop_implementation()
         fc(2)
     })(size3d(1, 4, 4));
 
-    test_net_backprop(net_003, training_data_net_003);
+    test_net_backprop(net_003, training_data_net_003, 10);
 
 
     std::cout << frame_string("Backprop implementation seems to be correct.") << std::endl;

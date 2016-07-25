@@ -11,6 +11,8 @@
 #include "frugally_deep/size2d.h"
 #include "frugally_deep/matrix2d_pos.h"
 
+#include <fplus/fplus.h>
+
 #include <cassert>
 #include <cstddef>
 #include <string>
@@ -140,6 +142,11 @@ inline matrix2d transpose(const matrix2d& m)
         }
     }
     return result;
+}
+
+inline float_t matrix2d_sum_all_values(const matrix2d& m)
+{
+    return fplus::sum(m.as_vector());
 }
 
 } // namespace fd

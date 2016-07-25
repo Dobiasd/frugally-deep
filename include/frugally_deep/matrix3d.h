@@ -12,7 +12,7 @@
 #include "frugally_deep/matrix3d_pos.h"
 #include "frugally_deep/size3d.h"
 
-#include "fplus/fplus.h"
+#include <fplus/fplus.h>
 
 #include <cassert>
 #include <cstddef>
@@ -133,6 +133,45 @@ inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
         }
     }
     return result;
+}
+
+inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
+{
+    assert(!ms.empty());
+    // todo check if all ms have same size
+    std::size_t height = ms.front().size().height_;
+    std::size_t width = ms.front().size().width_;
+    matrix3d m(size3d(ms.size(), height, width));
+    for (std::size_t z = 0; z < m.size().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < m.size().height_; ++y)
+        {
+            for (std::size_t x = 0; x < m.size().width_; ++x)
+            {
+                m.set(z, y, x, ms[z].get(y, x));
+            }
+        }
+    }
+    return m;
+}
+
+inline std::vector<matrix2d> matrix3d_to_depth_slices(const matrix3d& m)
+{
+    std::vector<matrix2d> ms(
+        m.size().depth_,
+        matrix2d(size2d(m.size().height_, m.size().width_)));
+
+    for (std::size_t z = 0; z < m.size().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < m.size().height_; ++y)
+        {
+            for (std::size_t x = 0; x < m.size().width_; ++x)
+            {
+                ms[z].set(y, x, m.get(z, y, x));
+            }
+        }
+    }
+    return ms;
 }
 
 inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)

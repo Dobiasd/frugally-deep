@@ -21,6 +21,7 @@
 namespace fd
 {
 
+// todo: variable padding, variable strides
 class convolutional_layer : public layer
 {
 public:
@@ -63,44 +64,84 @@ public:
         }
     }
 protected:
+    static matrix3d pad_matrix3d(
+        std::size_t offset_y,
+        std::size_t offset_x,
+        const matrix3d& in_vol)
+    {
+        matrix3d out_vol(size3d(
+            in_vol.size().depth_,
+            in_vol.size().height_ + 2 * offset_y,
+            in_vol.size().width_ + 2 * offset_x));
+        for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
+        {
+            for (std::size_t y = 0; y < in_vol.size().height_; ++y)
+            {
+                for (std::size_t x = 0; x < in_vol.size().width_; ++x)
+                {
+                    out_vol.set(z, y + offset_y, x + offset_x,
+                        in_vol.get(z, y , x));
+                }
+            }
+        }
+        return out_vol;
+    }
+    static matrix3d pad_matrix3d_for_filters(
+        const filter_vec& filters,
+        const matrix3d& in_vol)
+    {
+        assert(!filters.empty());
+        const size3d& filt_size = filters[0].size();
+        assert((filt_size.height_ + 2) % 2 == 1);
+        assert((filt_size.width_ + 2) % 2 == 1);
+        std::size_t offset_y = (filt_size.height_ - 1) / 2;
+        std::size_t offset_x = (filt_size.width_ - 1) / 2;
+        return pad_matrix3d(offset_y, offset_x, in_vol);
+    }
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
-        return convolve(filters_, input);
+        return convolve(filters_, pad_matrix3d_for_filters(filters_, input));
     }
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc) const override
     {
-        const auto output = convolve(flip_filters_spatially(filters_), input);
+        const auto flipped_filters = flip_filters_spatially(filters_);
+        const auto output = convolve(
+            flipped_filters,
+            pad_matrix3d_for_filters(flipped_filters, input));
 
-        float_vec params_deltas(param_count(), 0);
+        const auto input_slices = matrix3d_to_depth_slices(input);
+        const auto last_input_padded = pad_matrix3d_for_filters(filters_, last_input_);
 
-        // see slide 10 of
-        // http://de.slideshare.net/kuwajima/cnnbp
-
-        //float_vec params_deltas = convolve(last_input_, input).as_vector();
-
-/*
-        for (std::size_t inc = 0; inc < last_input_.size().depth_; inc++)
-        {
-            for (std::size_t outc = 0; outc < input.size().depth_; outc++)
-            {
-                for (cnn_size_t wy = 0; wy < weight_.height_; wy++)
+        const std::vector<matrix3d> filter_deltas =
+            fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
-                    for (cnn_size_t wx = 0; wx < weight_.width_; wx++)
-                    {
-                        float_t dst = float_t(0);
-                        const float_t * prevo = &prev_out[in_padded_.get_index(wx, wy, inc)];
-                        const float_t * delta = &curr_delta[out_.get_index(0, 0, outc)];
+                    return convolve(input_slice, last_input_padded);
+                }, input_slices);
 
-                        for (cnn_size_t y = 0; y < out_.height_; y++) {
-                            dst += vectorize::dot(prevo + y * in_padded_.width_, delta + y * out_.width_, out_.width_);
-                        }
-                        dW[weight_.get_index(wx, wy, in_.depth_ * outc + inc)] += dst;
-                    }
-                }
-            }
-        }
-*/
+        const std::vector<float_t> bias_deltas =
+            fplus::transform([&](const matrix2d& input_slice) -> float_t
+                {
+                    return matrix2d_sum_all_values(input_slice);
+                }, input_slices);
+
+        assert(bias_deltas.size() == filter_deltas.size());
+        const filter_vec delta_filters =
+            fplus::zip_with(
+                [](const matrix3d& f_m, float_t bias_delta) -> filter
+                {
+                    return filter(f_m, bias_delta);
+                },
+                filter_deltas, bias_deltas);
+
+        const float_vec params_deltas =
+            fplus::concat(
+                fplus::transform([](const filter& f) -> float_vec
+                {
+                    return f.get_params();
+                }, delta_filters));
+
+        // see slide 10 of http://de.slideshare.net/kuwajima/cnnbp
 
         params_deltas_acc = fplus::append(params_deltas, params_deltas_acc);
         return output;

@@ -138,7 +138,13 @@ inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
 inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
 {
     assert(!ms.empty());
-    // todo check if all ms have same size
+    assert(
+        fplus::all_the_same(
+            fplus::transform([](const matrix2d& m) -> size2d
+            {
+                return m.size();
+            },
+            ms)));
     std::size_t height = ms.front().size().height_;
     std::size_t width = ms.front().size().width_;
     matrix3d m(size3d(ms.size(), height, width));

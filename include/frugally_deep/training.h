@@ -114,8 +114,7 @@ inline classification_dataset normalize_classification_dataset(
 
 inline float_vec randomly_change_params(const float_vec& old_params, float_t stddev)
 {
-    // todo seed
-    std::random_device rd;
+    std::random_device rd; // uses seed from system automatically
     std::mt19937 gen(rd());
     std::normal_distribution<float_t> d(0, stddev);
     float_vec new_params = old_params;

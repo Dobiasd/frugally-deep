@@ -28,24 +28,17 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-backprob bias in conv layer
-
-backprop for conv, pool, unpool, softmax
-
-bias for conv layer
+backprop for: unpool, softmax
 
 flatten nestes multilayer nets? Ideally directly create them that way
 
 typedefs.h nach config.h umbenennen und globals da rein
 
-write inline in front of all free functions
-
 clean up training.h
 
 spiral dataset as a test ( http://cs231n.github.io/neural-networks-case-study/ )
 
-backprop: give param-deriv out, then something like bfgs can be used
-confirm via numerical gradient checking
+backprop: use bfgs etc. on param-derivs
 
 use cmake with google tests (see fplus)
 convolution: different paddings, different steps. With step 2 one could get rid of pooling layers

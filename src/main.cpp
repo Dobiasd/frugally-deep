@@ -554,7 +554,7 @@ void gradient_check_backprop_implementation()
     auto net_005 = net(
     {
         conv(size2d(1, 1), 1, 1),
-        max_pool(2),
+        avg_pool(2),
     })(size3d(1, 2, 2));
 
     test_net_backprop(net_005, training_data_net_005, 10);
@@ -573,7 +573,6 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 4, 1), elu(1),
         conv(size2d(1, 1), 2, 1), elu(1),
         max_pool(2),
-        //avg_pool(2),
         flatten(),
         fc(4),
         fc(2)

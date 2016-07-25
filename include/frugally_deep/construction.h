@@ -20,7 +20,7 @@ namespace fd
 typedef std::function<layer_ptr(const size3d& size_in)> pre_layer;
 typedef std::vector<pre_layer> pre_layers;
 
-// todo steps, kann man naemlich statt pool benutzen
+// todo steps, die kann man naemlich statt pool benutzen.
 inline pre_layer conv(const size2d& filter_size,
     std::size_t k, std::size_t stride)
 {

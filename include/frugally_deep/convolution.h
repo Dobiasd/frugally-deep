@@ -17,8 +17,6 @@
 namespace fd
 {
 
-// todo: convolution for even and odd filter kernel sizes in both dims
-
 namespace internal
 {
     bool are_sizes_allowed_to_convolute(

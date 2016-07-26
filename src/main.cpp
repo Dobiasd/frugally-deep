@@ -278,7 +278,7 @@ void gradients_classification_test()
         flatten(),
         fc(2),
         //sigmoid(),
-        softmax()
+        //softmax()
         };
 
     auto gradnet = net(layers)(size3d(1, 32, 32));
@@ -380,7 +380,7 @@ void cifar_10_classification_test()
         tanh(),
         fc(10),
         tanh(),
-        softmax()
+        //softmax()
         };
 
     pre_layers layers_tiny = {
@@ -388,7 +388,7 @@ void cifar_10_classification_test()
         flatten(),
         fc(10),
         sigmoid(),
-        softmax()
+        //softmax()
         };
 
     pre_layers layers_very_tiny = {
@@ -396,7 +396,7 @@ void cifar_10_classification_test()
         flatten(),
         fc(10),
         sigmoid(),
-        softmax()
+        //softmax()
         };
 
     auto tobinet = net(layers)(size3d(3, 32, 32));
@@ -435,6 +435,7 @@ void gradient_check_backprop_implementation()
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));
     };
+
     const auto generate_random_values = [](std::size_t count) -> float_vec
     {
         std::random_device rd; // uses seed from system automatically
@@ -448,6 +449,7 @@ void gradient_check_backprop_implementation()
         }
         return values;
     };
+
     const auto generate_random_data = [&](
         const size3d& in_size,
         const size3d& out_size,
@@ -463,6 +465,7 @@ void gradient_check_backprop_implementation()
         }
         return data;
     };
+
     const auto test_net_backprop = [&](
         const std::string& name,
         layer_ptr& net,
@@ -517,7 +520,6 @@ void gradient_check_backprop_implementation()
         tanh(),
         //softmax()
     })(size3d(1, 1, 2));
-
     //test_net_backprop("net_001", net_001, 10, 10);
 
 
@@ -528,16 +530,10 @@ void gradient_check_backprop_implementation()
     {
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 3, 3));
-
     //test_net_backprop("net_002", net_002, 5, 10);
 
 
 
-
-    input_with_output_vec training_data_net_003 =
-    {
-        {{size3d(1,5,5), {1,4,5,3,2,2,1,2,3,4,1,2,3,1,2,3,5,6,7,4,3,2,1,2,3}}, {size3d(1,5,5), {5,3,2,6,5,7,2,3,2,6,3,2,6,5,4,6,7,2,1,2,3,4,6,3,2}}}
-    };
 
     auto net_003 = net(
     {
@@ -546,7 +542,6 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
         conv(size2d(3, 3), 1, 1),
     })(size3d(1, 5, 5));
-
     //test_net_backprop("conv", net_003, 5, 10);
 
 
@@ -555,9 +550,8 @@ void gradient_check_backprop_implementation()
     auto net_max_pool = net(
     {
         conv(size2d(3, 3), 1, 1),
-        avg_pool(2),
+        max_pool(2),
     })(size3d(1, 4, 4));
-
     //test_net_backprop("net_max_pool", net_max_pool, 5, 10);
 
 
@@ -568,8 +562,7 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
         avg_pool(2),
     })(size3d(1, 4, 4));
-
-    //test_net_backprop("net_avg_pool", net_avg_pool, 5, 10);
+    test_net_backprop("net_avg_pool", net_avg_pool, 5, 10);
 
 
 
@@ -580,23 +573,21 @@ void gradient_check_backprop_implementation()
 
     auto net_gentle_max_pool = net(
     {
-        conv(size2d(1, 1), 1, 1),
+        conv(size2d(3, 3), 1, 1),
         gentle_max_pool(2, 1),
-    })(size3d(1, 2, 2));
-
+    })(size3d(1, 4, 4));
     test_net_backprop("net_gentle_max_pool", net_gentle_max_pool, 5, 10);
 
 
 
-
+    /*
     auto net_softmax = net(
     {
         fc(2),
         softmax()
     })(size3d(1, 2, 1)); // todo larger
-
-    //test_net_backprop("net_softmax", net_softmax, 1, 10);
-
+    test_net_backprop("net_softmax", net_softmax, 1, 10);
+    */
 
 
 
@@ -608,9 +599,8 @@ void gradient_check_backprop_implementation()
         flatten(),
         fc(4),
         fc(2),
-        softmax()
+        //softmax()
     })(size3d(1, 4, 4));
-
     //test_net_backprop("net_006", net_006, 5, 10);
 
 
@@ -621,16 +611,6 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
-    // todo remove
-    std::cout <<
-        fplus::show_cont(
-            fd::softmax_layer(fd::size3d(1,1,3)
-                ).forward_pass(
-                fd::matrix3d(fd::size3d(1,1,3), {1, 4, 2})
-                ).as_vector())
-        << std::endl;
-    //return 0;
-
     gradient_check_backprop_implementation();
     lenna_filter_test();
     xor_as_net_test();

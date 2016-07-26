@@ -30,7 +30,11 @@ todo
 
 gentle_max_pool: weight alpha as paramter
 
-backprop for: unpool, softmax, gentle_max_pool
+backprop for unpool
+
+is softmax a layer type at all? Or just another form or effor calculation? (cross entropy?) If so, what is this?
+https://www.willamette.edu/~gorr/classes/cs449/classify.html
+http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/
 
 flatten nestes multilayer nets? Ideally directly create them that way
 

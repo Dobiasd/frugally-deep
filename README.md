@@ -87,7 +87,10 @@ image autoencoder
 
 image classification
 
-neural style
+neural style perceptual loss
+https://arxiv.org/abs/1603.08155
+
+semantic morphing (e.g. faces)
 
 video autoencoder? (Spatio-temporal? would mean matrix4d)
 

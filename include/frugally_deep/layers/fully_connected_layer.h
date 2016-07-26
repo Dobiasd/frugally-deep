@@ -10,7 +10,7 @@
 
 #include "frugally_deep/matrix2d.h"
 
-#include "fplus/fplus.h"
+#include <fplus/fplus.h>
 
 namespace fd
 {

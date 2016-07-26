@@ -464,10 +464,12 @@ void gradient_check_backprop_implementation()
         return data;
     };
     const auto test_net_backprop = [&](
+        const std::string& name,
         layer_ptr& net,
         std::size_t data_size,
         std::size_t repetitions)
     {
+        std::cout << "Testing backprop with " << name << std::endl;
         for (std::size_t i = 0; i < repetitions; ++i)
         {
             const auto data = generate_random_data(
@@ -516,7 +518,7 @@ void gradient_check_backprop_implementation()
         //softmax()
     })(size3d(1, 1, 2));
 
-    test_net_backprop(net_001, 10, 10);
+    //test_net_backprop("net_001", net_001, 10, 10);
 
 
 
@@ -527,7 +529,7 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 3, 3));
 
-    test_net_backprop(net_002, 5, 10);
+    //test_net_backprop("net_002", net_002, 5, 10);
 
 
 
@@ -545,10 +547,18 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
     })(size3d(1, 5, 5));
 
-    test_net_backprop(net_003, 5, 10);
+    //test_net_backprop("conv", net_003, 5, 10);
 
 
 
+
+    auto net_max_pool = net(
+    {
+        conv(size2d(3, 3), 1, 1),
+        avg_pool(2),
+    })(size3d(1, 4, 4));
+
+    //test_net_backprop("net_max_pool", net_max_pool, 5, 10);
 
 
 
@@ -559,19 +569,33 @@ void gradient_check_backprop_implementation()
         avg_pool(2),
     })(size3d(1, 4, 4));
 
-    test_net_backprop(net_avg_pool, 5, 10);
+    //test_net_backprop("net_avg_pool", net_avg_pool, 5, 10);
 
 
 
-    auto net_max_pool = net(
+
+
+
+
+
+    auto net_gentle_max_pool = net(
     {
-        conv(size2d(3, 3), 1, 1),
-        avg_pool(2),
-    })(size3d(1, 4, 4));
+        conv(size2d(1, 1), 1, 1),
+        gentle_max_pool(2, 1),
+    })(size3d(1, 2, 2));
 
-    test_net_backprop(net_max_pool, 5, 10);
+    test_net_backprop("net_gentle_max_pool", net_gentle_max_pool, 5, 10);
 
 
+
+
+    auto net_softmax = net(
+    {
+        fc(2),
+        softmax()
+    })(size3d(1, 2, 1)); // todo larger
+
+    //test_net_backprop("net_softmax", net_softmax, 1, 10);
 
 
 
@@ -583,15 +607,11 @@ void gradient_check_backprop_implementation()
         max_pool(2),
         flatten(),
         fc(4),
-        fc(2)
+        fc(2),
+        softmax()
     })(size3d(1, 4, 4));
 
-    test_net_backprop(net_006, 5, 10);
-
-
-
-
-
+    //test_net_backprop("net_006", net_006, 5, 10);
 
 
 
@@ -601,6 +621,16 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
+    // todo remove
+    std::cout <<
+        fplus::show_cont(
+            fd::softmax_layer(fd::size3d(1,1,3)
+                ).forward_pass(
+                fd::matrix3d(fd::size3d(1,1,3), {1, 4, 2})
+                ).as_vector())
+        << std::endl;
+    //return 0;
+
     gradient_check_backprop_implementation();
     lenna_filter_test();
     xor_as_net_test();

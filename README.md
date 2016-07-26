@@ -28,7 +28,9 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-backprop for: unpool, softmax
+gentle_max_pool: weight alpha as paramter
+
+backprop for: unpool, softmax, gentle_max_pool
 
 flatten nestes multilayer nets? Ideally directly create them that way
 

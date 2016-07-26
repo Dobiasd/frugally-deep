@@ -126,6 +126,15 @@ inline pre_layer max_pool(std::size_t scale_factor)
     };
 }
 
+inline pre_layer gentle_max_pool(std::size_t scale_factor, float_t alpha)
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<gentle_max_pool_layer>(
+            size_in, scale_factor, alpha);
+    };
+}
+
 inline pre_layer avg_pool(std::size_t scale_factor)
 {
     return [=](const size3d& size_in) -> layer_ptr

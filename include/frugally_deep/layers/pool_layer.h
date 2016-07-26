@@ -57,11 +57,14 @@ protected:
     virtual matrix3d pool_backwards(const matrix3d& input,
         float_vec& params_deltas_acc) const = 0;
 
-    template <typename AccPixelFunc, typename FinalizePixelFunc>
+    template <typename AccPixelFunc, typename AccPixelFunc2,
+            typename FinalizePixelFunc>
     static matrix3d pool_helper(
             std::size_t scale_factor,
             float_t acc_init,
+            float_t acc2_init,
             AccPixelFunc acc_pixel_func,
+            AccPixelFunc2 acc2_pixel_func,
             FinalizePixelFunc finalize_pixel_func,
             const matrix3d& in_vol)
     {
@@ -81,15 +84,18 @@ protected:
                 {
                     std::size_t x_in = x * scale_factor;
                     float_t acc = acc_init;
+                    float_t acc2 = acc2_init;
                     for (std::size_t yf = 0; yf < scale_factor; ++yf)
                     {
                         for (std::size_t xf = 0; xf < scale_factor; ++xf)
                         {
-                            acc_pixel_func(
-                                acc, in_vol.get(z, y_in + yf, x_in + xf));
+                            const float_t val =
+                                in_vol.get(z, y_in + yf, x_in + xf);
+                            acc = acc_pixel_func(acc, val);
+                            acc2 = acc2_pixel_func(acc2, val);
                         }
                     }
-                    out_vol.set(z, y, x, finalize_pixel_func(acc));
+                    out_vol.set(z, y, x, finalize_pixel_func(acc, acc2));
                 }
             }
         }

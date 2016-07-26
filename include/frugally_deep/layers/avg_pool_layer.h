@@ -22,18 +22,21 @@ protected:
     matrix3d pool(const matrix3d& in_vol) const override
     {
         float_t pool_helper_acc_init = 0;
-        auto pool_helper_add = [](float_t& acc, float_t val) -> void
+        auto pool_helper_add = [](float_t acc, float_t val) -> float_t
         {
-            acc += val;
+            return acc + val;
         };
-        auto pool_helper_div = [this](float_t acc) -> float_t
+        auto pool_helper_dummy = [](float_t, float_t) -> float_t { return 0; };
+        auto pool_helper_div = [this](float_t acc, float_t) -> float_t
         {
-            return acc / static_cast<float_t>(scale_factor_ * scale_factor_);
+            return acc / fplus::square(scale_factor_);
         };
         return pool_helper(
             scale_factor_,
             pool_helper_acc_init,
+            0,
             pool_helper_add,
+            pool_helper_dummy,
             pool_helper_div,
             in_vol);
     }
@@ -41,7 +44,7 @@ protected:
         float_vec&) const override
     {
         const float_t area = fplus::square(scale_factor_);
-        const auto& fill_out_vol_square = [this, area](
+        const auto fill_out_vol_square = [this, area](
             std::size_t z,
             std::size_t y,
             std::size_t x,

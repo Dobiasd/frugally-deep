@@ -435,13 +435,43 @@ void gradient_check_backprop_implementation()
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));
     };
+    const auto generate_random_values = [](std::size_t count) -> float_vec
+    {
+        std::random_device rd; // uses seed from system automatically
+        std::mt19937 gen(rd());
+        std::normal_distribution<fd::float_t> d(0, 1);
+        float_vec values;
+        values.reserve(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            values.push_back(static_cast<fd::float_t>(d(gen)));
+        }
+        return values;
+    };
+    const auto generate_random_data = [&](
+        const size3d& in_size,
+        const size3d& out_size,
+        std::size_t count) -> input_with_output_vec
+    {
+        input_with_output_vec data;
+        data.reserve(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            const auto in_vals = generate_random_values(in_size.volume());
+            const auto out_vals = generate_random_values(out_size.volume());
+            data.push_back({{in_size, in_vals}, {out_size, out_vals}});
+        }
+        return data;
+    };
     const auto test_net_backprop = [&](
         layer_ptr& net,
-        const input_with_output_vec& data,
+        std::size_t data_size,
         std::size_t repetitions)
     {
         for (std::size_t i = 0; i < repetitions; ++i)
         {
+            const auto data = generate_random_data(
+                net->input_size(), net->output_size(), data_size);
             net->set_params(randomly_change_params(net->get_params(), 0.1f));
             auto gradient = calc_net_gradient(net, data);
             auto gradient_backprop = calc_net_gradient_backprop(net, data);
@@ -459,12 +489,7 @@ void gradient_check_backprop_implementation()
 
 
 
-    input_with_output_vec training_data_net_001 =
-    {
-        {{size3d(1,1,2), {-1.31,  2.26}}, {size3d(1,3,1), { 0.131, 0.241,0.576}}},
-        {{size3d(1,1,2), {-5.12,  6.13}}, {size3d(1,3,1), { 0.214,-0.452,0.157}}},
-        {{size3d(1,1,2), { 2.63, -3.85}}, {size3d(1,3,1), {-0.413,-0.003,1.752}}},
-    };
+
     auto net_001 = net(
     {
         flatten(),
@@ -491,22 +516,18 @@ void gradient_check_backprop_implementation()
         //softmax()
     })(size3d(1, 1, 2));
 
-    test_net_backprop(net_001, training_data_net_001, 10);
+    test_net_backprop(net_001, 10, 10);
 
 
 
 
-    input_with_output_vec training_data_net_002 =
-    {
-        {{size3d(1,3,3), {1,2,3,4,5,6,7,8,9}}, {size3d(2,3,3), {6,5,2,1,6,3,2,1,2,5,2,1,2,3,1,2,3,4}}},
-    };
 
     auto net_002 = net(
     {
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 3, 3));
 
-    test_net_backprop(net_002, training_data_net_002, 10);
+    test_net_backprop(net_002, 5, 10);
 
 
 
@@ -524,49 +545,36 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
     })(size3d(1, 5, 5));
 
-    test_net_backprop(net_003, training_data_net_003, 10);
+    test_net_backprop(net_003, 5, 10);
 
 
 
 
 
-    input_with_output_vec training_data_net_004 =
-    {
-        {{size3d(1,4,4), {1,4,5,2,3,4,1,2,3,2,3,4,6,4,2,1}}, {size3d(1,2,2), {4,6,3,2}}}
-    };
 
-    auto net_004 = net(
+
+    auto net_avg_pool = net(
     {
         conv(size2d(3, 3), 1, 1),
         avg_pool(2),
     })(size3d(1, 4, 4));
 
-    test_net_backprop(net_004, training_data_net_004, 10);
+    test_net_backprop(net_avg_pool, 5, 10);
 
 
 
-
-    input_with_output_vec training_data_net_005 =
+    auto net_max_pool = net(
     {
-        {{size3d(1,2,2), {1,3,6,3}}, {size3d(1,1,1), {2}}}
-    };
+        conv(size2d(3, 3), 1, 1),
+        avg_pool(2),
+    })(size3d(1, 4, 4));
 
-    auto net_005 = net(
-    {
-        conv(size2d(1, 1), 1, 1),
-        max_pool(2),
-    })(size3d(1, 2, 2));
-
-    test_net_backprop(net_005, training_data_net_005, 10);
+    test_net_backprop(net_max_pool, 5, 10);
 
 
 
 
-    input_with_output_vec training_data_net_006 =
-    {
-        {{size3d(1,4,4), {1,2,3,4,5,6,7,8,9,8,7,6,5,4,3,2}}, {size3d(1,2,1), {0, 1}}},
-        {{size3d(1,4,4), {6,1,2,5,7,8,3,2,1,5,3,2,0,0,2,3}}, {size3d(1,2,1), {1, 0}}},
-    };
+
 
     auto net_006 = net(
     {
@@ -578,7 +586,7 @@ void gradient_check_backprop_implementation()
         fc(2)
     })(size3d(1, 4, 4));
 
-    test_net_backprop(net_006, training_data_net_006, 10);
+    test_net_backprop(net_006, 5, 10);
 
 
 

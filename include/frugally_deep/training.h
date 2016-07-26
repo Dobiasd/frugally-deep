@@ -268,9 +268,8 @@ inline void optimize_net_gradient(
     const input_with_output_vec& dataset,
     float_t& speed_factor)
 {
-    // todo nur noch backprob wenn das fertig ist
-    auto gradient = calc_net_gradient(net, dataset);
-    //auto gradient_backprop = calc_net_gradient_backprop(net, dataset);
+    //auto gradient = calc_net_gradient(net, dataset);
+    auto gradient = calc_net_gradient_backprop(net, dataset);
 
     float_vec new_params = net->get_params();
     //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
@@ -284,7 +283,7 @@ inline void optimize_net_gradient(
 
     if (new_error >= old_error)
     {
-        speed_factor *= 0.99f;
+        speed_factor *= 0.95f;
     }
 
     net->set_params(new_params);
@@ -294,7 +293,8 @@ inline void train(layer_ptr& net,
     const input_with_output_vec& dataset,
     std::size_t max_iters,
     float_t mean_error_goal,
-    float_t learning_rate)
+    float_t learning_rate,
+    std::size_t batch_size = 0)
 {
     auto show_progress = [](std::size_t iter, float_t error, float_t current_learning_rate)
     {
@@ -303,31 +303,39 @@ inline void train(layer_ptr& net,
         << ", error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(error))
         << std::endl;
     };
+    /*
     auto show_params = [](const layer_ptr& current_net)
     {
         auto show = fplus::show_float_fill_left<float_t>(' ', 8, 4);
         std::cout << "params " << fplus::show_cont(fplus::transform(show, current_net->get_params())) << std::endl;
     };
+    */
     timer stopwatch;
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
-        auto error = test_params_dataset(net->get_params(), net, dataset);
+        const auto batch =
+            batch_size == 0
+                ? dataset
+                : fplus::sample(batch_size, dataset);
+
         if (iter == 0 || stopwatch.elapsed() > 0.5)
         {
+            const auto error = test_params_dataset(net->get_params(), net, batch);
+            show_progress(iter, error, learning_rate);
             stopwatch.reset();
-            show_progress(iter, error, learning_rate);
-            //show_params(net);
+            if (error < mean_error_goal)
+            {
+                return;
+            }
         }
-        if (error < mean_error_goal || learning_rate < 0.0000001f)
+        optimize_net_gradient(net, batch, learning_rate);
+        if (learning_rate < 0.0000001f)
         {
-            show_progress(iter, error, learning_rate);
-            //show_params(net);
             return;
         }
-        optimize_net_gradient(net, dataset, learning_rate);
     }
     show_progress(max_iters, test_params_dataset(net->get_params(), net, dataset), learning_rate);
-    show_params(net);
+    //show_params(net);
 }
 
 inline void test(layer_ptr& net, const input_with_output_vec& dataset)
@@ -337,9 +345,9 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset)
     for (const auto& data : dataset)
     {
         assert(data.output_.size() == net->output_size());
-        auto out_vol = net->forward_pass(data.input_);
-        auto classification_result = matrix3d_max_pos(out_vol).x_;
-        auto wanted_result = matrix3d_max_pos(data.output_).x_;
+        const auto out_vol = net->forward_pass(data.input_);
+        const auto classification_result = matrix3d_max_pos(out_vol);
+        const auto wanted_result = matrix3d_max_pos(data.output_);
         if (classification_result == wanted_result)
         {
             ++correct_count;

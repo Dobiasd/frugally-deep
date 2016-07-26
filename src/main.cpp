@@ -77,7 +77,7 @@ fd::input_with_output parse_cifar_10_bin_line(
 fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 		bool mini_version)
 {
-    std::size_t mini_version_img_count = 1;
+    std::size_t mini_version_img_count = 10;
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
@@ -107,11 +107,12 @@ fd::input_with_output_vec load_cifar_10_bin_test(
 
 fd::classification_dataset load_cifar_10_bin(
     const std::string& base_directory,
-	bool mini_version = false)
+	bool mini_version_training = false,
+    bool mini_version_test = false)
 {
     return {
-        load_cifar_10_bin_training(base_directory, mini_version),
-        load_cifar_10_bin_test(base_directory, mini_version)};
+        load_cifar_10_bin_training(base_directory, mini_version_training),
+        load_cifar_10_bin_test(base_directory, mini_version_test)};
 }
 
 std::string frame_string(const std::string& str)
@@ -309,7 +310,7 @@ void cifar_10_classification_test()
 {
     std::cout << frame_string("cifar_10_classification_test") << std::endl;
     std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true);
+    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", false, false);
     std::cout << " done" << std::endl;
 
     classifcation_data = normalize_classification_dataset(classifcation_data, false);
@@ -349,8 +350,8 @@ void cifar_10_classification_test()
     */
 
     pre_layers layers = {
-        conv(size2d(1, 1), 8, 1), elu(1),
-        conv(size2d(1, 1), 8, 1), elu(1),
+        conv(size2d(3, 3), 8, 1), elu(1),
+        conv(size2d(3, 3), 8, 1), elu(1),
         max_pool(2),
 
         conv(size2d(3, 3), 16, 1), elu(1),
@@ -365,44 +366,22 @@ void cifar_10_classification_test()
         conv(size2d(3, 3), 64, 1), elu(1),
         max_pool(2),
 
-        conv(size2d(1, 1), 128, 1), elu(1),
+        conv(size2d(3, 3), 128, 1), elu(1),
         conv(size2d(1, 1), 128, 1), elu(1),
         max_pool(2),
 
-        conv(size2d(1, 1), 256, 1), elu(1),
-        conv(size2d(1, 1), 128, 1), elu(1),
-        conv(size2d(1, 1), 64, 1), elu(1),
-        conv(size2d(1, 1), 32, 1), elu(1),
-        conv(size2d(1, 1), 16, 1), elu(1),
-
         flatten(),
-        fc(16),
+        fc(64),
         tanh(),
         fc(10),
         tanh(),
-        //softmax()
-        };
-
-    pre_layers layers_tiny = {
-        max_pool(16),
-        flatten(),
-        fc(10),
-        sigmoid(),
-        //softmax()
-        };
-
-    pre_layers layers_very_tiny = {
-        max_pool(32),
-        flatten(),
-        fc(10),
-        sigmoid(),
         //softmax()
         };
 
     auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
-    tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
-    train(tobinet, classifcation_data.training_data_, 100000, 0.001f, 0.1f);
+    tobinet->set_params(randomly_change_params(tobinet->get_params(), 1.0f));
+    train(tobinet, classifcation_data.training_data_, 1000, 0.001f, 0.5f, 60);
     test(tobinet, classifcation_data.test_data_);
 }
 
@@ -615,5 +594,5 @@ int main()
     lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();
-    //cifar_10_classification_test();
+    cifar_10_classification_test();
 }

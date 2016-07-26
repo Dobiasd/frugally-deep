@@ -49,35 +49,15 @@ public:
     float_vec get_params() const
     {
         float_vec params;
-        params.reserve(param_count());
-        for (std::size_t z = 0; z < m_.size().depth_; ++z)
-        {
-            for (std::size_t y = 0; y < m_.size().height_; ++y)
-            {
-                for (std::size_t x = 0; x < m_.size().width_; ++x)
-                {
-                    params.push_back(m_.get(z, y, x));
-                }
-            }
-        }
+        params = m_.as_vector();
         params.push_back(bias_);
         return params;
     }
     void set_params(const float_vec& params)
     {
         assert(params.size() == param_count());
-        std::size_t i = 0;
-        for (std::size_t z = 0; z < m_.size().depth_; ++z)
-        {
-            for (std::size_t y = 0; y < m_.size().height_; ++y)
-            {
-                for (std::size_t x = 0; x < m_.size().width_; ++x)
-                {
-                    m_.set(z, y, x, params[i++]);
-                }
-            }
-        }
-        bias_ = params[i++];
+        m_ = matrix3d(m_.size(), fplus::init(params));
+        bias_ = params.back();
     }
 private:
     matrix3d m_;

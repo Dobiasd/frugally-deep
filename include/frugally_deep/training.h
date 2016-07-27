@@ -51,7 +51,8 @@ struct classification_dataset
 
 inline float_vec flatten_classification_dataset(
     const classification_dataset& dataset,
-    bool include_output)
+    bool include_output,
+    bool include_test_data)
 {
     const auto flatten_input_and_output = [&]
         (const input_with_output& in_with_out) -> float_vec
@@ -66,7 +67,9 @@ inline float_vec flatten_classification_dataset(
 
     return fplus::append(
         fplus::transform_and_concat(flatten_input_and_output, dataset.training_data_),
-        fplus::transform_and_concat(flatten_input_and_output, dataset.test_data_)
+        include_test_data
+            ? fplus::transform_and_concat(flatten_input_and_output, dataset.test_data_)
+            : float_vec()
     );
 }
 
@@ -100,8 +103,10 @@ inline classification_dataset normalize_classification_dataset(
     const classification_dataset& dataset,
     bool normalize_output_too)
 {
+    // Calculate mean and stddev only on the training set.
+    // And apply it to training set and test set.
     const float_vec all_values =
-        flatten_classification_dataset(dataset, normalize_output_too);
+        flatten_classification_dataset(dataset, normalize_output_too, false);
     const auto mean_and_stddev = fplus::mean_stddev<float_t>(all_values);
     const float_t mean = mean_and_stddev.first;
     const float_t stddev = fplus::max(mean_and_stddev.second, 0.00000001f);
@@ -296,6 +301,8 @@ inline void train(layer_ptr& net,
     float_t learning_rate,
     std::size_t batch_size = 0)
 {
+    batch_size = std::min(batch_size, dataset.size());
+    std::cout << "starting training" << std::endl;
     auto show_progress = [](std::size_t iter, float_t error, float_t current_learning_rate)
     {
         std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)

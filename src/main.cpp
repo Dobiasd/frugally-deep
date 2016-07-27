@@ -310,7 +310,7 @@ void cifar_10_classification_test()
 {
     std::cout << frame_string("cifar_10_classification_test") << std::endl;
     std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", false, false);
+    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true, true);
     std::cout << " done" << std::endl;
 
     classifcation_data = normalize_classification_dataset(classifcation_data, false);

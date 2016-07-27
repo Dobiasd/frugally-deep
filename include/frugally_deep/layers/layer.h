@@ -38,13 +38,13 @@ public:
         return output;
     }
     virtual matrix3d backward_pass(const matrix3d& input,
-        float_vec& params_deltas_acc) final
+        float_vec& params_deltas_acc_reversed) final
     {
-        std::size_t params_deltas_acc_size_before = params_deltas_acc.size();
+        std::size_t params_deltas_acc_size_before = params_deltas_acc_reversed.size();
         assert(input.size() == output_size());
-        auto output = backward_pass_impl(input, params_deltas_acc);
+        auto output = backward_pass_impl(input, params_deltas_acc_reversed);
         assert(output.size() == input_size());
-        assert(params_deltas_acc.size() ==
+        assert(params_deltas_acc_reversed.size() ==
             params_deltas_acc_size_before + param_count());
         last_input_ = input;
         return output;

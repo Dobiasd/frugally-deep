@@ -54,7 +54,7 @@ protected:
     }
 
     matrix3d backward_pass_impl(const matrix3d& input,
-        float_vec& params_deltas_acc) const override
+        float_vec& params_deltas_acc_reversed) const override
     {
         auto output_temp = matrix2d_to_matrix3d(
             multiply(transpose(params_), depth_slice(0, input)));
@@ -77,8 +77,8 @@ protected:
         }
         const auto& param_deltas_vec = param_deltas.as_vector();
 
-        params_deltas_acc.insert(std::begin(params_deltas_acc),
-            std::begin(param_deltas_vec), std::end(param_deltas_vec));
+        params_deltas_acc_reversed.insert(std::end(params_deltas_acc_reversed),
+            param_deltas_vec.rbegin(), param_deltas_vec.rend());
         return output;
     }
 

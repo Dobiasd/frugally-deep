@@ -107,8 +107,11 @@ protected:
         return convolve(filters_, pad_matrix3d_for_filters(filters_, input));
     }
     matrix3d backward_pass_impl(const matrix3d& input,
-        float_vec& params_deltas_acc) const override
+        float_vec& params_deltas_acc_reversed) const override
     {
+        // forward pass: x `conv` w = y
+        // backward pass: e_x = flip(w) `conv` f_y
+        // gradient computation: x `conv` e_y = delta_j / delta_w
         const auto remove_filter_bias = [](const filter& f)
         {
             return filter(f.get_matrix3d(), 0);
@@ -154,8 +157,8 @@ protected:
 
         // see slide 10 of http://de.slideshare.net/kuwajima/cnnbp
 
-        params_deltas_acc.insert(std::begin(params_deltas_acc),
-            std::begin(param_deltas_vec), std::end(param_deltas_vec));
+        params_deltas_acc_reversed.insert(std::end(params_deltas_acc_reversed),
+            param_deltas_vec.rbegin(), param_deltas_vec.rend());
         return output;
     }
     filter_vec filters_;

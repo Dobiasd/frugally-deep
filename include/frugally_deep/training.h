@@ -260,6 +260,7 @@ inline float_vec calc_net_gradient_backprop(
         float_vec gradient;
         gradient.reserve(net->param_count());
         net->backward_pass(error, gradient);
+        gradient = fplus::reverse(gradient);
         gradients.push_back(matrix3d(size3d(1, gradient.size(), 1), gradient));
     }
     return mean_matrix3d(gradients).as_vector();

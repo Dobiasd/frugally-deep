@@ -55,7 +55,6 @@ protected:
         const float_vec li_vec = last_input_.as_vector();
         float_vec fa_vec(input_size().volume(), 0);
 
-
         const auto ex = [this](float_t x) -> float_t
         {
             return std::exp(x);
@@ -64,25 +63,22 @@ protected:
 
         for (std::size_t i = 0; i < fa_vec.size(); ++i)
         {
+            const float_t x = li_vec[i];
+            const float_t ex_x = ex(x);
+            const float_t del_sigma_i = ex_x * (unnormalized_sum_ - ex_x) /
+                fplus::square(unnormalized_sum_);
             for (std::size_t j = 0; j < fb_vec.size(); ++j)
             {
+                const float_t y = li_vec[j];
                 if (j == i)
                 {
-                    const float_t x = li_vec[i];
-                    const float_t ex_x = ex(x);
-                    const float_t del_sigma_i =
-                        ex_x * (unnormalized_sum_ - ex_x) /
-                            fplus::square(unnormalized_sum_);
                     fa_vec[i] += del_sigma_i * fb_vec[j];
                 }
                 else
                 {
-                    const float_t x = li_vec[i];
-                    const float_t y = li_vec[j];
                     const float_t ex_x_plus_y = ex(x + y);
-                    const float_t del_sigma_j =
-                        -ex_x_plus_y /
-                            fplus::square(unnormalized_sum_);
+                    const float_t del_sigma_j = -ex_x_plus_y /
+                        fplus::square(unnormalized_sum_);
                     fa_vec[i] += del_sigma_j * fb_vec[j];
                 }
             }

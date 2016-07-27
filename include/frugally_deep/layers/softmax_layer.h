@@ -6,30 +6,44 @@
 
 #pragma once
 
-#include "frugally_deep/layers/activation_layer.h"
+#include "frugally_deep/layers/layer.h"
 
 namespace fd
 {
 
-class softmax_layer : public activation_layer
+class softmax_layer : public layer
 {
 public:
     explicit softmax_layer(const size3d& size_in)
-        : activation_layer(size_in),
+        : layer(size_in, size_in),
         in_vol_max_(0),
         unnormalized_sum_(0),
         last_output_(size_in)
     {
+    }
+    std::size_t param_count() const override
+    {
+        return 0;
+    }
+    float_vec get_params() const override
+    {
+        return {};
+    }
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) override
+    {
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
+            param_count());
     }
 protected:
     mutable float_t in_vol_max_;
     mutable float_t unnormalized_sum_;
     mutable matrix3d last_output_;
 
-    matrix3d transform_input(const matrix3d& in_vol) const override
+    matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         // http://stackoverflow.com/q/9906136/1866775
-        //in_vol_max_ = fplus::maximum(in_vol.as_vector());
+        //in_vol_max_ = fplus::maximum(input.as_vector());
 
         const auto ex = [this](float_t x) -> float_t
         {
@@ -37,7 +51,7 @@ protected:
             //return std::exp(x - in_vol_max_);
         };
 
-        const auto unnormalized = transform_matrix3d(ex, in_vol);
+        const auto unnormalized = transform_matrix3d(ex, input);
 
         unnormalized_sum_ = fplus::sum(unnormalized.as_vector());
         const auto div_by_unnormalized_sum = [this](float_t x) -> float_t
@@ -49,7 +63,8 @@ protected:
         return last_output_;
     }
 
-    matrix3d transform_error_backward_pass(const matrix3d& fb) const override
+    matrix3d backward_pass_impl(const matrix3d& fb,
+        float_vec&) const override
     {
         const auto fb_vec = fb.as_vector();
         const float_vec li_vec = last_input_.as_vector();

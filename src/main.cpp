@@ -55,7 +55,7 @@ fd::input_with_output parse_cifar_10_bin_line(
     const std::vector<unsigned char>& vec)
 {
     assert(vec.size() == 3073);
-    fd::matrix3d output(fd::size3d(1, 10, 1));
+    fd::matrix3d output(fd::size3d(1, 10, 1), fd::float_vec(10, -1));
     assert(vec[0] < 10);
     output.set(0, vec[0], 0, 1);
     fd::matrix3d input(fd::size3d(3, 32, 32));

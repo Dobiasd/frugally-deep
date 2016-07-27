@@ -152,11 +152,7 @@ inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
 
 inline float_t square_error_and_sum_div_2(const matrix3d& error)
 {
-    const auto square = [](float_t x) -> float_t
-    {
-        return x * x;
-    };
-    const auto squared_error = transform_matrix3d(square, error);
+    const auto squared_error = transform_matrix3d(fplus::square<float_t>, error);
     return matrix3d_sum_all_values(squared_error) / 2;
 }
 

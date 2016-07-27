@@ -343,10 +343,10 @@ void cifar_10_classification_test()
 
         flatten(),
         fc(64),
-        tanh(),
+        tanh(true),
         fc(10),
-        tanh(),
-        //softmax()
+        tanh(true),
+        softmax()
         };
 
     auto tobinet = net(layers)(size3d(3, 32, 32));
@@ -512,7 +512,8 @@ void gradient_check_backprop_implementation()
     {
         conv(size2d(3, 3), 1, 1),
         max_pool(2),
-    })(size3d(1, 4, 4));
+        conv(size2d(3, 3), 1, 1),
+    })(size3d(1, 8, 8));
     test_net_backprop("net_max_pool", net_max_pool, 5, 10);
 
 
@@ -522,7 +523,8 @@ void gradient_check_backprop_implementation()
     {
         conv(size2d(3, 3), 1, 1),
         avg_pool(2),
-    })(size3d(1, 4, 4));
+        conv(size2d(3, 3), 1, 1),
+    })(size3d(1, 8, 8));
     test_net_backprop("net_avg_pool", net_avg_pool, 5, 10);
 
 
@@ -536,7 +538,8 @@ void gradient_check_backprop_implementation()
     {
         conv(size2d(3, 3), 1, 1),
         gentle_max_pool(2, 1),
-    })(size3d(1, 4, 4));
+        conv(size2d(3, 3), 1, 1),
+    })(size3d(1, 8, 8));
     test_net_backprop("net_gentle_max_pool", net_gentle_max_pool, 5, 10);
 
 
@@ -545,7 +548,8 @@ void gradient_check_backprop_implementation()
     auto net_softmax = net(
     {
         fc(2),
-        softmax()
+        softmax(),
+        fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_softmax", net_softmax, 1, 10);
 
@@ -555,28 +559,32 @@ void gradient_check_backprop_implementation()
     auto net_tanh_def = net(
     {
         fc(2),
-        tanh(false)
+        tanh(false),
+        fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_def", net_tanh_def, 1, 10);
 
     auto net_tanh_alpha = net(
     {
         fc(2),
-        tanh(false, 0.3)
+        tanh(false, 0.3),
+        fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_alpha", net_tanh_alpha, 1, 10);
 
     auto net_tanh_lecun = net(
     {
         fc(2),
-        tanh(true)
+        tanh(true),
+        fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_lecun", net_tanh_lecun, 1, 10);
 
     auto net_tanh_lecun_alpha = net(
     {
         fc(2),
-        tanh(true, 0.2)
+        tanh(true, 0.2),
+        fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_lecun_alpha", net_tanh_lecun_alpha, 1, 10);
 
@@ -602,8 +610,8 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
-    gradient_check_backprop_implementation();
     lenna_filter_test();
+    gradient_check_backprop_implementation();
     xor_as_net_test();
     gradients_classification_test();
     cifar_10_classification_test();

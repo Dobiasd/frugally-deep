@@ -64,9 +64,10 @@ mini-batches (multiple images concatted in one pass)
 
 split a validation set from the training set to optimize the hyperparameters
 
-Weight initialization strategies
+learn about Weight initialization strategies
 
-regularization? (Weights square sum penalty, dropout, prevent overfitting? not needed for autoencoder?)
+regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?)
+
 rule of thumb: 10 times more training examples than parameters
 
 learning momentum?

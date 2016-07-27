@@ -32,10 +32,12 @@ public:
     {
         return params_.as_vector();
     }
-    void set_params(const float_vec& params) override
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) override
     {
-        assert(params.size() == param_count());
-        params_ = matrix2d(params_.size(), params);
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
+            param_count());
+        params_.overwrite_values(ps_begin, ps_end);
     }
 protected:
     static matrix2d bias_pad_input(const matrix3d& input)
@@ -73,8 +75,10 @@ protected:
                     last_input_slice_with_bias_neuron.get(x, 0));
             }
         }
-        params_deltas_acc = fplus::append(
-            param_deltas.as_vector(), params_deltas_acc);
+        const auto& param_deltas_vec = param_deltas.as_vector();
+
+        params_deltas_acc.insert(std::end(params_deltas_acc),
+            std::begin(param_deltas_vec), std::end(param_deltas_vec));
         return output;
     }
 

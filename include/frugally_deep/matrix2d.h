@@ -59,6 +59,13 @@ public:
     {
         return values_;
     }
+    void overwrite_values(const float_vec_const_it vs_begin,
+        const float_vec_const_it vs_end)
+    {
+        assert(static_cast<std::size_t>(std::distance(vs_begin, vs_end)) ==
+            size().area());
+        std::copy(vs_begin, vs_end, std::begin(values_));
+    }
 
 private:
     std::size_t idx(const matrix2d_pos& pos) const

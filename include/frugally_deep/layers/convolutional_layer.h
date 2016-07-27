@@ -53,14 +53,18 @@ public:
                 [](const filter& f) { return f.get_params(); },
                 filters_));
     }
-    void set_params(const float_vec& params) override
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) override
     {
-        assert(params.size() == param_count());
-        auto params_per_filter =
-            fplus::split_every(filters_.front().param_count(), params);
-        for (std::size_t i = 0; i < filters_.size(); ++i)
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) == param_count());
+        const auto filter_param_count =
+            static_cast<float_vec::difference_type>(
+                filters_.front().param_count());
+        auto it = ps_begin;
+        for (auto& filter : filters_)
         {
-            filters_[i].set_params(params_per_filter[i]);
+            filter.set_params(it, it + filter_param_count);
+            it += filter_param_count;
         }
     }
 protected:
@@ -141,7 +145,7 @@ protected:
                 },
                 filter_deltas, bias_deltas);
 
-        const float_vec params_deltas =
+        const float_vec param_deltas_vec =
             fplus::concat(
                 fplus::transform([](const filter& f) -> float_vec
                 {
@@ -150,7 +154,8 @@ protected:
 
         // see slide 10 of http://de.slideshare.net/kuwajima/cnnbp
 
-        params_deltas_acc = fplus::append(params_deltas, params_deltas_acc);
+        params_deltas_acc.insert(std::end(params_deltas_acc),
+            std::begin(param_deltas_vec), std::end(param_deltas_vec));
         return output;
     }
     filter_vec filters_;

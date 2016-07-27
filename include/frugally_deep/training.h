@@ -262,6 +262,7 @@ inline float_vec calc_net_gradient_backprop(
         auto result = net->forward_pass(data.input_);
         auto error = sub_matrix3d(result, data.output_);
         float_vec gradient;
+        gradient.reserve(net->param_count());
         net->backward_pass(error, gradient);
         gradients.push_back(matrix3d(size3d(1, gradient.size(), 1), gradient));
     }

@@ -48,18 +48,18 @@ public:
                 [](const layer_ptr& l) { return l->get_params(); },
                 layers_));
     }
-    void set_params(const float_vec& params) override
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) override
     {
-        assert(params.size() == param_count());
-        auto layer_param_counts = fplus::transform(
-            [](const layer_ptr& l) { return l->param_count(); },
-            layers_);
-        auto split_idxs =
-            fplus::scan_left_1(std::plus<std::size_t>(), layer_param_counts);
-        auto params_per_layer = fplus::split_at_idxs(split_idxs, params);
-        for (std::size_t i = 0; i < layers_.size(); ++i)
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
+            param_count());
+        auto it = ps_begin;
+        for (auto& layer : layers_)
         {
-            layers_[i]->set_params(params_per_layer[i]);
+            const auto layer_param_count =
+                static_cast<float_vec::difference_type>(layer->param_count());
+            layer->set_params(it, it + layer_param_count);
+            it += layer_param_count;
         }
     }
 

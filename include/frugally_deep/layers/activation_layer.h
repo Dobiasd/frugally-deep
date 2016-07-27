@@ -34,9 +34,11 @@ public:
     {
         return {};
     }
-    void set_params(const float_vec& params) override
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) override
     {
-        assert(params.size() == param_count());
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
+            param_count());
     }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override

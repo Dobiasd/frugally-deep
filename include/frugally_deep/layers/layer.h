@@ -51,7 +51,12 @@ public:
     }
     virtual std::size_t param_count() const = 0;
     virtual float_vec get_params() const = 0;
-    virtual void set_params(const float_vec& params) = 0;
+    virtual void set_params(const float_vec& params) final
+    {
+        set_params(std::begin(params), std::end(params));
+    }
+    virtual void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end) = 0;
     virtual const size3d& input_size() const final
     {
         return size_in_;

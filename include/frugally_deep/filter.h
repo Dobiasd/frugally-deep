@@ -59,6 +59,14 @@ public:
         m_ = matrix3d(m_.size(), fplus::init(params));
         bias_ = params.back();
     }
+    void set_params(const float_vec_const_it ps_begin,
+        const float_vec_const_it ps_end)
+    {
+        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
+            param_count());
+        m_.overwrite_values(ps_begin, ps_end - 1);
+        bias_ = *(ps_end - 1);
+    }
 private:
     matrix3d m_;
     float_t bias_;

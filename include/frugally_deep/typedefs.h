@@ -14,6 +14,8 @@ namespace fd
 
 typedef double float_t;
 typedef std::vector<float_t> float_vec;
+typedef float_vec::const_iterator float_vec_const_it;
+typedef float_vec::iterator float_vec_it;
 typedef std::vector<float_vec> float_vecs;
 const float_t pi = std::acos(-1);
 

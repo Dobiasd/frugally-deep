@@ -28,7 +28,17 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-backprop for unpool
+tests in separate cpp
+
+mnist tests
+
+Increase minibatch size while training
+
+Mini batches: Shuffle input, same amount of every class in batch if possible
+
+Training per epoch
+
+RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
 
 softmax-layer: Why does backprop for std::exp(x - in_vol_max_) not work so well?
 

@@ -69,14 +69,7 @@ protected:
                 for (std::size_t x = 0; x < out_vol.size().width_; ++x)
                 {
                     std::size_t x_in = x / scale_factor_;
-                    float_t val = in_vol.get(z, y_in, x_in);
-                    for (std::size_t yf = 0; yf < scale_factor_; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < scale_factor_; ++xf)
-                        {
-                            out_vol.set(z, y, x, val);
-                        }
-                    }
+                    out_vol.set(z, y, x, in_vol.get(z, y_in, x_in));
                 }
             }
         }
@@ -102,10 +95,10 @@ protected:
                     {
                         for (std::size_t xf = 0; xf < scale_factor_; ++xf)
                         {
-                            acc += in_vol.get(z, y_in, x_in);
+                            acc += in_vol.get(z, y_in + yf, x_in + xf);
                         }
                     }
-                    out_vol.set(z, y, x, acc / fplus::square(scale_factor_));
+                    out_vol.set(z, y, x, acc);
                 }
             }
         }

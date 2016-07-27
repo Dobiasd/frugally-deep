@@ -55,7 +55,7 @@ fd::input_with_output parse_cifar_10_bin_line(
     const std::vector<unsigned char>& vec)
 {
     assert(vec.size() == 3073);
-    fd::matrix3d output(fd::size3d(1, 10, 1), fd::float_vec(10, -1));
+    fd::matrix3d output(fd::size3d(1, 10, 1), fd::float_vec(10, 0));
     assert(vec[0] < 10);
     output.set(0, vec[0], 0, 1);
     fd::matrix3d input(fd::size3d(3, 32, 32));
@@ -77,7 +77,7 @@ fd::input_with_output parse_cifar_10_bin_line(
 fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 		bool mini_version)
 {
-    std::size_t mini_version_img_count = 100;
+    std::size_t mini_version_img_count = 10;
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
@@ -310,50 +310,67 @@ void cifar_10_classification_test()
 {
     std::cout << frame_string("cifar_10_classification_test") << std::endl;
     std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true, false);
+    auto classifcation_data = load_cifar_10_bin(
+        "./stuff/cifar-10-batches-bin", false, false);
     std::cout << " done" << std::endl;
 
-    classifcation_data = normalize_classification_dataset(classifcation_data, false);
+    //classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
 
 
     using namespace fd;
 
 
+    const auto activation_function = relu();
+    const auto pooling_function = max_pool(2);
+    //const auto activation_function = elu(1);
+    //const auto pooling_function = gentle_max_pool(2, 0.7);
     pre_layers layers = {
-        conv(size2d(3, 3), 8, 1), elu(1),
-        conv(size2d(3, 3), 8, 1), elu(1),
-        max_pool(2),
+        conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        pooling_function,
 
-        conv(size2d(3, 3), 16, 1), elu(1),
-        conv(size2d(3, 3), 16, 1), elu(1),
-        max_pool(2),
+        conv(size2d(3, 3), 32, 1), activation_function,
+        conv(size2d(3, 3), 32, 1), activation_function,
+        pooling_function,
 
-        conv(size2d(3, 3), 32, 1), elu(1),
-        conv(size2d(3, 3), 32, 1), elu(1),
-        max_pool(2),
+        conv(size2d(3, 3), 64, 1), activation_function,
+        conv(size2d(3, 3), 64, 1), activation_function,
+        pooling_function,
 
-        conv(size2d(3, 3), 64, 1), elu(1),
-        conv(size2d(3, 3), 64, 1), elu(1),
-        max_pool(2),
+        //conv(size2d(3, 3), 64, 1), elu(1),
+        //conv(size2d(3, 3), 64, 1), elu(1),
+        //max_pool(2),
 
-        conv(size2d(3, 3), 128, 1), elu(1),
-        conv(size2d(1, 1), 128, 1), elu(1),
-        max_pool(2),
+        //conv(size2d(3, 3), 128, 1), elu(1),
+        //conv(size2d(1, 1), 128, 1), elu(1),
+        //max_pool(2),
 
         flatten(),
-        fc(64),
-        tanh(true),
+        fc(100),
+        //tanh(true),
         fc(10),
-        tanh(true),
-        softmax()
+        //tanh(true),
+        softmax(),
+        };
+
+    // http://cs231n.github.io/convolutional-networks/
+    pre_layers layers_simple_cs231n = {
+        conv(size2d(3, 3), 12, 1),
+        relu(),
+        max_pool(2),
+        flatten(),
+        fc(10),
+        softmax(),
         };
 
     auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
-    tobinet->set_params(randomly_change_params(tobinet->get_params(), 1.0f));
-    train(tobinet, classifcation_data.training_data_, 3000, 0.001f, 0.1f, 60);
+    tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
+    train(tobinet, classifcation_data.training_data_, 4000, 0.001f, 0.1f, 50);
+    //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
+    std::cout << frame_string("tobinet relu maxpool") << std::endl;
 }
 
 fd::float_t relative_error(fd::float_t x, fd::float_t y)
@@ -555,6 +572,13 @@ void gradient_check_backprop_implementation()
 
 
 
+    auto net_elu = net(
+    {
+        fc(2),
+        elu(1),
+        fc(2),
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_elu", net_elu, 1, 10);
 
     auto net_tanh_def = net(
     {

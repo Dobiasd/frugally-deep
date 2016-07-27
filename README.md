@@ -28,6 +28,15 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
+
+jedem weight seine eigene learning rate geben?
+learning rates should be proportional to the square root of the number of inputs to the unit. Gilt das noch bei Relu und co?
+
+learning momentum in batch mode
+
+allow different strides for conv and for pool
+
 tests in separate cpp
 
 mnist tests
@@ -37,8 +46,6 @@ Increase minibatch size while training
 Mini batches: Shuffle input, same amount of every class in batch if possible
 
 Training per epoch
-
-RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
 
 softmax-layer: Why does backprop for std::exp(x - in_vol_max_) not work so well?
 
@@ -69,8 +76,6 @@ learn about Weight initialization strategies
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?)
 
 rule of thumb: 10 times more training examples than parameters
-
-learning momentum?
 
 evolutionary optimization instread of backprop? (momentum mutations? recombination?)
 particle swarm optimization? verteilen, gute habe gravitation, andere fliegen dahin, momentum, random speed changes annealing, best reproduces with mutation and worst dies

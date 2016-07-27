@@ -266,7 +266,7 @@ inline float_vec calc_net_gradient_backprop(
     return mean_matrix3d(gradients).as_vector();
 }
 
-inline void optimize_net_gradient(
+inline std::pair<float_t, float_t> optimize_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset,
     float_t& speed_factor)
@@ -286,10 +286,11 @@ inline void optimize_net_gradient(
 
     if (new_error >= old_error)
     {
-        speed_factor *= 0.95f;
+        speed_factor *= 0.98f;
     }
-
     net->set_params(new_params);
+
+    return {old_error, new_error};
 }
 
 inline void train(layer_ptr& net,
@@ -301,11 +302,12 @@ inline void train(layer_ptr& net,
 {
     batch_size = std::min(batch_size, dataset.size());
     std::cout << "starting training" << std::endl;
-    auto show_progress = [](std::size_t iter, float_t error, float_t current_learning_rate)
+    auto show_progress = [](std::size_t iter, float_t current_learning_rate, float_t old_error, float_t new_error)
     {
         std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)
         << ", learning rate " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(current_learning_rate))
-        << ", error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(error))
+        << ", batch old error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(old_error))
+        << ", batch new error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_error))
         << std::endl;
     };
     /*
@@ -323,23 +325,28 @@ inline void train(layer_ptr& net,
                 ? dataset
                 : fplus::sample(batch_size, dataset);
 
+        const auto old_and_new_error =
+            optimize_net_gradient(net, batch, learning_rate);
+
+        const float_t old_error = old_and_new_error.first;
+        const float_t new_error = old_and_new_error.second;
+
         if (iter == 0 || stopwatch.elapsed() > 0.5)
         {
-            const auto error = test_params_dataset(net->get_params(), net, batch);
-            show_progress(iter, error, learning_rate);
+            show_progress(iter, learning_rate, old_error, new_error);
             stopwatch.reset();
-            if (error < mean_error_goal)
+            if (new_error < mean_error_goal)
             {
                 return;
             }
         }
-        optimize_net_gradient(net, batch, learning_rate);
         if (learning_rate < 0.0000001f)
         {
             return;
         }
     }
-    show_progress(max_iters, test_params_dataset(net->get_params(), net, dataset), learning_rate);
+    //const float_t error = test_params_dataset(net->get_params(), net, dataset);
+    //show_progress(max_iters, learning_rate, 0, error);
     //show_params(net);
 }
 
@@ -353,6 +360,7 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset)
         const auto out_vol = net->forward_pass(data.input_);
         const auto classification_result = matrix3d_max_pos(out_vol);
         const auto wanted_result = matrix3d_max_pos(data.output_);
+        //std::cout << "c " << classification_result.y_ << " - d " << wanted_result.y_ << std::endl;
         if (classification_result == wanted_result)
         {
             ++correct_count;

@@ -80,18 +80,41 @@ namespace internal
         assert(are_sizes_allowed_to_convolute(filter.size(), in_vol.size()));
         if (filt_size.height_ == 1 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<1, 1>(filter, in_vol);
+
         if (filt_size.height_ == 1 && filt_size.width_ == 3)
             return convolve_loops_fixed_filter_size<1, 3>(filter, in_vol);
         if (filt_size.height_ == 3 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<3, 1>(filter, in_vol);
         if (filt_size.height_ == 3 && filt_size.width_ == 3)
             return convolve_loops_fixed_filter_size<3, 3>(filter, in_vol);
+
         if (filt_size.height_ == 1 && filt_size.width_ == 5)
             return convolve_loops_fixed_filter_size<1, 5>(filter, in_vol);
         if (filt_size.height_ == 5 && filt_size.width_ == 1)
             return convolve_loops_fixed_filter_size<5, 1>(filter, in_vol);
         if (filt_size.height_ == 5 && filt_size.width_ == 5)
             return convolve_loops_fixed_filter_size<5, 5>(filter, in_vol);
+
+        if (filt_size.height_ == 1 && filt_size.width_ == 7)
+            return convolve_loops_fixed_filter_size<1, 7>(filter, in_vol);
+        if (filt_size.height_ == 7 && filt_size.width_ == 1)
+            return convolve_loops_fixed_filter_size<7, 1>(filter, in_vol);
+        if (filt_size.height_ == 7 && filt_size.width_ == 7)
+            return convolve_loops_fixed_filter_size<7, 7>(filter, in_vol);
+
+        if (filt_size.height_ == 1 && filt_size.width_ == 9)
+            return convolve_loops_fixed_filter_size<1, 9>(filter, in_vol);
+        if (filt_size.height_ == 9 && filt_size.width_ == 1)
+            return convolve_loops_fixed_filter_size<9, 1>(filter, in_vol);
+        if (filt_size.height_ == 9 && filt_size.width_ == 9)
+            return convolve_loops_fixed_filter_size<9, 9>(filter, in_vol);
+
+        if (filt_size.height_ == 1 && filt_size.width_ == 11)
+            return convolve_loops_fixed_filter_size<1, 11>(filter, in_vol);
+        if (filt_size.height_ == 11 && filt_size.width_ == 1)
+            return convolve_loops_fixed_filter_size<11, 1>(filter, in_vol);
+        if (filt_size.height_ == 11 && filt_size.width_ == 11)
+            return convolve_loops_fixed_filter_size<11, 11>(filter, in_vol);
 
         const size_t filter_height = filt_size.height_;
         const size_t filter_width = filt_size.width_;

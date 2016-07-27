@@ -11,31 +11,78 @@
 namespace fd
 {
 
+// snd_deriv_max_at_1 == true
+//     switches function from
+//     f(x) = tanh(x);
+//     to
+//     f(x) = 1.7519 * tanh(2 * x / 3);
+//     according to "Efficient BackProp" (LeCun et al.)
 class tanh_layer : public activation_layer
 {
 public:
-    explicit tanh_layer(const size3d& size_in)
-        : activation_layer(size_in)
+    explicit tanh_layer(const size3d& size_in,
+        bool snd_deriv_max_at_1,
+        float_t alpha)
+        : activation_layer(size_in),
+        snd_deriv_max_at_1_(snd_deriv_max_at_1),
+        alpha_(alpha)
     {
     }
 protected:
+    const bool snd_deriv_max_at_1_;
+    const float_t alpha_;
+
+    static float_t activation_function_def(float_t alpha, float_t x)
+    {
+        return std::tanh(x) + alpha * x;
+    };
+
+    static float_t activation_function_snd_deriv_max_at_1(float_t alpha, float_t x)
+    {
+        return 1.7519 * std::tanh(2 * x / 3) + alpha * x;
+    };
+
+    static float_t activation_function_def_deriv(float_t alpha, float_t x)
+    {
+        return alpha + 1 - fplus::square(activation_function_def(0, x));
+    };
+
+    static float_t sech(float_t x)
+    {
+        return 1 / cosh(x);
+    };
+    static float_t activation_function_snd_deriv_max_at_1_deriv(float_t alpha, float_t x)
+    {
+        return alpha + (1.7519 * 2 / 3) * fplus::square(sech(2 * x / 3));
+    };
+
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        auto activation_function = [](float_t x) -> float_t
-        {
-            return std::tanh(x);
-        };
-        return transform_matrix3d(activation_function, in_vol);
+        return snd_deriv_max_at_1_
+            ? transform_matrix3d(
+                [this](float_t x) -> float_t
+                {
+                    return activation_function_snd_deriv_max_at_1(alpha_, x);
+                }, in_vol)
+            : transform_matrix3d(
+                [this](float_t x) -> float_t
+                {
+                    return activation_function_def(alpha_, x);
+                }, in_vol);
     }
     matrix3d transform_error_backward_pass(const matrix3d& e) const override
     {
-        auto activation_function_deriv = [](float_t x) -> float_t
-        {
-            float_t temp = std::tanh(x);
-            return 1 - temp * temp;
-        };
-        const auto last_input_derivs =
-            transform_matrix3d(activation_function_deriv, last_input_);
+        const auto last_input_derivs = snd_deriv_max_at_1_
+            ? transform_matrix3d(
+                [this](float_t x) -> float_t
+                {
+                    return activation_function_snd_deriv_max_at_1_deriv(alpha_, x);
+                }, last_input_)
+            : transform_matrix3d(
+                [this](float_t x) -> float_t
+                {
+                    return activation_function_def_deriv(alpha_, x);
+                }, last_input_);
         return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };

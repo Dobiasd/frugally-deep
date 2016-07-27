@@ -78,11 +78,11 @@ inline pre_layer softplus()
     };
 }
 
-inline pre_layer tanh()
+inline pre_layer tanh(bool snd_deriv_max_at_1 = false, float_t alpha = 0)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
-        return std::make_shared<tanh_layer>(size_in);
+        return std::make_shared<tanh_layer>(size_in, snd_deriv_max_at_1, alpha);
     };
 }
 
@@ -140,6 +140,14 @@ inline pre_layer avg_pool(std::size_t scale_factor)
     return [=](const size3d& size_in) -> layer_ptr
     {
         return std::make_shared<avg_pool_layer>(size_in, scale_factor);
+    };
+}
+
+inline pre_layer unpool(std::size_t scale_factor)
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<unpool_layer>(size_in, scale_factor);
     };
 }
 

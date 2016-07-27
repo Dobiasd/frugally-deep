@@ -77,7 +77,7 @@ protected:
         }
         const auto& param_deltas_vec = param_deltas.as_vector();
 
-        params_deltas_acc.insert(std::end(params_deltas_acc),
+        params_deltas_acc.insert(std::begin(params_deltas_acc),
             std::begin(param_deltas_vec), std::end(param_deltas_vec));
         return output;
     }

@@ -154,7 +154,7 @@ protected:
 
         // see slide 10 of http://de.slideshare.net/kuwajima/cnnbp
 
-        params_deltas_acc.insert(std::end(params_deltas_acc),
+        params_deltas_acc.insert(std::begin(params_deltas_acc),
             std::begin(param_deltas_vec), std::end(param_deltas_vec));
         return output;
     }

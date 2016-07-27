@@ -29,14 +29,15 @@ protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         // http://stackoverflow.com/q/9906136/1866775
-        in_vol_max_ = fplus::maximum(in_vol.as_vector());
+        //in_vol_max_ = fplus::maximum(in_vol.as_vector());
 
-        const auto activation_function = [this](float_t x) -> float_t
+        const auto ex = [this](float_t x) -> float_t
         {
-            return std::exp(x - in_vol_max_);
+            return std::exp(x);
+            //return std::exp(x - in_vol_max_);
         };
 
-        const auto unnormalized = transform_matrix3d(activation_function, in_vol);
+        const auto unnormalized = transform_matrix3d(ex, in_vol);
 
         unnormalized_sum_ = fplus::sum(unnormalized.as_vector());
         const auto div_by_unnormalized_sum = [this](float_t x) -> float_t
@@ -48,9 +49,46 @@ protected:
         return last_output_;
     }
 
-    matrix3d transform_error_backward_pass(const matrix3d&) const override
+    matrix3d transform_error_backward_pass(const matrix3d& fb) const override
     {
-        assert(false); // not implemented yet
+        const auto fb_vec = fb.as_vector();
+        const float_vec li_vec = last_input_.as_vector();
+        float_vec fa_vec(input_size().volume(), 0);
+
+
+        const auto ex = [this](float_t x) -> float_t
+        {
+            return std::exp(x);
+            //return std::exp(x - in_vol_max_);
+        };
+
+        for (std::size_t i = 0; i < fa_vec.size(); ++i)
+        {
+            for (std::size_t j = 0; j < fb_vec.size(); ++j)
+            {
+                if (j == i)
+                {
+                    const float_t x = li_vec[i];
+                    const float_t ex_x = ex(x);
+                    const float_t del_sigma_i =
+                        ex_x * (unnormalized_sum_ - ex_x) /
+                            fplus::square(unnormalized_sum_);
+                    fa_vec[i] += del_sigma_i * fb_vec[j];
+                }
+                else
+                {
+                    const float_t x = li_vec[i];
+                    const float_t y = li_vec[j];
+                    const float_t ex_x_plus_y = ex(x + y);
+                    const float_t del_sigma_j =
+                        -ex_x_plus_y /
+                            fplus::square(unnormalized_sum_);
+                    fa_vec[i] += del_sigma_j * fb_vec[j];
+                }
+            }
+        }
+
+        return matrix3d(input_size(), fa_vec);
     }
 };
 

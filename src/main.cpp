@@ -77,7 +77,7 @@ fd::input_with_output parse_cifar_10_bin_line(
 fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 		bool mini_version)
 {
-    std::size_t mini_version_img_count = 10;
+    std::size_t mini_version_img_count = 100;
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
@@ -302,7 +302,7 @@ void gradients_classification_test()
 
     gradnet->set_params(randomly_change_params(gradnet->get_params(), 0.1f));
 
-    train(gradnet, classifcation_data.training_data_, 10000, 0.01f, 0.1f);
+    train(gradnet, classifcation_data.training_data_, 1000, 0.01f, 0.1f);
     test(gradnet, classifcation_data.test_data_);
 }
 
@@ -310,44 +310,15 @@ void cifar_10_classification_test()
 {
     std::cout << frame_string("cifar_10_classification_test") << std::endl;
     std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true, true);
+    auto classifcation_data = load_cifar_10_bin("./stuff/cifar-10-batches-bin", true, false);
     std::cout << " done" << std::endl;
 
     classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
-    /*
-    classifcation_data.training_data_ =
-        fplus::sample(
-            classifcation_data.training_data_.size() / 10000,
-            classifcation_data.training_data_);
-    classifcation_data.test_data_ =
-        fplus::sample(
-            classifcation_data.test_data_.size() / 1000,
-            classifcation_data.test_data_);
-     */
+
 
     using namespace fd;
-    /*
-    layer_ptrs layers = {
-        conv(size3d(3, 32, 32), size2d(3, 3), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
-        conv(size3d(8, 32, 32), size2d(3, 3), 8, 1), leaky_relu(size3d(8, 32, 32), 0.01f),
-        max_pool(size3d(8, 32, 32), 2),
-        conv(size3d(8, 16, 16), size2d(3, 3), 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
-        conv(size3d(16, 16, 16), size2d(3, 3), 16, 1), leaky_relu(size3d(16, 16, 16), 0.01f),
-        max_pool(size3d(16, 16, 16), 2),
-        conv(size3d(16, 8, 8), size2d(3, 3), 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
-        conv(size3d(32, 8, 8), size2d(3, 3), 32, 1), leaky_relu(size3d(32, 8, 8), 0.01f),
-        max_pool(size3d(32, 8, 8), 2),
-        conv(size3d(32, 4, 4), size2d(3, 3), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
-        conv(size3d(64, 4, 4), size2d(3, 3), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
-        conv(size3d(64, 4, 4), size2d(1, 1), 64, 1), leaky_relu(size3d(64, 4, 4), 0.01f),
-        flatten(size3d(64, 4, 4)),
-        fc(size3d(64, 4, 4).volume(), 256),
-        fc(256, 256),
-        fc(256, 10),
-        softmax(size3d(1,1,10))
-        };
-    */
+
 
     pre_layers layers = {
         conv(size2d(3, 3), 8, 1), elu(1),
@@ -499,7 +470,7 @@ void gradient_check_backprop_implementation()
         tanh(),
         //softmax()
     })(size3d(1, 1, 2));
-    //test_net_backprop("net_001", net_001, 10, 10);
+    test_net_backprop("net_001", net_001, 10, 10);
 
 
 
@@ -509,7 +480,7 @@ void gradient_check_backprop_implementation()
     {
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 3, 3));
-    //test_net_backprop("net_002", net_002, 5, 10);
+    test_net_backprop("net_002", net_002, 5, 10);
 
 
 
@@ -521,7 +492,18 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
         conv(size2d(3, 3), 1, 1),
     })(size3d(1, 5, 5));
-    //test_net_backprop("conv", net_003, 5, 10);
+    test_net_backprop("conv", net_003, 5, 10);
+
+
+
+
+    auto net_unpool = net(
+    {
+        conv(size2d(3, 3), 1, 1),
+        unpool(2),
+        conv(size2d(3, 3), 1, 1),
+    })(size3d(1, 4, 4));
+    test_net_backprop("net_unpool", net_unpool, 5, 10);
 
 
 
@@ -531,7 +513,7 @@ void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 1, 1),
         max_pool(2),
     })(size3d(1, 4, 4));
-    //test_net_backprop("net_max_pool", net_max_pool, 5, 10);
+    test_net_backprop("net_max_pool", net_max_pool, 5, 10);
 
 
 
@@ -559,14 +541,44 @@ void gradient_check_backprop_implementation()
 
 
 
-    /*
+
     auto net_softmax = net(
     {
         fc(2),
         softmax()
-    })(size3d(1, 2, 1)); // todo larger
+    })(size3d(1, 2, 1));
     test_net_backprop("net_softmax", net_softmax, 1, 10);
-    */
+
+
+
+
+    auto net_tanh_def = net(
+    {
+        fc(2),
+        tanh(false)
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_tanh_def", net_tanh_def, 1, 10);
+
+    auto net_tanh_alpha = net(
+    {
+        fc(2),
+        tanh(false, 0.3)
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_tanh_alpha", net_tanh_alpha, 1, 10);
+
+    auto net_tanh_lecun = net(
+    {
+        fc(2),
+        tanh(true)
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_tanh_lecun", net_tanh_lecun, 1, 10);
+
+    auto net_tanh_lecun_alpha = net(
+    {
+        fc(2),
+        tanh(true, 0.2)
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_tanh_lecun_alpha", net_tanh_lecun_alpha, 1, 10);
 
 
 
@@ -580,7 +592,7 @@ void gradient_check_backprop_implementation()
         fc(2),
         //softmax()
     })(size3d(1, 4, 4));
-    //test_net_backprop("net_006", net_006, 5, 10);
+    test_net_backprop("net_006", net_006, 5, 10);
 
 
 

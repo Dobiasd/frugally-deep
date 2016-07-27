@@ -202,6 +202,14 @@ inline cv::Mat float_img_to_uchar_img(const cv::Mat& floatImg)
     return result;
 }
 
+inline cv::Mat float_img_bgr_rgb_switch(const cv::Mat& img)
+{
+    assert(img.type() == CV_32FC3);
+    cv::Mat result;
+    cv::cvtColor(img, result, CV_RGB2BGR);
+    return result;
+}
+
 inline cv::Mat normalize_float_img(const cv::Mat& floatImg)
 {
     assert(floatImg.type() == CV_32FC3 || floatImg.type() == CV_32FC1);

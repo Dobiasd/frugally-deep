@@ -34,7 +34,7 @@ public:
     {
         return m_.size();
     }
-    matrix3d get_matrix3d() const
+    const matrix3d& get_matrix3d() const
     {
         return m_;
     }

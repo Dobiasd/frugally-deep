@@ -39,8 +39,6 @@ namespace internal
     // Give the compiler a chance to unroll the inner loops.
     // In tests with a 3x3 filter and clang++ -O3
     //     the performance was increased by a factor of two by this.
-    // todo: profiling:
-    //       is idx-calculation in filters[k].get a performance bottleneck?
     template <std::size_t filter_height, std::size_t filter_width>
     inline matrix2d convolve_loops_fixed_filter_size(
         const matrix3d& filter,

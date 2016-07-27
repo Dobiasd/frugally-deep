@@ -28,13 +28,9 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-gentle_max_pool: weight alpha as paramter
-
 backprop for unpool
 
-is softmax a layer type at all? Or just another form or effor calculation? (cross entropy?) If so, what is this?
-https://www.willamette.edu/~gorr/classes/cs449/classify.html
-http://peterroelants.github.io/posts/neural_network_implementation_intermezzo02/
+softmax-layer: Why does backprop for std::exp(x - in_vol_max_) not work so well?
 
 flatten nestes multilayer nets? Ideally directly create them that way
 

@@ -42,7 +42,8 @@ public:
     void random_init_params() override
     {
         float_t mean = 0;
-        float_t stddev = 1 / std::sqrt(size_in_.volume());
+        float_t stddev = 1 /
+            static_cast<float_t>(std::sqrt(size_in_.volume()));
         const auto params =
             generate_normal_distribution_values(mean, stddev, param_count());
         set_params(std::begin(params), std::end(params));

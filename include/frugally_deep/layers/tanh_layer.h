@@ -39,7 +39,7 @@ protected:
 
     static float_t activation_function_snd_deriv_max_at_1(float_t alpha, float_t x)
     {
-        return 1.7519 * std::tanh(2 * x / 3) + alpha * x;
+        return 1.7519f * std::tanh(2 * x / 3) + alpha * x;
     };
 
     static float_t activation_function_def_deriv(float_t alpha, float_t x)
@@ -49,11 +49,12 @@ protected:
 
     static float_t sech(float_t x)
     {
-        return 1 / cosh(x);
+        return 1 / static_cast<float_t>(cosh(x));
     };
     static float_t activation_function_snd_deriv_max_at_1_deriv(float_t alpha, float_t x)
     {
-        return alpha + (1.7519 * 2 / 3) * fplus::square(sech(2 * x / 3));
+        return alpha + (1.7519f * 2 / 3) *
+            static_cast<float_t>(fplus::square(sech(2 * x / 3)));
     };
 
     matrix3d transform_input(const matrix3d& in_vol) const override

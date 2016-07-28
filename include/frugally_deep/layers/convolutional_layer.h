@@ -74,7 +74,8 @@ public:
             [](const filter& filt)
             {
                 float_t mean = 0;
-                float_t stddev = 1 / std::sqrt(filt.size().volume());
+                float_t stddev = 1 / static_cast<float_t>(
+                    std::sqrt(filt.size().volume()));
                 auto filt_params = generate_normal_distribution_values(
                     mean, stddev, filt.param_count());
                 filt_params.back() = 0; // bias;

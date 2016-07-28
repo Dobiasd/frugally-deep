@@ -269,7 +269,8 @@ inline std::pair<float_t, float_t> optimize_net_random(layer_ptr& net,
 inline std::pair<float_t, float_t> optimize_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset,
-    float_t& speed_factor)
+    float_t& speed_factor,
+    float_vec& momentum)
 {
     //auto gradient = calc_net_gradient_numeric(net, dataset);
     auto gradient = calc_net_gradient_backprop(net, dataset);
@@ -277,10 +278,13 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 
     float_vec old_params = net->get_params();
     float_vec new_params = old_params;
+    assert(momentum.size() == new_params.size());
     for (std::size_t i = 0; i < old_params.size(); ++i)
     {
         float_t change = speed_factor * -gradient[i];
-        new_params[i] += change;
+        momentum[i] += change;
+        momentum[i] *= 0.9;
+        new_params[i] += change + momentum[i];
     }
 
     float_t old_error = test_params_dataset(old_params, net, dataset);
@@ -288,7 +292,7 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 
     if (new_error >= old_error)
     {
-        speed_factor *= 0.99f;
+        //speed_factor *= 0.99f;
     }
     net->set_params(new_params);
 
@@ -311,15 +315,18 @@ inline void train(layer_ptr& net,
         float_t new_learning_rate,
         float_t old_error,
         float_t new_error,
-        const std::pair<float_t,float_t>& weights_mean_and_stddev)
+        const std::pair<float_t,float_t>& weights_mean_and_stddev,
+        const std::pair<float_t,float_t>& momentum_mean_and_stddev)
     {
         std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)
-        << ", batch old error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(old_error))
-        << ", batch new error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_error))
-        << ", error diff " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_error - old_error))
-        << ", new learning rate " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_learning_rate))
-        << ", weights_mean " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(weights_mean_and_stddev.first))
-        << ", weights_stddev " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(weights_mean_and_stddev.second))
+        << ", batch old error " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(old_error))
+        << ", batch new error " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_error))
+        << ", error diff " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_error - old_error))
+        << ", new learning rate " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_learning_rate))
+        << ", weights_mean " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(weights_mean_and_stddev.first))
+        << ", weights_stddev " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(weights_mean_and_stddev.second))
+        << ", momentum_mean " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(momentum_mean_and_stddev.first))
+        << ", momentum_stddev " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(momentum_mean_and_stddev.second))
         << std::endl;
     };
     /*
@@ -330,6 +337,7 @@ inline void train(layer_ptr& net,
     };
     */
     timer stopwatch;
+    float_vec momentum(net->param_count(), 0);
     for (std::size_t iter = 0; iter < max_iters; ++iter)
     {
         const auto batch =
@@ -338,7 +346,7 @@ inline void train(layer_ptr& net,
                 : fplus::sample(batch_size, dataset);
 
         const auto old_and_new_error =
-            optimize_net_gradient(net, batch, learning_rate);
+            optimize_net_gradient(net, batch, learning_rate, momentum);
 
         const float_t old_error = old_and_new_error.first;
         const float_t new_error = old_and_new_error.second;
@@ -348,7 +356,8 @@ inline void train(layer_ptr& net,
             stopwatch.elapsed() > 0.5)
         {
             show_progress(iter, learning_rate, old_error, new_error,
-                fplus::mean_stddev<float_t>(net->get_params()));
+                fplus::mean_stddev<float_t>(net->get_params()),
+                fplus::mean_stddev<float_t>(momentum));
             stopwatch.reset();
             if (new_error < mean_error_goal)
                 return;

@@ -308,34 +308,23 @@ void gradients_classification_test()
 
 void cifar_10_classification_test()
 {
-    std::cout << frame_string("cifar_10_classification_test") << std::endl;
-    std::cout << "loading cifar-10 ..." << std::flush;
-    auto classifcation_data = load_cifar_10_bin(
-        "./stuff/cifar-10-batches-bin", false, false);
-    std::cout << " done" << std::endl;
-
-    //classifcation_data = normalize_classification_dataset(classifcation_data, false);
-
-
-
     using namespace fd;
 
-
-    const auto activation_function = leaky_relu(0.001);
+    //const auto activation_function = leaky_relu(0.001);
+    //const auto pooling_function = max_pool(2);
+    const auto activation_function = elu(1);
     const auto pooling_function = gentle_max_pool(2, 0.7);
-    //const auto activation_function = elu(1);
-    //const auto pooling_function = gentle_max_pool(2, 0.7);
     pre_layers layers = {
-        conv(size2d(3, 3), 16, 1), activation_function,
-        conv(size2d(3, 3), 16, 1), activation_function,
-        pooling_function,
-
         conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 32, 1), activation_function,
         pooling_function,
 
         conv(size2d(3, 3), 64, 1), activation_function,
         conv(size2d(3, 3), 64, 1), activation_function,
+        pooling_function,
+
+        conv(size2d(3, 3), 128, 1), activation_function,
+        conv(size2d(3, 3), 128, 1), activation_function,
         pooling_function,
 
         //conv(size2d(3, 3), 64, 1), elu(1),
@@ -364,13 +353,38 @@ void cifar_10_classification_test()
         softmax(),
         };
 
+    pre_layers layers_simple = {
+        conv(size2d(3, 3), 12, 1),
+        elu(1),
+        gentle_max_pool(2, 0.7),
+        flatten(),
+        fc(10),
+        softmax(),
+        };
+
+    pre_layers layers_linear = {
+        flatten(),
+        fc(10),
+        softmax(),
+        };
+
+
+
+    std::cout << frame_string("cifar_10_classification_test") << std::endl;
+    std::cout << "loading cifar-10 ..." << std::flush;
+    auto classifcation_data = load_cifar_10_bin(
+        "./stuff/cifar-10-batches-bin", false, false);
+    std::cout << " done" << std::endl;
+
+    //classifcation_data = normalize_classification_dataset(classifcation_data, false);
+
     auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
-    train(tobinet, classifcation_data.training_data_, 2000, 0.001f, 0.1f, 30);
+    train(tobinet, classifcation_data.training_data_, 2000, 0.001f, 0.1f, 50);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
-    std::cout << frame_string("tobinet leaky_relu(0.001) gentle_max_pool(2, 0.7)") << std::endl;
+    std::cout << frame_string("tobinet elu(1) gentle_max_pool(2, 0.7)") << std::endl;
 }
 
 fd::float_t relative_error(fd::float_t x, fd::float_t y)
@@ -447,7 +461,7 @@ void gradient_check_backprop_implementation()
             net->random_init_params();
             auto gradient = calc_net_gradient_numeric(net, data);
             auto gradient_backprop = calc_net_gradient_backprop(net, data);
-            if (!gradients_equal(0.00001, gradient_backprop, gradient))
+            if (!gradients_equal(0.00001f, gradient_backprop, gradient))
             {
                 std::cout << "params            " << show_gradient(net->get_params()) << std::endl;
                 std::cout << "gradient          " << show_gradient(gradient) << std::endl;
@@ -472,7 +486,7 @@ void gradient_check_backprop_implementation()
         fc(2),
         relu(),
         fc(2),
-        leaky_relu(0.03),
+        leaky_relu(0.03f),
         fc(2),
         elu(1),
         fc(2),
@@ -591,7 +605,7 @@ void gradient_check_backprop_implementation()
     auto net_tanh_alpha = net(
     {
         fc(2),
-        tanh(false, 0.3),
+        tanh(false, 0.3f),
         fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_alpha", net_tanh_alpha, 1, 10);
@@ -607,7 +621,7 @@ void gradient_check_backprop_implementation()
     auto net_tanh_lecun_alpha = net(
     {
         fc(2),
-        tanh(true, 0.2),
+        tanh(true, 0.2f),
         fc(2),
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_lecun_alpha", net_tanh_lecun_alpha, 1, 10);

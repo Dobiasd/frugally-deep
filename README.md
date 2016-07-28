@@ -28,12 +28,6 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-ist es mit floats schneller als mit doubles?
-
-elu layer ausgabe checken
-
-cifar10 mal nur mit fc trainieren
-
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
 
 reduce RAM usage have training-data in mem as uchars, not as doubles
@@ -42,7 +36,7 @@ jedem weight seine eigene learning rate geben?
 
 learning rates should be proportional to the square root of the number of inputs to the unit. Gilt das noch bei Relu und co?
 
-learning momentum in batch mode (SGD+Nesterov momentum or Adam)
+learning momentum in batch mode (SGD+Nesterov momentum or Adam statt meinen popeligen)
 http://cs231n.github.io/neural-networks-3/
 
 allow different strides for conv and for pool
@@ -52,7 +46,7 @@ tests in separate cpp
 mnist tests
 https://compvisionlab.wordpress.com/2014/01/01/c-code-for-reading-mnist-data-set/
 
-Increase minibatch size while training
+Increase minibatch size during training
 
 Mini batches: Shuffle input, same amount of every class in batch if possible
 

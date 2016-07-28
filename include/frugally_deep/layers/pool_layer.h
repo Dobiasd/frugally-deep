@@ -28,6 +28,8 @@ public:
             size_in.width_ / scale_factor)),
         scale_factor_(scale_factor)
     {
+        assert(size_in.height_ % scale_factor == 0);
+        assert(size_in.width_ % scale_factor == 0);
     }
     std::size_t param_count() const override
     {

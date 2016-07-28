@@ -28,6 +28,12 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+ist es mit floats schneller als mit doubles?
+
+elu layer ausgabe checken
+
+cifar10 mal nur mit fc trainieren
+
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
 
 reduce RAM usage have training-data in mem as uchars, not as doubles
@@ -90,8 +96,11 @@ or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
 Local Response Normalization layer?
 
 Skip connection aka computational graph?
+paralell_layer (nimmt split_layer-Ableitung und merge_layer-Ableitung (avg oder concat_z) und zwei listen aus layern, die auch leer sein können). Die werden dann nebeneinander ausgeführt (nicht zeitlich). skip_layer ist dann meta-Funktion, die einem was baut.
+
 Caffee import?
-Memoization fuer wenn sich irgendwas gar nicht mehr veraendert?
+
+
 
 
 ### ideas/goals

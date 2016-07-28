@@ -28,9 +28,12 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
+
 RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
 
 jedem weight seine eigene learning rate geben?
+
 learning rates should be proportional to the square root of the number of inputs to the unit. Gilt das noch bei Relu und co?
 
 learning momentum in batch mode (SGD+Nesterov momentum or Adam)
@@ -41,6 +44,7 @@ allow different strides for conv and for pool
 tests in separate cpp
 
 mnist tests
+https://compvisionlab.wordpress.com/2014/01/01/c-code-for-reading-mnist-data-set/
 
 Increase minibatch size while training
 
@@ -71,10 +75,6 @@ loss layers additionally to sigmoid cross entropy?: Multiclass Support Vector Ma
 mini-batches (multiple images concatted in one pass)
 
 split a validation set from the training set to optimize the hyperparameters
-
-learn about Weight initialization strategies
-
-regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?)
 
 rule of thumb: 10 times more training examples than parameters
 

@@ -40,6 +40,9 @@ public:
         assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
             param_count());
     }
+    void random_init_params() override
+    {
+    }
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {

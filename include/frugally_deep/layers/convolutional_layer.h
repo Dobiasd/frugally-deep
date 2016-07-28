@@ -38,6 +38,7 @@ public:
         filters_(generate_filters(size_in.depth_, filter_size, k))
     {
         assert(stride == 1); // todo: allow different strides
+        assert(k != 0);
     }
     std::size_t param_count() const override
     {
@@ -61,11 +62,25 @@ public:
             static_cast<float_vec::difference_type>(
                 filters_.front().param_count());
         auto it = ps_begin;
-        for (auto& filter : filters_)
+        for (auto& filt : filters_)
         {
-            filter.set_params(it, it + filter_param_count);
+            filt.set_params(it, it + filter_param_count);
             it += filter_param_count;
         }
+    }
+    void random_init_params() override
+    {
+        const auto params = fplus::transform_and_concat(
+            [](const filter& filt)
+            {
+                float_t mean = 0;
+                float_t stddev = 1 / std::sqrt(filt.size().volume());
+                auto filt_params = generate_normal_distribution_values(
+                    mean, stddev, filt.param_count());
+                filt_params.back() = 0; // bias;
+                return filt_params;
+            }, filters_);
+        set_params(std::begin(params), std::end(params));
     }
 protected:
     static matrix3d pad_matrix3d(

@@ -273,20 +273,22 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 {
     //auto gradient = calc_net_gradient_numeric(net, dataset);
     auto gradient = calc_net_gradient_backprop(net, dataset);
-
-    float_vec new_params = net->get_params();
     //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
-    for (std::size_t i = 0; i < new_params.size(); ++i)
+
+    float_vec old_params = net->get_params();
+    float_vec new_params = old_params;
+    for (std::size_t i = 0; i < old_params.size(); ++i)
     {
-        new_params[i] -= gradient[i] * speed_factor;
+        float_t change = speed_factor * -gradient[i];
+        new_params[i] += change;
     }
 
-    float_t old_error = test_params_dataset(net->get_params(), net, dataset);
+    float_t old_error = test_params_dataset(old_params, net, dataset);
     float_t new_error = test_params_dataset(new_params, net, dataset);
 
     if (new_error >= old_error)
     {
-        speed_factor *= 0.98f;
+        speed_factor *= 0.99f;
     }
     net->set_params(new_params);
 
@@ -300,15 +302,24 @@ inline void train(layer_ptr& net,
     float_t learning_rate,
     std::size_t batch_size = 0)
 {
-    batch_size = std::min(batch_size, dataset.size());
+    if (batch_size == 0)
+        batch_size = dataset.size();
     std::cout << "starting training, dataset.size " << dataset.size()
         << " batch_size " << batch_size << std::endl;
-    auto show_progress = [](std::size_t iter, float_t current_learning_rate, float_t old_error, float_t new_error)
+    auto show_progress = [](
+        std::size_t iter,
+        float_t new_learning_rate,
+        float_t old_error,
+        float_t new_error,
+        const std::pair<float_t,float_t>& weights_mean_and_stddev)
     {
         std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)
-        << ", learning rate " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(current_learning_rate))
         << ", batch old error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(old_error))
         << ", batch new error " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_error))
+        << ", error diff " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_error - old_error))
+        << ", new learning rate " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(new_learning_rate))
+        << ", weights_mean " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(weights_mean_and_stddev.first))
+        << ", weights_stddev " << fplus::fill_left(' ', 15, fplus::show_float<float_t>(1, 10)(weights_mean_and_stddev.second))
         << std::endl;
     };
     /*
@@ -332,14 +343,15 @@ inline void train(layer_ptr& net,
         const float_t old_error = old_and_new_error.first;
         const float_t new_error = old_and_new_error.second;
 
-        if (iter == 0 || stopwatch.elapsed() > 0.5)
+        if (new_error < mean_error_goal ||
+            iter == 0 ||
+            stopwatch.elapsed() > 0.5)
         {
-            show_progress(iter, learning_rate, old_error, new_error);
+            show_progress(iter, learning_rate, old_error, new_error,
+                fplus::mean_stddev<float_t>(net->get_params()));
             stopwatch.reset();
             if (new_error < mean_error_goal)
-            {
                 return;
-            }
         }
         if (learning_rate < 0.0000001f)
         {

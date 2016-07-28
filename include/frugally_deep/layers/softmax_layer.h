@@ -35,6 +35,9 @@ public:
         assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
             param_count());
     }
+    void random_init_params() override
+    {
+    }
 protected:
     mutable float_t in_vol_max_;
     mutable float_t unnormalized_sum_;

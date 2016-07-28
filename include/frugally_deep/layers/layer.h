@@ -65,6 +65,7 @@ public:
     {
         return size_out_;
     }
+    virtual void random_init_params() = 0;
 
 protected:
     const size3d size_in_;
@@ -72,6 +73,23 @@ protected:
     matrix3d last_input_;
     virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
     virtual matrix3d backward_pass_impl(const matrix3d&, float_vec&) const = 0;
+
+    static float_vec generate_normal_distribution_values(
+        float_t mean,
+        float_t stddev,
+        std::size_t count)
+    {
+        std::random_device rd; // uses seed from system automatically
+        std::mt19937 gen(rd());
+        std::normal_distribution<fd::float_t> d(mean, stddev);
+        float_vec values;
+        values.reserve(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            values.push_back(d(gen));
+        }
+        return values;
+    };
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

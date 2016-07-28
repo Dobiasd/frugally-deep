@@ -62,6 +62,13 @@ public:
             it += layer_param_count;
         }
     }
+    void random_init_params() override
+    {
+        for (auto& layer : layers_)
+        {
+            layer->random_init_params();
+        }
+    }
 
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override

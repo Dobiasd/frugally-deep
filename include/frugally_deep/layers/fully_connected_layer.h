@@ -39,6 +39,20 @@ public:
             param_count());
         params_.overwrite_values(ps_begin, ps_end);
     }
+    void random_init_params() override
+    {
+        float_t mean = 0;
+        float_t stddev = 1 / std::sqrt(size_in_.volume());
+        const auto params =
+            generate_normal_distribution_values(mean, stddev, param_count());
+        set_params(std::begin(params), std::end(params));
+
+        // Set biases to almost 0.
+        for (std::size_t y = 0; y < params_.size().height_; ++y)
+        {
+            params_.set(y, params_.size().width_ - 1, 0.0001);
+        }
+    }
 protected:
     static matrix2d bias_pad_input(const matrix3d& input)
     {

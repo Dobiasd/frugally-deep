@@ -210,7 +210,7 @@ void xor_as_net_test()
     std::cout << "net.param_count() " << xor_net->param_count() << std::endl;
 
     //xor_net->set_params(layers_min_good_params);
-    xor_net->set_params(randomly_change_params(xor_net->get_params(), 0.1f));
+    xor_net->random_init_params();
     train(xor_net, classifcation_data.training_data_, 100000, 0.1f, 0.1f);
     test(xor_net, classifcation_data.test_data_);
 }
@@ -300,7 +300,7 @@ void gradients_classification_test()
 
     //gradnet->set_params(good_params);
 
-    gradnet->set_params(randomly_change_params(gradnet->get_params(), 0.1f));
+    gradnet->random_init_params();
 
     train(gradnet, classifcation_data.training_data_, 1000, 0.01f, 0.1f);
     test(gradnet, classifcation_data.test_data_);
@@ -321,8 +321,8 @@ void cifar_10_classification_test()
     using namespace fd;
 
 
-    const auto activation_function = relu();
-    const auto pooling_function = max_pool(2);
+    const auto activation_function = leaky_relu(0.001);
+    const auto pooling_function = gentle_max_pool(2, 0.7);
     //const auto activation_function = elu(1);
     //const auto pooling_function = gentle_max_pool(2, 0.7);
     pre_layers layers = {
@@ -366,11 +366,11 @@ void cifar_10_classification_test()
 
     auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
-    tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1f));
-    train(tobinet, classifcation_data.training_data_, 4000, 0.001f, 0.1f, 50);
+    tobinet->random_init_params();
+    train(tobinet, classifcation_data.training_data_, 4000, 0.001f, 0.3f, 50);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
-    std::cout << frame_string("tobinet relu maxpool") << std::endl;
+    std::cout << frame_string("tobinet leaky_relu(0.001) gentle_max_pool(2, 0.7)") << std::endl;
 }
 
 fd::float_t relative_error(fd::float_t x, fd::float_t y)
@@ -444,7 +444,7 @@ void gradient_check_backprop_implementation()
         {
             const auto data = generate_random_data(
                 net->input_size(), net->output_size(), data_size);
-            net->set_params(randomly_change_params(net->get_params(), 0.1f));
+            net->random_init_params();
             auto gradient = calc_net_gradient_numeric(net, data);
             auto gradient_backprop = calc_net_gradient_backprop(net, data);
             if (!gradients_equal(0.00001, gradient_backprop, gradient))
@@ -634,7 +634,6 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
-cifar_10_classification_test();
     lenna_filter_test();
     gradient_check_backprop_implementation();
     xor_as_net_test();

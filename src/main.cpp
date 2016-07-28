@@ -367,7 +367,7 @@ void cifar_10_classification_test()
     auto tobinet = net(layers)(size3d(3, 32, 32));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
-    train(tobinet, classifcation_data.training_data_, 4000, 0.001f, 0.3f, 50);
+    train(tobinet, classifcation_data.training_data_, 1000, 0.001f, 0.3f, 50);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
     std::cout << frame_string("tobinet leaky_relu(0.001) gentle_max_pool(2, 0.7)") << std::endl;

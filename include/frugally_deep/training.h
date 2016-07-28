@@ -302,7 +302,7 @@ inline void train(layer_ptr& net,
     float_t learning_rate,
     std::size_t batch_size = 0)
 {
-    if (batch_size == 0)
+    if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
     std::cout << "starting training, dataset.size " << dataset.size()
         << " batch_size " << batch_size << std::endl;

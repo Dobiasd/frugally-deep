@@ -156,22 +156,6 @@ inline float_t square_error_and_sum_div_2(const matrix3d& error)
     return matrix3d_sum_all_values(squared_error) / 2;
 }
 
-/*
-void optimize_net_random(layer_ptr& net,
-    const input_with_output_vec& dataset)
-{
-    auto old_error = calc_squared_error_sum_div_two(net, dataset);
-    float_vec old_params = net->get_params();
-    float_vec new_params = randomly_change_params(old_params, 0.1f);
-    net->set_params(new_params);
-    auto new_error = calc_squared_error_sum_div_two(net, dataset);
-    if (new_error > old_error)
-    {
-        net->set_params(old_params);
-    }
-}
-*/
-
 inline float_t test_params(
     const float_vec& params,
     layer_ptr& net,
@@ -199,7 +183,7 @@ inline float_t test_params_dataset(const float_vec& params,
     return fplus::mean<float_t>(all_square_error_and_sum_div_2_s);
 }
 
-inline float_vec calc_net_gradient(
+inline float_vec calc_net_gradient_numeric(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
@@ -266,12 +250,28 @@ inline float_vec calc_net_gradient_backprop(
     return mean_matrix3d(gradients).as_vector();
 }
 
+inline std::pair<float_t, float_t> optimize_net_random(layer_ptr& net,
+    const input_with_output_vec& dataset)
+{
+    float_vec old_params = net->get_params();
+    float_vec new_params = randomly_change_params(old_params, 0.1f);
+
+    float_t old_error = test_params_dataset(net->get_params(), net, dataset);
+    float_t new_error = test_params_dataset(new_params, net, dataset);
+
+    if (new_error > old_error)
+    {
+        net->set_params(old_params);
+    }
+    return {old_error, new_error};
+}
+
 inline std::pair<float_t, float_t> optimize_net_gradient(
     layer_ptr& net,
     const input_with_output_vec& dataset,
     float_t& speed_factor)
 {
-    //auto gradient = calc_net_gradient(net, dataset);
+    //auto gradient = calc_net_gradient_numeric(net, dataset);
     auto gradient = calc_net_gradient_backprop(net, dataset);
 
     float_vec new_params = net->get_params();
@@ -301,7 +301,8 @@ inline void train(layer_ptr& net,
     std::size_t batch_size = 0)
 {
     batch_size = std::min(batch_size, dataset.size());
-    std::cout << "starting training" << std::endl;
+    std::cout << "starting training, dataset.size " << dataset.size()
+        << " batch_size " << batch_size << std::endl;
     auto show_progress = [](std::size_t iter, float_t current_learning_rate, float_t old_error, float_t new_error)
     {
         std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)

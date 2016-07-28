@@ -77,7 +77,7 @@ fd::input_with_output parse_cifar_10_bin_line(
 fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
 		bool mini_version)
 {
-    std::size_t mini_version_img_count = 10;
+    std::size_t mini_version_img_count = 3;
 	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
     const auto bytes = read_file(file_path, max_bytes);
     const auto lines = fplus::split_every(3073, bytes);
@@ -445,7 +445,7 @@ void gradient_check_backprop_implementation()
             const auto data = generate_random_data(
                 net->input_size(), net->output_size(), data_size);
             net->set_params(randomly_change_params(net->get_params(), 0.1f));
-            auto gradient = calc_net_gradient(net, data);
+            auto gradient = calc_net_gradient_numeric(net, data);
             auto gradient_backprop = calc_net_gradient_backprop(net, data);
             if (!gradients_equal(0.00001, gradient_backprop, gradient))
             {
@@ -634,6 +634,7 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
+cifar_10_classification_test();
     lenna_filter_test();
     gradient_check_backprop_implementation();
     xor_as_net_test();

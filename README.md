@@ -33,7 +33,8 @@ RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
 jedem weight seine eigene learning rate geben?
 learning rates should be proportional to the square root of the number of inputs to the unit. Gilt das noch bei Relu und co?
 
-learning momentum in batch mode
+learning momentum in batch mode (SGD+Nesterov momentum or Adam)
+http://cs231n.github.io/neural-networks-3/
 
 allow different strides for conv and for pool
 

@@ -30,7 +30,7 @@ todo
 
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
 
-RAM usage (cifar data too big? shrink_to_fit? use shared_ptr to avoid copies?)
+reduce RAM usage have training-data in mem as uchars, not as doubles
 
 jedem weight seine eigene learning rate geben?
 

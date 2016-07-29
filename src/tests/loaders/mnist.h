@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fstream>
 
 // http://stackoverflow.com/a/10409376/1866775

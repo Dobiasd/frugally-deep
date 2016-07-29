@@ -301,32 +301,41 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 
 inline void train(layer_ptr& net,
     const input_with_output_vec& dataset,
-    std::size_t max_iters,
     float_t mean_error_goal,
     float_t learning_rate,
-    std::size_t batch_size = 0)
+    std::size_t max_epochs,
+    std::size_t batch_size = 0,
+    std::size_t max_seconds = 0)
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
     std::cout << "starting training, dataset.size " << dataset.size()
-        << " batch_size " << batch_size << std::endl;
+        << ", batch_size " << batch_size << std::endl;
     auto show_progress = [](
-        std::size_t iter,
+        std::size_t epoch,
+        std::size_t epochs,
+        float_t epoch_percent,
         float_t new_learning_rate,
         float_t old_error,
         float_t new_error,
         const std::pair<float_t,float_t>& weights_mean_and_stddev,
         const std::pair<float_t,float_t>& momentum_mean_and_stddev)
     {
-        std::cout << "iteration " << fplus::to_string_fill_left(' ', 10, iter)
-        << ", batch old error " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(old_error))
-        << ", batch new error " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_error))
-        << ", error diff " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_error - old_error))
-        << ", new learning rate " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(new_learning_rate))
-        << ", weights_mean " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(weights_mean_and_stddev.first))
-        << ", weights_stddev " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(weights_mean_and_stddev.second))
-        << ", momentum_mean " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(momentum_mean_and_stddev.first))
-        << ", momentum_stddev " << fplus::fill_left(' ', 10, fplus::show_float<float_t>(1, 6)(momentum_mean_and_stddev.second))
+        const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+        std::cout << "epoch " << fplus::to_string_fill_left(' ', 6, epoch)
+        << "/"
+        << fplus::to_string_fill_right(' ', 6, epochs)
+        << " ("
+        << fplus::show_float_fill_left<float_t>(' ', 3, 0)(epoch_percent)
+        << "%)"
+        << ", batch old err " << show_one_value(old_error)
+        << ", batch new err " << show_one_value(new_error)
+        << ", err diff " << show_one_value(new_error - old_error)
+        << ", new L rate " << show_one_value(new_learning_rate)
+        << ", weights_mean " << show_one_value(weights_mean_and_stddev.first)
+        << ", weights_stddev " << show_one_value(weights_mean_and_stddev.second)
+        << ", momentum_mean " << show_one_value(momentum_mean_and_stddev.first)
+        << ", momentum_stddev " << show_one_value(momentum_mean_and_stddev.second)
         << std::endl;
     };
     /*
@@ -336,40 +345,48 @@ inline void train(layer_ptr& net,
         std::cout << "params " << fplus::show_cont(fplus::transform(show, current_net->get_params())) << std::endl;
     };
     */
-    timer stopwatch;
+    timer stopwatch_overall;
+    timer stopwatch_show;
     float_vec momentum(net->param_count(), 0);
-    for (std::size_t iter = 0; iter < max_iters; ++iter)
+    for (std::size_t epoch = 0; epoch < max_epochs; ++epoch)
     {
-        const auto batch =
-            batch_size == 0
-                ? dataset
-                : fplus::sample(batch_size, dataset);
-
-        const auto old_and_new_error =
-            optimize_net_gradient(net, batch, learning_rate, momentum);
-
-        const float_t old_error = old_and_new_error.first;
-        const float_t new_error = old_and_new_error.second;
-
-        if (new_error < mean_error_goal ||
-            iter == 0 ||
-            stopwatch.elapsed() > 0.5)
+        for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
         {
-            show_progress(iter, learning_rate, old_error, new_error,
-                fplus::mean_stddev<float_t>(net->get_params()),
-                fplus::mean_stddev<float_t>(momentum));
-            stopwatch.reset();
-            if (new_error < mean_error_goal)
+            const auto batch = fplus::get_range(
+                batch_start_idx,
+                std::min(dataset.size(), batch_start_idx + batch_size),
+                dataset);
+
+            const auto old_and_new_error =
+                optimize_net_gradient(net, batch, learning_rate, momentum);
+
+            const float_t old_error = old_and_new_error.first;
+            const float_t new_error = old_and_new_error.second;
+
+            if (new_error < mean_error_goal ||
+                stopwatch_show.elapsed() > 0.5 ||
+                (batch_start_idx == 0 && epoch == 0))
+            {
+                float_t epoch_percent = 100.0f * batch_start_idx / dataset.size();
+                show_progress(epoch, max_epochs, epoch_percent, learning_rate, old_error, new_error,
+                    fplus::mean_stddev<float_t>(net->get_params()),
+                    fplus::mean_stddev<float_t>(momentum));
+                stopwatch_show.reset();
+                if (new_error < mean_error_goal)
+                    return;
+            }
+            if (max_seconds != 0 && stopwatch_overall.elapsed() >= max_seconds)
+            {
+                std::cout << "Stop training: time out" << std::endl;
                 return;
-        }
-        if (learning_rate < 0.0000001f)
-        {
-            return;
+            }
+            if (learning_rate < 0.0000001f)
+            {
+                std::cout << "Stop training: learning rate dead" << std::endl;
+                return;
+            }
         }
     }
-    //const float_t error = test_params_dataset(net->get_params(), net, dataset);
-    //show_progress(max_iters, learning_rate, 0, error);
-    //show_params(net);
 }
 
 inline void test(layer_ptr& net, const input_with_output_vec& dataset)

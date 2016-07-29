@@ -4,6 +4,7 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
+#pragma once
 
 #include "frugally_deep/frugally_deep.h"
 

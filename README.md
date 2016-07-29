@@ -41,14 +41,9 @@ http://cs231n.github.io/neural-networks-3/
 
 tests in separate cpp
 
-mnist tests
-https://compvisionlab.wordpress.com/2014/01/01/c-code-for-reading-mnist-data-set/
-
 Increase minibatch size during training
 
 Mini batches: Shuffle input, same amount of every class in batch if possible
-
-Training per epoch
 
 flatten nestes multilayer nets? Ideally directly create them that way
 
@@ -109,4 +104,4 @@ video autoencoder? (Spatio-temporal? would mean matrix4d)
 Video compression
 zweites video dabei, was die differenzframes drin hat
 anfang vom neuronalen netz koennte der codec sein und nur der FC-Layer waere das eigentliche Video
-oder low-bitrate-video so nachverbessern? https://arxiv.org/pdf/1504.06993.pdf
+oder low-bitrate-video mit "Compression Artifacts Reduction by a Deep Convolutional Network" (https://arxiv.org/pdf/1504.06993.pdf) nachverbessern?

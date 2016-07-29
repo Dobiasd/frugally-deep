@@ -270,7 +270,7 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
         float_t change = speed_factor * -gradient[i];
 
         momentum[i] += change;
-        momentum[i] *= 0.1;
+        momentum[i] *= 0.7;
 
         new_params[i] += change + momentum[i];
 
@@ -292,7 +292,7 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 
     if (new_error >= old_error)
     {
-        //speed_factor *= 0.99f;
+        //speed_factor *= 0.999f;
     }
     net->set_params(new_params);
 
@@ -374,7 +374,7 @@ inline void train(layer_ptr& net,
 
 inline void test(layer_ptr& net, const input_with_output_vec& dataset)
 {
-    std::cout << "running test" << std::endl;
+    std::cout << "tests to run: " << dataset.size() << std::endl;
     std::size_t correct_count = 0;
     for (const auto& data : dataset)
     {

@@ -96,6 +96,24 @@ inline cv::Mat matrix3d_to_cv_bgr_img_float(const fd::matrix3d& m)
     return img;
 }
 
+inline cv::Mat matrix3d_to_cv_gray_img_float(const fd::matrix3d& m)
+{
+    assert(m.size().depth_ == 1);
+    cv::Mat img(
+        static_cast<int>(m.size().height_),
+        static_cast<int>(m.size().width_),
+        CV_32FC1);
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            float col(static_cast<float>(m.get(0, y, x)));
+            img.at<float>(static_cast<int>(y), static_cast<int>(x)) = col;
+        }
+    }
+    return img;
+}
+
 inline fd::layer_ptr cv_kernel_to_layer(const fd::size3d& in_size,
     const cv::Mat& cv_kernel)
 {

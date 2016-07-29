@@ -45,13 +45,13 @@ protected:
 
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
-        // http://stackoverflow.com/q/9906136/1866775
-        //in_vol_max_ = fplus::maximum(input.as_vector());
-
         const auto ex = [this](float_t x) -> float_t
         {
-            return std::exp(x);
+            // todo: why does this trick make the gradient check fail?
+            // http://stackoverflow.com/q/9906136/1866775
+            //in_vol_max_ = fplus::maximum(input.as_vector());
             //return std::exp(x - in_vol_max_);
+            return std::exp(x);
         };
 
         const auto unnormalized = transform_matrix3d(ex, input);
@@ -75,8 +75,8 @@ protected:
 
         const auto ex = [this](float_t x) -> float_t
         {
-            return std::exp(x);
             //return std::exp(x - in_vol_max_);
+            return std::exp(x);
         };
 
         for (std::size_t i = 0; i < fa_vec.size(); ++i)

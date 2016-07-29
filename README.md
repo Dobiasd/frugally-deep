@@ -28,22 +28,16 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-stride 2 for conv to avoid pool
+allow different strides for conv and for pool, stride 2 in conv can make pooling superfluous
 
-pool does not need to save lastinput, but maxPool needs markers
+mem optimization: pool layer does not need to save last_input_, but max_pool needs markers
 
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
 
 reduce RAM usage have training-data in mem as uchars, not as doubles
 
-jedem weight seine eigene learning rate geben?
-
-learning rates should be proportional to the square root of the number of inputs to the unit. Gilt das noch bei Relu und co?
-
-learning momentum in batch mode (SGD+Nesterov momentum or Adam statt meinen popeligen)
+learning momentum in batch mode (statt meinem momentan mal SGD+Nesterov momentum or Adam probieren)
 http://cs231n.github.io/neural-networks-3/
-
-allow different strides for conv and for pool
 
 tests in separate cpp
 
@@ -56,15 +50,13 @@ Mini batches: Shuffle input, same amount of every class in batch if possible
 
 Training per epoch
 
-softmax-layer: Why does backprop for std::exp(x - in_vol_max_) not work so well?
-
 flatten nestes multilayer nets? Ideally directly create them that way
 
 typedefs.h nach config.h umbenennen und globals da rein
 
 clean up training.h
 
-spiral dataset as a test ( http://cs231n.github.io/neural-networks-case-study/ )
+spiral dataset as a test ( http://cs231n.github.io/neural-networks-case-study/ ), with image output to see fit
 
 backprop: use bfgs etc. on param-derivs
 
@@ -76,7 +68,7 @@ layers to implement:
 transposed convolution layer aka deconv aka unconv aka fractional step conv
 loss layers additionally to sigmoid cross entropy?: Multiclass Support Vector Machine loss (SVM) manhattan (l1)?, euclidian (l2)?
 
-mini-batches (multiple images concatted in one pass)
+mini-batches (multiple images concatted in one pass instead of one after another)
 
 split a validation set from the training set to optimize the hyperparameters
 

@@ -8,6 +8,8 @@
 #include <iostream>
 
 #include "opencv_helpers.h"
+#include "loaders/mnist.h"
+#include "loaders/cifar10.h"
 
 #include "frugally_deep/frugally_deep.h"
 
@@ -18,102 +20,6 @@
 #include <fstream>
 #include <iostream>
 
-// http://stackoverflow.com/a/21802936
-std::vector<unsigned char> read_file(const std::string& filename,
-    std::size_t max_bytes)
-{
-    // open the file:
-    std::ifstream file(filename, std::ios::binary);
-
-    assert(file.good());
-
-    // Stop eating new lines in binary mode!!!
-    file.unsetf(std::ios::skipws);
-
-    // get its size:
-    std::streampos fileSize;
-
-    file.seekg(0, std::ios::end);
-    fileSize = file.tellg();
-    assert(fileSize == static_cast<std::streamoff>(30730000));
-    if (max_bytes != 0)
-    {
-    	fileSize = static_cast<std::streamoff>(max_bytes);
-    }
-    file.seekg(0, std::ios::beg);
-
-    // reserve memory and fill with zeroes
-    std::vector<unsigned char> vec(static_cast<std::size_t>(fileSize), 0);
-
-    // read the data:
-    file.read(reinterpret_cast<char*>(&vec[0]), fileSize);
-
-    return vec;
-}
-
-fd::input_with_output parse_cifar_10_bin_line(
-    const std::vector<unsigned char>& vec)
-{
-    assert(vec.size() == 3073);
-    fd::matrix3d output(fd::size3d(1, 10, 1), fd::float_vec(10, 0));
-    assert(vec[0] < 10);
-    output.set(0, vec[0], 0, 1);
-    fd::matrix3d input(fd::size3d(3, 32, 32));
-    std::size_t vec_i = 0;
-    for (std::size_t z = 0; z < input.size().depth_; ++z)
-    {
-        for (std::size_t y = 0; y < input.size().height_; ++y)
-        {
-            for (std::size_t x = 0; x < input.size().width_; ++x)
-            {
-                input.set(input.size().depth_ - (z + 1), y, x,
-                    vec[++vec_i] / static_cast<float_t>(256));
-            }
-        }
-    }
-    return {input, output};
-}
-
-fd::input_with_output_vec load_cifar_10_bin_file(const std::string& file_path,
-		bool mini_version)
-{
-    std::size_t mini_version_img_count = 3;
-	std::size_t max_bytes = mini_version ? 3073 * mini_version_img_count : 0;
-    const auto bytes = read_file(file_path, max_bytes);
-    const auto lines = fplus::split_every(3073, bytes);
-    assert((mini_version && lines.size() == mini_version_img_count) ||
-        lines.size() == 10000);
-    return fplus::transform(parse_cifar_10_bin_line, lines);
-}
-
-fd::input_with_output_vec load_cifar_10_bin_training(
-    const std::string& base_directory,
-	bool mini_version)
-{
-    return fplus::concat(std::vector<fd::input_with_output_vec>({
-        load_cifar_10_bin_file(base_directory + "/data_batch_1.bin", mini_version),
-        load_cifar_10_bin_file(base_directory + "/data_batch_2.bin", mini_version),
-        load_cifar_10_bin_file(base_directory + "/data_batch_3.bin", mini_version),
-        load_cifar_10_bin_file(base_directory + "/data_batch_4.bin", mini_version),
-        load_cifar_10_bin_file(base_directory + "/data_batch_5.bin", mini_version)}));
-}
-
-fd::input_with_output_vec load_cifar_10_bin_test(
-    const std::string& base_directory,
-	bool mini_version)
-{
-    return load_cifar_10_bin_file(base_directory + "/test_batch.bin", mini_version);
-}
-
-fd::classification_dataset load_cifar_10_bin(
-    const std::string& base_directory,
-	bool mini_version_training = false,
-    bool mini_version_test = false)
-{
-    return {
-        load_cifar_10_bin_training(base_directory, mini_version_training),
-        load_cifar_10_bin_test(base_directory, mini_version_test)};
-}
 
 std::string frame_string(const std::string& str)
 {
@@ -385,7 +291,50 @@ void cifar_10_classification_test()
     train(tobinet, classifcation_data.training_data_, 2000, 0.001f, 0.1f, 50);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
-    std::cout << frame_string("tobinet elu(1) gentle_max_pool(2, 0.7)") << std::endl;
+    std::cout << frame_string("cifar-10-tobi-net elu(1) gentle_max_pool(2, 0.7)") << std::endl;
+}
+
+
+
+
+void mnist_classification_test()
+{
+    using namespace fd;
+
+    //const auto activation_function = leaky_relu(0.001);
+    //const auto pooling_function = max_pool(2);
+    const auto activation_function = elu(1);
+    const auto pooling_function = gentle_max_pool(2, 0.7);
+    pre_layers layers = {
+        conv(size2d(3, 3), 8, 1), activation_function,
+        conv(size2d(3, 3), 8, 1), activation_function,
+        pooling_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        pooling_function,
+        flatten(),
+        fc(200),
+        tanh(true),
+        fc(10),
+        tanh(true),
+        softmax(),
+        };
+
+
+    std::cout << frame_string("mnist_classification_test") << std::endl;
+    std::cout << "loading mnist ..." << std::flush;
+    auto classifcation_data = read_mnist("./stuff/mnist");
+    std::cout << " done" << std::endl;
+
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
+
+    auto tobinet = net(layers)(size3d(1, 28, 28));
+    std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
+    tobinet->random_init_params();
+    train(tobinet, classifcation_data.training_data_, 100, 0.001f, 0.1f, 50);
+    //test(tobinet, classifcation_data.training_data_);
+    test(tobinet, classifcation_data.test_data_);
+    std::cout << frame_string("mnist-tobi-net elu(1) gentle_max_pool(2, 0.7)") << std::endl;
 }
 
 fd::float_t relative_error(fd::float_t x, fd::float_t y)
@@ -579,11 +528,11 @@ void gradient_check_backprop_implementation()
 
     auto net_softmax = net(
     {
-        fc(2),
+        fc(7),
         softmax(),
-        fc(2),
-    })(size3d(1, 2, 1));
-    test_net_backprop("net_softmax", net_softmax, 1, 10);
+        fc(7),
+    })(size3d(1, 7, 1));
+    test_net_backprop("net_softmax", net_softmax, 3, 30);
 
 
 
@@ -653,5 +602,6 @@ int main()
     gradient_check_backprop_implementation();
     xor_as_net_test();
     gradients_classification_test();
+    mnist_classification_test();
     cifar_10_classification_test();
 }

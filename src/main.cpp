@@ -274,7 +274,7 @@ void gradients_classification_test()
 
     pre_layers layers = {
         conv(size2d(3, 3), 2, 1),
-        elu(1),
+        relu(),
         max_pool(32),
         flatten(),
         fc(2),
@@ -300,7 +300,8 @@ void gradients_classification_test()
 
     //gradnet->set_params(good_params);
 
-    gradnet->random_init_params();
+    //gradnet->random_init_params();
+    gradnet->set_params(fd::randomly_change_params(gradnet->get_params(), 1.4));
 
     train(gradnet, classifcation_data.training_data_, 1000, 0.01f, 0.1f);
     test(gradnet, classifcation_data.test_data_);
@@ -648,9 +649,9 @@ void gradient_check_backprop_implementation()
 
 int main()
 {
-    lenna_filter_test();
-    gradient_check_backprop_implementation();
-    xor_as_net_test();
+    //lenna_filter_test();
+    //gradient_check_backprop_implementation();
+    //xor_as_net_test();
     gradients_classification_test();
-    cifar_10_classification_test();
+    //cifar_10_classification_test();
 }

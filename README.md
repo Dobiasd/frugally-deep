@@ -28,6 +28,10 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+stride 2 for conv to avoid pool
+
+pool does not need to save lastinput, but maxPool needs markers
+
 regularization to prevent overfitting (penalize squared weight sum, dropout. not needed for autoencoder?) jedes weight sollte nah an seiner standard-abweichung vom init sein
 
 reduce RAM usage have training-data in mem as uchars, not as doubles

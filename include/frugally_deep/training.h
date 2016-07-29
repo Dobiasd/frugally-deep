@@ -77,14 +77,14 @@ template <typename F>
 classification_dataset transform_classification_dataset(
     const F& f,
     const classification_dataset& dataset,
-    bool normalize_output_too)
+    bool transform_output_too)
 {
     const auto transform_input_and_output = [&]
         (const input_with_output& in_with_out) -> input_with_output
     {
         return {
             transform_matrix3d(f, in_with_out.input_),
-            normalize_output_too
+			transform_output_too
                 ? transform_matrix3d(f, in_with_out.output_)
                 : in_with_out.output_
             };
@@ -128,20 +128,6 @@ inline float_vec randomly_change_params(const float_vec& old_params, float_t std
         new_params[i] += static_cast<float_t>(d(gen));
     }
     return new_params;
-}
-
-inline std::vector<matrix3d> calc_all_output_errors(
-    const layer_ptr& net,
-    const input_with_output_vec& dataset)
-{
-    std::vector<matrix3d> error_matrices;
-    for (const auto& data : dataset)
-    {
-        auto result = net->forward_pass(data.input_);
-        auto error = sub_matrix3d(result, data.output_);
-        error_matrices.push_back(error);
-    }
-    return error_matrices;
 }
 
 inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
@@ -282,9 +268,23 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
     for (std::size_t i = 0; i < old_params.size(); ++i)
     {
         float_t change = speed_factor * -gradient[i];
+
         momentum[i] += change;
-        momentum[i] *= 0.9;
+        momentum[i] *= 0.1;
+
         new_params[i] += change + momentum[i];
+
+        // regularization (Max norm constraints)
+        if (new_params[i] < -3)
+        {
+            new_params[i] = -3;
+            momentum[i] = 0;
+        }
+        if (new_params[i] > 3)
+        {
+            new_params[i] = 3;
+            momentum[i] = 0;
+        }
     }
 
     float_t old_error = test_params_dataset(old_params, net, dataset);

@@ -32,9 +32,11 @@ inline void mnist_classification_test()
         conv(size2d(3, 3), 8, 1), activation_function,
         conv(size2d(3, 3), 8, 1), activation_function,
         pooling_function,
-        conv(size2d(3, 3), 16, 1), activation_function,
-        conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 12, 1), activation_function,
+        conv(size2d(3, 3), 12, 1), activation_function,
         pooling_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
         flatten(),
         fc(200),
         tanh(true),
@@ -58,7 +60,8 @@ inline void mnist_classification_test()
     auto tobinet = net(layers)(size3d(1, 28, 28));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
-    train(tobinet, classifcation_data.training_data_, 0.001f, 0.1f, 10, 64, 60);
+    train(tobinet, classifcation_data.training_data_,
+        0.001f, 0.1f, 100, 64, 10*60);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
     std::cout << frame_string("mnist-tobi-net elu(1) gentle_max_pool(2, 0.7)") << std::endl;

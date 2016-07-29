@@ -27,5 +27,5 @@ int main()
     xor_as_net_test();
     gradients_classification_test();
     mnist_classification_test();
-    cifar_10_classification_test();
+    //cifar_10_classification_test();
 }

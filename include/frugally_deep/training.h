@@ -300,7 +300,7 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 }
 
 inline void train(layer_ptr& net,
-    const input_with_output_vec& dataset,
+    input_with_output_vec& dataset,
     float_t mean_error_goal,
     float_t learning_rate,
     std::size_t max_epochs,
@@ -348,8 +348,14 @@ inline void train(layer_ptr& net,
     timer stopwatch_overall;
     timer stopwatch_show;
     float_vec momentum(net->param_count(), 0);
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
     for (std::size_t epoch = 0; epoch < max_epochs; ++epoch)
     {
+        std::shuffle(dataset.begin(), dataset.end(), g);
+
         for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
         {
             const auto batch = fplus::get_range(

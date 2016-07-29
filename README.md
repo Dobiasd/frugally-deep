@@ -28,6 +28,8 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+Im Prinzip will man ja nur, dass der nächste Layer fuer andere klassen möglichst unique ist und für gleiche möglichst gleich.
+
 allow different strides for conv and for pool, stride 2 in conv can make pooling superfluous
 
 mem optimization: pool layer does not need to save last_input_, but max_pool needs markers

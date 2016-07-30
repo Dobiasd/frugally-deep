@@ -12,6 +12,7 @@
 #include "tests/test_helpers.h"
 #include "tests/xor.h"
 #include "tests/variance_inflation_training.h"
+#include "tests/tiny_imagenet_200.h"
 
 #include "frugally_deep/frugally_deep.h"
 
@@ -23,12 +24,13 @@
 
 int main()
 {
-    variance_inflation_training_test();
-    return 0;
-    lenna_filter_test();
+    //variance_inflation_training_test();
+    //return 0;
+    //lenna_filter_test();
     gradient_check_backprop_implementation();
-    xor_as_net_test();
-    gradients_classification_test();
-    mnist_classification_test();
-    cifar_10_classification_test();
+    //xor_as_net_test();
+    //gradients_classification_test();
+    //mnist_classification_test();
+    //cifar_10_classification_test();
+    tiny_imagenet_200_autoencoder_test();
 }

@@ -235,3 +235,35 @@ inline cv::Mat normalize_float_img(const cv::Mat& floatImg)
     cv::normalize(floatImg, result, 0, 1, cv::NORM_MINMAX);
     return result;
 }
+
+inline void save_matrix3d_image(const fd::matrix3d& m, const std::string& path)
+{
+    if (m.size().depth_ == 1)
+    {
+        cv::Mat img = float_img_to_uchar_img(matrix3d_to_cv_bgr_img_float(m));
+        cv::imwrite(path, img);
+    }
+    else if (m.size().depth_ == 1)
+    {
+        cv::Mat img = float_img_to_uchar_img(matrix3d_to_cv_gray_img_float(m));
+        cv::imwrite(path, img);
+    }
+    else
+    {
+        assert(false); // matrix must have depth 1 or 3
+    }
+}
+
+inline fd::matrix3d load_matrix3d_image_gray(const std::string& path)
+{
+    cv::Mat img = cv::imread(path, CV_LOAD_IMAGE_GRAYSCALE);
+    img = uchar_img_to_float_img(img);
+    return cv_gray_img_float_to_matrix3d(img);
+}
+
+inline fd::matrix3d load_matrix3d_image_bgr(const std::string& path)
+{
+    cv::Mat img = cv::imread(path, CV_LOAD_IMAGE_COLOR);
+    img = uchar_img_to_float_img(img);
+    return cv_bgr_img_float_to_matrix3d(img);
+}

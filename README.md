@@ -28,7 +28,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-Im Prinzip will man ja nur, dass der nächste Layer fuer andere klassen möglichst unique ist und für gleiche möglichst gleich.
+Im Prinzip will man ja nur, dass der nächste Layer fuer andere klassen möglichst unique ist und für gleiche möglichst gleich. Man muss also eigentlich nicht das Optimum einer bestimmten Fehlerfunktion finden, sondern das Optimum von einer von sehr vielen möglichen Fehlerfunktionen.
 
 allow different strides for conv and for pool, stride 2 in conv can make pooling superfluous
 
@@ -96,8 +96,8 @@ image autoencoder
 
 image classification
 
-neural style perceptual loss
-https://arxiv.org/abs/1603.08155
+neural style (vielleicht mit perceptual loss: https://arxiv.org/abs/1603.08155)
+Vielleicht kann man aber auch Style-Bild und Content-Bild gleichzeitig in ein Netz drücken wenn man sie einfach in der depth-Dimension hintereinander legt.
 
 semantic morphing (e.g. faces)
 

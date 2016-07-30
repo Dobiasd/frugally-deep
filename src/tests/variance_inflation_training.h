@@ -54,6 +54,7 @@ inline void variance_inflation_training_test()
     classifcation_data.training_data_ = fplus::take(600, classifcation_data.training_data_);
     classifcation_data.test_data_ = fplus::take(100, classifcation_data.test_data_);
 
+    classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
 
     auto layer0 = layers[0](size3d(1, 28, 28));
@@ -98,7 +99,7 @@ inline void variance_inflation_training_test()
     const auto gradient = calc_net_gradient_backprop(layer0, data_backprop);
 
     float_vec momentum(layer0->param_count(), 0);
-    fd::float_t learning_rate = 0.0000000001;
+    fd::float_t learning_rate = 0.1;
     const auto old_and_new_error = optimize_net_gradient(
         layer0, data_backprop, learning_rate, momentum, gradient);
 
@@ -108,9 +109,6 @@ inline void variance_inflation_training_test()
     show_progress(0,0,0,learning_rate,old_error,new_error,
         fplus::mean_stddev<fd::float_t>(layer0->get_params()),
         fplus::mean_stddev<fd::float_t>(momentum));
-
-
-    classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
     auto tobinet = net(layers)(size3d(1, 28, 28));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;

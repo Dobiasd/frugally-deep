@@ -27,24 +27,24 @@ inline void mnist_classification_test()
     //const auto activation_function = leaky_relu(0.001);
     //const auto pooling_function = max_pool(2);
     const auto activation_function = elu(1);
-    const auto pooling_function = gentle_max_pool(2, 0.7);
+    const auto pooling_function = gentle_max_pool(2, 0.8);
     pre_layers layers = {
-        conv(size2d(3, 3), 8, 1), activation_function,
-        conv(size2d(3, 3), 8, 1), activation_function,
-        pooling_function,
-        conv(size2d(3, 3), 12, 1), activation_function,
-        conv(size2d(3, 3), 12, 1), activation_function,
-        pooling_function,
         conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        pooling_function,
+        conv(size2d(3, 3), 24, 1), activation_function,
+        conv(size2d(3, 3), 24, 1), activation_function,
+        pooling_function,
+        conv(size2d(3, 3), 32, 1), activation_function,
+        conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 16, 1), activation_function,
         flatten(),
-        fc(200),
+        fc(300),
         tanh(true),
         fc(10),
         tanh(true),
         softmax(),
         };
-
 
     std::cout << frame_string("mnist_classification_test") << std::endl;
     std::cout << "loading mnist ..." << std::flush;
@@ -61,8 +61,8 @@ inline void mnist_classification_test()
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
     train(tobinet, classifcation_data.training_data_,
-        0.001f, 0.1f, 100, 64, 10*60);
+        0.001f, 0.1f, 100, 128, 13*60*60);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
-    std::cout << frame_string("mnist-tobi-net elu(1) gentle_max_pool(2, 0.7)") << std::endl;
+    std::cout << frame_string("mnist-tobi-net elu(1) gentle_max_pool(2, 0.8)") << std::endl;
 }

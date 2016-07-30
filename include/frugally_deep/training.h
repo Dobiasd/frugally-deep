@@ -215,8 +215,8 @@ inline float_vec calc_net_gradient_backprop(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    std::vector<matrix3d> gradients; // misuse matrix3d as float_vec
-    gradients.reserve(dataset.size());
+    // use matrix3d as float_vec
+    matrix3d mean_gradient_acc(size3d(1, 1, net->param_count()));
     for (const auto& data : dataset)
     {
         auto result = net->forward_pass(data.input_);
@@ -224,10 +224,10 @@ inline float_vec calc_net_gradient_backprop(
         float_vec gradient;
         gradient.reserve(net->param_count());
         net->backward_pass(error, gradient);
-        gradient = fplus::reverse(gradient);
-        gradients.push_back(matrix3d(size3d(1, gradient.size(), 1), gradient));
+        mean_gradient_acc += matrix3d(size3d(1, 1, gradient.size()), gradient);
     }
-    return mean_matrix3d(gradients).as_vector();
+    mean_gradient_acc = mean_gradient_acc / static_cast<float_t>(dataset.size());
+    return fplus::reverse(mean_gradient_acc.as_vector());
 }
 
 inline std::pair<float_t, float_t> optimize_net_random(layer_ptr& net,
@@ -369,8 +369,9 @@ inline void train(layer_ptr& net,
                 std::min(dataset.size(), batch_start_idx + batch_size),
                 dataset);
 
-            //auto gradient = calc_net_gradient_numeric(net, dataset);
-            auto gradient = calc_net_gradient_backprop(net, dataset);
+            //auto gradient = calc_net_gradient_numeric(net, batch);
+            auto gradient = calc_net_gradient_backprop(net, batch);
+
             const auto old_and_new_error = optimize_net_gradient(
                 net, batch, learning_rate, momentum, gradient);
 

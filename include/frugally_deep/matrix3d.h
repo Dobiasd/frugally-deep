@@ -264,6 +264,12 @@ inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
         m1.as_vector(), m2.as_vector()));
 }
 
+inline matrix3d sum_matrix3ds(const std::vector<matrix3d>& ms)
+{
+    assert(!ms.empty());
+    return fplus::fold_left_1(add_matrix3ds, ms);
+}
+
 inline matrix3d multiply_matrix3ds_elementwise(
     const matrix3d& m1, const matrix3d& m2)
 {
@@ -284,6 +290,11 @@ inline matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
 inline matrix3d divide_matrix3d(const matrix3d& m, float_t divisor)
 {
     return multiply_matrix3d(m, 1 / divisor);
+}
+
+inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
+{
+    return divide_matrix3d(sum_matrix3ds(ms), static_cast<float_t>(ms.size()));
 }
 
 inline matrix3d sub_matrix3d(const matrix3d& m1, const matrix3d& m2)
@@ -341,6 +352,12 @@ inline bool operator == (const matrix3d& a, const matrix3d& b)
 inline bool operator != (const matrix3d& a, const matrix3d& b)
 {
     return !(a == b);
+}
+
+inline matrix3d& operator += (matrix3d& lhs, const matrix3d& rhs)
+{
+    lhs = lhs + rhs;
+    return lhs;
 }
 
 } // namespace fd

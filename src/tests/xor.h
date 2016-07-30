@@ -68,6 +68,6 @@ inline void xor_as_net_test()
 
     //xor_net->set_params(layers_min_good_params);
     xor_net->random_init_params();
-    train(xor_net, classifcation_data.training_data_, 0.1f, 0.1f, 10);
+    train(xor_net, classifcation_data.training_data_, 0.1f, 0.01f, 1000);
     test(xor_net, classifcation_data.test_data_);
 }

@@ -11,6 +11,7 @@
 #include "tests/mnist.h"
 #include "tests/test_helpers.h"
 #include "tests/xor.h"
+#include "tests/variance_inflation_training.h"
 
 #include "frugally_deep/frugally_deep.h"
 
@@ -22,10 +23,12 @@
 
 int main()
 {
+    variance_inflation_training_test();
+    return 0;
     lenna_filter_test();
     gradient_check_backprop_implementation();
     xor_as_net_test();
     gradients_classification_test();
     mnist_classification_test();
-    //cifar_10_classification_test();
+    cifar_10_classification_test();
 }

@@ -130,12 +130,6 @@ inline float_vec randomly_change_params(const float_vec& old_params, float_t std
     return new_params;
 }
 
-inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
-{
-    return fplus::fold_left_1(add_matrix3ds, ms) /
-        static_cast<float_t>(ms.size());
-}
-
 inline float_t square_error_and_sum_div_2(const matrix3d& error)
 {
     const auto squared_error = transform_matrix3d(fplus::square<float_t>, error);
@@ -221,7 +215,7 @@ inline float_vec calc_net_gradient_backprop(
     layer_ptr& net,
     const input_with_output_vec& dataset)
 {
-    std::vector<matrix3d> gradients;
+    std::vector<matrix3d> gradients; // misuse matrix3d as float_vec
     gradients.reserve(dataset.size());
     for (const auto& data : dataset)
     {
@@ -252,16 +246,12 @@ inline std::pair<float_t, float_t> optimize_net_random(layer_ptr& net,
     return {old_error, new_error};
 }
 
-inline std::pair<float_t, float_t> optimize_net_gradient(
+inline std::pair<float_vec, float_vec> change_net_params_gradient(
     layer_ptr& net,
-    const input_with_output_vec& dataset,
     float_t& speed_factor,
-    float_vec& momentum)
+    float_vec& momentum,
+    const float_vec& gradient)
 {
-    //auto gradient = calc_net_gradient_numeric(net, dataset);
-    auto gradient = calc_net_gradient_backprop(net, dataset);
-    //std::cout << "gradient " << fplus::show_cont(gradient) << std::endl;
-
     float_vec old_params = net->get_params();
     float_vec new_params = old_params;
     assert(momentum.size() == new_params.size());
@@ -286,7 +276,21 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
             momentum[i] = 0;
         }
     }
+    return {old_params, new_params};
+}
 
+inline std::pair<float_t, float_t> optimize_net_gradient(
+    layer_ptr& net,
+    const input_with_output_vec& dataset,
+    float_t& speed_factor,
+    float_vec& momentum,
+    const float_vec& gradient)
+{
+    const auto old_and_new_params = change_net_params_gradient(
+        net, speed_factor, momentum, gradient);
+
+    const auto& old_params = old_and_new_params.first;
+    const auto& new_params = old_and_new_params.second;
     float_t old_error = test_params_dataset(old_params, net, dataset);
     float_t new_error = test_params_dataset(new_params, net, dataset);
 
@@ -298,6 +302,34 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
 
     return {old_error, new_error};
 }
+
+void show_progress(
+    std::size_t epoch,
+    std::size_t epochs,
+    float_t epoch_percent,
+    float_t new_learning_rate,
+    float_t old_error,
+    float_t new_error,
+    const std::pair<float_t,float_t>& weights_mean_and_stddev,
+    const std::pair<float_t,float_t>& momentum_mean_and_stddev)
+{
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    std::cout << "epoch " << fplus::to_string_fill_left(' ', 6, epoch)
+    << "/"
+    << fplus::to_string_fill_right(' ', 6, epochs)
+    << " ("
+    << fplus::show_float_fill_left<float_t>(' ', 3, 0)(epoch_percent)
+    << "%)"
+    << ", batch old err " << show_one_value(old_error)
+    << ", batch new err " << show_one_value(new_error)
+    << ", err diff " << show_one_value(new_error - old_error)
+    << ", new L rate " << show_one_value(new_learning_rate)
+    << ", weights_mean " << show_one_value(weights_mean_and_stddev.first)
+    << ", weights_stddev " << show_one_value(weights_mean_and_stddev.second)
+    << ", momentum_mean " << show_one_value(momentum_mean_and_stddev.first)
+    << ", momentum_stddev " << show_one_value(momentum_mean_and_stddev.second)
+    << std::endl;
+};
 
 inline void train(layer_ptr& net,
     input_with_output_vec& dataset,
@@ -311,33 +343,7 @@ inline void train(layer_ptr& net,
         batch_size = dataset.size();
     std::cout << "starting training, dataset.size " << dataset.size()
         << ", batch_size " << batch_size << std::endl;
-    auto show_progress = [](
-        std::size_t epoch,
-        std::size_t epochs,
-        float_t epoch_percent,
-        float_t new_learning_rate,
-        float_t old_error,
-        float_t new_error,
-        const std::pair<float_t,float_t>& weights_mean_and_stddev,
-        const std::pair<float_t,float_t>& momentum_mean_and_stddev)
-    {
-        const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
-        std::cout << "epoch " << fplus::to_string_fill_left(' ', 6, epoch)
-        << "/"
-        << fplus::to_string_fill_right(' ', 6, epochs)
-        << " ("
-        << fplus::show_float_fill_left<float_t>(' ', 3, 0)(epoch_percent)
-        << "%)"
-        << ", batch old err " << show_one_value(old_error)
-        << ", batch new err " << show_one_value(new_error)
-        << ", err diff " << show_one_value(new_error - old_error)
-        << ", new L rate " << show_one_value(new_learning_rate)
-        << ", weights_mean " << show_one_value(weights_mean_and_stddev.first)
-        << ", weights_stddev " << show_one_value(weights_mean_and_stddev.second)
-        << ", momentum_mean " << show_one_value(momentum_mean_and_stddev.first)
-        << ", momentum_stddev " << show_one_value(momentum_mean_and_stddev.second)
-        << std::endl;
-    };
+
     /*
     auto show_params = [](const layer_ptr& current_net)
     {
@@ -363,8 +369,10 @@ inline void train(layer_ptr& net,
                 std::min(dataset.size(), batch_start_idx + batch_size),
                 dataset);
 
-            const auto old_and_new_error =
-                optimize_net_gradient(net, batch, learning_rate, momentum);
+            //auto gradient = calc_net_gradient_numeric(net, dataset);
+            auto gradient = calc_net_gradient_backprop(net, dataset);
+            const auto old_and_new_error = optimize_net_gradient(
+                net, batch, learning_rate, momentum, gradient);
 
             const float_t old_error = old_and_new_error.first;
             const float_t new_error = old_and_new_error.second;
@@ -379,7 +387,10 @@ inline void train(layer_ptr& net,
                     fplus::mean_stddev<float_t>(momentum));
                 stopwatch_show.reset();
                 if (new_error < mean_error_goal)
+                {
+                    std::cout << "Stop training: mean_error_goal reached" << std::endl;
                     return;
+                }
             }
             if (max_seconds != 0 && stopwatch_overall.elapsed() >= max_seconds)
             {
@@ -393,6 +404,7 @@ inline void train(layer_ptr& net,
             }
         }
     }
+    std::cout << "Stop training: max_epochs reached" << std::endl;
 }
 
 inline void test(layer_ptr& net, const input_with_output_vec& dataset)

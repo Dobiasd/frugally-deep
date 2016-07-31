@@ -48,7 +48,7 @@ inline void tiny_imagenet_200_autoencoder_test()
     const auto pooling_function = max_pool(2);
     const auto unpooling_function = unpool(2);
     pre_layers layers = {
-        conv(size2d(3, 3), 32, 1), activation_function,
+/*        conv(size2d(3, 3), 32, 1), activation_function,
         pooling_function,
 
         conv(size2d(3, 3), 48, 1), activation_function,
@@ -58,20 +58,37 @@ inline void tiny_imagenet_200_autoencoder_test()
         pooling_function,
 
         conv(size2d(3, 3), 96, 1), activation_function,
-        pooling_function, // down to 4*4
+        pooling_function,
+
         conv(size2d(3, 3), 128, 1), activation_function,
+        pooling_function,
+
+        conv(size2d(3, 3), 160, 1), activation_function,
+        pooling_function, // down to 1*1
+
+        conv(size2d(3, 3), 192, 1), activation_function,
+        conv(size2d(3, 3), 192, 1), activation_function,
+
+        unpooling_function,
+        conv(size2d(3, 3), 160, 1), activation_function,
+
+        unpooling_function,
+        conv(size2d(3, 3), 128, 1), activation_function,
+
+        unpooling_function,
+        conv(size2d(3, 3), 96, 1), activation_function,
 
         unpooling_function,
         conv(size2d(3, 3), 64, 1), activation_function,
 
         unpooling_function,
+        conv(size2d(3, 3), 48, 1), activation_function,
+
+        unpooling_function,
         conv(size2d(3, 3), 32, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 16, 1), activation_function,
-
-        unpooling_function,
         conv(size2d(3, 3), 3, 1), activation_function,
+        */
+        conv(size2d(3, 3), 1, 1)//, activation_function,
         };
 
 
@@ -79,32 +96,53 @@ inline void tiny_imagenet_200_autoencoder_test()
     std::cout << "loading tiny_imagenet_200_ ..." << std::flush;
 
     const std::string bears_path = "./stuff/tiny-imagenet-200/train/n02132136/images/";
-    const auto bear_file_paths = list_JPEGs(bears_path);
+    const auto bear_file_paths = fplus::sort(list_JPEGs(bears_path));
     classification_dataset dataset;
     for (const auto& path : bear_file_paths)
     {
-        auto img = load_matrix3d_image_bgr(path);
+        //auto img = load_matrix3d_image_bgr(path);
+        auto img = load_matrix3d_image_gray(path);
         if (img.size().height_ != 64 || img.size().height_ != 64)
         {
-            std::cout << path << std::endl;
+            std::cerr << "invalid image dimensions: " << path << std::endl;
+            return;
         }
         dataset.training_data_.push_back({img, img});
     }
     std::cout << " done" << std::endl;
 
-    dataset = normalize_classification_dataset(dataset, false);
+    //dataset = normalize_classification_dataset(dataset, false);
 
-    auto tobinet = net(layers)(size3d(3, 64, 64));
+    auto tobinet = net(layers)(size3d(1, 64, 64));
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
-    train(tobinet, dataset.training_data_,
-        0.001f, 0.1f, 100, 64, 60);
+
+    tobinet->set_params({
+        0,0,0,0,1,0,0,0,0,0,
+/*        0,0,0,0,1,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+
+        0,0,0,0,0,0,0,0,0,
+        0,0,0,0,1,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+
+        0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,
+        0,0,0,0,1,0,0,0,0,0,
+        */
+    });
+    tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.00001));
+
+    input_with_output_vec training_shuffle_dataset = dataset.training_data_;
+    train(tobinet, training_shuffle_dataset, 0.001f, 0.1f, 100, 50, 60);
 
     for (std::size_t i = 0; i < dataset.training_data_.size(); ++i)
     {
         const auto img = dataset.training_data_[i].input_;
         const auto out = tobinet->forward_pass(img);
 
-        save_matrix3d_image(img, "./stuff/" + fplus::to_string_fill_left('0', 3, i) + ".png");
+        boost::filesystem::path p(bear_file_paths[i]);
+        save_matrix3d_image(out, "./stuff/output_bears/" + p.stem().string() + ".png");
     }
 }

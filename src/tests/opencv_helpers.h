@@ -238,7 +238,7 @@ inline cv::Mat normalize_float_img(const cv::Mat& floatImg)
 
 inline void save_matrix3d_image(const fd::matrix3d& m, const std::string& path)
 {
-    if (m.size().depth_ == 1)
+    if (m.size().depth_ == 3)
     {
         cv::Mat img = float_img_to_uchar_img(matrix3d_to_cv_bgr_img_float(m));
         cv::imwrite(path, img);

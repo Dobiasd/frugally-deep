@@ -28,9 +28,15 @@ The goal is that someday the following things will be true:
 todo
 ----
 
+upconvolution_layer (aka. convolution transpose aka. backward strided convolution aka. fractionally strided convolution aka. deconvolution) layer fuer autoencoder
+
 Im Prinzip will man ja nur, dass der nächste Layer fuer andere klassen möglichst unique ist und für gleiche möglichst gleich. Man muss also eigentlich nicht das Optimum einer bestimmten Fehlerfunktion finden, sondern das Optimum von einer von sehr vielen möglichen Fehlerfunktionen.
 
+oder jeden layer als einzelnes netzwerk autoencoder-maessig trainieren. Wenn der erste fertig ist, den zweiten als autoencoder fuer dessen output trainieren usw.
+
 allow different strides for conv and for pool, stride 2 in conv can make pooling superfluous
+
+eigene learning rate (momentum) für jeden layer oder sogar jedes weight? Muss die in einem conv layer nicht eh tiefer sein, weil ein weight direkt viele outputs hochdrückt? Müsste die learning rate eines layers nicht proportional zur stddev sein, die man bei random init dieses layers benutzt?
 
 mem optimization: pool layer does not need to save last_input_, but max_pool needs markers
 

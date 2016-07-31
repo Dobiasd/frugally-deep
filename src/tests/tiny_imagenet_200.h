@@ -48,47 +48,47 @@ inline void tiny_imagenet_200_autoencoder_test()
     const auto pooling_function = max_pool(2);
     const auto unpooling_function = unpool(2);
     pre_layers layers = {
-/*        conv(size2d(3, 3), 32, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 48, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 64, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 96, 1), activation_function,
-        pooling_function,
-
         conv(size2d(3, 3), 128, 1), activation_function,
         pooling_function,
 
-        conv(size2d(3, 3), 160, 1), activation_function,
-        pooling_function, // down to 1*1
+        conv(size2d(3, 3), 256, 1), activation_function,
+        pooling_function,
 
-        conv(size2d(3, 3), 192, 1), activation_function,
-        conv(size2d(3, 3), 192, 1), activation_function,
+        conv(size2d(3, 3), 512, 1), activation_function,
+        pooling_function,
+
+        conv(size2d(3, 3), 1024, 1), activation_function,
+        pooling_function,
+
+        conv(size2d(3, 3), 2048, 1), activation_function,
+        //pooling_function,
+
+        //conv(size2d(3, 3), 160, 1), activation_function,
+        //pooling_function, // down to 1*1
+
+        //conv(size2d(3, 3), 192, 1), activation_function,
+        //conv(size2d(3, 3), 192, 1), activation_function,
+
+        //unpooling_function,
+        //conv(size2d(3, 3), 160, 1), activation_function,
+
+        //unpooling_function,
+        conv(size2d(3, 3), 2048, 1), activation_function,
 
         unpooling_function,
-        conv(size2d(3, 3), 160, 1), activation_function,
+        conv(size2d(3, 3), 1024, 1), activation_function,
+
+        unpooling_function,
+        conv(size2d(3, 3), 512, 1), activation_function,
+
+        unpooling_function,
+        conv(size2d(3, 3), 256, 1), activation_function,
 
         unpooling_function,
         conv(size2d(3, 3), 128, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 96, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 64, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 48, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 3, 1), activation_function,
-        */
-        conv(size2d(3, 3), 1, 1)//, activation_function,
+
+        //conv(size2d(1, 1), 3, 1)//, activation_function,
         };
 
 
@@ -100,8 +100,8 @@ inline void tiny_imagenet_200_autoencoder_test()
     classification_dataset dataset;
     for (const auto& path : bear_file_paths)
     {
-        //auto img = load_matrix3d_image_bgr(path);
-        auto img = load_matrix3d_image_gray(path);
+        auto img = load_matrix3d_image_bgr(path);
+        //auto img = load_matrix3d_image_gray(path);
         if (img.size().height_ != 64 || img.size().height_ != 64)
         {
             std::cerr << "invalid image dimensions: " << path << std::endl;
@@ -113,12 +113,20 @@ inline void tiny_imagenet_200_autoencoder_test()
 
     //dataset = normalize_classification_dataset(dataset, false);
 
-    auto tobinet = net(layers)(size3d(1, 64, 64));
+    /*
+    // todo remove
+    dataset.training_data_[0].input_ = matrix3d(size3d(1,1,2), {3,4} );
+    dataset.training_data_[0].output_ = dataset.training_data_[0].input_;
+    dataset.training_data_ = fplus::get_range(0, 1, dataset.training_data_);
+    */
+
+    auto tobinet = net(layers)(dataset.training_data_[0].input_.size());
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
 
-    tobinet->set_params({
-        0,0,0,0,1,0,0,0,0,0,
+    //tobinet->set_params({
+      //  0.9,0.1
+    //    0,0,0,0,1,0,0,0,0,0,
 /*        0,0,0,0,1,0,0,0,0,
         0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -131,11 +139,11 @@ inline void tiny_imagenet_200_autoencoder_test()
         0,0,0,0,0,0,0,0,0,
         0,0,0,0,1,0,0,0,0,0,
         */
-    });
-    tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.00001));
+    //});
+    //tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1));
 
     input_with_output_vec training_shuffle_dataset = dataset.training_data_;
-    train(tobinet, training_shuffle_dataset, 0.001f, 0.1f, 100, 50, 60);
+    train(tobinet, training_shuffle_dataset, 0.001f, 0.00001f, 100, 50, 20*60, true);
 
     for (std::size_t i = 0; i < dataset.training_data_.size(); ++i)
     {

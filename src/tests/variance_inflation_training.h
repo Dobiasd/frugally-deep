@@ -101,7 +101,7 @@ inline void variance_inflation_training_test()
     float_vec momentum(layer0->param_count(), 0);
     fd::float_t learning_rate = 0.1;
     const auto old_and_new_error = optimize_net_gradient(
-        layer0, data_backprop, learning_rate, momentum, gradient);
+        layer0, data_backprop, learning_rate, momentum, gradient, false);
 
     const fd::float_t old_error = old_and_new_error.first;
     const fd::float_t new_error = old_and_new_error.second;

@@ -284,7 +284,8 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
     const input_with_output_vec& dataset,
     float_t& speed_factor,
     float_vec& momentum,
-    const float_vec& gradient)
+    const float_vec& gradient,
+    bool improve_only)
 {
     const auto old_and_new_params = change_net_params_gradient(
         net, speed_factor, momentum, gradient);
@@ -294,9 +295,10 @@ inline std::pair<float_t, float_t> optimize_net_gradient(
     float_t old_error = test_params_dataset(old_params, net, dataset);
     float_t new_error = test_params_dataset(new_params, net, dataset);
 
-    if (new_error >= old_error)
+    if (improve_only && new_error >= old_error)
     {
-        //speed_factor *= 0.999f;
+        speed_factor *= 0.99f;
+        return {old_error, new_error};
     }
     net->set_params(new_params);
 
@@ -337,20 +339,22 @@ inline void train(layer_ptr& net,
     float_t learning_rate,
     std::size_t max_epochs,
     std::size_t batch_size = 0,
-    std::size_t max_seconds = 0)
+    std::size_t max_seconds = 0,
+    bool improve_only = false)
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
     std::cout << "starting training, dataset.size " << dataset.size()
         << ", batch_size " << batch_size << std::endl;
 
-    /*
+/*
     auto show_params = [](const layer_ptr& current_net)
     {
         auto show = fplus::show_float_fill_left<float_t>(' ', 8, 4);
         std::cout << "params " << fplus::show_cont(fplus::transform(show, current_net->get_params())) << std::endl;
     };
-    */
+*/
+
     timer stopwatch_overall;
     timer stopwatch_show;
     float_vec momentum(net->param_count(), 0);
@@ -373,7 +377,7 @@ inline void train(layer_ptr& net,
             auto gradient = calc_net_gradient_backprop(net, batch);
 
             const auto old_and_new_error = optimize_net_gradient(
-                net, batch, learning_rate, momentum, gradient);
+                net, batch, learning_rate, momentum, gradient, improve_only);
 
             const float_t old_error = old_and_new_error.first;
             const float_t new_error = old_and_new_error.second;

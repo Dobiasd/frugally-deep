@@ -61,7 +61,7 @@ inline void mnist_classification_test()
     std::cout << "net.param_count() " << tobinet->param_count() << std::endl;
     tobinet->random_init_params();
     train(tobinet, classifcation_data.training_data_,
-        0.001f, 0.1f, 100, 128, 13*60*60);
+        0.001f, 0.1f, 100, 64, 5*60);
     //test(tobinet, classifcation_data.training_data_);
     test(tobinet, classifcation_data.test_data_);
     std::cout << frame_string("mnist-tobi-net elu(1) gentle_max_pool(2, 0.8)") << std::endl;

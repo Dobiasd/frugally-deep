@@ -24,13 +24,12 @@
 
 int main()
 {
-    //variance_inflation_training_test();
-    //return 0;
-    //lenna_filter_test();
+    lenna_filter_test();
     gradient_check_backprop_implementation();
-    //xor_as_net_test();
-    //gradients_classification_test();
-    //mnist_classification_test();
-    //cifar_10_classification_test();
-    tiny_imagenet_200_autoencoder_test();
+    xor_as_net_test();
+    gradients_classification_test();
+    mnist_classification_test();
+    cifar_10_classification_test();
+    //tiny_imagenet_200_autoencoder_test();
+    //variance_inflation_training_test();
 }

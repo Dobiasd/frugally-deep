@@ -17,181 +17,205 @@
 namespace fd
 {
 
+matrix2d pad_matrix2d(
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix2d& in)
+{
+    matrix2d out(size2d(
+        in.size().height_ + 2 * padding_y,
+        in.size().width_ + 2 * padding_x));
+    for (std::size_t y = 0; y < in.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < in.size().width_; ++x)
+        {
+            out.set(y + padding_y, x + padding_x, in.get(y, x));
+        }
+    }
+    return out;
+}
+
 namespace internal
 {
-    bool are_sizes_allowed_to_convolute(
-        const size2d& filter_size,
-        const size2d& data_size)
+    void convolve_go(
+        std::size_t sy,
+        std::size_t sx,
+        const matrix2d& filter,
+        const matrix2d& in,
+        matrix2d& out)
     {
-        return filter_size.height_ <= data_size.height_ &&
-            filter_size.width_ <= data_size.width_;
-    }
-
-    bool are_sizes_allowed_to_convolute(
-        const size3d& filter_size,
-        const size3d& data_size)
-    {
-        return filter_size.depth_ == data_size.depth_ &&
-            are_sizes_allowed_to_convolute(
-                filter_size.without_depth(), data_size.without_depth());
+        const std::size_t fy = filter.size().height_;
+        const std::size_t fx = filter.size().width_;
+        for (std::size_t y = 0; y < out.size().height_; ++y)
+        {
+            for (std::size_t x = 0; x < out.size().width_; ++x)
+            {
+                float_t val = 0;
+                for (std::size_t yf = 0; yf < fy; ++yf)
+                {
+                    for (std::size_t xf = 0; xf < fx; ++xf)
+                    {
+                        val += filter.get(yf, xf) *
+                            in.get(sx * y + yf, sy * x + xf);
+                    }
+                }
+                out.set(y, x, val);
+            }
+        }
     }
 
     // Give the compiler a chance to unroll the inner loops.
     // In tests with a 3x3 filter and clang++ -O3
-    //     the performance was increased by a factor of two by this.
-    template <std::size_t filter_height, std::size_t filter_width>
-    inline matrix2d convolve_loops_fixed_filter_size(
-        const matrix3d& filter,
-        const matrix3d& in_vol)
+    // the performance was increased by a factor of two by this.
+    template <
+        std::size_t sy,
+        std::size_t sx,
+        std::size_t fy,
+        std::size_t fx
+        >
+    void convolve_go_template(
+        const matrix2d& filter,
+        const matrix2d& in,
+        matrix2d& out)
     {
-        const size3d& filt_size = filter.size();
-        assert(filter_height == filt_size.height_);
-        assert(filter_width == filt_size.width_);
-        assert(are_sizes_allowed_to_convolute(filter.size().without_depth(), in_vol.size().without_depth()));
-        matrix2d out(size2d(
-            in_vol.size().height_ + 1 - filter_height,
-            in_vol.size().width_ + 1 - filter_width));
+        assert(filter.size().height_ == fy);
+        assert(filter.size().width_ == fx);
         for (std::size_t y = 0; y < out.size().height_; ++y)
         {
             for (std::size_t x = 0; x < out.size().width_; ++x)
             {
                 float_t val = 0;
-                for (std::size_t z = 0; z < filt_size.depth_; ++z)
+                for (std::size_t yf = 0; yf < fy; ++yf)
                 {
-                    for (std::size_t yf = 0; yf < filter_height; ++yf)
+                    for (std::size_t xf = 0; xf < fx; ++xf)
                     {
-                        for (std::size_t xf = 0; xf < filter_width; ++xf)
-                        {
-                            val += filter.get(z, yf, xf) *
-                                in_vol.get(z, y + yf, x + xf);
-                        }
+                        val += filter.get(yf, xf) *
+                            in.get(sx * y + yf, sy * x + xf);
                     }
                 }
                 out.set(y, x, val);
             }
         }
-        return out;
     }
+} // namespace internal
 
-    inline matrix2d convolve_loops(const matrix3d& filter,
-        const matrix3d& in_vol)
+matrix2d convolve(
+    std::size_t stride_y,
+    std::size_t stride_x,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix2d& filter,
+    const matrix2d& in)
+{
+    const std::size_t h1 = in.size().height_;
+    const std::size_t w1 = in.size().width_;
+    const std::size_t fy = filter.size().height_;
+    const std::size_t fx = filter.size().width_;
+    const std::size_t px = padding_x;
+    const std::size_t py = padding_y;
+    const std::size_t sx = stride_x;
+    const std::size_t sy = stride_y;
+    const std::size_t h2 = (h1 - fy + 2 * py) / sy + 1;
+    const std::size_t w2 = (w1 - fx + 2 * px) / sx + 1;
+    const matrix2d in_padded = pad_matrix2d(padding_y, padding_x, in);
+    matrix2d out(size2d(h2, w2));
+
+    if (sy == 1 && sx == 1 && fy == 1 && fx == 1)
+        internal::convolve_go_template<1, 1, 1, 1>(filter, in_padded, out);
+
+    else if (sy == 1 && sx == 1 && fy == 3 && fx == 3)
+        internal::convolve_go_template<1, 1, 3, 3>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 3 && fx == 1)
+        internal::convolve_go_template<1, 1, 3, 1>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 1 && fx == 3)
+        internal::convolve_go_template<1, 1, 1, 3>(filter, in_padded, out);
+
+    else if (sy == 1 && sx == 1 && fy == 5 && fx == 5)
+        internal::convolve_go_template<1, 1, 5, 5>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 5 && fx == 1)
+        internal::convolve_go_template<1, 1, 5, 1>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 1 && fx == 5)
+        internal::convolve_go_template<1, 1, 1, 5>(filter, in_padded, out);
+
+    else if (sy == 1 && sx == 1 && fy == 7 && fx == 7)
+        internal::convolve_go_template<1, 1, 7, 7>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 7 && fx == 1)
+        internal::convolve_go_template<1, 1, 7, 1>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 1 && fx == 7)
+        internal::convolve_go_template<1, 1, 1, 7>(filter, in_padded, out);
+
+    else if (sy == 1 && sx == 1 && fy == 9 && fx == 9)
+        internal::convolve_go_template<1, 1, 9, 9>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 9 && fx == 1)
+        internal::convolve_go_template<1, 1, 9, 1>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 1 && fx == 9)
+        internal::convolve_go_template<1, 1, 1, 9>(filter, in_padded, out);
+
+    else if (sy == 1 && sx == 1 && fy == 11 && fx == 11)
+        internal::convolve_go_template<1, 1, 11, 11>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 11 && fx == 1)
+        internal::convolve_go_template<1, 1, 11, 1>(filter, in_padded, out);
+    else if (sy == 1 && sx == 1 && fy == 1 && fx == 11)
+        internal::convolve_go_template<1, 1, 1, 11>(filter, in_padded, out);
+
+    else
+        internal::convolve_go(sy, sx, filter, in_padded, out);
+
+    return out;
+}
+
+inline matrix3d convolve(
+    std::size_t stride_y,
+    std::size_t stride_x,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix2d& filter,
+    const matrix3d& in)
+{
+    const auto conv_func = [&](const matrix2d& in_slice)
     {
-        const size3d& filt_size = filter.size();
-        assert(are_sizes_allowed_to_convolute(filter.size(), in_vol.size()));
-        if (filt_size.height_ == 1 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<1, 1>(filter, in_vol);
+        return convolve(
+            stride_x, stride_y, padding_x, padding_y, filter, in_slice);
+    };
+    return
+        matrix3d_from_depth_slices(
+            fplus::transform(
+                conv_func,
+                matrix3d_to_depth_slices(in)));
+}
 
-        if (filt_size.height_ == 1 && filt_size.width_ == 3)
-            return convolve_loops_fixed_filter_size<1, 3>(filter, in_vol);
-        if (filt_size.height_ == 3 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<3, 1>(filter, in_vol);
-        if (filt_size.height_ == 3 && filt_size.width_ == 3)
-            return convolve_loops_fixed_filter_size<3, 3>(filter, in_vol);
-
-        if (filt_size.height_ == 1 && filt_size.width_ == 5)
-            return convolve_loops_fixed_filter_size<1, 5>(filter, in_vol);
-        if (filt_size.height_ == 5 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<5, 1>(filter, in_vol);
-        if (filt_size.height_ == 5 && filt_size.width_ == 5)
-            return convolve_loops_fixed_filter_size<5, 5>(filter, in_vol);
-
-        if (filt_size.height_ == 1 && filt_size.width_ == 7)
-            return convolve_loops_fixed_filter_size<1, 7>(filter, in_vol);
-        if (filt_size.height_ == 7 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<7, 1>(filter, in_vol);
-        if (filt_size.height_ == 7 && filt_size.width_ == 7)
-            return convolve_loops_fixed_filter_size<7, 7>(filter, in_vol);
-
-        if (filt_size.height_ == 1 && filt_size.width_ == 9)
-            return convolve_loops_fixed_filter_size<1, 9>(filter, in_vol);
-        if (filt_size.height_ == 9 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<9, 1>(filter, in_vol);
-        if (filt_size.height_ == 9 && filt_size.width_ == 9)
-            return convolve_loops_fixed_filter_size<9, 9>(filter, in_vol);
-
-        if (filt_size.height_ == 1 && filt_size.width_ == 11)
-            return convolve_loops_fixed_filter_size<1, 11>(filter, in_vol);
-        if (filt_size.height_ == 11 && filt_size.width_ == 1)
-            return convolve_loops_fixed_filter_size<11, 1>(filter, in_vol);
-        if (filt_size.height_ == 11 && filt_size.width_ == 11)
-            return convolve_loops_fixed_filter_size<11, 11>(filter, in_vol);
-
-        const size_t filter_height = filt_size.height_;
-        const size_t filter_width = filt_size.width_;
-        matrix2d out(size2d(
-            in_vol.size().height_ + 1 - filter_height,
-            in_vol.size().width_ + 1 - filter_width));
-        for (std::size_t y = 0; y < out.size().height_; ++y)
-        {
-            for (std::size_t x = 0; x < out.size().width_; ++x)
-            {
-                float_t val = 0;
-                for (std::size_t z = 0; z < filt_size.depth_; ++z)
-                {
-                    for (std::size_t yf = 0; yf < filter_height; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < filter_width; ++xf)
-                        {
-                            val += filter.get(z, yf, xf) *
-                                in_vol.get(z, y + yf, x + xf);
-                        }
-                    }
-                }
-                out.set(y, x, val);
-            }
-        }
-        return out;
-    }
-
-    // todo: auch fuer performance templaten
-    inline matrix3d convolve_loops(const matrix2d& filter,
-        const matrix3d& in_vol)
+inline matrix2d convolve(
+    std::size_t stride_y,
+    std::size_t stride_x,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix3d& filter,
+    const matrix3d& in)
+{
+    const auto conv_func = [&](
+        const matrix2d& filter_slice, const matrix2d& in_slice)
     {
-        const size2d& filt_size = filter.size();
-        assert(are_sizes_allowed_to_convolute(filter.size(), in_vol.size().without_depth()));
-
-        const size_t filter_height = filt_size.height_;
-        const size_t filter_width = filt_size.width_;
-        matrix3d out(size3d(
-            in_vol.size().depth_,
-            in_vol.size().height_ + 1 - filter_height,
-            in_vol.size().width_ + 1 - filter_width));
-        for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
-        {
-            for (std::size_t y = 0; y < out.size().height_; ++y)
-            {
-                for (std::size_t x = 0; x < out.size().width_; ++x)
-                {
-                    float_t val = 0;
-                    for (std::size_t yf = 0; yf < filter_height; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < filter_width; ++xf)
-                        {
-                            val += filter.get(yf, xf) *
-                                in_vol.get(z, y + yf, x + xf);
-                        }
-                    }
-                    out.set(z, y, x, val);
-                }
-            }
-        }
-        return out;
-    }
+        return convolve(
+            stride_x, stride_y, padding_x, padding_y, filter_slice, in_slice);
+    };
+    return
+        sum_matrix2ds(
+            fplus::zip_with(
+                conv_func,
+                matrix3d_to_depth_slices(filter),
+                matrix3d_to_depth_slices(in)));
 }
 
-inline matrix2d convolve(const matrix3d& filter, const matrix3d& in_vol)
+inline matrix2d convolve(
+    std::size_t stride_y,
+    std::size_t stride_x,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const filter& f,
+    const matrix3d& in)
 {
-    return internal::convolve_loops(filter, in_vol);
-}
-
-inline matrix3d convolve(const matrix2d& filter, const matrix3d& in_vol)
-{
-    return internal::convolve_loops(filter, in_vol);
-}
-
-inline matrix2d convolve(const filter& f, const matrix3d& in_vol)
-{
-    const auto without_bias = convolve(f.get_matrix3d(), in_vol);
+    const auto without_bias = convolve(
+        stride_x, stride_y, padding_x, padding_y, f.get_matrix3d(), in);
     const auto add_bias = [&](const float_t val)
     {
         return val + f.get_bias();
@@ -199,18 +223,24 @@ inline matrix2d convolve(const filter& f, const matrix3d& in_vol)
     return transform_matrix2d(add_bias, without_bias);
 }
 
-inline matrix3d convolve(const std::vector<filter>& filters, const matrix3d& in_vol)
+inline matrix3d convolve(
+    std::size_t stride_y,
+    std::size_t stride_x,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const std::vector<filter>& filters,
+    const matrix3d& in)
 {
-    // todo: convolve_matrix_mult instead of convolve_loops?
-    //     (use im_to_col and matrix multiplication for performance)
+    // todo: convolve_matrix_mult instead of convolve with loops?
+    //     (i.e. use im_to_col and matrix multiplication for performance)
 
-    const auto convole_in_vol = [&](const filter& f)
+    const auto convole_in = [&](const filter& f)
     {
-        return convolve(f, in_vol);
+        return convolve(stride_x, stride_y, padding_x, padding_y, f, in);
     };
 
     return matrix3d_from_depth_slices(
-        fplus::transform(convole_in_vol, filters));
+        fplus::transform(convole_in, filters));
 }
 
 } // namespace fd

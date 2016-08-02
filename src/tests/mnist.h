@@ -28,13 +28,29 @@ inline void mnist_classification_test()
     //const auto pooling_function = max_pool(2);
     const auto activation_function = elu(1);
     const auto pooling_function = gentle_max_pool(2, 0.8);
+    pre_layers layers_with_pool = {
+        conv(size2d(3, 3), 16, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        pooling_function,
+        conv(size2d(3, 3), 24, 1), activation_function,
+        conv(size2d(3, 3), 24, 1), activation_function,
+        pooling_function,
+        conv(size2d(3, 3), 32, 1), activation_function,
+        conv(size2d(3, 3), 32, 1), activation_function,
+        conv(size2d(3, 3), 16, 1), activation_function,
+        flatten(),
+        fc(300),
+        tanh(true),
+        fc(10),
+        tanh(true),
+        softmax(),
+        };
+
     pre_layers layers = {
         conv(size2d(3, 3), 16, 1), activation_function,
-        conv(size2d(3, 3), 16, 1), activation_function,
-        pooling_function,
+        conv(size2d(3, 3), 16, 2), activation_function,
         conv(size2d(3, 3), 24, 1), activation_function,
-        conv(size2d(3, 3), 24, 1), activation_function,
-        pooling_function,
+        conv(size2d(3, 3), 24, 2), activation_function,
         conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 16, 1), activation_function,

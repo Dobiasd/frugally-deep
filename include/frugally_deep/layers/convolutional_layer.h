@@ -7,6 +7,7 @@
 #pragma once
 
 #include "frugally_deep/convolution.h"
+#include "frugally_deep/convolution_transpose.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/size2d.h"
 #include "frugally_deep/size3d.h"
@@ -34,13 +35,16 @@ public:
     explicit convolutional_layer(
             const size3d& size_in, const size2d& filter_size,
             std::size_t k, std::size_t stride)
-        : layer(size_in, size3d(k, size_in.height_, size_in.width_)),
+        : layer(size_in,
+            size3d(k, size_in.height_ / stride, size_in.width_ / stride)),
         filters_(generate_filters(size_in.depth_, filter_size, k)),
-        padding_y_((filter_size.height_ - 1) / 2),
-        padding_x_((filter_size.width_ - 1) / 2)
+        padding_y_((filter_size.height_ - stride) / 2),
+        padding_x_((filter_size.width_ - stride) / 2),
+        stride_(stride)
     {
-        assert(stride == 1); // todo: allow different strides
         assert(k != 0);
+        assert((filter_size.height_ - stride) % 2 == 0);
+        assert((filter_size.width_ - stride) % 2 == 0);
     }
     std::size_t param_count() const override
     {
@@ -88,7 +92,7 @@ public:
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
-        return convolve(1, 1, padding_x_, padding_y_, filters_, input);
+        return convolve(stride_, padding_x_, padding_y_, filters_, input);
     }
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc_reversed) const override
@@ -106,15 +110,15 @@ protected:
                 flip_filters_spatially(filters_));
 
         const auto output = convolve(
-            1, 1, padding_x_, padding_y_, flipped_filters, input);
+            stride_, padding_y_, padding_x_, flipped_filters, input);
 
         const auto input_slices = matrix3d_to_depth_slices(input);
 
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
-                    return convolve(1, 1, padding_x_, padding_y_,
-                        input_slice, last_input_);
+                    return convolve(
+                        stride_, padding_y_, padding_x_, input_slice, last_input_);
                 }, input_slices);
 
         const std::vector<float_t> bias_deltas =
@@ -148,6 +152,7 @@ protected:
     filter_vec filters_;
     std::size_t padding_y_;
     std::size_t padding_x_;
+    std::size_t stride_;
 };
 
 } // namespace fd

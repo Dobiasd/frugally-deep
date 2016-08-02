@@ -17,7 +17,7 @@
 namespace fd
 {
 
-matrix2d pad_matrix2d(
+inline matrix2d pad_matrix2d(
     std::size_t padding_y,
     std::size_t padding_x,
     const matrix2d& in)
@@ -35,18 +35,9 @@ matrix2d pad_matrix2d(
     return out;
 }
 
-matrix2d spread_out_matrix2d(
-    std::size_t ,//stride,
-    const matrix2d& in)
-{
-    // todo: implement. Wie ist das denn dann mit padding?
-    // todo: und wie wie ist padding wenn stide_out > 1?
-    return in;
-}
-
 namespace internal
 {
-    void convolve_go(
+    inline void convolve_go(
         std::size_t stride,
         const matrix2d& filter,
         const matrix2d& in,
@@ -104,78 +95,52 @@ namespace internal
     }
 } // namespace internal
 
-matrix2d convolve(
-    std::size_t stride_in,
-    std::size_t stride_out,
+inline matrix2d convolve(
+    std::size_t stride,
     std::size_t padding_y,
     std::size_t padding_x,
     const matrix2d& filter,
     const matrix2d& in_orig)
 {
-    assert(stride_in > 0 && stride_out > 0);
-    assert(stride_in == 1 || stride_out == 1);
+    assert(stride > 0);
     const std::size_t h1 = in_orig.size().height_;
     const std::size_t w1 = in_orig.size().width_;
     const std::size_t fy = filter.size().height_;
     const std::size_t fx = filter.size().width_;
     const std::size_t px = padding_x;
     const std::size_t py = padding_y;
-    const std::size_t h2 = (h1 - fy + 2 * py) * stride_out / stride_in + 1;
-    const std::size_t w2 = (w1 - fx + 2 * px) * stride_out / stride_in + 1;
+
+    const std::size_t h2 = (h1 - fy + 2 * py) / stride + 1;
+    const std::size_t w2 = (w1 - fx + 2 * px) / stride + 1;
+
     const matrix2d in_padded = pad_matrix2d(padding_y, padding_x, in_orig);
-    const matrix2d in = stride_out > 1
-        ? spread_out_matrix2d(stride_out, in_padded)
-        : in_padded;
 
     matrix2d out(size2d(h2, w2));
 
-    if (stride_in == 1 && fy == 1 && fx == 1)
+    if (stride == 1 && fy == 1 && fx == 1)
         internal::convolve_go_template<1, 1, 1>(filter, in_padded, out);
 
-    else if (stride_in == 1 && fy == 3 && fx == 3)
+    else if (stride == 1 && fy == 3 && fx == 3)
         internal::convolve_go_template<1, 3, 3>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 3 && fx == 1)
-        internal::convolve_go_template<1, 3, 1>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 1 && fx == 3)
-        internal::convolve_go_template<1, 1, 3>(filter, in_padded, out);
-
-    else if (stride_in == 1 && fy == 5 && fx == 5)
+    else if (stride == 1 && fy == 5 && fx == 5)
         internal::convolve_go_template<1, 5, 5>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 5 && fx == 1)
-        internal::convolve_go_template<1, 5, 1>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 1 && fx == 5)
-        internal::convolve_go_template<1, 1, 5>(filter, in_padded, out);
 
-    else if (stride_in == 1 && fy == 7 && fx == 7)
-        internal::convolve_go_template<1, 7, 7>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 7 && fx == 1)
-        internal::convolve_go_template<1, 7, 1>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 1 && fx == 7)
-        internal::convolve_go_template<1, 1, 7>(filter, in_padded, out);
+    else if (stride == 2 && fy == 1 && fx == 1)
+        internal::convolve_go_template<2, 1, 1>(filter, in_padded, out);
 
-    else if (stride_in == 1 && fy == 9 && fx == 9)
-        internal::convolve_go_template<1, 9, 9>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 9 && fx == 1)
-        internal::convolve_go_template<1, 9, 1>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 1 && fx == 9)
-        internal::convolve_go_template<1, 1, 9>(filter, in_padded, out);
-
-    else if (stride_in == 1 && fy == 11 && fx == 11)
-        internal::convolve_go_template<1, 11, 11>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 11 && fx == 1)
-        internal::convolve_go_template<1, 11, 1>(filter, in_padded, out);
-    else if (stride_in == 1 && fy == 1 && fx == 11)
-        internal::convolve_go_template<1, 1, 11>(filter, in_padded, out);
+    else if (stride == 2 && fy == 3 && fx == 3)
+        internal::convolve_go_template<2, 3, 3>(filter, in_padded, out);
+    else if (stride == 2 && fy == 5 && fx == 5)
+        internal::convolve_go_template<2, 5, 5>(filter, in_padded, out);
 
     else
-        internal::convolve_go(stride_in, filter, in_padded, out);
+        internal::convolve_go(stride, filter, in_padded, out);
 
     return out;
 }
 
 inline matrix3d convolve(
-    std::size_t stride_in,
-    std::size_t stride_out,
+    std::size_t stride,
     std::size_t padding_y,
     std::size_t padding_x,
     const matrix2d& filter,
@@ -184,7 +149,7 @@ inline matrix3d convolve(
     const auto conv_func = [&](const matrix2d& in_slice)
     {
         return convolve(
-            stride_in, stride_out, padding_x, padding_y, filter, in_slice);
+            stride, padding_x, padding_y, filter, in_slice);
     };
     return
         matrix3d_from_depth_slices(
@@ -194,8 +159,7 @@ inline matrix3d convolve(
 }
 
 inline matrix2d convolve(
-    std::size_t stride_in,
-    std::size_t stride_out,
+    std::size_t stride,
     std::size_t padding_y,
     std::size_t padding_x,
     const matrix3d& filter,
@@ -205,7 +169,7 @@ inline matrix2d convolve(
         const matrix2d& filter_slice, const matrix2d& in_slice)
     {
         return convolve(
-            stride_in, stride_out, padding_y, padding_x, filter_slice, in_slice);
+            stride, padding_y, padding_x, filter_slice, in_slice);
     };
     return
         sum_matrix2ds(
@@ -216,15 +180,14 @@ inline matrix2d convolve(
 }
 
 inline matrix2d convolve(
-    std::size_t stride_in,
-    std::size_t stride_out,
+    std::size_t stride,
     std::size_t padding_y,
     std::size_t padding_x,
     const filter& f,
     const matrix3d& in)
 {
     const auto without_bias = convolve(
-        stride_in, stride_out,padding_y, padding_x, f.get_matrix3d(), in);
+        stride, padding_y, padding_x, f.get_matrix3d(), in);
     const auto add_bias = [&](const float_t val)
     {
         return val + f.get_bias();
@@ -233,8 +196,7 @@ inline matrix2d convolve(
 }
 
 inline matrix3d convolve(
-    std::size_t stride_in,
-    std::size_t stride_out,
+    std::size_t stride,
     std::size_t padding_y,
     std::size_t padding_x,
     const std::vector<filter>& filters,
@@ -245,7 +207,7 @@ inline matrix3d convolve(
 
     const auto convole_in = [&](const filter& f)
     {
-        return convolve(stride_in, stride_out, padding_y, padding_x, f, in);
+        return convolve(stride, padding_y, padding_x, f, in);
     };
 
     return matrix3d_from_depth_slices(

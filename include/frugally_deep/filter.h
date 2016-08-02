@@ -23,8 +23,6 @@ class filter
 public:
     filter(const matrix3d& m, float_t bias) : m_(m), bias_(bias)
     {
-        assert((m.size().height_ + 2) % 2 == 1);
-        assert((m.size().width_ + 2) % 2 == 1);
     }
     std::size_t param_count() const
     {

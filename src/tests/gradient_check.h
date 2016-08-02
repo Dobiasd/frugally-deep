@@ -108,7 +108,7 @@ inline void gradient_check_backprop_implementation()
 
 
 
-    auto net_001 = net(
+    auto net_activation_functions = net(
     {
         flatten(),
         fc(2),
@@ -133,18 +133,26 @@ inline void gradient_check_backprop_implementation()
         tanh(),
         //softmax()
     })(size3d(1, 1, 2));
-    test_net_backprop("net_001", net_001, 10, 10);
+    test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
 
 
 
 
 
-    auto net_002 = net(
+    auto conv_net_stride_1 = net(
     {
         conv(size2d(3, 3), 2, 1),
-    })(size3d(1, 3, 3));
-    test_net_backprop("net_002", net_002, 5, 10);
+    })(size3d(1, 4, 4));
+    test_net_backprop("conv_net_stride_1", conv_net_stride_1, 5, 10);
 
+
+
+    auto conv_net_stride_2 = net(
+    {
+        conv(size2d(2, 2), 2, 2),
+    })(size3d(1, 4, 4));
+    // todo rein
+    //test_net_backprop("conv_net_stride_2", conv_net_stride_2, 5, 10);
 
 
 

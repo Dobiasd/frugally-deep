@@ -113,8 +113,8 @@ protected:
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
-                    return convolve(
-                        1, 1, padding_x_, padding_y_, input_slice, last_input_);
+                    return convolve(1, 1, padding_x_, padding_y_,
+                        input_slice, last_input_);
                 }, input_slices);
 
         const std::vector<float_t> bias_deltas =

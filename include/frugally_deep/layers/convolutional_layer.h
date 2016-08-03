@@ -109,7 +109,7 @@ protected:
                 remove_filter_bias,
                 flip_filters_spatially(filters_));
 
-        const auto output = convolve(
+        const auto output = convolve_transpose(
             stride_, padding_y_, padding_x_, flipped_filters, input);
 
         const auto input_slices = matrix3d_to_depth_slices(input);
@@ -117,9 +117,10 @@ protected:
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
-                    return convolve(
+                    return convolve( // _transpose?
                         stride_, padding_y_, padding_x_, input_slice, last_input_);
                 }, input_slices);
+        assert(filter_deltas.front().size() == filters_.front().size());
 
         const std::vector<float_t> bias_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> float_t

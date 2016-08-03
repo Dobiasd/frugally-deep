@@ -57,8 +57,9 @@ inline matrix2d unpad_matrix2d(
                     {
                         const float_t add_val = filter.get(yf, xf) *
                             in.get(y, x);
-                        out.set(stride * y, stride * x,
-                            out.get(y + yf, x + xf) + add_val);
+                        out.set(stride * y + yf, stride * x + xf,
+                            out.get(stride * y + yf, stride * x + xf)
+                            + add_val);
                     }
                 }
             }
@@ -88,8 +89,9 @@ inline matrix2d unpad_matrix2d(
                     {
                         const float_t add_val = filter.get(yf, xf) *
                             in.get(y, x);
-                        out.set(stride * y, stride * x,
-                            out.get(y + yf, x + xf) + add_val);
+                        out.set(stride * y + yf, stride * x + xf,
+                            out.get(stride * y + yf, stride * x + xf)
+                            + add_val);
                     }
                 }
             }
@@ -99,6 +101,7 @@ inline matrix2d unpad_matrix2d(
 
 // todo: noch ist alles falsch
 /*
+
 0xxxx0
 fff
  fff

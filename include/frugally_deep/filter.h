@@ -91,11 +91,11 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
         {
             for (std::size_t y = 0; y < new_filter_size.height_; ++y)
             {
-                std::size_t y2 = new_filter_size.height_ - (y + 1);
+                //std::size_t y2 = new_filter_size.height_ - (y + 1);
                 for (std::size_t x = 0; x < new_filter_size.width_; ++x)
                 {
-                    std::size_t x2 = new_filter_size.width_ - (x + 1);
-                    new_f_mat.set(j, y2, x2, fs[j].get(i, y, x));
+                    //std::size_t x2 = new_filter_size.width_ - (x + 1);
+                    new_f_mat.set(j, y, x, fs[j].get(i, y, x));
                 }
             }
             bias += fs[j].get_bias() / k;

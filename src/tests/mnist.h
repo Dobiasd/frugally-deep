@@ -48,9 +48,9 @@ inline void mnist_classification_test()
 
     pre_layers layers = {
         conv(size2d(3, 3), 16, 1), activation_function,
-        conv(size2d(3, 3), 16, 2), activation_function,
+        conv(size2d(4, 4), 16, 2), activation_function,
         conv(size2d(3, 3), 24, 1), activation_function,
-        conv(size2d(3, 3), 24, 2), activation_function,
+        conv(size2d(4, 4), 24, 2), activation_function,
         conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 32, 1), activation_function,
         conv(size2d(3, 3), 16, 1), activation_function,

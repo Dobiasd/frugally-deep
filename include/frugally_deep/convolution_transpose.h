@@ -20,6 +20,25 @@ namespace fd
 
 namespace internal
 {
+
+inline matrix2d unpad_matrix2d(
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix2d& in)
+{
+    matrix2d out(size2d(
+        in.size().height_ - 2 * padding_y,
+        in.size().width_ - 2 * padding_x));
+    for (std::size_t y = 0; y < out.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < out.size().width_; ++x)
+        {
+            out.set(y, x, in.get(y + padding_y, x + padding_x));
+        }
+    }
+    return out;
+}
+
     inline void convolve_transpose_go(
         std::size_t stride,
         const matrix2d& filter,
@@ -37,8 +56,9 @@ namespace internal
                     for (std::size_t xf = 0; xf < fx; ++xf)
                     {
                         const float_t add_val = filter.get(yf, xf) *
-                            in.get(y + yf, x + xf);
-                        out.set(stride * y, stride * x, out.get(y, x) + add_val);
+                            in.get(y, x);
+                        out.set(stride * y, stride * x,
+                            out.get(y + yf, x + xf) + add_val);
                     }
                 }
             }
@@ -67,8 +87,9 @@ namespace internal
                     for (std::size_t xf = 0; xf < fx; ++xf)
                     {
                         const float_t add_val = filter.get(yf, xf) *
-                            in.get(y + yf, x + xf);
-                        out.set(stride * y, stride * x, out.get(y, x) + add_val);
+                            in.get(y, x);
+                        out.set(stride * y, stride * x,
+                            out.get(y + yf, x + xf) + add_val);
                     }
                 }
             }
@@ -93,6 +114,8 @@ ffff
  */
 inline matrix2d convolve_transpose(
     std::size_t stride,
+    std::size_t unpadding_y,
+    std::size_t unpadding_x,
     const matrix2d& filter,
     const matrix2d& in)
 {
@@ -101,10 +124,10 @@ inline matrix2d convolve_transpose(
     const std::size_t w1 = in.size().width_;
     const std::size_t fy = filter.size().height_;
     const std::size_t fx = filter.size().width_;
-    const std::size_t h2 = (fx - stride) * h1;
-    const std::size_t w2 = (fx - stride) * w1;
+    const std::size_t h2 = fy - 2 * unpadding_y + stride * (h1 - 1);
+    const std::size_t w2 = fx - 2 * unpadding_x + stride * (w1 - 1);
 
-    matrix2d out(size2d(h2, w2));
+    matrix2d out(size2d(h2 + 2 * unpadding_y, w2 + 2 * unpadding_x));
 
     if (stride == 1 && fy == 1 && fx == 1)
         internal::convolve_transpose_go_template<1, 1, 1>(filter, in, out);
@@ -125,18 +148,20 @@ inline matrix2d convolve_transpose(
     else
         internal::convolve_transpose_go(stride, filter, in, out);
 
-    return out;
+    return internal::unpad_matrix2d(unpadding_y, unpadding_x, out);
 }
 
 inline matrix3d convolve_transpose(
     std::size_t stride,
+    std::size_t unpadding_y,
+    std::size_t unpadding_x,
     const matrix2d& filter,
     const matrix3d& in)
 {
     const auto conv_transpose_func = [&](const matrix2d& in_slice)
     {
         return convolve_transpose(
-            stride, filter, in_slice);
+            stride, unpadding_y, unpadding_x, filter, in_slice);
     };
     return
         matrix3d_from_depth_slices(
@@ -147,6 +172,8 @@ inline matrix3d convolve_transpose(
 
 inline matrix2d convolve_transpose(
     std::size_t stride,
+    std::size_t unpadding_y,
+    std::size_t unpadding_x,
     const matrix3d& filter,
     const matrix3d& in)
 {
@@ -154,7 +181,7 @@ inline matrix2d convolve_transpose(
         const matrix2d& filter_slice, const matrix2d& in_slice)
     {
         return convolve_transpose(
-            stride, filter_slice, in_slice);
+            stride, unpadding_y, unpadding_x, filter_slice, in_slice);
     };
     return
         sum_matrix2ds(
@@ -166,11 +193,13 @@ inline matrix2d convolve_transpose(
 
 inline matrix2d convolve_transpose(
     std::size_t stride,
+    std::size_t unpadding_y,
+    std::size_t unpadding_x,
     const filter& f,
     const matrix3d& in)
 {
     const auto without_bias = convolve_transpose(
-        stride, f.get_matrix3d(), in);
+        stride, unpadding_y, unpadding_x, f.get_matrix3d(), in);
     const auto add_bias = [&](const float_t val)
     {
         return val + f.get_bias();
@@ -180,6 +209,8 @@ inline matrix2d convolve_transpose(
 
 inline matrix3d convolve_transpose(
     std::size_t stride,
+    std::size_t unpadding_y,
+    std::size_t unpadding_x,
     const std::vector<filter>& filters,
     const matrix3d& in)
 {
@@ -188,7 +219,7 @@ inline matrix3d convolve_transpose(
 
     const auto convolve_transpose_in = [&](const filter& f)
     {
-        return convolve_transpose(stride, f, in);
+        return convolve_transpose(stride, unpadding_y, unpadding_x, f, in);
     };
 
     return matrix3d_from_depth_slices(

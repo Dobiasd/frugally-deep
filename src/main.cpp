@@ -24,8 +24,8 @@
 
 int main()
 {
-    lenna_filter_test();
     gradient_check_backprop_implementation();
+    lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();
     mnist_classification_test();

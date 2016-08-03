@@ -133,7 +133,8 @@ inline void gradient_check_backprop_implementation()
         tanh(),
         //softmax()
     })(size3d(1, 1, 2));
-    test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
+    // todo rein
+    //test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
 
 
 

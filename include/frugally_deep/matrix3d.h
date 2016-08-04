@@ -107,10 +107,7 @@ template <typename F>
 matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
 {
     // todo: use as_vector instead to avoid nested loops
-    matrix3d out_vol(size3d(
-        in_vol.size().depth_,
-        in_vol.size().height_,
-        in_vol.size().width_));
+    matrix3d out_vol(in_vol.size());
     for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
     {
         for (std::size_t y = 0; y < in_vol.size().height_; ++y)
@@ -122,6 +119,24 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
         }
     }
     return out_vol;
+}
+
+inline matrix3d invert_x_y_positions(const matrix3d& in)
+{
+    matrix3d out(in.size());
+    for (std::size_t z = 0; z < in.size().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < in.size().height_; ++y)
+        {
+            std::size_t y2 = in.size().height_ - (y + 1);
+            for (std::size_t x = 0; x < in.size().width_; ++x)
+            {
+                std::size_t x2 = in.size().width_ - (x + 1);
+                out.set(z, y, x, in.get(z, y2, x2));
+            }
+        }
+    }
+    return out;
 }
 
 inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)

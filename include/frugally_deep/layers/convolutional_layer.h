@@ -114,12 +114,23 @@ protected:
 
         const auto input_slices = matrix3d_to_depth_slices(input);
 
+        const auto last_input_inverted = invert_x_y_positions(last_input_);
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
                     return convolve( // _transpose?
-                        stride_, padding_y_, padding_x_, input_slice, last_input_);
+                        //stride_, padding_y_, padding_x_, input_slice, last_input_);
+                        stride_, padding_y_, padding_x_, last_input_inverted, input_slice);
+
                 }, input_slices);
+
+        std::cout << "todo remove input_slices[0].size().width_ " << input_slices[0].size().width_ << std::endl;
+        std::cout << "todo remove last_input_.size().width_ " << last_input_.size().width_ << std::endl;
+        std::cout << "todo remove stride_ " << stride_ << std::endl;
+        std::cout << "todo remove padding_x_ " << padding_x_ << std::endl;
+        std::cout << "todo remove filter_deltas.front().size().width_ " << filter_deltas.front().size().width_ << std::endl;
+        std::cout << "todo remove filters_.front().size().width_ " << filters_.front().size().width_ << std::endl;
+
         assert(filter_deltas.front().size() == filters_.front().size());
 
         const std::vector<float_t> bias_deltas =

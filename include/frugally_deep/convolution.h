@@ -158,6 +158,25 @@ inline matrix3d convolve(
                 matrix3d_to_depth_slices(in)));
 }
 
+inline matrix3d convolve(
+    std::size_t stride,
+    std::size_t padding_y,
+    std::size_t padding_x,
+    const matrix3d& filters,
+    const matrix2d& in)
+{
+    const auto conv_func = [&](const matrix2d& filter_slice)
+    {
+        return convolve(
+            stride, padding_x, padding_y, filter_slice, in);
+    };
+    return
+        matrix3d_from_depth_slices(
+            fplus::transform(
+                conv_func,
+                matrix3d_to_depth_slices(filters)));
+}
+
 inline matrix2d convolve(
     std::size_t stride,
     std::size_t padding_y,

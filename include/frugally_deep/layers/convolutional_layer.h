@@ -123,12 +123,14 @@ protected:
                         //stride_, padding_y_, padding_x_, last_input_inverted, input_slice);
                 }, input_slices);
 
+        std::cout << "todo remove -------------------" << std::endl;
         std::cout << "todo remove input_slices[0].size().width_ " << input_slices[0].size().width_ << std::endl;
         std::cout << "todo remove last_input_.size().width_ " << last_input_.size().width_ << std::endl;
         std::cout << "todo remove stride_ " << stride_ << std::endl;
         std::cout << "todo remove padding_x_ " << padding_x_ << std::endl;
         std::cout << "todo remove filter_deltas.front().size().width_ " << filter_deltas.front().size().width_ << std::endl;
         std::cout << "todo remove filters_.front().size().width_ " << filters_.front().size().width_ << std::endl;
+        std::cout << "todo remove -------------------" << std::endl;
 
         assert(filter_deltas.front().size() == filters_.front().size());
 

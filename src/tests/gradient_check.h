@@ -144,8 +144,7 @@ inline void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 2, 1),
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 4, 4));
-    // todo back in
-    //test_net_backprop("conv_net_stride_1", conv_net_stride_1, 5, 10);
+    test_net_backprop("conv_net_stride_1", conv_net_stride_1, 5, 10);
 
 
 

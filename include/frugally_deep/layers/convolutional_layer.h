@@ -38,13 +38,13 @@ public:
         : layer(size_in,
             size3d(k, size_in.height_ / stride, size_in.width_ / stride)),
         filters_(generate_filters(size_in.depth_, filter_size, k)),
-        padding_y_((filter_size.height_ - stride) / 2),
-        padding_x_((filter_size.width_ - stride) / 2),
+        padding_y_((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) / 2),
+        padding_x_((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) / 2),
         stride_(stride)
     {
         assert(k != 0);
-        assert((filter_size.height_ - stride) % 2 == 0);
-        assert((filter_size.width_ - stride) % 2 == 0);
+        assert((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
+        assert((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
     }
     std::size_t param_count() const override
     {
@@ -119,9 +119,8 @@ protected:
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
                     return convolve( // _transpose?
-                        //stride_, padding_y_, padding_x_, input_slice, last_input_);
-                        stride_, padding_y_, padding_x_, last_input_inverted, input_slice);
-
+                        stride_, padding_y_, padding_x_, input_slice, last_input_);
+                        //stride_, padding_y_, padding_x_, last_input_inverted, input_slice);
                 }, input_slices);
 
         std::cout << "todo remove input_slices[0].size().width_ " << input_slices[0].size().width_ << std::endl;

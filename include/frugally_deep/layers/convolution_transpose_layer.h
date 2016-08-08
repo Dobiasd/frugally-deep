@@ -22,8 +22,12 @@
 namespace fd
 {
 
-// todo: variable padding, variable strides
-class convolutional_layer : public layer
+// upconvolution layer
+// aka. convolution transpose
+// aka. backward strided convolution
+// aka. fractionally strided convolution
+// aka. deconvolution
+class convolution_transpose_layer : public layer
 {
 public:
     static std::vector<filter> generate_filters(
@@ -32,19 +36,19 @@ public:
         return std::vector<filter>(k, filter(matrix3d(
             size3d(depth, filter_size.height_, filter_size.width_)), 0));
     }
-    explicit convolutional_layer(
+    explicit convolution_transpose_layer(
             const size3d& size_in, const size2d& filter_size,
             std::size_t k, std::size_t stride)
         : layer(size_in,
-            size3d(k, size_in.height_ / stride, size_in.width_ / stride)),
+            size3d(k, size_in.height_ * stride, size_in.width_ * stride)),
         filters_(generate_filters(size_in.depth_, filter_size, k)),
-        padding_y_((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) / 2),
-        padding_x_((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) / 2),
+        padding_y_((size_out_.height_ / stride - size_in.height_ + filter_size.height_ - stride) / 2),
+        padding_x_((size_out_.width_ / stride - size_in.width_ + filter_size.width_ - stride) / 2),
         stride_(stride)
     {
         assert(k != 0);
-        assert((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
-        assert((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
+        assert((size_out_.height_ / stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
+        assert((size_out_.width_ / stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
     }
     std::size_t param_count() const override
     {
@@ -92,14 +96,11 @@ public:
 protected:
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
-        return convolve(stride_, padding_x_, padding_y_, filters_, input);
+        return convolve_transpose(stride_, padding_x_, padding_y_, filters_, input);
     }
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc_reversed) const override
     {
-        // forward pass: x `conv` w = y
-        // backward pass: e_x = flip(w) `conv` f_y
-        // gradient computation: x `conv` e_y = delta_j / delta_w
         const auto remove_filter_bias = [](const filter& f)
         {
             return filter(f.get_matrix3d(), 0);
@@ -109,12 +110,11 @@ protected:
                 remove_filter_bias,
                 flip_filters_spatially(filters_));
 
-        const auto output = convolve_transpose(
+        const auto output = convolve(
             stride_, padding_y_, padding_x_, flipped_filters, input);
 
         const auto input_slices = matrix3d_to_depth_slices(input);
 
-        // todo: sparse schon hier aussen machen
         const auto last_input_inverted = invert_x_y_positions(last_input_);
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
@@ -149,8 +149,6 @@ protected:
                 {
                     return f.get_params();
                 }, delta_filters));
-
-        // see slide 10 of http://de.slideshare.net/kuwajima/cnnbp
 
         params_deltas_acc_reversed.insert(std::end(params_deltas_acc_reversed),
             param_deltas_vec.rbegin(), param_deltas_vec.rend());

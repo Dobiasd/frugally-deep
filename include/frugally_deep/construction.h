@@ -20,13 +20,21 @@ namespace fd
 typedef std::function<layer_ptr(const size3d& size_in)> pre_layer;
 typedef std::vector<pre_layer> pre_layers;
 
-// todo steps, die kann man naemlich statt pool benutzen.
 inline pre_layer conv(const size2d& filter_size,
     std::size_t k, std::size_t stride)
 {
     return [=](const size3d& size_in) -> layer_ptr
     {
         return std::make_shared<convolutional_layer>(size_in, filter_size, k, stride);
+    };
+}
+
+inline pre_layer conv_transp(const size2d& filter_size,
+    std::size_t k, std::size_t stride)
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<convolution_transpose_layer>(size_in, filter_size, k, stride);
     };
 }
 

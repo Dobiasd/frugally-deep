@@ -8,6 +8,7 @@
 
 #include "frugally_deep/layers/avg_pool_layer.h"
 #include "frugally_deep/layers/convolutional_layer.h"
+#include "frugally_deep/layers/convolution_transpose_layer.h"
 #include "frugally_deep/layers/elu_layer.h"
 #include "frugally_deep/layers/erf_layer.h"
 #include "frugally_deep/layers/fast_sigmoid_layer.h"

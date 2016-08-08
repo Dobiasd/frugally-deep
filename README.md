@@ -28,7 +28,7 @@ The goal is that someday the following things will be true:
 todo
 ----
 
-upconvolution_layer (aka. convolution transpose aka. backward strided convolution aka. fractionally strided convolution aka. deconvolution) layer fuer autoencoder
+upconv fertig machen
 
 Im Prinzip will man ja nur, dass der nächste Layer fuer andere klassen möglichst unique ist und für gleiche möglichst gleich. Man muss also eigentlich nicht das Optimum einer bestimmten Fehlerfunktion finden, sondern das Optimum von einer von sehr vielen möglichen Fehlerfunktionen.
 

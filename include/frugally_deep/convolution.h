@@ -107,8 +107,8 @@ inline matrix2d convolve(
     const std::size_t w1 = in_orig.size().width_;
     const std::size_t fy = filter.size().height_;
     const std::size_t fx = filter.size().width_;
-    const std::size_t px = padding_x;
     const std::size_t py = padding_y;
+    const std::size_t px = padding_x;
 
     const std::size_t h2 = (h1 - fy + 2 * py) / stride + 1;
     const std::size_t w2 = (w1 - fx + 2 * px) / stride + 1;
@@ -149,7 +149,7 @@ inline matrix3d convolve(
     const auto conv_func = [&](const matrix2d& in_slice)
     {
         return convolve(
-            stride, padding_x, padding_y, filter, in_slice);
+            stride, padding_y, padding_x, filter, in_slice);
     };
     return
         matrix3d_from_depth_slices(
@@ -168,7 +168,7 @@ inline matrix3d convolve(
     const auto conv_func = [&](const matrix2d& filter_slice)
     {
         return convolve(
-            stride, padding_x, padding_y, filter_slice, in);
+            stride, padding_y, padding_x, filter_slice, in);
     };
     return
         matrix3d_from_depth_slices(

@@ -118,10 +118,23 @@ protected:
         const std::vector<matrix3d> filter_deltas =
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
-                    return convolve( // _transpose?
-                        stride_, padding_y_, padding_x_, input_slice, last_input_);
+                    //assert(last_input_.size().width_ % input_slice.size().width_ == 0);
+                    //assert(last_input_.size().height_ % input_slice.size().height_ == 0);
+                    //const std::size_t stride_deltas = last_input_.size().width_ / input_slice.size().width_;
+                    // todo: make sure stride x and stride y are equal.
+
+                    // todo: funktion schreiben, die nullen um die dinger malt
+                    // aussen aber keine
+                    // innen dann immer stride-1 nullen zwischen zwei werte
+                    // damit dann normal convolve
+
+                    //const std::size_t stride_deltas = last_input_.size().width_ / stride_;
+                    return convolve_transpose( // _transpose?
+                        stride_, padding_y_, padding_x_, input_slice, last_input_ );
+                        //stride_, padding_y_, padding_x_, last_input_, input_slice );
                         //stride_, padding_y_, padding_x_, last_input_inverted, input_slice);
                 }, input_slices);
+
 
         std::cout << "todo remove -------------------" << std::endl;
         std::cout << "todo remove input_slices[0].size().width_ " << input_slices[0].size().width_ << std::endl;
@@ -131,6 +144,7 @@ protected:
         std::cout << "todo remove filter_deltas.front().size().width_ " << filter_deltas.front().size().width_ << std::endl;
         std::cout << "todo remove filters_.front().size().width_ " << filters_.front().size().width_ << std::endl;
         std::cout << "todo remove -------------------" << std::endl;
+
 
         assert(filter_deltas.front().size() == filters_.front().size());
 

@@ -116,6 +116,21 @@ inline matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
     return matrix2d(out_size, m.as_vector());
 }
 
+inline matrix2d sparse_matrix2d(std::size_t step, const matrix2d& in)
+{
+    matrix2d out(size2d(
+        in.size().height_ * step - (step - 1),
+        in.size().width_ * step - (step - 1)));
+    for (std::size_t y = 0; y < in.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < in.size().width_; ++x)
+        {
+            out.set(y * step, x * step, in.get(y, x));
+        }
+    }
+    return out;
+}
+
 inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
 {
     assert(a.size().width_ == b.size().height_);

@@ -133,8 +133,7 @@ inline void gradient_check_backprop_implementation()
         tanh(),
         //softmax()
     })(size3d(1, 1, 2));
-    // todo rein
-    //test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
+    test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
 
 
 
@@ -145,17 +144,33 @@ inline void gradient_check_backprop_implementation()
         conv(size2d(3, 3), 2, 1),
         conv(size2d(3, 3), 2, 1),
     })(size3d(1, 4, 4));
-    // todo rein
-    //test_net_backprop("conv_net_stride_1", conv_net_stride_1, 5, 10);
+    test_net_backprop("conv_net_stride_1", conv_net_stride_1, 5, 10);
 
 
-
-    auto conv_net_stride_2 = net(
+    auto conv_net_stride_2_f2 = net(
     {
         conv(size2d(2, 2), 2, 2),
-        conv(size2d(2, 2), 2, 2),
+        conv(size2d(2, 2), 5, 2),
+        conv(size2d(2, 2), 3, 2),
     })(size3d(1, 8, 8));
-    test_net_backprop("conv_net_stride_2", conv_net_stride_2, 5, 10);
+    test_net_backprop("conv_net_stride_2_f2", conv_net_stride_2_f2, 5, 10);
+
+
+    auto conv_net_stride_2_f4 = net(
+    {
+        conv(size2d(4, 4), 3, 2),
+        conv(size2d(4, 4), 2, 2),
+    })(size3d(1, 8, 8));
+    test_net_backprop("conv_net_stride_2_f4", conv_net_stride_2_f4, 5, 10);
+
+
+    auto conv_net_stride_4_f4 = net(
+    {
+        conv(size2d(4, 4), 1, 4),
+        conv(size2d(4, 4), 1, 4),
+    })(size3d(1, 16, 16));
+    test_net_backprop("conv_net_stride_4_f4", conv_net_stride_4_f4, 5, 10);
+
 
 
 

@@ -202,6 +202,14 @@ inline std::vector<matrix2d> matrix3d_to_depth_slices(const matrix3d& m)
     return ms;
 }
 
+inline matrix3d sparse_matrix3d(std::size_t step, const matrix3d& in)
+{
+    return matrix3d_from_depth_slices(
+        fplus::transform(
+            fplus::bind_1st_of_2(sparse_matrix2d, step),
+            matrix3d_to_depth_slices(in)));
+}
+
 inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)
 {
     matrix3d result(size3d(1, m.size().height_, m.size().width_));

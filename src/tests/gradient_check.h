@@ -152,7 +152,7 @@ inline void gradient_check_backprop_implementation()
     {
         conv(size2d(2, 2), 2, 2),
         conv(size2d(2, 2), 2, 2),
-    })(size3d(1, 4, 4));
+    })(size3d(1, 8, 8));
     test_net_backprop("conv_net_stride_2", conv_net_stride_2, 5, 10);
 
 

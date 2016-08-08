@@ -19,24 +19,9 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
 #include <string>
 #include <vector>
 
-std::vector<std::string> list_JPEGs(const std::string& dir_path)
-{
-    using namespace boost::filesystem;
-    return fplus::transform_and_keep_justs([](const directory_entry& entry) -> fplus::maybe<std::string>
-    {
-        if (!boost::filesystem::is_regular_file(entry))
-            return {};
-        const auto file_name_str = entry.path().filename().string();
-        if (!fplus::is_infix_of(std::string("JPEG"), file_name_str))
-            return {};
-        return entry.path().string();;
-    }, std::vector<directory_entry>(directory_iterator(path(dir_path)), {}));
-}
 
 inline void tiny_imagenet_200_autoencoder_test()
 {

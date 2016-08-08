@@ -17,8 +17,8 @@ inline fd::matrix3d cv_bgr_img_float_to_matrix3d(const cv::Mat& img)
     assert(img.type() == CV_32FC3);
     fd::matrix3d m(fd::size3d(
         3,
-        static_cast<std::size_t>(img.cols),
-        static_cast<std::size_t>(img.rows)));
+        static_cast<std::size_t>(img.rows),
+        static_cast<std::size_t>(img.cols)));
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)

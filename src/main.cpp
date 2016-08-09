@@ -29,8 +29,8 @@ int main()
     lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();
-    mnist_classification_test();
-    cifar_10_classification_test();
+    //mnist_classification_test();
+    //cifar_10_classification_test();
     tiny_imagenet_200_autoencoder_test();
     //variance_inflation_training_test();
     //pharmaceutical_packages_classification_test();

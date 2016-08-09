@@ -30,50 +30,19 @@ inline void tiny_imagenet_200_autoencoder_test()
     //const auto activation_function = leaky_relu(0.001);
     //const auto pooling_function = max_pool(2);
     const auto activation_function = elu(1);
-    const auto pooling_function = max_pool(2);
-    const auto unpooling_function = unpool(2);
+    //const auto pooling_function = max_pool(2);
+    //const auto unpooling_function = unpool(2);
     pre_layers layers = {
-        conv(size2d(3, 3), 128, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 256, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 512, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 1024, 1), activation_function,
-        pooling_function,
-
-        conv(size2d(3, 3), 2048, 1), activation_function,
-        //pooling_function,
-
-        //conv(size2d(3, 3), 160, 1), activation_function,
-        //pooling_function, // down to 1*1
-
-        //conv(size2d(3, 3), 192, 1), activation_function,
-        //conv(size2d(3, 3), 192, 1), activation_function,
-
-        //unpooling_function,
-        //conv(size2d(3, 3), 160, 1), activation_function,
-
-        //unpooling_function,
-        conv(size2d(3, 3), 2048, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 1024, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 512, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 256, 1), activation_function,
-
-        unpooling_function,
-        conv(size2d(3, 3), 128, 1), activation_function,
-        conv(size2d(3, 3), 3, 1), activation_function,
-
-        //conv(size2d(1, 1), 3, 1)//, activation_function,
+        conv(size2d(4, 4), 32, 2), activation_function,
+        conv(size2d(4, 4), 48, 2), activation_function,
+        conv(size2d(4, 4), 64, 2), activation_function,
+        conv(size2d(4, 4), 96, 2), activation_function,
+        conv(size2d(4, 4), 128, 2), activation_function,
+        conv_transp(size2d(4, 4), 96, 2), activation_function,
+        conv_transp(size2d(4, 4), 64, 2), activation_function,
+        conv_transp(size2d(4, 4), 48, 2), activation_function,
+        conv_transp(size2d(4, 4), 32, 2), activation_function,
+        conv_transp(size2d(4, 4), 3, 2), activation_function,
         };
 
 
@@ -128,7 +97,7 @@ inline void tiny_imagenet_200_autoencoder_test()
     //tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1));
 
     input_with_output_vec training_shuffle_dataset = dataset.training_data_;
-    train(tobinet, training_shuffle_dataset, 0.001f, 0.00001f, 100, 50, 20*60, true);
+    train(tobinet, training_shuffle_dataset, 0.001f, 0.0001f, 100, 50, 20*60, true);
 
     for (std::size_t i = 0; i < dataset.training_data_.size(); ++i)
     {

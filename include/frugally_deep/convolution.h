@@ -110,6 +110,9 @@ inline matrix2d convolve(
     const std::size_t py = padding_y;
     const std::size_t px = padding_x;
 
+    assert(fy <= h1);
+    assert(fx <= w1);
+
     const std::size_t h2 = (h1 - fy + 2 * py) / stride + 1;
     const std::size_t w2 = (w1 - fx + 2 * px) / stride + 1;
 

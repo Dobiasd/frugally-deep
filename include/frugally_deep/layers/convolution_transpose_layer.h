@@ -120,10 +120,10 @@ protected:
             fplus::transform([&](const matrix2d& input_slice) -> matrix3d
                 {
                     // todo: assertions
-                    const auto sparse_input_slice = sparse_matrix2d(
-                        stride_, input_slice);
+                    const auto sparse_last_input = sparse_matrix3d(
+                        stride_, last_input_);
                     return convolve(1, padding_y_, padding_x_,
-                        sparse_input_slice, last_input_ );
+                        sparse_last_input, input_slice );
                 }, input_slices);
 
         assert(filter_deltas.front().size() == filters_.front().size());

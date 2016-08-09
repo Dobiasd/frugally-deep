@@ -175,11 +175,26 @@ inline void gradient_check_backprop_implementation()
 
     auto conv_transp_net_stride_2_f2 = net(
     {
-        conv_transp(size2d(2, 2), 1, 2),
-        conv_transp(size2d(2, 2), 1, 2),
+        conv_transp(size2d(2, 2), 2, 2),
+        conv_transp(size2d(2, 2), 3, 2),
     })(size3d(1, 2, 2));
     test_net_backprop("conv_transp_net_stride_2_f2", conv_transp_net_stride_2_f2, 5, 10);
 
+
+    auto conv_transp_net_stride_2_f4 = net(
+    {
+        conv_transp(size2d(4, 4), 1, 2),
+        conv_transp(size2d(4, 4), 1, 2),
+    })(size3d(1, 2, 2));
+    test_net_backprop("conv_transp_net_stride_2_f4", conv_transp_net_stride_2_f4, 5, 10);
+
+
+    auto conv_transp_net_stride_4_f4 = net(
+    {
+        conv_transp(size2d(4, 4), 1, 4),
+        conv_transp(size2d(4, 4), 1, 4),
+    })(size3d(1, 2, 2));
+    test_net_backprop("conv_transp_net_stride_4_f4", conv_transp_net_stride_4_f4, 5, 10);
 
 
     auto net_003 = net(

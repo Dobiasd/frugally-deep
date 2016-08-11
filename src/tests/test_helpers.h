@@ -48,7 +48,7 @@ std::vector<std::string> list_JPEGs(const std::string& dir_path)
             !fplus::is_suffix_of(std::string(".jpg"), file_name_str) &&
             !fplus::is_suffix_of(std::string(".JPG"), file_name_str))
             return {};
-        return entry.path().string();;
+		return fplus::replace_elems( '\\', '/', entry.path().string());;
     }, std::vector<directory_entry>(directory_iterator(path(dir_path)), {}));
 }
 
@@ -76,7 +76,21 @@ inline fd::matrix3d load_col_image_as_matrix3d(
         static_cast<int>(height), static_cast<int>(width), img_uchar);
     cv::Mat img = uchar_img_to_float_img(img_uchar);
     return cv_bgr_img_float_to_matrix3d(img);
+}
 
+inline fd::matrix3d load_col_image_as_matrix3d(
+    std::size_t y0, std::size_t x0,
+    std::size_t height, std::size_t width,
+    const std::string& file_path)
+{
+    assert(file_exists(file_path));
+    cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_COLOR);
+    img_uchar = img_uchar(
+        cv::Rect(
+            cv::Point(static_cast<int>(x0), static_cast<int>(y0)),
+            cv::Size(static_cast<int>(width), static_cast<int>(height))));
+    cv::Mat img = uchar_img_to_float_img(img_uchar);
+    return cv_bgr_img_float_to_matrix3d(img);
 }
 
 inline fd::matrix3d load_gray_image_as_matrix3d(const std::string& file_path)

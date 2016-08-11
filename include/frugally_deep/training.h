@@ -435,4 +435,19 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset)
         << correct_count << "/" << dataset.size() << ")" << std::endl;
 }
 
+inline void test_regression(layer_ptr& net, const input_with_output_vec& dataset)
+{
+    std::cout << "tests to run: " << dataset.size() << std::endl;
+    for (const auto& data : dataset)
+    {
+        assert(data.output_.size() == net->output_size());
+        const auto out_vol = net->forward_pass(data.input_);
+        const auto result = out_vol.get(0, 0, 0);
+        const auto wanted_result = data.output_.get(0, 0, 0);
+        std::cout << "result: " << result << std::endl;
+        std::cout << "wanted_result: " << wanted_result << std::endl;
+        std::cout << "e: " << fplus::abs_diff(result, wanted_result) << std::endl;
+    }
+}
+
 } // namespace fd

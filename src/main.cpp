@@ -14,6 +14,7 @@
 #include "tests/variance_inflation_training.h"
 #include "tests/tiny_imagenet_200.h"
 #include "tests/pharmaceutical_packages.h"
+#include "tests/golf_ball_quality.h"
 
 #include "frugally_deep/frugally_deep.h"
 
@@ -25,7 +26,9 @@
 
 int main()
 {
-    gradient_check_backprop_implementation();
+    //gradient_check_backprop_implementation();
+    golf_ball_quality_regression_test();
+    return 0;
     lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();

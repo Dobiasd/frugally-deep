@@ -333,6 +333,13 @@ void show_progress(
     << std::endl;
 };
 
+float_vec clamp_gradient(float_t max_abs_elem, const float_vec gradient)
+{
+    return fplus::transform(
+        fplus::clamp<float_t>(-max_abs_elem, max_abs_elem),
+        gradient);
+}
+
 inline void train(layer_ptr& net,
     input_with_output_vec& dataset,
     float_t mean_error_goal,
@@ -340,7 +347,8 @@ inline void train(layer_ptr& net,
     std::size_t max_epochs,
     std::size_t batch_size = 0,
     std::size_t max_seconds = 0,
-    bool improve_only = false)
+    bool improve_only = false,
+    float_t max_gradient_abs_elem = 0.01f)
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
@@ -375,6 +383,7 @@ inline void train(layer_ptr& net,
 
             //auto gradient = calc_net_gradient_numeric(net, batch);
             auto gradient = calc_net_gradient_backprop(net, batch);
+            gradient = clamp_gradient(max_gradient_abs_elem, gradient);
 
             const auto old_and_new_error = optimize_net_gradient(
                 net, batch, learning_rate, momentum, gradient, improve_only);

@@ -50,7 +50,8 @@ inline void tiny_imagenet_200_autoencoder_test()
     std::cout << "loading tiny_imagenet_200_ ..." << std::flush;
 
     const std::string bears_path = "./stuff/tiny-imagenet-200/train/n02132136/images/";
-    const auto bear_file_paths = fplus::sort(list_JPEGs(bears_path));
+    auto bear_file_paths = fplus::sort(list_JPEGs(bears_path));
+    //bear_file_paths = fplus::take(10, bear_file_paths);
     classification_dataset dataset;
     for (const auto& path : bear_file_paths)
     {
@@ -97,7 +98,7 @@ inline void tiny_imagenet_200_autoencoder_test()
     //tobinet->set_params(randomly_change_params(tobinet->get_params(), 0.1));
 
     input_with_output_vec training_shuffle_dataset = dataset.training_data_;
-    train(tobinet, training_shuffle_dataset, 0.001f, 0.0001f, 100, 50, 20*60, true);
+    train(tobinet, training_shuffle_dataset, 0.001f, 0.1f, 1000, 50, 60*60, false);
 
     for (std::size_t i = 0; i < dataset.training_data_.size(); ++i)
     {

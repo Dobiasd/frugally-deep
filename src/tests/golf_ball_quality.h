@@ -72,7 +72,6 @@ inline void golf_ball_quality_regression_test()
     using namespace fd;
 
     const auto activation_function = elu(1);
-    const auto pooling_function = gentle_max_pool(2, 0.7);
     pre_layers layers = {
         /*
         conv(size2d(4, 4), 8, 2), activation_function,
@@ -84,15 +83,10 @@ inline void golf_ball_quality_regression_test()
         conv(size2d(4, 4), 8, 2), activation_function,
         */
 
-        conv(size2d(3, 3), 8, 1), pooling_function,
-        conv(size2d(3, 3), 8, 1), pooling_function,
-        conv(size2d(3, 3), 8, 1), pooling_function,
-        pooling_function,
-        pooling_function,
-        pooling_function,
-        pooling_function,
-        pooling_function,
-        pooling_function,
+        conv(size2d(3, 3), 8, 1), max_pool(2),
+        conv(size2d(3, 3), 16, 1), max_pool(2),
+        conv(size2d(3, 3), 32, 1), max_pool(2),
+        max_pool(64),
 
         flatten(),
         tanh(),
@@ -105,7 +99,7 @@ inline void golf_ball_quality_regression_test()
 
     gradnet->random_init_params();
 
-    train(gradnet, classifcation_data.training_data_, 0.05f, 0.1f, 100);
+    train(gradnet, classifcation_data.training_data_, 0.1f, 0.1f, 100);
     test_regression(gradnet, classifcation_data.test_data_);
     //test_regression(gradnet, classifcation_data.training_data_);
 }

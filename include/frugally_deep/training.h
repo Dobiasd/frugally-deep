@@ -446,6 +446,7 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset)
 
 inline void test_regression(layer_ptr& net, const input_with_output_vec& dataset)
 {
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
     std::cout << "tests to run: " << dataset.size() << std::endl;
     for (const auto& data : dataset)
     {
@@ -453,9 +454,11 @@ inline void test_regression(layer_ptr& net, const input_with_output_vec& dataset
         const auto out_vol = net->forward_pass(data.input_);
         const auto result = out_vol.get(0, 0, 0);
         const auto wanted_result = data.output_.get(0, 0, 0);
-        std::cout << "result: " << result << std::endl;
-        std::cout << "wanted_result: " << wanted_result << std::endl;
-        std::cout << "e: " << fplus::abs_diff(result, wanted_result) << std::endl;
+        const auto error = fplus::abs_diff(result, wanted_result);
+        std::cout
+            << "result: " << show_one_value(result)
+            << ", wanted_result: " << show_one_value(wanted_result)
+            << ", err: " << show_one_value(error) << std::endl;
     }
 }
 

@@ -28,16 +28,15 @@
 int main()
 {
     gradient_check_backprop_implementation();
-    tiny_imagenet_200_autoencoder_test();
-    return 0;
-    upconv_gradient_images_test();
     golf_ball_quality_regression_test();
+    return 0;
+    tiny_imagenet_200_autoencoder_test();
+    upconv_gradient_images_test();
     lenna_filter_test();
     xor_as_net_test();
     gradients_classification_test();
-    //mnist_classification_test();
-    //cifar_10_classification_test();
-
-    //variance_inflation_training_test();
-    //pharmaceutical_packages_classification_test();
+    mnist_classification_test();
+    cifar_10_classification_test();
+    variance_inflation_training_test();
+    pharmaceutical_packages_classification_test();
 }

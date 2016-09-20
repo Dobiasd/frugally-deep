@@ -10,7 +10,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 
 #include <cassert>
 #include <cstddef>

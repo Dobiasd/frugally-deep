@@ -12,7 +12,7 @@
 #include "frugally_deep/matrix3d_pos.h"
 #include "frugally_deep/size3d.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 
 #include <cassert>
 #include <cstddef>

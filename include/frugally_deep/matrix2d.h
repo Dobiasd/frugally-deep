@@ -11,7 +11,7 @@
 #include "frugally_deep/size2d.h"
 #include "frugally_deep/matrix2d_pos.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 
 #include <cassert>
 #include <cstddef>

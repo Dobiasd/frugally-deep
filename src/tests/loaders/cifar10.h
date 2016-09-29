@@ -8,7 +8,7 @@
 
 #include "frugally_deep/frugally_deep.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 
 #include <cassert>
 #include <fstream>

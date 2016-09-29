@@ -13,7 +13,7 @@
 
 #include "frugally_deep/frugally_deep.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 #include <opencv2/opencv.hpp>
 
 #include <cassert>

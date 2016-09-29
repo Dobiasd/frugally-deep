@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/pool_layer.h"
 
-#include <fplus/fplus.h>
+#include <fplus/fplus.hpp>
 
 #include <limits>
 

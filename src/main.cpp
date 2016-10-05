@@ -13,8 +13,8 @@
 #include "tests/xor.h"
 #include "tests/variance_inflation_training.h"
 #include "tests/tiny_imagenet_200.h"
-#include "tests/pharmaceutical_packages.h"
-#include "tests/golf_ball_quality.h"
+#include "applications/pharmaceutical_packages.h"
+#include "applications/golf_ball_quality.h"
 #include "tests/upconv_gradient_images.h"
 
 #include "frugally_deep/frugally_deep.h"
@@ -28,7 +28,7 @@
 int main()
 {
     //gradient_check_backprop_implementation();
-    golf_ball_quality_regression_test();
+    //golf_ball_quality_regression_test();
     return 0;
     tiny_imagenet_200_autoencoder_test();
     upconv_gradient_images_test();

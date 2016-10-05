@@ -2,5 +2,6 @@ build
 release
 videos
 stuff
+src/applications
 *sublime*
 .sconsign.dblite

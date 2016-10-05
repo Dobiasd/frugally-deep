@@ -93,6 +93,23 @@ inline fd::matrix3d load_col_image_as_matrix3d(
     return cv_bgr_img_float_to_matrix3d(img);
 }
 
+inline fd::matrix3d load_col_image_as_matrix3d(
+    std::size_t y0, std::size_t x0,
+    std::size_t height, std::size_t width,
+    int dest_height, int dest_width,
+    const std::string& file_path)
+{
+    assert(file_exists(file_path));
+    cv::Mat img_uchar = cv::imread(file_path, cv::IMREAD_COLOR);
+    img_uchar = img_uchar(
+        cv::Rect(
+            cv::Point(static_cast<int>(x0), static_cast<int>(y0)),
+            cv::Size(static_cast<int>(width), static_cast<int>(height))));
+    cv::Mat img = uchar_img_to_float_img(img_uchar);
+    img = resize_cv_image(dest_height, dest_width, img);
+    return cv_bgr_img_float_to_matrix3d(img);
+}
+
 inline fd::matrix3d load_gray_image_as_matrix3d(const std::string& file_path)
 {
     assert(file_exists(file_path));

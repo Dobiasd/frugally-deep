@@ -26,7 +26,7 @@ inline fd::float_t extract_value_from_file_path(const std::string& file_path)
         fplus::split_by_token(std::string("/"), false, file_path);
     const auto filename_split =
         fplus::split_by_token(std::string("__"), false, path_split.back());
-    return fplus::read_value_unsafe<fd::float_t>(filename_split.front());
+    return fplus::read_value_unsafe<fd::float_t>(filename_split.front())/10;
 }
 
 inline fd::classification_dataset load_golf_ball_quality_dataset(const std::string& base_dir)
@@ -42,7 +42,8 @@ inline fd::classification_dataset load_golf_ball_quality_dataset(const std::stri
     const auto path_to_input_with_output = [&](const std::string& path) -> fd::input_with_output
     {
         return {
-            load_col_image_as_matrix3d(28, 448, 1024, 1024, path),
+            load_col_image_as_matrix3d(28, 448, 1024, 1024, 512, 512, path),
+            //load_col_image_as_matrix3d(28, 448, 1024, 1024, 16, 16, path),
             output_for_article(extract_value_from_file_path(path))};
     };
 
@@ -67,31 +68,20 @@ inline void golf_ball_quality_regression_test()
     assert(!classifcation_data.training_data_.empty());
     assert(!classifcation_data.test_data_.empty());
 
-    classifcation_data = normalize_classification_dataset(classifcation_data, false);
+    //classifcation_data = normalize_classification_dataset(classifcation_data, false);
 
     using namespace fd;
 
-    const auto activation_function = elu(1);
     pre_layers layers = {
-        /*
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        conv(size2d(4, 4), 8, 2), activation_function,
-        */
-
-        conv(size2d(3, 3), 8, 1), max_pool(2),
-        conv(size2d(3, 3), 16, 1), max_pool(2),
-        conv(size2d(3, 3), 32, 1), max_pool(2),
+        conv(size2d(3, 3), 16, 1), relu(), max_pool(2),
+        conv(size2d(3, 3), 32, 1), relu(), max_pool(2),
+        conv(size2d(3, 3), 48, 1), relu(), max_pool(2),
         max_pool(64),
-
         flatten(),
-        tanh(),
-        fc(40),
+        fc(20),
+        tanh(true),
         fc(classifcation_data.training_data_.front().output_.size().height_),
+        tanh(true)
         };
 
     auto gradnet = net(layers)(classifcation_data.training_data_.front().input_.size());
@@ -99,7 +89,9 @@ inline void golf_ball_quality_regression_test()
 
     gradnet->random_init_params();
 
-    train(gradnet, classifcation_data.training_data_, 0.1f, 0.1f, 100);
+    train(gradnet, classifcation_data.training_data_, 0.000001f, 0.1f, 10000, 40, 60*90);
+
+    test_regression(gradnet, classifcation_data.training_data_);
+
     test_regression(gradnet, classifcation_data.test_data_);
-    //test_regression(gradnet, classifcation_data.training_data_);
 }

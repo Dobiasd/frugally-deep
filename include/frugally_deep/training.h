@@ -340,6 +340,25 @@ float_vec clamp_gradient(float_t max_abs_elem, const float_vec gradient)
         gradient);
 }
 
+inline void load_net_params(layer_ptr& net, const std::string& file_path)
+{
+    std::cout << "loading params from " << file_path << std::endl;
+    const auto lines = fplus::read_text_file_lines(file_path, false)();
+    const auto values =
+        fplus::transform_and_keep_justs(fplus::read_value<fd::float_t>, lines);
+    assert(values.size() == lines.size());
+    assert(values.size() == net->get_params().size());
+    net->set_params(values);
+}
+
+inline void save_net_params(const layer_ptr& net, const std::string& file_path)
+{
+    std::cout << "saving params to " << file_path << std::endl;
+    const auto params = net->get_params();
+    const auto lines = fplus::transform(fplus::show_float<fd::float_t>(64, 64), params);
+    fplus::write_text_file_lines(file_path, lines, true)();
+}
+
 inline void train(layer_ptr& net,
     input_with_output_vec& dataset,
     float_t mean_error_goal,
@@ -348,7 +367,8 @@ inline void train(layer_ptr& net,
     std::size_t batch_size = 0,
     std::size_t max_seconds = 0,
     bool improve_only = false,
-    float_t max_gradient_abs_elem = 0.01f)
+    float_t max_gradient_abs_elem = 0.01f,
+    std::function<void(layer_ptr& net, std::size_t epoch)> do_before_every_epoch = std::function<void(layer_ptr& net, std::size_t epoch)>())
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
@@ -373,6 +393,11 @@ inline void train(layer_ptr& net,
     for (std::size_t epoch = 0; epoch < max_epochs; ++epoch)
     {
         std::shuffle(dataset.begin(), dataset.end(), g);
+
+        if (do_before_every_epoch)
+        {
+            do_before_every_epoch(net, epoch);
+        }
 
         for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
         {
@@ -421,9 +446,13 @@ inline void train(layer_ptr& net,
     std::cout << "Stop training: max_epochs reached" << std::endl;
 }
 
-inline void test(layer_ptr& net, const input_with_output_vec& dataset)
+inline void test(layer_ptr& net, const input_with_output_vec& dataset, bool verbose = false)
 {
-    std::cout << "tests to run: " << dataset.size() << std::endl;
+    std::vector<std::string> confusions;
+    if (verbose)
+    {
+        std::cout << "tests to run: " << dataset.size() << std::endl;
+    }
     std::size_t correct_count = 0;
     for (const auto& data : dataset)
     {
@@ -436,30 +465,58 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset)
         {
             ++correct_count;
         }
+        else
+        {
+            confusions.push_back(
+                fplus::show(wanted_result.y_) + "," +
+				fplus::show(classification_result.y_));
+        }
     }
     int percent = fplus::round<int>(
         100 * static_cast<double>(correct_count) /
         static_cast<double>(dataset.size()));
+    if (verbose)
+    {
+        std::cout << "confusions:" << std::endl;
+        std::cout << "wanted_result,classification_result" << std::endl;
+        std::cout << fplus::show_cont(fplus::count_occurrences(confusions)) << std::endl;
+    }
     std::cout << "test accuracy: " << percent << " % ("
         << correct_count << "/" << dataset.size() << ")" << std::endl;
 }
 
-inline void test_regression(layer_ptr& net, const input_with_output_vec& dataset)
+inline void test_regression(
+    layer_ptr& net,
+    const input_with_output_vec& dataset,
+    fd::float_t allowed_abs_error)
 {
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 0, 6);
     std::cout << "tests to run: " << dataset.size() << std::endl;
+
+    std::cout << "result,wanted_result,error,error_times_100_rounded" << std::endl;
+    std::size_t correct_count = 0;
     for (const auto& data : dataset)
     {
         assert(data.output_.size() == net->output_size());
         const auto out_vol = net->forward_pass(data.input_);
         const auto result = out_vol.get(0, 0, 0);
         const auto wanted_result = data.output_.get(0, 0, 0);
-        const auto error = fplus::abs_diff(result, wanted_result);
+        const auto error = result - wanted_result;
+        if (std::abs(error) <= allowed_abs_error)
+        {
+            ++correct_count;
+        }
         std::cout
-            << "result: " << show_one_value(result)
-            << ", wanted_result: " << show_one_value(wanted_result)
-            << ", err: " << show_one_value(error) << std::endl;
+            << show_one_value(result) << ","
+            << show_one_value(wanted_result) << ","
+            << show_one_value(error) << ","
+            << fplus::round<int>(100*error) << std::endl;
     }
+    int percent = fplus::round<int>(
+        100 * static_cast<double>(correct_count) /
+        static_cast<double>(dataset.size()));
+    std::cout << "test accuracy: " << percent << " % ("
+        << correct_count << "/" << dataset.size() << ")" << std::endl;
 }
 
 } // namespace fd

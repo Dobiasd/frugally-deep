@@ -28,7 +28,7 @@
 int main()
 {
     //gradient_check_backprop_implementation();
-    //golf_ball_quality_regression_test();
+    golf_ball_quality_regression_test();
     return 0;
     tiny_imagenet_200_autoencoder_test();
     upconv_gradient_images_test();

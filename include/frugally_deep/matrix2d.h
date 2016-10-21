@@ -153,19 +153,6 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
     return m;
 }
 
-inline matrix2d transpose(const matrix2d& m)
-{
-    matrix2d result(size2d(m.size().width_, m.size().height_));
-    for (std::size_t x = 0; x < m.size().width_; ++x)
-    {
-        for (std::size_t y = 0; y < m.size().height_; ++y)
-        {
-            result.set(x, y, m.get(y, x));
-        }
-    }
-    return result;
-}
-
 inline float_t matrix2d_sum_all_values(const matrix2d& m)
 {
     return fplus::sum(m.as_vector());
@@ -182,6 +169,62 @@ inline matrix2d sum_matrix2ds(const std::vector<matrix2d>& ms)
 {
     assert(!ms.empty());
     return fplus::fold_left_1(add_matrix2ds, ms);
+}
+
+inline matrix2d transpose_matrix2d(const matrix2d& m)
+{
+    matrix2d result(size2d(m.size().width_, m.size().height_));
+    for (std::size_t x = 0; x < m.size().width_; ++x)
+    {
+        for (std::size_t y = 0; y < m.size().height_; ++y)
+        {
+            result.set(x, y, m.get(y, x));
+        }
+    }
+    return result;
+}
+
+inline matrix2d flip_matrix2d_horizontally(const matrix2d& m)
+{
+    matrix2d result(m.size());
+    for (std::size_t y = 0; y < m.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < m.size().width_; ++x)
+        {
+            result.set(y, m.size().width_ - (x + 1), m.get(y, x));
+        }
+    }
+    return result;
+}
+
+inline matrix2d rotate_matrix2d_ccw(int step_cnt_90_deg, const matrix2d& m)
+{
+    if (step_cnt_90_deg < 0)
+    {
+        step_cnt_90_deg = 4 - ((-step_cnt_90_deg) % 4);
+    }
+    step_cnt_90_deg = step_cnt_90_deg % 4;
+    if (step_cnt_90_deg == 0)
+    {
+        return m;
+    }
+    else if (step_cnt_90_deg == 1)
+    {
+        return transpose_matrix2d(flip_matrix2d_horizontally(m));
+    }
+    else if (step_cnt_90_deg == 2)
+    {
+        return rotate_matrix2d_ccw(1, rotate_matrix2d_ccw(1, m));
+    }
+    else if (step_cnt_90_deg == 3)
+    {
+        return flip_matrix2d_horizontally(transpose_matrix2d(m));
+    }
+    else
+    {
+        assert(false);
+        return m;
+    }
 }
 
 } // namespace fd

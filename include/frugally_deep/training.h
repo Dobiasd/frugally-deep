@@ -101,12 +101,13 @@ classification_dataset transform_classification_dataset(
 // https://en.wikipedia.org/wiki/Feature_scaling
 inline classification_dataset normalize_classification_dataset(
     const classification_dataset& dataset,
-    bool normalize_output_too)
+    bool normalize_output_too,
+    bool include_test_data_for_mean_and_stddev = true)
 {
     // Calculate mean and stddev only on the training set.
     // And apply it to training set and test set.
-    const float_vec all_values =
-        flatten_classification_dataset(dataset, normalize_output_too, false);
+    const float_vec all_values = flatten_classification_dataset(
+        dataset, normalize_output_too, include_test_data_for_mean_and_stddev);
     const auto mean_and_stddev = fplus::mean_stddev<float_t>(all_values);
     const float_t mean = mean_and_stddev.first;
     const float_t stddev = fplus::max(mean_and_stddev.second, 0.00000001f);
@@ -368,7 +369,8 @@ inline void train(layer_ptr& net,
     std::size_t max_seconds = 0,
     bool improve_only = false,
     float_t max_gradient_abs_elem = 0.01f,
-    std::function<void(layer_ptr& net, std::size_t epoch)> do_before_every_epoch = std::function<void(layer_ptr& net, std::size_t epoch)>())
+    std::function<void(layer_ptr& net, std::size_t epoch)> do_before_every_epoch = std::function<void(layer_ptr& net, std::size_t epoch)>(),
+    std::function<void(input_with_output_vec&)> do_before_every_epoch_with_data = std::function<void(input_with_output_vec&)>())
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
@@ -392,11 +394,16 @@ inline void train(layer_ptr& net,
 
     for (std::size_t epoch = 0; epoch < max_epochs; ++epoch)
     {
-        std::shuffle(dataset.begin(), dataset.end(), g);
-
         if (do_before_every_epoch)
         {
             do_before_every_epoch(net, epoch);
+        }
+
+        std::shuffle(dataset.begin(), dataset.end(), g);
+
+        if (do_before_every_epoch_with_data)
+        {
+            do_before_every_epoch_with_data(dataset);
         }
 
         for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
@@ -446,7 +453,11 @@ inline void train(layer_ptr& net,
     std::cout << "Stop training: max_epochs reached" << std::endl;
 }
 
-inline void test(layer_ptr& net, const input_with_output_vec& dataset, bool verbose = false)
+inline void test(layer_ptr& net,
+    const input_with_output_vec& dataset,
+    bool verbose = false,
+    std::function<bool(std::size_t, std::size_t)> custom_compare =
+    std::function<bool(std::size_t, std::size_t)>() )
 {
     std::vector<std::string> confusions;
     if (verbose)
@@ -461,7 +472,16 @@ inline void test(layer_ptr& net, const input_with_output_vec& dataset, bool verb
         const auto classification_result = matrix3d_max_pos(out_vol);
         const auto wanted_result = matrix3d_max_pos(data.output_);
         //std::cout << "c " << classification_result.y_ << " - d " << wanted_result.y_ << std::endl;
-        if (classification_result == wanted_result)
+        bool correct = false;
+        if (custom_compare)
+        {
+            correct = custom_compare(classification_result.y_, wanted_result.y_);
+        }
+        else
+        {
+            correct = classification_result.y_ == wanted_result.y_;
+        }
+        if (correct)
         {
             ++correct_count;
         }

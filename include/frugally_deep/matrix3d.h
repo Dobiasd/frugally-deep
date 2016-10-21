@@ -383,4 +383,31 @@ inline matrix3d& operator += (matrix3d& lhs, const matrix3d& rhs)
     return lhs;
 }
 
+inline matrix3d transpose_matrix3d(const matrix3d& m)
+{
+    return
+        matrix3d_from_depth_slices(
+            fplus::transform(
+                transpose_matrix2d,
+                matrix3d_to_depth_slices(m)));
+}
+
+inline matrix3d flip_matrix3d_horizontally(const matrix3d& m)
+{
+    return
+        matrix3d_from_depth_slices(
+            fplus::transform(
+                flip_matrix2d_horizontally,
+                matrix3d_to_depth_slices(m)));
+}
+
+inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
+{
+    return
+        matrix3d_from_depth_slices(
+            fplus::transform(
+                fplus::bind_1st_of_2(rotate_matrix2d_ccw, step_cnt_90_deg),
+                matrix3d_to_depth_slices(m)));
+}
+
 } // namespace fd

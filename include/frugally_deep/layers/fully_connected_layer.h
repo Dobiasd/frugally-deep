@@ -73,7 +73,7 @@ protected:
         float_vec& params_deltas_acc_reversed) const override
     {
         auto output_temp = matrix2d_to_matrix3d(
-            multiply(transpose(params_), depth_slice(0, input)));
+            multiply(transpose_matrix2d(params_), depth_slice(0, input)));
         auto output = matrix3d(input_size(),
             fplus::init(output_temp.as_vector()));
         matrix2d param_deltas(params_.size());

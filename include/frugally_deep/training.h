@@ -316,12 +316,13 @@ void show_progress(
     const std::pair<float_t,float_t>& weights_mean_and_stddev,
     const std::pair<float_t,float_t>& momentum_mean_and_stddev)
 {
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    const auto show_one_value = fplus::fwd::show_float_fill_left<fd::float_t>(' ', 10, 6);
+
     std::cout << "epoch " << fplus::to_string_fill_left(' ', 6, epoch)
     << "/"
     << fplus::to_string_fill_right(' ', 6, epochs)
     << " ("
-    << fplus::show_float_fill_left<float_t>(' ', 3, 0)(epoch_percent)
+    << fplus::show_float_fill_left<float_t>(' ', 3, 0, epoch_percent)
     << "%)"
     << ", batch old err " << show_one_value(old_error)
     << ", batch new err " << show_one_value(new_error)
@@ -337,8 +338,7 @@ void show_progress(
 float_vec clamp_gradient(float_t max_abs_elem, const float_vec gradient)
 {
     return fplus::transform(
-        fplus::clamp<float_t>(-max_abs_elem, max_abs_elem),
-        gradient);
+        fplus::fwd::clamp<float_t>(-max_abs_elem, max_abs_elem), gradient);
 }
 
 inline void load_net_params(layer_ptr& net, const std::string& file_path)
@@ -356,7 +356,7 @@ inline void save_net_params(const layer_ptr& net, const std::string& file_path)
 {
     std::cout << "saving params to " << file_path << std::endl;
     const auto params = net->get_params();
-    const auto lines = fplus::transform(fplus::show_float<fd::float_t>(64, 64), params);
+    const auto lines = fplus::transform(fplus::fwd::show_float(64, 64), params);
     fplus::write_text_file_lines(file_path, lines, true)();
 }
 
@@ -370,7 +370,7 @@ inline void train(layer_ptr& net,
     bool improve_only = false,
     float_t max_gradient_abs_elem = 0.01f,
     std::function<void(layer_ptr& net, std::size_t epoch)> do_before_every_epoch = std::function<void(layer_ptr& net, std::size_t epoch)>(),
-    std::function<void(input_with_output_vec&)> do_before_every_epoch_with_data = std::function<void(input_with_output_vec&)>())
+    std::function<void(input_with_output_vec&, std::size_t epoch)> do_before_every_epoch_with_data = std::function<void(input_with_output_vec&, std::size_t)>())
 {
     if (batch_size == 0 || batch_size > dataset.size())
         batch_size = dataset.size();
@@ -403,7 +403,7 @@ inline void train(layer_ptr& net,
 
         if (do_before_every_epoch_with_data)
         {
-            do_before_every_epoch_with_data(dataset);
+            do_before_every_epoch_with_data(dataset, epoch);
         }
 
         for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
@@ -492,7 +492,7 @@ inline void test(layer_ptr& net,
 				fplus::show(classification_result.y_));
         }
     }
-    int percent = fplus::round<int>(
+    int percent = fplus::round(
         100 * static_cast<double>(correct_count) /
         static_cast<double>(dataset.size()));
     if (verbose)
@@ -510,7 +510,7 @@ inline void test_regression(
     const input_with_output_vec& dataset,
     fd::float_t allowed_abs_error)
 {
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 0, 6);
+    const auto show_one_value = fplus::fwd::show_float_fill_left(' ', 0, 6);
     std::cout << "tests to run: " << dataset.size() << std::endl;
 
     std::cout << "result,wanted_result,error,error_times_100_rounded" << std::endl;
@@ -530,9 +530,9 @@ inline void test_regression(
             << show_one_value(result) << ","
             << show_one_value(wanted_result) << ","
             << show_one_value(error) << ","
-            << fplus::round<int>(100*error) << std::endl;
+            << fplus::round(100*error) << std::endl;
     }
-    int percent = fplus::round<int>(
+    int percent = fplus::round(
         100 * static_cast<double>(correct_count) /
         static_cast<double>(dataset.size()));
     std::cout << "test accuracy: " << percent << " % ("

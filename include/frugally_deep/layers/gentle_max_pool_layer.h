@@ -29,7 +29,7 @@ public:
         max_weight_(alpha),
         avg_weight_(1 - alpha)
     {
-        assert(fplus::is_in_closed_range<float_t>(0, 1)(alpha));
+        assert(fplus::is_in_closed_range<float_t>(0, 1, alpha));
     }
 protected:
     const float_t max_weight_;

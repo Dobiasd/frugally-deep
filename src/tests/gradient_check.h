@@ -43,7 +43,7 @@ inline void gradient_check_backprop_implementation()
 
     using namespace fd;
 
-    const auto show_one_value = fplus::show_float_fill_left<fd::float_t>(' ', 7 + 5, 7);
+    const auto show_one_value = fplus::fwd::show_float_fill_left(' ', 7 + 5, 7);
     const auto show_gradient = [show_one_value](const float_vec& xs) -> std::string
     {
         return fplus::show_cont(fplus::transform(show_one_value, xs));

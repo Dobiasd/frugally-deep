@@ -11,6 +11,7 @@
 #include "frugally_deep/layers/layer.h"
 
 #include <fplus/fplus.hpp>
+#include <fplus/fwd.hpp>
 
 #include <cassert>
 #include <cstddef>
@@ -316,7 +317,7 @@ void show_progress(
     const std::pair<float_t,float_t>& weights_mean_and_stddev,
     const std::pair<float_t,float_t>& momentum_mean_and_stddev)
 {
-    const auto show_one_value = fplus::fwd::show_float_fill_left<fd::float_t>(' ', 10, 6);
+    const auto show_one_value = fplus::fwd::show_float_fill_left(' ', 10, 6);
 
     std::cout << "epoch " << fplus::to_string_fill_left(' ', 6, epoch)
     << "/"

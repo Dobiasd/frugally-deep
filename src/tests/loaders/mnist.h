@@ -41,13 +41,13 @@ inline std::vector<std::uint8_t> read_mnist_label_file(
     std::int32_t magic_number =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(0, 4, header_and_body.first)));
+                fplus::get_segment(0, 4, header_and_body.first)));
     assert(magic_number == 2049);
 
     std::int32_t number_of_items =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(4, 8, header_and_body.first)));
+                fplus::get_segment(4, 8, header_and_body.first)));
 
     assert(number_of_items == 60000 || number_of_items == 10000);
     assert(header_and_body.second.size() ==
@@ -68,13 +68,13 @@ inline std::vector<std::uint8_t> read_mnist_image_file(
     std::int32_t magic_number =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(0, 4, header_and_body.first)));
+                fplus::get_segment(0, 4, header_and_body.first)));
     assert(magic_number == 2051);
 
     std::int32_t number_of_items =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(4, 8, header_and_body.first)));
+                fplus::get_segment(4, 8, header_and_body.first)));
 
     assert(number_of_items == 60000 || number_of_items == 10000);
     assert(header_and_body.second.size() ==
@@ -83,13 +83,13 @@ inline std::vector<std::uint8_t> read_mnist_image_file(
     std::int32_t number_of_rows =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(8, 12, header_and_body.first)));
+                fplus::get_segment(8, 12, header_and_body.first)));
     assert(number_of_rows == 28);
 
     std::int32_t number_of_columns =
         reverse_int_bytes(
             concat_bytes_to_int(
-                fplus::get_range(8, 12, header_and_body.first)));
+                fplus::get_segment(8, 12, header_and_body.first)));
     assert(number_of_columns == 28);
 
     // todo remove

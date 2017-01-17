@@ -345,7 +345,7 @@ float_vec clamp_gradient(float_t max_abs_elem, const float_vec gradient)
 inline void load_net_params(layer_ptr& net, const std::string& file_path)
 {
     std::cout << "loading params from " << file_path << std::endl;
-    const auto lines = fplus::read_text_file_lines(file_path, false)();
+    const auto lines = fplus::read_text_file_lines(false, file_path)();
     const auto values =
         fplus::transform_and_keep_justs(fplus::read_value<fd::float_t>, lines);
     assert(values.size() == lines.size());
@@ -358,7 +358,7 @@ inline void save_net_params(const layer_ptr& net, const std::string& file_path)
     std::cout << "saving params to " << file_path << std::endl;
     const auto params = net->get_params();
     const auto lines = fplus::transform(fplus::fwd::show_float(64, 64), params);
-    fplus::write_text_file_lines(file_path, lines, true)();
+    fplus::write_text_file_lines(true, file_path, lines)();
 }
 
 inline void train(layer_ptr& net,
@@ -409,7 +409,7 @@ inline void train(layer_ptr& net,
 
         for (std::size_t batch_start_idx = 0; batch_start_idx < dataset.size(); batch_start_idx += batch_size)
         {
-            const auto batch = fplus::get_range(
+            const auto batch = fplus::get_segment(
                 batch_start_idx,
                 std::min(dataset.size(), batch_start_idx + batch_size),
                 dataset);

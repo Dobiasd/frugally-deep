@@ -72,7 +72,7 @@ inline void tiny_imagenet_200_autoencoder_test()
     // todo remove
     dataset.training_data_[0].input_ = matrix3d(size3d(1,1,2), {3,4} );
     dataset.training_data_[0].output_ = dataset.training_data_[0].input_;
-    dataset.training_data_ = fplus::get_range(0, 1, dataset.training_data_);
+    dataset.training_data_ = fplus::get_segment(0, 1, dataset.training_data_);
     */
 
     auto tobinet = net(layers)(dataset.training_data_[0].input_.size());

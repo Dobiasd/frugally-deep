@@ -3,9 +3,9 @@ frugally-deep
 
 **is just a bunch of random code, intended solely for my personal learning pleasure.**
 
-The goal is that someday the following things will be true:
-
 ![logo](logo/frugally_deep.jpg)
+
+The goal is that someday the following things will be true:
 
 **frugally-deep**
 

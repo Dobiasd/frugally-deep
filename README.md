@@ -24,7 +24,7 @@ Table of contents
 Introduction
 ------------
 
-Do you want to use your already-trained Keras models in C++? And do you want to avoid linking against a huge library like TensorFlow? Then frugally-deep is exactly for you.
+Would you like to use your already-trained Keras models in C++? And do you want to avoid linking against a huge library like TensorFlow? Then frugally-deep is exactly for you.
 
 **frugally-deep**
 
@@ -55,6 +55,8 @@ Usage
 -----
 
 todo
+
+Save your model to a single HDF5 file using `model.save(...)` in Python.
 
 export keras model
 

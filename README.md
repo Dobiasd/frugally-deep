@@ -17,6 +17,7 @@ frugally-deep
 Table of contents
 -----------------
   * [Introduction](#introduction)
+  * [Usage](#usage)
   * [Requirements and Installation](#requirements-and-installation
 
 
@@ -50,10 +51,21 @@ Do you want to use your already-trained Keras models in C++? And do you want to 
 * UpSampling2D
 
 
+Usage
+-----
+
+todo
+
+export keras model
+
+c++ example code
+
+
+
 Requirements and Installation
 -----------------------------
 
-A **C++11**-compatible compiler is needed (C++14 if you want to use the features from `namespace fwd`). Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
+A **C++11**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
 
 
 
@@ -61,6 +73,14 @@ A **C++11**-compatible compiler is needed (C++14 if you want to use the features
 
 todo
 ----
+
+add 1D layers: Conv, MaxPool, AvgPool, Umsampling
+
+add BatchNormalization Layer
+
+add travis
+
+add installation like in fplus
 
 ist upconv (conv transpose) fertig?
 

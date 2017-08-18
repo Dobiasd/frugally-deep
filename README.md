@@ -37,6 +37,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 
 * AveragePooling2D
 * BatchNormalization
+* Concatenate
 * Conv2D
 * Dense
 * ELU
@@ -49,6 +50,14 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * Softplus
 * Tanh
 * UpSampling2D
+
+
+### Also supports
+
+* multiple inputs and outputs
+* nested models
+* residual connections
+* shared layers
 
 
 Usage
@@ -75,6 +84,8 @@ A **C++11**-compatible compiler is needed. Compilers from these versions on are 
 
 todo
 ----
+
+activations in layer supporten
 
 add 1D layers: Conv, MaxPool, AvgPool, Umsampling
 

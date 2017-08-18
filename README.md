@@ -3,7 +3,7 @@ frugally-deep
 
 **is just a bunch of random code, intended solely for my personal learning pleasure.**
 
-![logo](logo/frugally_deep.jpg)
+![logo](logo/fdeep.png)
 
 The goal is that someday the following things will be true:
 

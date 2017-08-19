@@ -134,6 +134,14 @@ inline pre_layer softmax()
     };
 }
 
+inline pre_layer batch_normalization()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<softmax_layer>(size_in);
+    };
+}
+
 inline pre_layer step()
 {
     return [=](const size3d& size_in) -> layer_ptr

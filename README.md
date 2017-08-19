@@ -85,11 +85,11 @@ A **C++11**-compatible compiler is needed. Compilers from these versions on are 
 todo
 ----
 
+concat layer
+
 activations in layer supporten
 
 add BatchNormalization Layer
-
-add hard_sigmoid activation: hard_sigmoid(x) = clip(0.0, 1.0, (0.2 * x) + 0.5)
 
 add selu activation:
 def selu(x):
@@ -109,11 +109,11 @@ use cmake with doctests (see fplus)
 
 klassiker aus keras als examples
 
-add 1D layers: Conv, MaxPool, AvgPool, Umsampling
+add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
 add merge layers (https://keras.io/layers/merge/)
 
-test with different backend
+test keras export with different backend
 
 github project description: Use Keras models in C++ with this small header-only library.
 

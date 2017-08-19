@@ -15,6 +15,7 @@
 #include "frugally_deep/layers/flatten_layer.h"
 #include "frugally_deep/layers/fully_connected_layer.h"
 #include "frugally_deep/layers/gentle_max_pool_layer.h"
+#include "frugally_deep/layers/hard_sigmoid_layer.h"
 #include "frugally_deep/layers/identity_layer.h"
 #include "frugally_deep/layers/layer.h"
 #include "frugally_deep/layers/leaky_relu_layer.h"

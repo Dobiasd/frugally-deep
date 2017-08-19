@@ -102,6 +102,14 @@ inline pre_layer sigmoid()
     };
 }
 
+inline pre_layer hard_sigmoid()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<hard_sigmoid_layer>(size_in);
+    };
+}
+
 inline pre_layer fast_sigmoid()
 {
     return [=](const size3d& size_in) -> layer_ptr

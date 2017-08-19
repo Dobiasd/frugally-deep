@@ -62,6 +62,14 @@ inline pre_layer elu(float_t alpha)
     };
 }
 
+inline pre_layer selu()
+{
+    return [=](const size3d& size_in) -> layer_ptr
+    {
+        return std::make_shared<selu_layer>(size_in);
+    };
+}
+
 inline pre_layer erf()
 {
     return [=](const size3d& size_in) -> layer_ptr

@@ -22,6 +22,7 @@
 #include "frugally_deep/layers/max_pool_layer.h"
 #include "frugally_deep/layers/pool_layer.h"
 #include "frugally_deep/layers/relu_layer.h"
+#include "frugally_deep/layers/selu_layer.h"
 #include "frugally_deep/layers/sigmoid_layer.h"
 #include "frugally_deep/layers/softmax_layer.h"
 #include "frugally_deep/layers/softplus_layer.h"

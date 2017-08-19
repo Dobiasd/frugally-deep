@@ -132,7 +132,9 @@ inline void gradient_check_backprop_implementation()
         fc(3),
         tanh(),
         fc(3),
-        hard_sigmoid()
+        hard_sigmoid(),
+        fc(3),
+        selu()
         //softmax()
     })(size3d(1, 1, 2));
     test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);

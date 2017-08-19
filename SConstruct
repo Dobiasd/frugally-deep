@@ -25,5 +25,6 @@ env.Append(LIBS=['opencv_core', 'opencv_imgproc',
                  'opencv_highgui', 'opencv_imgcodecs',
                  'pthread',
                  'boost_filesystem', 'boost_system'])
-env.Append(CXXFLAGS='-std=c++14 -O3 -Iinclude -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast')
+env.Append(CPPPATH = ['include'])
+env.Append(CXXFLAGS='-std=c++14 -O3 -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast')
 env.Program(target='release/frugally_deep_main', source=source_files)

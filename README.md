@@ -1,6 +1,6 @@
 # THIS IS ALL UNFINISHED WORK IN PROGRESS. Please do not try to use it (yet). ;-)
 
-![logo](logo/fdeep.png)
+![logo](logo/fdeep.png.hidden)
 
 [![Build Status](https://travis-ci.org/Dobiasd/frugally-deel.svg?branch=master)][travis]
 [![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]
@@ -11,7 +11,7 @@
 
 frugally-deep
 =============
-**let's you run your Keras models in C++.**
+**Use Keras models in C++ with this small header-only library.**
 
 
 Table of contents
@@ -29,7 +29,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 **frugally-deep**
 
 * **is a small header-only library without external dependencies.**
-* supports not only [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also more complex computational graphs created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
+* supports inference (`model.predict`) not only [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * uses only the CPU (single threaded).
 
 
@@ -87,9 +87,15 @@ todo
 
 activations in layer supporten
 
-add 1D layers: Conv, MaxPool, AvgPool, Umsampling
-
 add BatchNormalization Layer
+
+add hard_sigmoid activation: hard_sigmoid(x) = clip(0.0, 1.0, (0.2 * x) + 0.5)
+
+add selu activation:
+def selu(x):
+    alpha = 1.6732632423543772848170429916717
+    scale = 1.0507009873554804934193349852946
+    return scale*np.where(x>=0.0, x, alpha*np.exp(x)-alpha)
 
 add travis
 
@@ -99,10 +105,16 @@ ist upconv (conv transpose) fertig?
 
 typedefs.h nach config.h umbenennen und globals da rein
 
-use cmake with google tests (see fplus)
-
-Affine layer- flow layer?
-or instead of affine: http://torch.ch/blog/2015/09/07/spatial_transformers.html
-Local Response Normalization layer?
+use cmake with doctests (see fplus)
 
 klassiker aus keras als examples
+
+add 1D layers: Conv, MaxPool, AvgPool, Umsampling
+
+add merge layers (https://keras.io/layers/merge/)
+
+test with different backend
+
+github project description: Use Keras models in C++ with this small header-only library.
+
+add github project tags

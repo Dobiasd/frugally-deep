@@ -311,7 +311,19 @@ inline void gradient_check_backprop_implementation()
     })(size3d(1, 2, 1));
     test_net_backprop("net_tanh_lecun_alpha", net_tanh_lecun_alpha, 1, 10);
 
+    auto net_batch_normalization = net(
+    {
+        batch_normalization(0.0001),
+    })(size3d(3, 4, 6));
+    test_net_backprop("net_batch_normalization", net_batch_normalization, 1, 10);
 
+    auto net_batch_normalization_flat = net(
+    {
+        fc(2),
+        batch_normalization(0.0001),
+        fc(2),
+    })(size3d(1, 2, 1));
+    test_net_backprop("net_batch_normalization_flat", net_batch_normalization_flat, 1, 10);
 
     auto net_006 = net(
     {

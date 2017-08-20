@@ -158,11 +158,50 @@ inline float_t matrix2d_sum_all_values(const matrix2d& m)
     return fplus::sum(m.as_vector());
 }
 
+inline float_t matrix2d_mean_value(const matrix2d& m)
+{
+    return
+        matrix2d_sum_all_values(m) /
+        static_cast<float_t>(m.size().area());
+}
+
 inline matrix2d add_matrix2ds(const matrix2d& m1, const matrix2d& m2)
 {
     assert(m1.size() == m2.size());
     return matrix2d(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
+}
+
+inline matrix2d add_to_matrix2d_elems(const matrix2d& m, float_t x)
+{
+    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return x + e;
+    }, m.as_vector()));
+}
+
+inline matrix2d sub_from_matrix2d_elems(const matrix2d& m, float_t x)
+{
+    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return e - x;
+    }, m.as_vector()));
+}
+
+inline matrix2d multiply_matrix2d_elems(const matrix2d& m, float_t x)
+{
+    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return x * e;
+    }, m.as_vector()));
+}
+
+inline matrix2d divide_matrix2d_elems(const matrix2d& m, float_t x)
+{
+    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return e / x;
+    }, m.as_vector()));
 }
 
 inline matrix2d sum_matrix2ds(const std::vector<matrix2d>& ms)

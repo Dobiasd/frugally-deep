@@ -287,6 +287,22 @@ inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
         m1.as_vector(), m2.as_vector()));
 }
 
+inline matrix3d add_to_matrix3d_elems(const matrix3d& m, float_t x)
+{
+    return matrix3d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return x + e;
+    }, m.as_vector()));
+}
+
+inline matrix3d multiply_matrix3d_elems(const matrix3d& m, float_t x)
+{
+    return matrix3d(m.size(), fplus::transform([x](float_t e) -> float_t
+    {
+        return x * e;
+    }, m.as_vector()));
+}
+
 inline matrix3d sum_matrix3ds(const std::vector<matrix3d>& ms)
 {
     assert(!ms.empty());

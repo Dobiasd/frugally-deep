@@ -47,6 +47,7 @@ def get_test_model_full():
 
     x = Flatten()(x)
     x = Dense(4, activation='hard_sigmoid')(x)
+    x = BatchNormalization()(x)
     x = Dense(3, activation='selu')(x)
 
     intermediate_input_shape = (3,)

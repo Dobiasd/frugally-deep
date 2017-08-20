@@ -30,6 +30,11 @@ public:
     {
         assert(shape.area() == values.size());
     }
+    matrix2d(const size2d& shape, const float_t& value) :
+        size_(shape),
+        values_(fplus::replicate(shape.area(), value))
+    {
+    }
     explicit matrix2d(const size2d& shape) :
         size_(shape),
         values_(shape.area(), 0.0f)

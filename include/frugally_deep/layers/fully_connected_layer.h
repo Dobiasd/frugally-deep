@@ -15,12 +15,12 @@
 namespace fd
 {
 
-// Takes a single column volume (size3d(1, n, 1)) as input.
+// Takes a single stack volume (size3d(n, 1, 1)) as input.
 class fully_connected_layer : public layer
 {
 public:
     fully_connected_layer(std::size_t n_in, std::size_t n_out) :
-        layer(size3d(1, n_in, 1), size3d(1, n_out, 1)),
+        layer(size3d(n_in, 1, 1), size3d(n_out, 1, 1)),
         params_(size2d(n_out, n_in + 1))
     {
     }
@@ -59,27 +59,28 @@ protected:
     static matrix2d bias_pad_input(const matrix3d& input)
     {
         return matrix2d(
-            size2d(input.size().height_ + 1, 1),
+            size2d(input.size().depth_ + 1, 1),
             fplus::append(input.as_vector(), {1}));
     }
     matrix3d forward_pass_impl(const matrix3d& input) const override
     {
         const auto input_slice_with_bias_neuron = bias_pad_input(input);
-        return matrix2d_to_matrix3d(
-            multiply(params_, input_slice_with_bias_neuron));
+        return matrix3d(size_out_, matrix2d_to_matrix3d(
+            multiply(params_, input_slice_with_bias_neuron)).as_vector());
     }
 
     matrix3d backward_pass_impl(const matrix3d& input,
         float_vec& params_deltas_acc_reversed) const override
     {
         auto output_temp = matrix2d_to_matrix3d(
-            multiply(transpose_matrix2d(params_), depth_slice(0, input)));
+            multiply(transpose_matrix2d(params_),matrix2d(
+                size2d(input.size().volume(), 1), input.as_vector())));
         auto output = matrix3d(input_size(),
             fplus::init(output_temp.as_vector()));
         matrix2d param_deltas(params_.size());
         const auto last_input_slice_with_bias_neuron =
             bias_pad_input(last_input_);
-        assert(param_deltas.size().height_ == input.size().height_);
+        assert(param_deltas.size().height_ == input.size().depth_);
         assert(param_deltas.size().width_ ==
             last_input_slice_with_bias_neuron.size().height_);
         for (std::size_t y = 0; y < param_deltas.size().height_; ++y)
@@ -87,7 +88,7 @@ protected:
             for (std::size_t x = 0; x < param_deltas.size().width_; ++x)
             {
                 param_deltas.set(y, x,
-                    input.get(0, y, 0) *
+                    input.get(y, 0, 0) *
                     last_input_slice_with_bias_neuron.get(x, 0));
             }
         }

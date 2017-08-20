@@ -11,12 +11,12 @@
 namespace fd
 {
 
-// Converts a volume into single column volume (size3d(1, n, 1)).
+// Converts a volume into single column volume (size3d(n, 1, 1)).
 class flatten_layer : public layer
 {
 public:
     explicit flatten_layer(const size3d& size_in) :
-            layer(size_in, size3d(1, size_in.volume(), 1))
+            layer(size_in, size3d(size_in.volume(), 1, 1))
     {
     }
     std::size_t param_count() const override

@@ -107,10 +107,8 @@ inline void gradient_check_backprop_implementation()
 
 
 
-
     auto net_activation_functions = net(
     {
-        flatten(),
         fc(2),
         softplus(),
         fc(2),
@@ -135,11 +133,8 @@ inline void gradient_check_backprop_implementation()
         hard_sigmoid(),
         fc(3),
         selu()
-        //softmax()
-    })(size3d(1, 1, 2));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_activation_functions", net_activation_functions, 10, 10);
-
-
 
 
 
@@ -246,10 +241,6 @@ inline void gradient_check_backprop_implementation()
 
 
 
-
-
-
-
     auto net_gentle_max_pool = net(
     {
         conv(size2d(3, 3), 1, 1),
@@ -261,12 +252,20 @@ inline void gradient_check_backprop_implementation()
 
 
 
+    auto net_fully_connected = net(
+    {
+        fc(5),
+    })(size3d(5, 1, 1));
+    test_net_backprop("net_fully_connected", net_fully_connected, 3, 30);
+
+
+
     auto net_softmax = net(
     {
         fc(7),
         softmax(),
         fc(7),
-    })(size3d(1, 7, 1));
+    })(size3d(7, 1, 1));
     test_net_backprop("net_softmax", net_softmax, 3, 30);
 
 
@@ -276,7 +275,7 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         elu(1),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_elu", net_elu, 1, 10);
 
     auto net_tanh_def = net(
@@ -284,7 +283,7 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         tanh(false),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_tanh_def", net_tanh_def, 1, 10);
 
     auto net_tanh_alpha = net(
@@ -292,7 +291,7 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         tanh(false, 0.3f),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_tanh_alpha", net_tanh_alpha, 1, 10);
 
     auto net_tanh_lecun = net(
@@ -300,7 +299,7 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         tanh(true),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_tanh_lecun", net_tanh_lecun, 1, 10);
 
     auto net_tanh_lecun_alpha = net(
@@ -308,12 +307,14 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         tanh(true, 0.2f),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_tanh_lecun_alpha", net_tanh_lecun_alpha, 1, 10);
 
     auto net_batch_normalization = net(
     {
+        conv(size2d(1, 1), 3, 1),
         batch_normalization(0.0001),
+        conv(size2d(1, 1), 3, 1),
     })(size3d(3, 4, 6));
     test_net_backprop("net_batch_normalization", net_batch_normalization, 1, 10);
 
@@ -322,7 +323,7 @@ inline void gradient_check_backprop_implementation()
         fc(2),
         batch_normalization(0.0001),
         fc(2),
-    })(size3d(1, 2, 1));
+    })(size3d(2, 1, 1));
     test_net_backprop("net_batch_normalization_flat", net_batch_normalization_flat, 1, 10);
 
     auto net_006 = net(
@@ -333,7 +334,7 @@ inline void gradient_check_backprop_implementation()
         flatten(),
         fc(4),
         fc(2),
-        //softmax()
+        softmax()
     })(size3d(1, 4, 4));
     test_net_backprop("net_006", net_006, 5, 10);
 

@@ -11,7 +11,7 @@
 namespace fd
 {
 
-// Since "batch size" is always 1, it simply normalizes the input tensor.
+// Since "batch size" is always 1 it simply scales and shifts the input tensor.
 class batch_normalization_layer : public layer
 {
 public:
@@ -68,22 +68,20 @@ protected:
         return matrix3d_from_depth_slices(slices);
     }
 
-    matrix3d backward_pass_impl(const matrix3d& fb,
+    matrix3d backward_pass_impl(const matrix3d& e,
         float_vec& params_deltas_acc_reversed) const override
     {
-        // todo: WRONG!
         const float_vec d_beta = fplus::transform(matrix2d_sum_all_values,
-            matrix3d_to_depth_slices(fb));
-        //const float_vec d_gamma = fplus::transform(fplus::multiply_with(static_cast<float_t>(fb.size().volume())), gamma_);
+            matrix3d_to_depth_slices(e));
         const float_vec d_gamma = fplus::transform(matrix2d_sum_all_values,
-            matrix3d_to_depth_slices(multiply_matrix3ds_elementwise(last_input_, fb)));
+            matrix3d_to_depth_slices(
+                multiply_matrix3ds_elementwise(last_input_, e)));
         const float_vec param_deltas_vec = fplus::append(d_beta, d_gamma);
         params_deltas_acc_reversed.insert(std::end(params_deltas_acc_reversed),
             param_deltas_vec.rbegin(), param_deltas_vec.rend());
 
-        auto slices = matrix3d_to_depth_slices(fb);
-        slices = fplus::zip_with(sub_from_matrix2d_elems, slices, beta_);
-        slices = fplus::zip_with(divide_matrix2d_elems, slices, gamma_); // todo + epsilon
+        auto slices = matrix3d_to_depth_slices(e);
+        slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_); // todo + epsilon
         return matrix3d_from_depth_slices(slices);
     }
 };

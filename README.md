@@ -89,10 +89,6 @@ concat layer
 
 activations in layer supporten
 
-add BatchNormalization Layer
-
-only use z-axis for 1d-tensors (flatten, dense)
-
 add travis
 
 add installation like in fplus

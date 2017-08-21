@@ -19,7 +19,9 @@ def merge_two_dicts(x, y):
 def get_names(xs):
     return list(map(lambda x: x.name, xs))
 
-def show_connection(layer_name, node_index, tensor_index):
+def show_connection(layer_name, node_index, tensor_index, conn_translations):
+    if conn_translations and layer_name in conn_translations:
+        layer_name = conn_translations[layer_name]
     # https://stackoverflow.com/questions/45722380/understanding-keras-model-architecture-tensor-index
     return {
         'layer': layer_name,
@@ -27,7 +29,7 @@ def show_connection(layer_name, node_index, tensor_index):
         'tensor_index': tensor_index
         }
 
-def show_connections(layers, node_indices, tensor_indices):
+def show_connections(layers, node_indices, tensor_indices, conn_translations):
     assert len(layers) == len(node_indices) == len(tensor_indices)
     result = []
     for i in range(len(layers)):
@@ -35,55 +37,47 @@ def show_connections(layers, node_indices, tensor_indices):
         node_index = node_indices[i]
         tensor_index = tensor_indices[i]
         result.append(show_connection(
-            layer_name, node_index, tensor_index))
+            layer_name, node_index, tensor_index, conn_translations))
     return result
 
-def node_inbound_layers_dict(node):
+def node_inbound_layers_dict(node, conn_translations):
     return show_connections(
-        node.inbound_layers, node.node_indices, node.tensor_indices)
+        node.inbound_layers, node.node_indices, node.tensor_indices,
+        conn_translations)
 
-def layer_inbound_nodes(layer):
+def layer_inbound_nodes(layer, conn_translations):
     result = []
     for inbound_node in layer.inbound_nodes:
-        result.extend(node_inbound_layers_dict(inbound_node))
+        result.extend(node_inbound_layers_dict(inbound_node, conn_translations))
     return result
 
-def add_activation_if_present(layer, d):
-    layer_type = type(layer).__name__
-    if layer_type != 'Activation'\
-            and 'activation' in layer.get_config():
-        return merge_two_dicts(d, {
-            'activation': layer.get_config()['activation']})
-    else:
-        return d
-
-def layer_def_dict(layer):
-    return add_activation_if_present(layer, {
+def layer_def_dict(layer, conn_translations):
+    return {
         'name': layer.name,
-        'inbound_nodes': layer_inbound_nodes(layer)
-    })
+        'inbound_nodes': layer_inbound_nodes(layer, conn_translations)
+    }
 
-def add_layer_def_dict(layer, d):
-    return merge_two_dicts(layer_def_dict(layer), d)
+def add_layer_def_dict(layer, d, conn_translations):
+    return merge_two_dicts(layer_def_dict(layer, conn_translations), d)
 
-def show_relu_layer(layer):
+def show_relu_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'ReLU'
-        })
+        }, conn_translations)
 
-def show_leaky_relu_layer(layer):
+def show_leaky_relu_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'LeakyReLU',
         'alpha': float(layer.alpha)
-        })
+        }, conn_translations)
 
-def show_elu_layer(layer):
+def show_elu_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'ELU',
         'alpha': float(layer.alpha)
-        })
+        }, conn_translations)
 
-def show_conv2d_layer(layer):
+def show_conv2d_layer(layer, conn_translations):
     weights = layer.get_weights()
     assert layer.dilation_rate == (1,1)
     return add_layer_def_dict(layer, {
@@ -95,9 +89,9 @@ def show_conv2d_layer(layer):
         'use_bias': layer.use_bias,
         'padding': layer.padding,
         'strides': layer.strides
-    })
+    }, conn_translations)
 
-def show_batch_normalization_layer(layer):
+def show_batch_normalization_layer(layer, conn_translations):
     # momentum is only important for training
     assert layer.axis == -1
     return add_layer_def_dict(layer, {
@@ -107,51 +101,51 @@ def show_batch_normalization_layer(layer):
         'beta': K.get_value(layer.beta).tolist(),
         'scale': layer.scale,
         'center': layer.center
-        })
+        }, conn_translations)
 
-def show_dropout_layer(layer):
+def show_dropout_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'dropout',
         'rate': layer.rate
-        })
+        }, conn_translations)
 
-def show_maxpooling2d_layer(layer):
+def show_maxpooling2d_layer(layer, conn_translations):
     assert layer.padding == 'valid'
     assert layer.strides == layer.pool_size
     return add_layer_def_dict(layer, {
         'type': 'MaxPooling2D',
         'pool_size': layer.pool_size
-        })
+        }, conn_translations)
 
-def show_averagepooling2d_layer(layer):
+def show_averagepooling2d_layer(layer, conn_translations):
     assert layer.padding == 'valid'
     assert layer.strides == layer.pool_size
     return add_layer_def_dict(layer, {
         'type': 'AveragePooling2D',
         'pool_size': layer.pool_size
-        })
+        }, conn_translations)
 
-def show_upsampling2D_layer(layer):
+def show_upsampling2D_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'UpSampling2D',
         'size': layer.size
-        })
+        }, conn_translations)
 
-def show_flatten_layer(layer):
+def show_flatten_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'Flatten'
-        })
+        }, conn_translations)
 
-def show_input_layer(layer):
+def show_input_layer(layer, conn_translations):
     assert len(layer.input_shape) >= 2
     assert len(layer.inbound_nodes) == 1
     assert layer.input_shape[0] == None
     return add_layer_def_dict(layer, {
         'type': 'InputLayer',
         'input_shape': layer.input_shape[1:]
-        })
+        }, conn_translations)
 
-def show_dense_layer(layer):
+def show_dense_layer(layer, conn_translations):
     # dense layers can only be shared between notes with the same input shapes
     assert len(layer.input_shape) == 2, "Please flatten for dense layer."
     assert layer.input_shape[0] == None, "Please flatten for dense layer."
@@ -164,45 +158,45 @@ def show_dense_layer(layer):
         'units': layer.units,
         'weights': weights.flatten().tolist(),
         'bias': bias.tolist()
-        })
+        }, conn_translations)
 
-def show_sigmoid_layer(layer):
+def show_sigmoid_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'Sigmoid'
-        })
+        }, conn_translations)
 
-def show_hard_sigmoid_layer(layer):
+def show_hard_sigmoid_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'HardSigmoid'
-        })
+        }, conn_translations)
 
-def show_selu_layer(layer):
+def show_selu_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'SeLU'
-        })
+        }, conn_translations)
 
-def show_softmax_layer(layer):
+def show_softmax_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'Softmax'
-        })
+        }, conn_translations)
 
-def show_softplus_layer(layer):
+def show_softplus_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'Softplus'
-        })
+        }, conn_translations)
 
-def show_tanh_layer(layer):
+def show_tanh_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
         'type': 'Tanh'
-        })
+        }, conn_translations)
 
-def show_concatenate_layer(layer):
+def show_concatenate_layer(layer, conn_translations):
     assert layer.axis == -1
     return add_layer_def_dict(layer, {
         'type': 'Concatenate',
-        })
+        }, conn_translations)
 
-def show_activation_layer(layer):
+def show_activation_layer(layer, conn_translations):
     show_activation_functions = {
         'softmax': show_softmax_layer,
         'softplus': show_softplus_layer,
@@ -212,34 +206,51 @@ def show_activation_layer(layer):
         'hard_sigmoid': show_hard_sigmoid_layer,
         'selu': show_selu_layer
     }
-    return show_activation_functions[layer.get_config()['activation']](layer)
+    return show_activation_functions[layer.get_config()['activation']](
+        layer, conn_translations)
 
-def show_model(model):
+def show_model(model, _):
     result = {}
-    result['type'] = 'model'
+    result['type'] = 'Model'
     result['name'] = model.name
-
     result['layers'] = []
+
+    # Split activations from layers
+    conn_translations = {}
     for layer in model.layers:
         layer_type = type(layer).__name__
-#        if layer_type != 'Activation'\
-#                and 'activation' in layer.get_config()\
-#                and layer.get_config()['activation'] != 'linear':
-#            assert False,\
-#                layer.name + ': Please move Activation into a separate layer.'
-        result['layers'].append(SHOW_FUNCTIONS[layer_type](layer))
+        if layer_type != 'Activation'\
+                and 'activation' in layer.get_config()\
+                and layer.get_config()['activation'] != 'linear':
+            activation = layer.get_config()['activation']
+            name = layer.name + "__todo_fake_activation_layer"
+            fake_layer = type('layer', (object,), dict({
+                'inbound_nodes': layer.inbound_nodes,
+                'name': name,
+                'get_config': lambda : {'activation': activation}
+            }))
+            json_obj = show_activation_layer(fake_layer, {})
+            result['layers'].append(json_obj)
+            conn_translations[layer.name] = name
+
+    for layer in model.layers:
+        layer_type = type(layer).__name__
+        show_function = SHOW_FUNCTIONS[layer_type]
+        result['layers'].append(show_function(layer, conn_translations))
 
     print(model.summary()) # todo remove
 
     result['input_layers'] = show_connections(
         model.input_layers,
         model.input_layers_node_indices,
-        model.input_layers_tensor_indices)
+        model.input_layers_tensor_indices,
+        conn_translations)
 
     result['output_layers'] = show_connections(
         model.output_layers,
         model.output_layers_node_indices,
-        model.output_layers_tensor_indices)
+        model.output_layers_tensor_indices,
+        conn_translations)
 
     return result
 
@@ -283,7 +294,7 @@ def main():
         write_text_file(out_path + '.yml', model.to_yaml()) # todo remove
         test_model(model)
 
-        model_json = show_model(model)
+        model_json = show_model(model, None)
         write_text_file(out_path,
             json.dumps(model_json, allow_nan=False, indent=2, sort_keys=True))
         

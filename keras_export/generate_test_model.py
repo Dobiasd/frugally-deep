@@ -27,7 +27,7 @@ def get_test_model_full():
     input2 = Input(shape=input_shape)
 
     shared_conv = Conv2D(1, (1, 1),
-        padding='same', strides=2, name='shared_conv')
+        padding='same', strides=2, name='shared_conv', activation='relu')
 
     up_scale_4 = UpSampling2D((4, 4))
     x1 = shared_conv(up_scale_4(input1))
@@ -37,7 +37,7 @@ def get_test_model_full():
     x3 = Conv2D(1, (1, 1), padding='same', strides=2)(up_scale_4(input2))
     x = keras.layers.concatenate([x1, x2, x3])
 
-    x = Conv2D(2, (3, 3), padding='valid', activation='relu')(x)
+    x = Conv2D(2, (3, 3), padding='valid')(x)
     x = BatchNormalization()(x)
     x = Dropout(0.5)(x)
 

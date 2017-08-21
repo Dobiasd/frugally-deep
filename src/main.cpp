@@ -16,6 +16,7 @@
 //#include "applications/pharmaceutical_packages.h"
 //#include "applications/golf_ball_quality.h"
 #include "tests/upconv_gradient_images.h"
+#include "tests/keras_import.h"
 
 #include "frugally_deep/frugally_deep.h"
 
@@ -28,6 +29,7 @@
 int main()
 {
     gradient_check_backprop_implementation();
+    keras_import_test();
     //golf_ball_quality_regression_test();
     return 0;
     tiny_imagenet_200_autoencoder_test();

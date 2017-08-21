@@ -22,7 +22,7 @@ else:
 VariantDir(build_dir, 'src', duplicate=0)
 source_files = [s.replace('src', build_dir, 1) for s in source_files]
 env.Append(LIBS=['opencv_core', 'opencv_imgproc',
-                 'opencv_highgui', 'opencv_imgcodecs',
+                 'opencv_highgui',
                  'pthread',
                  'boost_filesystem', 'boost_system'])
 env.Append(CPPPATH = ['include'])

@@ -215,15 +215,25 @@ def show_model(model, _):
     result['name'] = model.name
     result['layers'] = []
 
+    used_names = set()
+    def get_free_name(prefix):
+        if not prefix in used_names:
+            used_names.add(prefix)
+            return prefix
+        else:
+            return get_free_name(prefix + '_2')
+
     # Split activations from layers
     conn_translations = {}
     for layer in model.layers:
+        print(layer.name)
         layer_type = type(layer).__name__
         if layer_type != 'Activation'\
                 and 'activation' in layer.get_config()\
                 and layer.get_config()['activation'] != 'linear':
             activation = layer.get_config()['activation']
-            name = layer.name + "__todo_fake_activation_layer"
+            name = get_free_name(layer.name + "_activation")
+            print('----->', name)
             fake_layer = type('layer', (object,), dict({
                 'inbound_nodes': layer.inbound_nodes,
                 'name': name,

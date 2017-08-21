@@ -226,14 +226,12 @@ def show_model(model, _):
     # Split activations from layers
     conn_translations = {}
     for layer in model.layers:
-        print(layer.name)
         layer_type = type(layer).__name__
         if layer_type != 'Activation'\
                 and 'activation' in layer.get_config()\
                 and layer.get_config()['activation'] != 'linear':
             activation = layer.get_config()['activation']
             name = get_free_name(layer.name + "_activation")
-            print('----->', name)
             fake_layer = type('layer', (object,), dict({
                 'inbound_nodes': layer.inbound_nodes,
                 'name': name,

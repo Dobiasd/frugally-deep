@@ -45,6 +45,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * LeakyReLU
 * MaxPooling2D
 * ReLU
+* SeLU
 * Sigmoid
 * Softmax
 * Softplus
@@ -58,6 +59,27 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * nested models
 * residual connections
 * shared layers
+
+
+### Layer types not supported yet
+
+* Conv3D
+* Custom layers
+* Cropping*D
+* Embedding layers
+* Global*Pooling
+* Lambda
+* Layer wrappers (TimeDistributed etc.)
+* LocallyConnected*D
+* Masking
+* Merge layers (add etc.)
+* Noise layers (GaussianNoise etc.)
+* Permute
+* PReLU
+* Recurrent layers (LSTM etc.)
+* Reshape
+* SeparableConv2D
+* ThresholdedReLU
 
 
 Usage
@@ -86,8 +108,6 @@ todo
 ----
 
 concat layer
-
-activations in layer supporten
 
 add travis
 

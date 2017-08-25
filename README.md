@@ -18,7 +18,7 @@ Table of contents
 -----------------
   * [Introduction](#introduction)
   * [Usage](#usage)
-  * [Requirements and Installation](#requirements-and-installation
+  * [Requirements and Installation](#requirements-and-installation)
 
 
 Introduction
@@ -106,6 +106,47 @@ A **C++11**-compatible compiler is needed. Compilers from these versions on are 
 
 todo
 ----
+
+new structure:
+
+  class Layer
+    ctor(...)
+    apply : [Tensor3] -> Tensor3
+
+  class Node
+    outbound_layer : layer_id
+    inbound_nodes : [node_id]
+    output : maybe Tensor3
+    get_output : () -> Tensor3
+    set_output : Tensor3 -> () # only for nodes using input-layers?
+
+  class model
+    nodes : Dict node_id, node
+    layers : Dict layer_id, layer
+    outputs : [node_id]
+    inputs : [node_id]
+
+run:
+  model.predict : [Tensor3] -> [Tensor3]
+    call set_output on all input nodes
+    ouput_nodes
+      |> transform get_output
+      |> concat
+
+
+later (with tensor_idx != 0 allowed):
+
+  class Layer
+    ctor(...)
+    apply : [Tensor3] -> [Tensor3]
+
+  class Node
+    layer_id : String
+    inbound_nodes : [(node_id, tensor_idx)]
+    output : maybe [Tensor3]
+    get_output : tensor_idx -> Tensor3
+    set_output : [Tensor3] -> ()
+
 
 concat layer
 

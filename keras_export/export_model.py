@@ -248,13 +248,13 @@ def show_model(model, _):
 
     print(model.summary()) # todo remove
 
-    result['input_layers'] = show_connections(
+    result['input_nodes'] = show_connections(
         model.input_layers,
         model.input_layers_node_indices,
         model.input_layers_tensor_indices,
         conn_translations)
 
-    result['output_layers'] = show_connections(
+    result['output_nodes'] = show_connections(
         model.output_layers,
         model.output_layers_node_indices,
         model.output_layers_tensor_indices,

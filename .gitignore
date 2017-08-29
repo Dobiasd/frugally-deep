@@ -6,3 +6,6 @@ src/applications
 *sublime*
 .sconsign.dblite
 .vscode
+keras_export/model.h5
+keras_export/model.json
+keras_export/model.json.yml

@@ -118,7 +118,7 @@ new structure:
     inbound_nodes : [node_id]
     output : maybe Tensor3
     get_output : () -> Tensor3
-    set_output : Tensor3 -> () # only for nodes using input-layers?
+    set_output : Tensor3 -> () # only for nodes of input-layers?
 
   class model
     nodes : Dict node_id, node
@@ -145,7 +145,7 @@ later (with tensor_idx != 0 allowed):
     inbound_nodes : [(node_id, tensor_idx)]
     output : maybe [Tensor3]
     get_output : tensor_idx -> Tensor3
-    set_output : [Tensor3] -> ()
+    set_output : [Tensor3] -> () # only for nodes of input-layers?
 
 
 concat layer

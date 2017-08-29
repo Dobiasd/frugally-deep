@@ -5,3 +5,4 @@ stuff
 src/applications
 *sublime*
 .sconsign.dblite
+.vscode

@@ -114,15 +114,14 @@ new structure:
     apply : [Tensor3] -> Tensor3
 
   class Node
-    outbound_layer : layer_id
     inbound_nodes : [node_id]
+    outbound_layer : SharedPtr layer
     output : maybe Tensor3
     get_output : () -> Tensor3
     set_output : Tensor3 -> () # only for nodes of input-layers?
 
   class model
     nodes : Dict node_id, node
-    layers : Dict layer_id, layer
     outputs : [node_id]
     inputs : [node_id]
 
@@ -141,8 +140,8 @@ later (with tensor_idx != 0 allowed):
     apply : [Tensor3] -> [Tensor3]
 
   class Node
-    layer_id : String
     inbound_nodes : [(node_id, tensor_idx)]
+    outbound_layer : SharedPtr layer
     output : maybe [Tensor3]
     get_output : tensor_idx -> Tensor3
     set_output : [Tensor3] -> () # only for nodes of input-layers?

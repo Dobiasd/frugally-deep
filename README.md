@@ -111,16 +111,16 @@ new structure:
 
   class Layer
     ctor(...)
-    apply : [Tensor3] -> Tensor3
+    pure virtual apply : [Tensor3] -> [Tensor3]
 
   class Node
-    inbound_nodes : [node_id]
+    inbound_nodes : [(node_id, tensor_idx)]
     outbound_layer : SharedPtr layer
-    output : maybe Tensor3
-    get_output : () -> Tensor3
-    set_output : Tensor3 -> () # only for nodes of input-layers?
+    output : maybe [Tensor3]
+    get_output : tensor_idx -> Tensor3
+    set_output : [Tensor3] -> () # only for nodes of input-layers?
 
-  class model
+  class model : public layer
     nodes : Dict node_id, node
     outputs : [node_id]
     inputs : [node_id]
@@ -133,19 +133,7 @@ run:
       |> concat
 
 
-later (with tensor_idx != 0 allowed):
-
-  class Layer
-    ctor(...)
-    apply : [Tensor3] -> [Tensor3]
-
-  class Node
-    inbound_nodes : [(node_id, tensor_idx)]
-    outbound_layer : SharedPtr layer
-    output : maybe [Tensor3]
-    get_output : tensor_idx -> Tensor3
-    set_output : [Tensor3] -> () # only for nodes of input-layers?
-
+why is the node index of the single output of an intermediate model 1 and not 0?
 
 concat layer
 

@@ -70,32 +70,36 @@ inline std::vector<std::string> create_strings(const json& data)
 
 inline import_layer create_layer(const json& data)
 {
-    if (!data["type"].is_string())
+    if (data.find("name") == data.end() || !data["name"].is_string())
     {
         std::cerr << "name need to be a string" << std::endl;
     }
 
-    if (!data["name"].is_string())
+    if (data.find("type") == data.end() || !data["type"].is_string())
     {
+        std::cerr << data["name"] << std::endl;
         std::cerr << "name need to be a string" << std::endl;
     }
 
-    if (!data["inbound_nodes"].is_array())
+    if (data["type"] == "Model")
     {
+        return {create_string(data["name"])};
+    }
+
+    if (data.find("inbound_nodes") == data.end() ||
+        !data["inbound_nodes"].is_array())
+    {
+        std::cerr << data["name"] << std::endl;
         std::cerr << "inbound_nodes need to be an array" << std::endl;
     }
 
     return {create_string(data["name"])};
 }
 
-inline void keras_import_test()
+inline int load_from_str(const std::string& json_str)
 {
-    using namespace fd;
-
-    const auto json_str =
-        fplus::read_text_file("keras_export/test_model.json")();
     const json data = json::parse(json_str);
-
+    
     if (!data["layers"].is_array())
     {
         std::cerr << "no layers" << std::endl;
@@ -104,7 +108,20 @@ inline void keras_import_test()
     const auto layers = fplus::transform_convert<std::vector<import_layer>>(
         create_layer, data["layers"]);
 
+    //output_nodes
+    //input_nodes
+
     std::cout
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
-        << std::endl;
+            << std::endl;
+
+    return 1;    
+}
+
+inline void keras_import_test()
+{
+    using namespace fd;
+
+    fplus::lift_maybe(load_from_str,
+        fplus::read_text_file_maybe("keras_export/model.json")());
 }

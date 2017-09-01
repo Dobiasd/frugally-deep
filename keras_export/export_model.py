@@ -19,9 +19,12 @@ def merge_two_dicts(x, y):
 def get_names(xs):
     return list(map(lambda x: x.name, xs))
 
-def show_connection(layer_name, node_index, tensor_index, conn_translations):
-    if conn_translations and layer_name in conn_translations:
-        layer_name = conn_translations[layer_name]
+def show_connection(layer_name, node_index, tensor_index, conn_translation,
+    fixed_inbound_layer_name):
+    if fixed_inbound_layer_name:
+        layer_name = fixed_inbound_layer_name
+    elif layer_name in conn_translation:
+        layer_name = conn_translation[layer_name]
     # https://stackoverflow.com/questions/45722380/understanding-keras-model-architecture-tensor-index
     return {
         'layer': layer_name,
@@ -29,7 +32,8 @@ def show_connection(layer_name, node_index, tensor_index, conn_translations):
         'tensor_index': tensor_index
         }
 
-def show_connections(layers, node_indices, tensor_indices, conn_translations):
+def show_connections(layers, node_indices, tensor_indices, conn_translation,
+        fixed_inbound_layer_name):
     assert len(layers) == len(node_indices) == len(tensor_indices)
     result = []
     for i in range(len(layers)):
@@ -37,18 +41,24 @@ def show_connections(layers, node_indices, tensor_indices, conn_translations):
         node_index = node_indices[i]
         tensor_index = tensor_indices[i]
         result.append(show_connection(
-            layer_name, node_index, tensor_index, conn_translations))
+            layer_name, node_index, tensor_index, conn_translation,
+            fixed_inbound_layer_name))
     return result
 
-def node_inbound_layers_dict(node, conn_translations):
+def node_inbound_layers_dict(node, conn_translation, fixed_inbound_layer_name):
     return show_connections(
         node.inbound_layers, node.node_indices, node.tensor_indices,
-        conn_translations)
+        conn_translation, fixed_inbound_layer_name)
 
 def layer_inbound_nodes(layer, conn_translations):
     result = []
+    fixed_inbound_layer_name = None
+    print(conn_translations)
+    if layer.name in conn_translations[1]:
+        fixed_inbound_layer_name = conn_translations[1][layer.name]
     for inbound_node in layer.inbound_nodes:
-        result.extend(node_inbound_layers_dict(inbound_node, conn_translations))
+        result.extend(node_inbound_layers_dict(inbound_node,
+            conn_translations[0], fixed_inbound_layer_name))
     return result
 
 def layer_def_dict(layer, conn_translations):
@@ -224,7 +234,7 @@ def show_model(model, _):
             return get_free_name(prefix + '_2')
 
     # Split activations from layers
-    conn_translations = {}
+    conn_translations = [{}, {}]
     for layer in model.layers:
         layer_type = type(layer).__name__
         if layer_type != 'Activation'\
@@ -237,9 +247,10 @@ def show_model(model, _):
                 'name': name,
                 'get_config': lambda : {'activation': activation}
             }))
-            json_obj = show_activation_layer(fake_layer, {})
+            conn_translations[0][layer.name] = name
+            conn_translations[1][name] = layer.name
+            json_obj = show_activation_layer(fake_layer, conn_translations)
             result['layers'].append(json_obj)
-            conn_translations[layer.name] = name
 
     for layer in model.layers:
         layer_type = type(layer).__name__
@@ -252,13 +263,13 @@ def show_model(model, _):
         model.input_layers,
         model.input_layers_node_indices,
         model.input_layers_tensor_indices,
-        conn_translations)
+        conn_translations, None)
 
     result['output_nodes'] = show_connections(
         model.output_layers,
         model.output_layers_node_indices,
         model.output_layers_tensor_indices,
-        conn_translations)
+        conn_translations, None)
 
     return result
 

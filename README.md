@@ -87,7 +87,7 @@ Usage
 
 todo
 
-Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`), test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`.
+Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`.
 
 Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
@@ -102,7 +102,6 @@ todo example
 ```
 
 ```
-# command line
 python keras_export/export_model.py keras_model.h5 fdeep_model.json
 ```
 

@@ -87,19 +87,36 @@ Usage
 
 todo
 
-Save your model to a single HDF5 file using `model.save(...)` in Python.
+Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`.
 
-export keras model
+Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
-c++ example code
+Finally load it in C++ (`fdeep::load_model`) and use `model.predict()` to invoke a forward pass with your data.
 
+The following minimal example shows the full workflow:
+
+```python
+# create_model.py
+import keras
+todo example
+```
+
+```
+python keras_export/export_model.py keras_model.h5 fdeep_model.json
+```
+
+```cpp
+// main.cpp
+#include <fdeep/fdeep.hpp>
+const auto model = load_model("fdeep_model.json");
+const auto result = model.predict({{{1,2,3}}});
+```
 
 
 Requirements and Installation
 -----------------------------
 
-A **C++11**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
-
+A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
 
 
 
@@ -132,8 +149,8 @@ run:
       |> transform get_output
       |> concat
 
-
-why is the node index of the single output of an intermediate model 1 and not 0?
+model::get_output(tensor_idx) -> output[tensor_idx - 1]
+https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
 
 concat layer
 

@@ -149,7 +149,7 @@ run:
       |> transform get_output
       |> concat
 
-why is the node index of the single output of an intermediate model 1 and not 0?
+model::get_output(tensor_idx) -> output[tensor_idx - 1]
 https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
 
 concat layer

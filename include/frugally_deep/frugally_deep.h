@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "frugally_deep/construction.h"
 #include "frugally_deep/convolution.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/frugally_deep.h"
@@ -14,9 +13,8 @@
 #include "frugally_deep/matrix2d_pos.h"
 #include "frugally_deep/matrix3d.h"
 #include "frugally_deep/matrix3d_pos.h"
-#include "frugally_deep/multi_layer_net.h"
 #include "frugally_deep/size2d.h"
 #include "frugally_deep/size3d.h"
-#include "frugally_deep/training.h"
 #include "frugally_deep/typedefs.h"
 #include "frugally_deep/layers.h"
+#include "frugally_deep/keras_import.h"

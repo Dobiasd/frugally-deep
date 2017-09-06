@@ -14,18 +14,14 @@ namespace fd
 class identity_layer : public activation_layer
 {
 public:
-    explicit identity_layer(const size3d& size_in)
-        : activation_layer(size_in)
+    explicit identity_layer(const std::string& name)
+        : activation_layer(name)
     {
     }
 protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         return in_vol;
-    }
-    matrix3d transform_error_backward_pass(const matrix3d& e) const override
-    {
-        return e;
     }
 };
 

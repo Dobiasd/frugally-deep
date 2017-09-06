@@ -21,10 +21,7 @@ else:
 
 VariantDir(build_dir, 'src', duplicate=0)
 source_files = [s.replace('src', build_dir, 1) for s in source_files]
-env.Append(LIBS=['opencv_core', 'opencv_imgproc',
-                 'opencv_highgui',
-                 'pthread',
-                 'boost_filesystem', 'boost_system'])
+env.Append(LIBS=['pthread'])
 env.Append(CPPPATH = ['include'])
 env.Append(CXXFLAGS='-std=c++14 -O3 -Wall -Wextra -pedantic -Wshadow -Werror -Weffc++ -Wconversion -Wsign-conversion -Wctor-dtor-privacy -Wreorder -Wold-style-cast')
 env.Program(target='release/frugally_deep_main', source=source_files)

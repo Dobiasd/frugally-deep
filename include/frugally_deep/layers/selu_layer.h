@@ -15,8 +15,8 @@ namespace fd
 class selu_layer : public activation_layer
 {
 public:
-    explicit selu_layer(const size3d& size_in)
-        : activation_layer(size_in)
+    explicit selu_layer(const std::string& name)
+        : activation_layer(name)
     {
     }
 protected:
@@ -29,16 +29,6 @@ protected:
             return scale_ * (x >= 0.0 ? x : alpha_ * std::exp(x) - alpha_);
         };
         return transform_matrix3d(activation_function, in_vol);
-    }
-    matrix3d transform_error_backward_pass(const matrix3d& e) const override
-    {
-        auto activation_function_deriv = [this](float_t x) -> float_t
-        {
-            return x > 0 ? scale_ : scale_ * alpha_ * std::exp(x);
-        };
-        const auto last_input_derivs =
-            transform_matrix3d(activation_function_deriv, last_input_);
-        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

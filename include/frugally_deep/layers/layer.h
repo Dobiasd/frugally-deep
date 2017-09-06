@@ -33,7 +33,7 @@ public:
     }
 
 protected:
-    const std::string& name_;
+    const std::string name_;
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

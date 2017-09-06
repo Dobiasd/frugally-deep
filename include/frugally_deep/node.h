@@ -19,17 +19,8 @@ namespace fd
 class node
 {
 public:
-    explicit node(const std::string& name)
-        : layer(name)
+    explicit node()
     {
-    }
-    virtual ~node()
-    {
-    }
-    virtual matrix3d apply(const matrix3d& input)
-    {
-        // todo
-        return input;
     }
 };
 

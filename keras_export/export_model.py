@@ -106,7 +106,7 @@ def show_batch_normalization_layer(layer, conn_translations):
 
 def show_dropout_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
-        'type': 'dropout',
+        'type': 'Dropout',
         'rate': layer.rate
         }, conn_translations)
 
@@ -178,17 +178,17 @@ def show_selu_layer(layer, conn_translations):
 
 def show_softmax_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
-        'type': 'Softmax'
+        'type': 'SoftMax'
         }, conn_translations)
 
 def show_softplus_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
-        'type': 'Softplus'
+        'type': 'SoftPlus'
         }, conn_translations)
 
 def show_tanh_layer(layer, conn_translations):
     return add_layer_def_dict(layer, {
-        'type': 'Tanh'
+        'type': 'TanH'
         }, conn_translations)
 
 def show_concatenate_layer(layer, conn_translations):

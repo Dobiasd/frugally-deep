@@ -10,7 +10,7 @@
 
 #include "frugally_deep/matrix3d.h"
 
-#include "frugally_deep/layer.h"
+#include "frugally_deep/layers/layer.h"
 
 #include <cstddef>
 #include <memory>
@@ -28,7 +28,7 @@ public:
     virtual ~model()
     {
     }
-    virtual matrix3d apply(const matrix3d& input)
+    virtual matrix3ds apply(const matrix3ds& input) const override
     {
         // todo
         return input;

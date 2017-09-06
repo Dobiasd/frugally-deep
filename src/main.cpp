@@ -4,8 +4,6 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
-#include "tests/keras_import.h"
-
 #include "frugally_deep/frugally_deep.h"
 
 #include <fplus/fplus.hpp>

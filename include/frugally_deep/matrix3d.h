@@ -426,4 +426,6 @@ inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
                 matrix3d_to_depth_slices(m)));
 }
 
+typedef std::vector<matrix3d> matrix3ds;
+
 } // namespace fd

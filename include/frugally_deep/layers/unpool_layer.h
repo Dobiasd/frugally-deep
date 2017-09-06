@@ -27,9 +27,11 @@ public:
         assert(scale_factor_ % 2 == 0);
     }
 protected:
-    matrix3d apply(const matrix3d& input) const override
+    matrix3ds apply(const matrix3ds& inputs) const override final
     {
-        return unpool(input);
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
+        return {unpool(input)};
     }
     const std::size_t scale_factor_;
     matrix3d unpool(const matrix3d& in_vol) const

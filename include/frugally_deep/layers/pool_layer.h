@@ -29,9 +29,11 @@ public:
         //assert(size_in.width_ % scale_factor == 0);
     }
 protected:
-    matrix3d apply(const matrix3d& input) const override final
+    matrix3ds apply(const matrix3ds& inputs) const override final
     {
-        return pool(input);
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
+        return {pool(input)};
     }
 
     const std::size_t scale_factor_;

@@ -21,8 +21,10 @@ public:
     {
     }
 
-    matrix3d apply(const matrix3d& input) const override
+    matrix3ds apply(const matrix3ds& inputs) const override
     {
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
         const auto ex = [this](float_t x) -> float_t
         {
             // todo: why does this trick make the gradient check fail?
@@ -40,7 +42,7 @@ public:
             return x / unnormalized_sum_;
         };
 
-        return transform_matrix3d(div_by_unnormalized_sum, unnormalized);
+        return {transform_matrix3d(div_by_unnormalized_sum, unnormalized)};
     }
 
 protected:

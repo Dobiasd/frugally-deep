@@ -26,9 +26,11 @@ public:
         layer(name)
     {
     }
-    matrix3d apply(const matrix3d& input) const override
+    matrix3ds apply(const matrix3ds& inputs) const override
     {
-        return transform_input(input);
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
+        return {transform_input(input)};
     }
 
 protected:

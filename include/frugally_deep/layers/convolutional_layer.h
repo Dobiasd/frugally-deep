@@ -48,9 +48,11 @@ public:
         //assert((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
     }
 
-    matrix3d apply(const matrix3d& input) const override
+    matrix3ds apply(const matrix3ds& inputs) const override
     {
-        return convolve(stride_, padding_x_, padding_y_, filters_, input);
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
+        return {convolve(stride_, padding_x_, padding_y_, filters_, input)};
     }
     filter_vec filters_;
     std::size_t padding_y_;

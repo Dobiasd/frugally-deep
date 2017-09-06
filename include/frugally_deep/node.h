@@ -16,27 +16,21 @@
 namespace fd
 {
 
-class layer
+class node
 {
 public:
-    explicit layer(const std::string& name)
-        : name_(name)
+    explicit node(const std::string& name)
+        : layer(name)
     {
     }
-    virtual ~layer()
+    virtual ~node()
     {
     }
-    virtual matrix3ds apply(const matrix3ds& input) const = 0;
-    virtual const std::string& name() const final
+    virtual matrix3d apply(const matrix3d& input)
     {
-        return name_;
+        // todo
+        return input;
     }
-
-protected:
-    const std::string& name_;
 };
-
-typedef std::shared_ptr<layer> layer_ptr;
-typedef std::vector<layer_ptr> layer_ptrs;
 
 } // namespace fd

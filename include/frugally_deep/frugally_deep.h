@@ -17,3 +17,4 @@
 #include "frugally_deep/size3d.h"
 #include "frugally_deep/typedefs.h"
 #include "frugally_deep/layers.h"
+#include "frugally_deep/keras_import.h"

@@ -26,13 +26,15 @@ protected:
     float_t epsilon_;
     float_vec beta_;
     float_vec gamma_;
-    matrix3d apply(const matrix3d& input) const override
+    matrix3ds apply(const matrix3ds& inputs) const override
     {
+        assert(inputs.size() == 1);
+        const auto& input = inputs[0];
         // todo: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
         auto slices = matrix3d_to_depth_slices(input);
         slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_); // todo + epsilon
         slices = fplus::zip_with(add_to_matrix2d_elems, slices, beta_);
-        return matrix3d_from_depth_slices(slices);
+        return {matrix3d_from_depth_slices(slices)};
     }
 };
 

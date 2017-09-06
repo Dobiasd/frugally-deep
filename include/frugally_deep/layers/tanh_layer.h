@@ -20,10 +20,10 @@ namespace fd
 class tanh_layer : public activation_layer
 {
 public:
-    explicit tanh_layer(const size3d& size_in,
+    explicit tanh_layer(const std::string& name,
         bool snd_deriv_max_at_1,
         float_t alpha)
-        : activation_layer(size_in),
+        : activation_layer(name),
         snd_deriv_max_at_1_(snd_deriv_max_at_1),
         alpha_(alpha)
     {
@@ -70,21 +70,6 @@ protected:
                 {
                     return activation_function_def(alpha_, x);
                 }, in_vol);
-    }
-    matrix3d transform_error_backward_pass(const matrix3d& e) const override
-    {
-        const auto last_input_derivs = snd_deriv_max_at_1_
-            ? transform_matrix3d(
-                [this](float_t x) -> float_t
-                {
-                    return activation_function_snd_deriv_max_at_1_deriv(alpha_, x);
-                }, last_input_)
-            : transform_matrix3d(
-                [this](float_t x) -> float_t
-                {
-                    return activation_function_def_deriv(alpha_, x);
-                }, last_input_);
-        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

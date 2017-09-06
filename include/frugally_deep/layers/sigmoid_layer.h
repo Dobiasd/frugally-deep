@@ -14,8 +14,8 @@ namespace fd
 class sigmoid_layer : public activation_layer
 {
 public:
-    explicit sigmoid_layer(const size3d& size_in)
-        : activation_layer(size_in)
+    explicit sigmoid_layer(const std::string& name)
+        : activation_layer(name)
     {
     }
 protected:
@@ -26,17 +26,6 @@ protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
         return transform_matrix3d(activation_function, in_vol);
-    }
-    matrix3d transform_error_backward_pass(const matrix3d& e) const override
-    {
-        auto activation_function_deriv = [](float_t x) -> float_t
-        {
-            const auto val = activation_function(x);
-            return val * (1 - val);
-        };
-        const auto last_input_derivs =
-            transform_matrix3d(activation_function_deriv, last_input_);
-        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

@@ -16,8 +16,8 @@ namespace fd
 class max_pool_layer : public pool_layer
 {
 public:
-    explicit max_pool_layer(const size3d& size_in, std::size_t scale_factor) :
-        pool_layer(size_in, scale_factor)
+    explicit max_pool_layer(const std::string& name, std::size_t scale_factor) :
+        pool_layer(name, scale_factor)
     {
     }
 protected:
@@ -41,35 +41,6 @@ protected:
             pool_helper_dummy,
             pool_helper_identity,
             in_vol);
-    }
-    matrix3d pool_backwards(const matrix3d& input,
-        float_vec&) const override
-    {
-        const auto fill_out_vol_square = [this](
-            std::size_t z,
-            std::size_t y,
-            std::size_t x,
-            float_t err_val,
-            matrix3d& out_vol)
-        {
-            matrix3d_pos max_pos(0, 0, 0);
-            float_t max_val = std::numeric_limits<float_t>::lowest();
-            for (std::size_t yf = 0; yf < scale_factor_; ++yf)
-            {
-                for (std::size_t xf = 0; xf < scale_factor_; ++xf)
-                {
-                    matrix3d_pos last_input_pos(z, y + yf, x + xf);
-                    const float_t val = last_input_.get(last_input_pos);
-                    if (val > max_val)
-                    {
-                        max_val = val;
-                        max_pos = last_input_pos;
-                    }
-                }
-            }
-            out_vol.set(max_pos, err_val);
-        };
-        return pool_backwards_helper(fill_out_vol_square, input);
     }
 };
 

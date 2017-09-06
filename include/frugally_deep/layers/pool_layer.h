@@ -21,48 +21,21 @@ namespace fd
 class pool_layer : public layer
 {
 public:
-    explicit pool_layer(const size3d& size_in, std::size_t scale_factor) :
-        layer(size_in, size3d(
-            size_in.depth_,
-            size_in.height_ / scale_factor,
-            size_in.width_ / scale_factor)),
+    explicit pool_layer(const std::string& name, std::size_t scale_factor) :
+        layer(name),
         scale_factor_(scale_factor)
     {
-        assert(size_in.height_ % scale_factor == 0);
-        assert(size_in.width_ % scale_factor == 0);
-    }
-    std::size_t param_count() const override
-    {
-        return 0;
-    }
-    float_vec get_params() const override
-    {
-        return {};
-    }
-    void set_params(const float_vec_const_it ps_begin,
-        const float_vec_const_it ps_end) override
-    {
-        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
-            param_count());
-    }
-    void random_init_params() override
-    {
+        //assert(size_in.height_ % scale_factor == 0);
+        //assert(size_in.width_ % scale_factor == 0);
     }
 protected:
-    matrix3d forward_pass_impl(const matrix3d& input) const override final
+    matrix3d apply(const matrix3d& input) const override final
     {
         return pool(input);
-    }
-    matrix3d backward_pass_impl(const matrix3d& input,
-        float_vec& params_deltas_acc) const override final
-    {
-        return pool_backwards(input, params_deltas_acc);
     }
 
     const std::size_t scale_factor_;
     virtual matrix3d pool(const matrix3d& input) const = 0;
-    virtual matrix3d pool_backwards(const matrix3d& input,
-        float_vec& params_deltas_acc) const = 0;
 
     template <typename AccPixelFunc, typename AccPixelFunc2,
             typename FinalizePixelFunc>
@@ -103,30 +76,6 @@ protected:
                         }
                     }
                     out_vol.set(z, y, x, finalize_pixel_func(acc, acc2));
-                }
-            }
-        }
-        return out_vol;
-    }
-
-    template <typename FillOutVolSquareFunc>
-    matrix3d pool_backwards_helper(
-        FillOutVolSquareFunc fill_out_vol_square,
-        const matrix3d& err_vol) const
-    {
-        assert(err_vol.size().height_ * scale_factor_ == last_input_.size().height_);
-        assert(err_vol.size().width_ * scale_factor_ == last_input_.size().width_);
-        matrix3d out_vol(last_input_.size());
-        for (std::size_t z = 0; z < err_vol.size().depth_; ++z)
-        {
-            for (std::size_t y = 0; y < err_vol.size().height_; ++y)
-            {
-                std::size_t y_out = y * scale_factor_;
-                for (std::size_t x = 0; x < err_vol.size().width_; ++x)
-                {
-                    std::size_t x_out = x * scale_factor_;
-                    const float_t err_val = err_vol.get(z, y, x);
-                    fill_out_vol_square(z, y_out, x_out, err_val, out_vol);
                 }
             }
         }

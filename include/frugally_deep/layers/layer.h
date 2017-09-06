@@ -19,77 +19,21 @@ namespace fd
 class layer
 {
 public:
-    layer(const size3d& size_in, const size3d& size_out)
-        : size_in_(size_in),
-        size_out_(size_out),
-        last_input_(size_in_)
+    explicit layer(const std::string& name)
+        : name_(name)
     {
-
     }
     virtual ~layer()
     {
     }
-    virtual matrix3d forward_pass(const matrix3d& input) final
+    virtual matrix3d apply(const matrix3d& input) const = 0;
+    virtual const std::string& name() const final
     {
-        assert(input.size() == input_size());
-        auto output = forward_pass_impl(input);
-        assert(output.size() == output_size());
-        last_input_ = input;
-        return output;
+        return name_;
     }
-    virtual matrix3d backward_pass(const matrix3d& input,
-        float_vec& params_deltas_acc_reversed) final
-    {
-        std::size_t params_deltas_acc_size_before = params_deltas_acc_reversed.size();
-        assert(input.size() == output_size());
-        auto output = backward_pass_impl(input, params_deltas_acc_reversed);
-        assert(output.size() == input_size());
-        assert(params_deltas_acc_reversed.size() ==
-            params_deltas_acc_size_before + param_count());
-        last_input_ = input;
-        return output;
-    }
-    virtual std::size_t param_count() const = 0;
-    virtual float_vec get_params() const = 0;
-    virtual void set_params(const float_vec& params) final
-    {
-        set_params(std::begin(params), std::end(params));
-    }
-    virtual void set_params(const float_vec_const_it ps_begin,
-        const float_vec_const_it ps_end) = 0;
-    virtual const size3d& input_size() const final
-    {
-        return size_in_;
-    }
-    virtual const size3d& output_size() const final
-    {
-        return size_out_;
-    }
-    virtual void random_init_params() = 0;
 
 protected:
-    const size3d size_in_;
-    const size3d size_out_;
-    matrix3d last_input_;
-    virtual matrix3d forward_pass_impl(const matrix3d& input) const = 0;
-    virtual matrix3d backward_pass_impl(const matrix3d&, float_vec&) const = 0;
-
-    static float_vec generate_normal_distribution_values(
-        float_t mean,
-        float_t stddev,
-        std::size_t count)
-    {
-        std::random_device rd; // uses seed from system automatically
-        std::mt19937 gen(rd());
-        std::normal_distribution<fd::float_t> d(mean, stddev);
-        float_vec values;
-        values.reserve(count);
-        for (std::size_t i = 0; i < count; ++i)
-        {
-            values.push_back(d(gen));
-        }
-        return values;
-    };
+    const std::string& name_;
 };
 
 typedef std::shared_ptr<layer> layer_ptr;

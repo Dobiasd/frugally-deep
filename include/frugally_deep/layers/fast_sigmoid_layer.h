@@ -14,8 +14,8 @@ namespace fd
 class fast_sigmoid_layer : public activation_layer
 {
 public:
-    fast_sigmoid_layer(const size3d& size_in)
-        : activation_layer(size_in)
+    fast_sigmoid_layer(const std::string& name)
+        : activation_layer(name)
     {
     }
 protected:
@@ -26,16 +26,6 @@ protected:
             return x / (1 + std::abs(x));
         };
         return transform_matrix3d(activation_function, in_vol);
-    }
-    matrix3d transform_error_backward_pass(const matrix3d& e) const override
-    {
-        auto activation_function_deriv = [this](float_t x) -> float_t
-        {
-            return 1 / fplus::square(std::abs(x) + 1);
-        };
-        const auto last_input_derivs =
-            transform_matrix3d(activation_function_deriv, last_input_);
-        return multiply_matrix3ds_elementwise(last_input_derivs, e);
     }
 };
 

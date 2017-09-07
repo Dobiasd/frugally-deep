@@ -54,6 +54,41 @@ inline std::vector<std::string> create_strings(const json& data)
         create_string, data);
 }
 
+inline fd::float_t create_float(const json& data)
+{
+    if (!data.is_number())
+    {
+        throw std::runtime_error(std::string("float needs to be a number"));
+    }
+    return data;
+}
+
+inline std::vector<fd::float_t> create_floats(const json& data)
+{
+    if (!data.is_array())
+    {
+        throw std::runtime_error(std::string("floats need to be an array"));
+    }
+    return fplus::transform_convert<std::vector<fd::float_t>>(
+        create_float, data);
+}
+
+fd::matrix3d create_matrix3d(const json& data)
+{
+    const fd::size3d shape = create_size3d(data["shape"]);
+    const fd::float_vec values = create_floats(data["values"]);
+    return fd::matrix3d(shape, values);
+}
+
+fd::matrix3ds create_matrix3ds(const json& data)
+{
+    if (!data.is_array())
+    {
+        throw std::runtime_error(std::string("matrix3ds need to be an array"));
+    }
+    return fplus::transform_convert<fd::matrix3ds>(create_matrix3d, data);
+}
+
 fd::model create_model(const json& data);
 
 inline fd::layer_ptr create_model_layer(const json& data)
@@ -273,13 +308,33 @@ struct test_case
 
 using test_cases = std::vector<test_case>;
 
+inline test_case load_test_case(const json& data)
+{
+    if (!data["inputs"].is_array())
+    {
+        throw std::runtime_error(std::string("test needs inputs"));
+    }
+    if (!data["outputs"].is_array())
+    {
+        throw std::runtime_error(std::string("test needs inputs"));
+    }
+    return {
+        create_matrix3ds(data["inputs"]),
+        create_matrix3ds(data["outputs"])
+    };
+}
+
 inline test_cases load_test_cases(const json& data)
 {
     if (!data["tests"].is_array())
     {
         throw std::runtime_error(std::string("no tests"));
     }
-    return {};
+    const auto tests = fplus::transform_convert<test_cases>(
+        load_test_case, data["tests"]);
+
+    // todo return without temp variable
+    return tests;
 }
 
 inline bool run_test_cases(const fd::model&, const test_cases&)

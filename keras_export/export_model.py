@@ -323,8 +323,8 @@ def generate_test_data(model):
         model.input_layers))
     data_out = model.predict(data_in)
     return {
-        'input': list(map(show_test_data_as_3tensor, data_in)),
-        'output': list(map(show_test_data_as_3tensor, data_out))
+        'inputs': list(map(show_test_data_as_3tensor, data_in)),
+        'outputs': list(map(show_test_data_as_3tensor, data_out))
     }
 
 def main():

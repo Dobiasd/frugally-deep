@@ -20,9 +20,8 @@ inline fd::size3d create_size3d(const json& data)
 {
     if (!data.is_array())
     {
-        std::cerr << "size3d needs to be an array" << std::endl;
+        throw std::runtime_error(std::string("size3d needs to be an array"));
     }
-    std::cout << data << std::endl;
     return fd::size3d(data[0], data[1], data[2]);
 }
 
@@ -30,7 +29,7 @@ inline std::vector<fd::size3d> create_size3ds(const json& data)
 {
     if (!data.is_array())
     {
-        std::cerr << "size3ds need to be an array" << std::endl;
+        throw std::runtime_error(std::string("size3ds needs to be an array"));
     }
     return fplus::transform_convert<std::vector<fd::size3d>>(
         create_size3d, data);
@@ -40,7 +39,7 @@ inline std::string create_string(const json& data)
 {
     if (!data.is_string())
     {
-        std::cerr << "string needs to be a string" << std::endl;
+        throw std::runtime_error(std::string("string needs to be a string"));
     }
     return data;
 }
@@ -49,7 +48,7 @@ inline std::vector<std::string> create_strings(const json& data)
 {
     if (!data.is_array())
     {
-        std::cerr << "strings need to be an array" << std::endl;
+        throw std::runtime_error(std::string("strings need to be an array"));
     }
     return fplus::transform_convert<std::vector<std::string>>(
         create_string, data);
@@ -181,13 +180,13 @@ inline fd::layer_ptr create_layer(const json& data)
 {
     if (data.find("name") == data.end() || !data["name"].is_string())
     {
-        std::cerr << "name need to be a string" << std::endl;
+        throw std::runtime_error(std::string("name need to be a string"));
     }
 
     if (data.find("type") == data.end() || !data["type"].is_string())
     {
-        std::cerr << data["name"] << std::endl;
-        std::cerr << "name need to be a string" << std::endl;
+        const std::string name = data["name"];
+        throw std::runtime_error(name + " has no type");
     }
 
     const std::unordered_map<std::string, std::function<fd::layer_ptr(const json&)>>
@@ -227,8 +226,8 @@ inline fd::layer_ptr create_layer(const json& data)
     if (data.find("inbound_nodes") == data.end() ||
         !data["inbound_nodes"].is_array())
     {
-        std::cerr << data["name"] << std::endl;
-        std::cerr << "inbound_nodes need to be an array" << std::endl;
+        const std::string name = data["name"];
+        throw std::runtime_error(name + ": inbound_nodes need to be an array");
     }
     */
 }
@@ -241,7 +240,8 @@ inline fd::model create_model(const json& data)
 
     if (!data["layers"].is_array())
     {
-        std::cerr << "no layers" << std::endl;
+        // todo: ok for empty inner models?
+        throw std::runtime_error("no layers");
     }
 
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
@@ -263,8 +263,6 @@ inline fd::model create_model(const json& data)
 
 // todo load layers into model (also nested models)
 
-// todo raise on every error above
-
 // todo: move everything into namespace
 
 struct test_case
@@ -275,9 +273,12 @@ struct test_case
 
 using test_cases = std::vector<test_case>;
 
-inline test_cases load_test_cases(const json&)
+inline test_cases load_test_cases(const json& data)
 {
-    // todo
+    if (!data["tests"].is_array())
+    {
+        throw std::runtime_error(std::string("no tests"));
+    }
     return {};
 }
 
@@ -287,7 +288,7 @@ inline bool run_test_cases(const fd::model&, const test_cases&)
     return true;
 }
 
-// Raises an std::runtime_error if a problem occurs.
+// thrown an std::runtime_error if a problem occurs.
 inline fd::model load_model(const std::string& path, bool verify = true)
 {
     const auto maybe_json_str = fplus::read_text_file_maybe(path)();
@@ -301,7 +302,7 @@ inline fd::model load_model(const std::string& path, bool verify = true)
 
     const auto model = create_model(json_data);
 
-    const auto tests = load_test_cases(json_str);
+    const auto tests = load_test_cases(json_data);
 
     if (verify)
     {
@@ -313,7 +314,6 @@ inline fd::model load_model(const std::string& path, bool verify = true)
 
     return model;
 }
-
 
 inline void keras_import_test()
 {

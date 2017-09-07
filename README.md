@@ -174,3 +174,5 @@ test keras export with different backend
 github project description: Use Keras models in C++ with this small header-only library.
 
 add github project tags
+
+re-enable all compiler warnings

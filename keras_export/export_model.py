@@ -297,30 +297,37 @@ SHOW_FUNCTIONS = {
     'Model': show_model
 }
 
-def test_model(model):
-    print('predicting with dummy data')
+def np_array_as_list(arr):
+    return arr.tolist()
+
+def generate_test_data(model):
     data_in = list(map(lambda l: np.random.random((1, *l.input_shape[1:])),
         model.input_layers))
-    print(data_in)
     data_out = model.predict(data_in)
-    print(data_out)
+    return {
+        'input': list(map(np_array_as_list, data_in)),
+        'output': list(map(np_array_as_list, data_out))
+    }
 
 def main():
+    usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 3]'
     if len(sys.argv) != 3 and len(sys.argv) != 4:
-        print('usage: [Keras model in HDF5 format] [output path] [test count = 1]')
+        print(usage)
         sys.exit(1)
     else:
         in_path = sys.argv[1]
         out_path = sys.argv[2]
-        test_count = 1
+        test_count = 3
         if len(sys.argv) == 4:
             test_count = int(sys.argv[3])
         model = load_model(in_path)
         # todo add test_count test cases with results to yaml
         write_text_file(out_path + '.yml', model.to_yaml()) # todo remove
-        test_model(model)
 
         model_json = show_model(model, None)
+        tests = [generate_test_data(model) for _ in range(test_count)]
+        model_json["tests"] = tests
+
         write_text_file(out_path,
             json.dumps(model_json, allow_nan=False, indent=2, sort_keys=True))
         

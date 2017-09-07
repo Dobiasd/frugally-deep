@@ -29,6 +29,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 **frugally-deep**
 
 * **is a small header-only library without external dependencies.**
+* is very easy to integrate and use
 * supports inference (`model.predict`) not only [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * uses only the CPU (single threaded).
 
@@ -108,7 +109,7 @@ python keras_export/export_model.py keras_model.h5 fdeep_model.json
 ```cpp
 // main.cpp
 #include <fdeep/fdeep.hpp>
-const auto model = load_model("fdeep_model.json");
+const auto model = fdeep::load_model("fdeep_model.json");
 const auto result = model.predict({{{1,2,3}}});
 ```
 
@@ -118,7 +119,7 @@ Requirements and Installation
 
 A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
 
-
+todo add installation like in fplus
 
 
 todo
@@ -155,8 +156,6 @@ https://stackoverflow.com/questions/46011749/understanding-keras-model-architect
 concat layer
 
 add travis
-
-add installation like in fplus
 
 ist upconv (conv transpose) fertig?
 

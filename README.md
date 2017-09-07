@@ -176,3 +176,5 @@ github project description: Use Keras models in C++ with this small header-only 
 add github project tags
 
 re-enable all compiler warnings
+
+float_t sollte float32 sein

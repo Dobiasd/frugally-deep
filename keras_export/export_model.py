@@ -297,16 +297,25 @@ SHOW_FUNCTIONS = {
     'Model': show_model
 }
 
-def np_array_as_list(arr):
-    return arr.tolist()
+def test_data_as_list(arr):
+    get_depth = lambda L: isinstance(L, list) and max(map(get_depth, L))+1
+    depth = get_depth(arr.tolist())
+    if depth == 2:
+        return arr.reshape(1, 1, *arr.shape[1:]).tolist()
+    if depth == 3:
+        return arr.reshape(1, *arr.shape[1:]).tolist()
+    if depth == 4:
+        return arr.reshape(arr.shape[1:]).tolist()
+    else:
+        raise ValueError('invalid number of dimensions')
 
 def generate_test_data(model):
     data_in = list(map(lambda l: np.random.random((1, *l.input_shape[1:])),
         model.input_layers))
     data_out = model.predict(data_in)
     return {
-        'input': list(map(np_array_as_list, data_in)),
-        'output': list(map(np_array_as_list, data_out))
+        'input': list(map(test_data_as_list, data_in)),
+        'output': list(map(test_data_as_list, data_out))
     }
 
 def main():

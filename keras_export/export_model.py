@@ -297,25 +297,34 @@ SHOW_FUNCTIONS = {
     'Model': show_model
 }
 
-def test_data_as_list(arr):
-    get_depth = lambda L: isinstance(L, list) and max(map(get_depth, L))+1
-    depth = get_depth(arr.tolist())
+def arr_as_arr3(arr):
+    assert arr.shape[0] == 1
+    depth = len(arr.shape)
     if depth == 2:
-        return arr.reshape(1, 1, *arr.shape[1:]).tolist()
+        return arr.reshape(1, 1, *arr.shape[1:])
     if depth == 3:
-        return arr.reshape(1, *arr.shape[1:]).tolist()
+        return arr.reshape(1, *arr.shape[1:])
     if depth == 4:
-        return arr.reshape(arr.shape[1:]).tolist()
+        return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')
+
+def show_tensor3(tens):
+    return {
+        'shape': tens.shape,
+        'values': tens.flatten().tolist()
+    }
+
+def show_test_data_as_3tensor(arr):
+    return show_tensor3(arr_as_arr3(arr))
 
 def generate_test_data(model):
     data_in = list(map(lambda l: np.random.random((1, *l.input_shape[1:])),
         model.input_layers))
     data_out = model.predict(data_in)
     return {
-        'input': list(map(test_data_as_list, data_in)),
-        'output': list(map(test_data_as_list, data_out))
+        'input': list(map(show_test_data_as_3tensor, data_in)),
+        'output': list(map(show_test_data_as_3tensor, data_out))
     }
 
 def main():

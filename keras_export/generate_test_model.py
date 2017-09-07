@@ -20,11 +20,16 @@ def get_test_model_small():
     return model
 
 def get_test_model_full():
-    input_shape =\
+    input1_shape =\
         (2, 3, 3) if K.image_data_format() == 'channels_last' else (3, 2, 3)
+    input2_shape = input1_shape
+    input3_shape = (4,)
+    input4_shape = (2,3)
 
-    input1 = Input(shape=input_shape)
-    input2 = Input(shape=input_shape)
+    input1 = Input(shape=input1_shape)
+    input2 = Input(shape=input2_shape)
+    input3 = Input(shape=input3_shape)
+    input4 = Input(shape=input4_shape)
 
     shared_conv = Conv2D(1, (1, 1),
         padding='same', strides=2, name='shared_conv', activation='relu')
@@ -65,22 +70,39 @@ def get_test_model_full():
     x = Activation('sigmoid')(x)
     x = Dense(3)(x)
 
-    output1 = Activation('tanh')(x)
+    shared_activation = Activation('tanh')
+    output1 = Activation('softplus')(x)
     output2 = Activation('softmax')(x)
-    shared_activation = Activation('softplus')
     output3 = shared_activation(x)
-    output4 = shared_activation(x)
+    output4 = shared_activation(input3)
+    output5 = input4
+    output6 = input1
 
     model = Model(
-        inputs=[input1, input2],
-        outputs=[output1, output2, output3, output4],
+        inputs=[input1, input2, input3, input4],
+        outputs=[output1, output2, output3, output4, output5, output6],
         name='full_model')
 
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    data_in = np.random.random(size=(2, 16, *input_shape))
-    data_out = np.random.random(size=(4, 16, 3))
+
+    data_in = [
+        np.random.random(size=(16, *input1_shape)),
+        np.random.random(size=(16, *input2_shape)),
+        np.random.random(size=(16, *input3_shape)),
+        np.random.random(size=(16, *input4_shape))
+    ]
+
+    data_out = [
+        np.random.random(size=(16, 3)),
+        np.random.random(size=(16, 3)),
+        np.random.random(size=(16, 3)),
+        np.random.random(size=(16, *input3_shape)),
+        np.random.random(size=(16, *input4_shape)),
+        np.random.random(size=(16, *input1_shape))
+    ]
+
     model.fit(list(data_in), list(data_out), epochs=1, batch_size=8)
     return model
 

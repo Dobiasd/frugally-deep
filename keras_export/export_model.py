@@ -306,13 +306,17 @@ def test_model(model):
     print(data_out)
 
 def main():
-    if len(sys.argv) != 3:
-        print('usage: [Keras model in HDF5 format] [output path]')
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
+        print('usage: [Keras model in HDF5 format] [output path] [test count = 1]')
         sys.exit(1)
     else:
         in_path = sys.argv[1]
         out_path = sys.argv[2]
+        test_count = 1
+        if len(sys.argv) == 4:
+            test_count = int(sys.argv[3])
         model = load_model(in_path)
+        # todo add test_count test cases with results to yaml
         write_text_file(out_path + '.yml', model.to_yaml()) # todo remove
         test_model(model)
 

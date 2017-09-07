@@ -231,7 +231,11 @@ inline fd::layer_ptr create_layer(const json& data)
     }
 }
 
-inline int load_from_str(const std::string& json_str)
+// todo load_model_from_data
+
+// todo load layers into model (also nested models)
+
+inline model load_model_from_str(const std::string& json_str)
 {
     const json data = json::parse(json_str);
     
@@ -258,10 +262,27 @@ inline int load_from_str(const std::string& json_str)
     return 0;
 }
 
+// todo raise on every error above
+
+// todo: move everything into namespace
+
+inline model load_model(const std::string& path, bool verify = true)
+{
+    const auto maybe_str = fplus::read_text_file_maybe(path)();
+    // todo raise error
+    const auto model = fplus::lift_maybe(load_model_from_str, str);
+    // todo raise error
+
+    if (verify)
+    {
+        // todo raise error
+    }
+
+    return model;
+}
+
+
 inline void keras_import_test()
 {
-    using namespace fd;
-
-    fplus::lift_maybe(load_from_str,
-        fplus::read_text_file_maybe("keras_export/model.json")());
+    const auto model = load_model("keras_export/model.json");
 }

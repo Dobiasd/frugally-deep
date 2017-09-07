@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/typedefs.h"
-
-#include "frugally_deep/matrix3d.h"
+#include "frugally_deep/layers/layer.h"
 
 #include <cstddef>
 #include <memory>
@@ -19,9 +17,11 @@ namespace fd
 class node
 {
 public:
-    explicit node()
+    explicit node() : layer_(nullptr)
     {
     }
+private:
+    layer_ptr layer_;
 };
 
 } // namespace fd

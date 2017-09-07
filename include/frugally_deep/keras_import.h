@@ -55,10 +55,11 @@ inline std::vector<std::string> create_strings(const json& data)
         create_string, data);
 }
 
-inline fd::layer_ptr create_model(const json& data)
+fd::model create_model(const json& data);
+
+inline fd::layer_ptr create_model_layer(const json& data)
 {
-    const std::string name = data["name"];
-    return std::make_shared<fd::model>(name);
+    return std::make_shared<fd::model>(create_model(data));
 }
 
 inline fd::layer_ptr create_conv2d_layer(const json& data)
@@ -191,7 +192,7 @@ inline fd::layer_ptr create_layer(const json& data)
 
     const std::unordered_map<std::string, std::function<fd::layer_ptr(const json&)>>
         creators = {
-            {"Model", create_model},
+            {"Model", create_model_layer},
             {"Conv2D", create_conv2d_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
@@ -213,32 +214,31 @@ inline fd::layer_ptr create_layer(const json& data)
             {"SeLU", create_selu_layer}
         };
 
-    const auto creator = fplus::get_from_map(creators, data["type"]);
+    const std::string type = data["type"];
+    const auto creator = fplus::get_from_map(creators, type);
     if (fplus::is_nothing(creator))
     {
-        std::cerr << "unknown type: " << data["type"] << std::endl;
-        return {};
+        throw std::runtime_error(std::string("unknown type: ") + type);
     }
 
     // todo: solve nicer
     return creator.unsafe_get_just()(data);
-
+/*
     if (data.find("inbound_nodes") == data.end() ||
         !data["inbound_nodes"].is_array())
     {
         std::cerr << data["name"] << std::endl;
         std::cerr << "inbound_nodes need to be an array" << std::endl;
     }
+    */
 }
 
-// todo load_model_from_data
-
-// todo load layers into model (also nested models)
-
-inline model load_model_from_str(const std::string& json_str)
+inline fd::model create_model(const json& data)
 {
-    const json data = json::parse(json_str);
-    
+    //output_nodes
+    //input_nodes
+    const std::string name = data["name"];
+
     if (!data["layers"].is_array())
     {
         std::cerr << "no layers" << std::endl;
@@ -247,35 +247,68 @@ inline model load_model_from_str(const std::string& json_str)
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
         create_layer, data["layers"]);
 
-    //output_nodes
-    //input_nodes
-
+    // todo: remove
     const auto show_layer = [](const fd::layer_ptr& ptr) -> std::string
-    {
-        return ptr->name();
-    };
-
+        {
+            return ptr->name();
+        };
     std::cout
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
             << std::endl;
 
-    return 0;
+    return fd::model(name);
 }
+
+// todo load_model_from_data
+
+// todo load layers into model (also nested models)
 
 // todo raise on every error above
 
 // todo: move everything into namespace
 
-inline model load_model(const std::string& path, bool verify = true)
+struct test_case
 {
-    const auto maybe_str = fplus::read_text_file_maybe(path)();
-    // todo raise error
-    const auto model = fplus::lift_maybe(load_model_from_str, str);
-    // todo raise error
+    fd::matrix3ds input_;
+    fd::matrix3ds output_;
+};
+
+using test_cases = std::vector<test_case>;
+
+inline test_cases load_test_cases(const json&)
+{
+    // todo
+    return {};
+}
+
+inline bool run_test_cases(const fd::model&, const test_cases&)
+{
+    // todo
+    return true;
+}
+
+// Raises an std::runtime_error if a problem occurs.
+inline fd::model load_model(const std::string& path, bool verify = true)
+{
+    const auto maybe_json_str = fplus::read_text_file_maybe(path)();
+    if (fplus::is_nothing(maybe_json_str))
+    {
+        throw std::runtime_error(std::string("Unable to load file: " + path));
+    }
+
+    const auto json_str = maybe_json_str.unsafe_get_just();
+    const auto json_data = json::parse(json_str);
+
+    const auto model = create_model(json_data);
+
+    const auto tests = load_test_cases(json_str);
 
     if (verify)
     {
-        // todo raise error
+        if (!run_test_cases(model, tests))
+        {
+            throw std::runtime_error(std::string("Tests failed."));
+        }
     }
 
     return model;

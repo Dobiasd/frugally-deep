@@ -10,7 +10,7 @@
 
 #include "frugally_deep/matrix3d.h"
 
-#include "frugally_deep/layers/layer.h"
+#include "frugally_deep/node.h"
 
 #include <cstddef>
 #include <memory>
@@ -33,6 +33,13 @@ public:
         // todo
         return input;
     }
+private:
+    using node_id = std::string;
+    using node_ids = std::vector<node_id>;
+
+    std::unordered_map<node_id, node> nodes;
+    node_ids outputs;
+    node_ids inputs;
 };
 
 } // namespace fd

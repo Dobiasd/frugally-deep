@@ -24,10 +24,6 @@ public:
     filter(const matrix3d& m, float_t bias) : m_(m), bias_(bias)
     {
     }
-    std::size_t param_count() const
-    {
-        return m_.size().volume() + 1; // +1 for bias
-    }
     const size3d& size() const
     {
         return m_.size();
@@ -44,26 +40,11 @@ public:
     {
         return bias_;
     }
-    float_vec get_params() const
+    void set_params(const float_vec& weights, float_t bias)
     {
-        float_vec params;
-        params = m_.as_vector();
-        params.push_back(bias_);
-        return params;
-    }
-    void set_params(const float_vec& params)
-    {
-        assert(params.size() == param_count());
-        m_ = matrix3d(m_.size(), fplus::init(params));
-        bias_ = params.back();
-    }
-    void set_params(const float_vec_const_it ps_begin,
-        const float_vec_const_it ps_end)
-    {
-        assert(static_cast<std::size_t>(std::distance(ps_begin, ps_end)) ==
-            param_count());
-        m_.overwrite_values(ps_begin, ps_end - 1);
-        bias_ = *(ps_end - 1);
+        assert(weights.size() == m_.size().volume());
+        m_ = matrix3d(m_.size(), weights);
+        bias_ = bias;
     }
 private:
     matrix3d m_;

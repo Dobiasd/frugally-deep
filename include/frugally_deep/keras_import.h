@@ -35,6 +35,25 @@ inline std::vector<fd::size3d> create_size3ds(const json& data)
         create_size3d, data);
 }
 
+inline fd::size2d create_size2d(const json& data)
+{
+    if (!data.is_array())
+    {
+        throw std::runtime_error(std::string("size2d needs to be an array"));
+    }
+    return fd::size2d(data[0], data[1]);
+}
+
+inline std::vector<fd::size2d> create_size2ds(const json& data)
+{
+    if (!data.is_array())
+    {
+        throw std::runtime_error(std::string("size2ds needs to be an array"));
+    }
+    return fplus::transform_convert<std::vector<fd::size2d>>(
+        create_size2d, data);
+}
+
 inline std::string create_string(const json& data)
 {
     if (!data.is_string())
@@ -98,9 +117,29 @@ inline fd::layer_ptr create_model_layer(const json& data)
 
 inline fd::layer_ptr create_conv2d_layer(const json& data)
 {
-    const std::string name = data["name"];
+    const std::string name = create_string(data["name"]);
+    const std::size_t filter_count = data["filters"];
+    const fd::float_vec weights = create_floats(data["weights"]);
+    const fd::float_vec biases = create_floats(data["biases"]);
+    const fd::size3d filter_size = create_size3d(data["filter_size"]);
+    const bool use_bias = data["use_bias"];
+    if (!use_bias)
+    {
+        // todo: if not use_bias set all biases to 0
+    }
+    const std::string padding_str = data["padding"];
+    const auto maybe_padding =
+        fplus::choose<std::string, fd::convolutional_layer::padding>({
+        { std::string("valid"), fd::convolutional_layer::padding::valid },
+        { std::string("same"), fd::convolutional_layer::padding::same },
+    }, padding_str);
+    assert(fplus::is_just(maybe_padding));
+    assert(biases.size() == filter_count);
+    assert(weights.size() == filter_size.volume() * filter_count);
+    const auto padding = maybe_padding.unsafe_get_just();
+    const fd::size2d strides = create_size2d(data["strides"]);
     return std::make_shared<fd::convolutional_layer>(name,
-        fd::size2d(3,3), 4, 1); // todo
+        filter_size, filter_count, strides, padding); // todo
 }
 
 inline fd::layer_ptr create_input_layer(const json& data)

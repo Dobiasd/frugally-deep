@@ -80,13 +80,20 @@ def show_elu_layer(layer, conn_translations):
 
 def show_conv2d_layer(layer, conn_translations):
     weights = layer.get_weights()
+    weight_flat = np.swapaxes(weights[0], 0, 2).flatten().tolist()
+    assert len(weight_flat) > 0
     assert layer.dilation_rate == (1,1)
+    assert layer.padding in ['valid', 'same']
+    assert len(layer.input_shape) == 4
+    assert layer.input_shape[0] == None
+    input_depth =\
+        layer.input_shape[3] if K.image_data_format() == 'channels_last' else layer.input_shape[1]
     return add_layer_def_dict(layer, {
         'type': 'Conv2D',
         'filters': layer.filters,
-        'weights': [1, np.swapaxes(weights[0], 0, 2).flatten().tolist(), 1],
+        'weights': weight_flat,
         'biases': weights[1].tolist(),
-        'kernel_size': layer.kernel_size,
+        'filter_size': [input_depth, *layer.kernel_size],
         'use_bias': layer.use_bias,
         'padding': layer.padding,
         'strides': layer.strides

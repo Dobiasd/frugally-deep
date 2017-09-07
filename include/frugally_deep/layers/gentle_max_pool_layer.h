@@ -50,7 +50,8 @@ protected:
             float_t acc, float_t acc2) -> float_t
         {
             return max_weight_ * acc +
-                avg_weight_ * acc2 / fplus::square(scale_factor_);
+                avg_weight_ * acc2 /
+                fplus::square(static_cast<float_t>(scale_factor_));
         };
         return pool_helper(
             scale_factor_,

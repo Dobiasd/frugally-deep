@@ -98,7 +98,7 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
                     new_f_mat.set(j, y, x, fs[j].get(i, y, x));
                 }
             }
-            bias += fs[j].get_bias() / k;
+            bias += fs[j].get_bias() / static_cast<float_t>(k);
         }
         result.push_back(filter(new_f_mat, bias));
     }

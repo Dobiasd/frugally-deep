@@ -29,7 +29,7 @@ protected:
         auto pool_helper_dummy = [](float_t, float_t) -> float_t { return 0; };
         auto pool_helper_div = [this](float_t acc, float_t) -> float_t
         {
-            return acc / fplus::square(scale_factor_);
+            return acc / fplus::square(static_cast<float_t>(scale_factor_));
         };
         return pool_helper(
             scale_factor_,

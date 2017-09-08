@@ -1,5 +1,5 @@
 import keras
-from keras.models import Model, load_model
+from keras.models import Model, load_model, Sequential
 from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
@@ -66,6 +66,14 @@ def get_test_model_full():
     intermediate_model.compile(loss='mse', optimizer='nadam')
 
     x = intermediate_model(x)
+
+    intermediate_model_2 = Sequential()
+    intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
+    intermediate_model_2.add(Dense(5, activation='tanh'))
+    intermediate_model_2.compile(optimizer='rmsprop',
+          loss='categorical_crossentropy', metrics=['accuracy'])
+
+    x = intermediate_model_2(x)
 
     x = Activation('sigmoid')(x)
     x = Dense(3)(x)

@@ -180,5 +180,3 @@ re-enable all compiler warnings
 float_t sollte float32 sein
 
 remove vscode directory
-
-use normal (non-input layer) with input_shape as input of a model for test

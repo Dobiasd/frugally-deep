@@ -228,7 +228,7 @@ def generate_inbound_nodes(inbound_layer, n):
             })))
     return result
 
-def show_model(model, _):
+def show_functional_model(model, _):
     result = {}
     result['type'] = 'Model'
     result['name'] = model.name
@@ -283,6 +283,67 @@ def show_model(model, _):
 
     return result
 
+def show_sequential_model(model, _):
+    # todo connection dict for when connected to fake activation layer
+    assert len(model.input_layers) == 1
+    #assert len(model.inbound_nodes) == 1
+    print(dir(model))
+    print(dir(model.inbound_nodes))
+    print(model.inbound_nodes[0])
+    print(dir(model.inbound_nodes[0]))
+    assert False
+
+    result = show_functional_model(model, None)
+
+    json_obj = show_input_layer(model.input_layers[0], None)
+    result['layers'].append(json_obj)
+
+    return result
+
+    #todo remove
+
+    #print(model)
+    #print(dir(model))
+    #print(model.input_layers)
+    #print(model.input_layers[0])
+    #print(model.input_layers[0].name)
+    #print(model.input_layers[0].type)
+    #print(dir(model.input_layers[0]))
+    #assert False
+#
+    #assert len(model.layers) > 0
+    #first_layer = model.layers[0]
+    #assert len(first_layer.inbound_nodes) == 1
+    #name = first_layer.name
+    #inbound_node = first_layer.inbound_nodes[0]
+    #assert len(inbound_node.inbound_layers) == 1
+    #inbound_layer = inbound_node.inbound_layers[0]
+#
+    #print(first_layer.inbound_nodes[0]) # todo remove
+    #print(dir(first_layer.inbound_nodes[0])) # todo remove
+#
+    #fake_input_layer = type('layer', (object,), dict({
+        #'inbound_nodes': generate_inbound_nodes(first_layer.name,
+            #len(first_layer.inbound_nodes)),
+        #'name': inbound_layer.name
+    #}))
+#
+    #json_obj = show_input_layer(fake_input_layer, conn_translations)
+    #result['layers'].append(json_obj)
+
+
+
+    print(model.layers[0].input_shape)
+    assert False
+
+def show_model(model, _):
+    show_model_functions = {
+        'Sequential': show_sequential_model,
+        'Model': show_functional_model
+    }
+    result = show_model_functions[type(model).__name__](model, None)
+    return result
+
 SHOW_FUNCTIONS = {
     'InputLayer': show_input_layer,
     'Conv2D': show_conv2d_layer,
@@ -301,7 +362,8 @@ SHOW_FUNCTIONS = {
     'SoftPlus': show_softplus_layer,
     'TanH': show_tanh_layer,
     'Activation': show_activation_layer,
-    'Model': show_model
+    'Model': show_functional_model,
+    'Sequential': show_sequential_model
 }
 
 def arr_as_arr3(arr):

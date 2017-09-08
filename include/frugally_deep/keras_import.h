@@ -25,16 +25,6 @@ inline fd::size3d create_size3d(const json& data)
     return fd::size3d(data[0], data[1], data[2]);
 }
 
-inline std::vector<fd::size3d> create_size3ds(const json& data)
-{
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("size3ds needs to be an array"));
-    }
-    return fplus::transform_convert<std::vector<fd::size3d>>(
-        create_size3d, data);
-}
-
 inline fd::size2d create_size2d(const json& data)
 {
     if (!data.is_array())
@@ -44,68 +34,21 @@ inline fd::size2d create_size2d(const json& data)
     return fd::size2d(data[0], data[1]);
 }
 
-inline std::vector<fd::size2d> create_size2ds(const json& data)
-{
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("size2ds needs to be an array"));
-    }
-    return fplus::transform_convert<std::vector<fd::size2d>>(
-        create_size2d, data);
-}
-
-inline std::string create_string(const json& data)
-{
-    if (!data.is_string())
-    {
-        throw std::runtime_error(std::string("string needs to be a string"));
-    }
-    return data;
-}
-
-inline std::vector<std::string> create_strings(const json& data)
-{
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("strings need to be an array"));
-    }
-    return fplus::transform_convert<std::vector<std::string>>(
-        create_string, data);
-}
-
-inline fd::float_t create_float(const json& data)
-{
-    if (!data.is_number())
-    {
-        throw std::runtime_error(std::string("float needs to be a number"));
-    }
-    return data;
-}
-
-inline std::vector<fd::float_t> create_floats(const json& data)
-{
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("floats need to be an array"));
-    }
-    return fplus::transform_convert<std::vector<fd::float_t>>(
-        create_float, data);
-}
-
 fd::matrix3d create_matrix3d(const json& data)
 {
     const fd::size3d shape = create_size3d(data["shape"]);
-    const fd::float_vec values = create_floats(data["values"]);
+    const fd::float_vec values = data["values"];
     return fd::matrix3d(shape, values);
 }
 
-fd::matrix3ds create_matrix3ds(const json& data)
+template <typename T, typename F>
+std::vector<T> create_vector(F f, const json& data)
 {
     if (!data.is_array())
     {
-        throw std::runtime_error(std::string("matrix3ds need to be an array"));
+        throw std::runtime_error(std::string("array needs to be an array"));
     }
-    return fplus::transform_convert<fd::matrix3ds>(create_matrix3d, data);
+    return fplus::transform_convert<std::vector<T>>(f, data);
 }
 
 fd::model create_model(const json& data);
@@ -117,10 +60,10 @@ inline fd::layer_ptr create_model_layer(const json& data)
 
 inline fd::layer_ptr create_conv2d_layer(const json& data)
 {
-    const std::string name = create_string(data["name"]);
+    const std::string name = data["name"];
     const std::size_t filter_count = data["filters"];
-    const fd::float_vec weights = create_floats(data["weights"]);
-    const fd::float_vec biases = create_floats(data["biases"]);
+    const fd::float_vec weights = data["weights"];
+    const fd::float_vec biases = data["biases"];
     const fd::size3d filter_size = create_size3d(data["filter_size"]);
     const bool use_bias = data["use_bias"];
     if (!use_bias)
@@ -358,8 +301,8 @@ inline test_case load_test_case(const json& data)
         throw std::runtime_error(std::string("test needs inputs"));
     }
     return {
-        create_matrix3ds(data["inputs"]),
-        create_matrix3ds(data["outputs"])
+        create_vector<fd::matrix3d>(create_matrix3d, data["inputs"]),
+        create_vector<fd::matrix3d>(create_matrix3d, data["outputs"])
     };
 }
 

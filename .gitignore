@@ -8,3 +8,4 @@ src/applications
 keras_export/model.h5
 keras_export/model.json
 keras_export/model.json.yml
+keras_export/weights.json

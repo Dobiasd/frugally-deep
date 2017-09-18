@@ -26,7 +26,7 @@ protected:
     float_t epsilon_;
     float_vec beta_;
     float_vec gamma_;
-    matrix3ds apply(const matrix3ds& inputs) const override
+    matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];

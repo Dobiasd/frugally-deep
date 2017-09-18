@@ -130,9 +130,8 @@ def main():
         write_text_file(out_path + '.keras.yml', model.to_yaml()) 
 
         # todo remove
-        write_text_file(out_path + '.keras.json',
-            json.dumps(model.to_json(),
-            allow_nan=False, indent=2, sort_keys=True))
+        write_text_file(out_path + '.keras.json', json.dumps(
+                model.to_json(), allow_nan=False, indent=2, sort_keys=True))
 
         json_output = {}
 
@@ -142,8 +141,8 @@ def main():
 
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
 
-        write_text_file(out_path,
-            json.dumps(json_output, allow_nan=False, indent=2, sort_keys=True))
+        write_text_file(out_path, json.dumps(
+                json_output, allow_nan=False, indent=2, sort_keys=True))
 
 if __name__ == "__main__":
     main()

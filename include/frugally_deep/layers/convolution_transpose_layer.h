@@ -51,8 +51,8 @@ public:
         //assert((size_out_.height_ / stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
         //assert((size_out_.width_ / stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
     }
-
-    matrix3ds apply(const matrix3ds& inputs) const override
+protected:
+    matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];

@@ -16,6 +16,14 @@
 namespace fd
 {
 
+class layer;
+typedef std::shared_ptr<layer> layer_ptr;
+typedef std::vector<layer_ptr> layer_ptrs;
+
+class activation_layer;
+typedef std::shared_ptr<activation_layer> activation_layer_ptr;
+matrix3ds apply_activation_layer(const activation_layer_ptr& ptr, const matrix3ds& input);
+
 class layer
 {
 public:
@@ -23,20 +31,31 @@ public:
         : name_(name)
     {
     }
+    void set_activation(const activation_layer_ptr& activation)
+    {
+        activation_ = activation;
+    }
     virtual ~layer()
     {
     }
-    virtual matrix3ds apply(const matrix3ds& input) const = 0;
+    virtual matrix3ds apply(const matrix3ds& input) const final
+    {
+        const auto result = apply_impl(input);
+        if (activation_ == nullptr)
+            return result;
+        else
+            return apply_activation_layer(activation_, result);
+    }
     virtual const std::string& name() const final
     {
         return name_;
     }
 
 protected:
-    const std::string name_;
+    virtual matrix3ds apply_impl(const matrix3ds& input) const = 0;
+    activation_layer_ptr activation_;
+    std::string name_;
 };
 
-typedef std::shared_ptr<layer> layer_ptr;
-typedef std::vector<layer_ptr> layer_ptrs;
 
 } // namespace fd

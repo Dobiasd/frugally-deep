@@ -25,7 +25,8 @@ public:
         params_(size2d(n_out, n_in + 1))
     {
     }
-    matrix3ds apply(const matrix3ds& inputs) const override
+protected:
+    matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
@@ -34,7 +35,6 @@ public:
             //multiply(params_, input_slice_with_bias_neuron)).as_vector());
         return {input};
     }
-protected:
     static matrix2d bias_pad_input(const matrix3d& input)
     {
         return matrix2d(

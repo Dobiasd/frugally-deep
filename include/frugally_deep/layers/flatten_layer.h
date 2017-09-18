@@ -19,7 +19,8 @@ public:
             layer(name)
     {
     }
-    matrix3ds apply(const matrix3ds& inputs) const override
+protected:
+    matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];

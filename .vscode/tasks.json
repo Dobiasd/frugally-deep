@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build frugally-deep",
+            "taskName": "build_frugally-deep",
             "type": "shell",
             "command": "g++",
             "args": [
@@ -24,7 +24,8 @@
                 "-Wreorder",
                 "-Wold-style-cast",
                 "src/main.cpp",
-                "-o release/frugally_deep_main"
+                "-o",
+                "release/frugally_deep_main"
             ],
             "group": {
                 "kind": "build",

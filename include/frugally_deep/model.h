@@ -28,12 +28,12 @@ public:
     virtual ~model()
     {
     }
-    virtual matrix3ds apply(const matrix3ds& input) const override
+protected:
+    virtual matrix3ds apply_impl(const matrix3ds& input) const override
     {
         // todo
         return input;
     }
-private:
     using node_id = std::string;
     using node_ids = std::vector<node_id>;
 

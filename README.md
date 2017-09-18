@@ -180,3 +180,5 @@ re-enable all compiler warnings
 float_t sollte float32 sein
 
 remove vscode directory
+
+support Sequential models

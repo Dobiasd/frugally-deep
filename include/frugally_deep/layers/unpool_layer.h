@@ -27,7 +27,7 @@ public:
         assert(scale_factor_ % 2 == 0);
     }
 protected:
-    matrix3ds apply(const matrix3ds& inputs) const override final
+    matrix3ds apply_impl(const matrix3ds& inputs) const override final
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];

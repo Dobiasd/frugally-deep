@@ -11,20 +11,18 @@
 namespace fd
 {
 
-class softmax_layer : public layer
+class softmax_layer : public activation_layer
 {
 public:
     explicit softmax_layer(const std::string& name)
-        : layer(name),
+        : activation_layer(name),
         in_vol_max_(0),
         unnormalized_sum_(0)
     {
     }
-
-    matrix3ds apply(const matrix3ds& inputs) const override
+protected:
+    matrix3d transform_input(const matrix3d& input) const override
     {
-        assert(inputs.size() == 1);
-        const auto& input = inputs[0];
         const auto ex = [this](float_t x) -> float_t
         {
             // todo: why does this trick make the gradient check fail?
@@ -45,7 +43,6 @@ public:
         return {transform_matrix3d(div_by_unnormalized_sum, unnormalized)};
     }
 
-protected:
     mutable float_t in_vol_max_;
     mutable float_t unnormalized_sum_;
 };

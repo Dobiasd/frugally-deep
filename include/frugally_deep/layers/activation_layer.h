@@ -26,7 +26,7 @@ public:
         layer(name)
     {
     }
-    matrix3ds apply(const matrix3ds& inputs) const override
+    matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
@@ -36,5 +36,11 @@ public:
 protected:
     virtual matrix3d transform_input(const matrix3d& input) const = 0;
 };
+
+inline matrix3ds apply_activation_layer(const activation_layer_ptr& ptr,
+    const matrix3ds& input)
+{
+    return ptr == nullptr ? input : ptr->apply(input);
+}
 
 } // namespace fd

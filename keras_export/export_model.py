@@ -109,6 +109,8 @@ def get_all_weights(model):
             show_func = show_layer_functions.get(layer_type, None)
             name = layer.name
             is_ascii(name)
+            if name in result:
+                raise ValueError('duplicate layer name ' + name)
             if show_func:
                 result[name] = show_func(layer)
     return result
@@ -137,7 +139,7 @@ def main():
 
         json_output['architecture'] = json.loads(model.to_json())
 
-        json_output['weights'] = get_all_weights(model)
+        json_output['trainable_params'] = get_all_weights(model)
 
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
 

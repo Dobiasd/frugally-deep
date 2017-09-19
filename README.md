@@ -29,8 +29,9 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 **frugally-deep**
 
 * **is a small header-only library without external dependencies.**
-* is very easy to integrate and use
-* supports inference (`model.predict`) not only [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
+* is very easy to integrate and use.
+* supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
+* does not need much RAM.
 * uses only the CPU (single threaded).
 
 

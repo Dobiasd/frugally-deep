@@ -8,6 +8,7 @@
 
 #include "frugally_deep/layers/avg_pool_layer.h"
 #include "frugally_deep/layers/batch_normalization_layer.h"
+#include "frugally_deep/layers/concatenate_layer.h"
 #include "frugally_deep/layers/convolutional_layer.h"
 #include "frugally_deep/layers/convolution_transpose_layer.h"
 #include "frugally_deep/layers/elu_layer.h"
@@ -18,6 +19,7 @@
 #include "frugally_deep/layers/gentle_max_pool_layer.h"
 #include "frugally_deep/layers/hard_sigmoid_layer.h"
 #include "frugally_deep/layers/identity_layer.h"
+#include "frugally_deep/layers/input_layer.h"
 #include "frugally_deep/layers/layer.h"
 #include "frugally_deep/layers/leaky_relu_layer.h"
 #include "frugally_deep/layers/max_pool_layer.h"

@@ -42,6 +42,7 @@ def gen_test_data(model):
 
 def show_conv2d_layer(layer):
     weights = layer.get_weights()
+    assert len(weights) == 2
     weight_flat = np.swapaxes(weights[0], 0, 2).flatten().tolist()
     assert len(weight_flat) > 0
     assert layer.dilation_rate == (1,1)
@@ -50,7 +51,7 @@ def show_conv2d_layer(layer):
     assert layer.input_shape[0] == None
     return {
         'weights': weight_flat,
-        'biases': weights[1].tolist()
+        'bias': weights[1].tolist()
     }
 
 def show_batch_normalization_layer(layer):

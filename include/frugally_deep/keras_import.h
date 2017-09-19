@@ -22,12 +22,14 @@ inline fd::size3d create_size3d(const json& data)
     {
         throw std::runtime_error(std::string("size3d needs to be an array"));
     }
-    if (data.size() == 1)
-        return fd::size3d(0, 0, data[0]);
-    if (data.size() == 2)
-        return fd::size3d(0, data[0], data[1]);
-    if (data.size() == 3)
-        return fd::size3d(data[0], data[1], data[2]);
+    fd::assertion(data.size() > 0, "need at least one dimension");
+    const std::size_t offset = data[0].is_null() ? 1 : 0;
+    if (data.size() == 1 + offset)
+        return fd::size3d(0, 0, data[0 + offset]);
+    if (data.size() == 2 + offset)
+        return fd::size3d(0, data[0 + offset], data[1 + offset]);
+    if (data.size() == 3 + offset)
+        return fd::size3d(data[0 + offset], data[1 + offset], data[2 + offset]);
     throw std::runtime_error(std::string("size3d needs 1, 2 or 3 dimensions"));
 }
 
@@ -61,25 +63,35 @@ std::vector<T> create_vector(F f, const json& data)
     return fplus::transform_convert<std::vector<T>>(f, data);
 }
 
-fd::model create_model(const json& data);
-
-inline fd::layer_ptr create_model_layer(const json& data)
+inline fd::float_t create_singleton_vec(const json& data)
 {
-    return std::make_shared<fd::model>(create_model(data));
+    fd::float_vec values = data;
+    fd::assertion(values.size() == 1, "need exactly one value");
+    return values[0];
 }
 
-inline fd::layer_ptr create_conv2d_layer(const json& data)
+using get_param_f =
+    std::function<fd::float_vec(const std::string&, const std::string&)>;
+
+fd::model create_model(const get_param_f& get_param, const json& data);
+
+inline fd::layer_ptr create_model_layer(
+    const get_param_f& get_param, const json& data)
+{
+    return std::make_shared<fd::model>(create_model(get_param, data));
+}
+
+inline fd::layer_ptr create_conv2d_layer(
+    const get_param_f& get_param, const json& data)
 {
     const std::string name = data["name"];
-    const std::size_t filter_count = data["config"]["filters"];
-    //const fd::float_vec weights = data["weights"];
-    //const fd::float_vec biases = data["biases"];
-    const fd::size3d filter_size = create_size3d(data["config"]["kernel_size"]);
+    fd::float_vec bias = get_param(name, "bias");
     const bool use_bias = data["config"]["use_bias"];
     if (!use_bias)
     {
-        // todo: if not use_bias set all biases to 0
+        std::fill(std::begin(bias), std::end(bias), 0);
     }
+    
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
         fplus::choose<std::string, fd::convolutional_layer::padding>({
@@ -87,76 +99,134 @@ inline fd::layer_ptr create_conv2d_layer(const json& data)
         { std::string("same"), fd::convolutional_layer::padding::same },
     }, padding_str);
     fd::assertion(fplus::is_just(maybe_padding), "no padding");
-    //fd::assertion(biases.size() == filter_count, "number of biases does not match");
-    //fd::assertion(weights.size() == filter_size.volume() * filter_count, "number of weights does not match");
     const auto padding = maybe_padding.unsafe_get_just();
+
     const fd::size2d strides = create_size2d(data["config"]["strides"]);
+
+    fd::assertion(strides.width_ == strides.height_,
+        "strides not proportional");
+
+    const std::size_t filter_count = data["config"]["filters"];
+    fd::assertion(bias.size() == filter_count, "size of bias does not match");
+
+    const fd::float_vec weights = get_param(name, "weights");
+    const fd::size2d kernel_size = create_size2d(data["config"]["kernel_size"]);
+    fd::assertion(weights.size() % kernel_size.area() == 0,
+        "invalid number of weights");
+    const std::size_t filter_depths =
+        weights.size() / (kernel_size.area() * filter_count);
+    const fd::size3d filter_size(
+        filter_depths, kernel_size.height_, kernel_size.width_);
+
     return std::make_shared<fd::convolutional_layer>(name,
-        filter_size, filter_count, strides, padding); // todo
+        filter_size, filter_count, strides, padding, weights, bias);
 }
 
-inline fd::layer_ptr create_input_layer(const json& data)
+inline fd::layer_ptr create_input_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::model>(name); // todo
+    const auto input_shape = create_size3d(data["config"]["batch_input_shape"]);
+    return std::make_shared<fd::input_layer>(name, input_shape);
 }
 
-inline fd::layer_ptr create_batch_normalization_layer(const json& data)
+inline fd::layer_ptr create_batch_normalization_layer(
+    const get_param_f&, const json& data)
 {
+    // todo: beta, gamma
     const std::string name = data["name"];
-    return std::make_shared<fd::batch_normalization_layer>(name, 0.1); // todo
+    fd::float_t epsilon = data["config"]["epsilon"];
+    return std::make_shared<fd::batch_normalization_layer>(name, epsilon);
 }
 
-inline fd::layer_ptr create_dropout_layer(const json& data)
+inline fd::layer_ptr create_dropout_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
     // dropout rate equals zero in forward pass
     return std::make_shared<fd::identity_layer>(name);
 }
 
-inline fd::layer_ptr create_leaky_relu_layer(const json& data)
+inline fd::layer_ptr create_leaky_relu_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::leaky_relu_layer>(name, 0.1); // todo
+    fd::float_t alpha = data["config"]["alpha"];
+    return std::make_shared<fd::leaky_relu_layer>(name, alpha);
 }
 
-inline fd::layer_ptr create_elu_layer(const json& data)
+inline fd::layer_ptr create_elu_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::elu_layer>(name, 0.1); // todo
+    fd::float_t alpha = data["config"]["alpha"];
+    return std::make_shared<fd::elu_layer>(name, alpha);
 }
 
-inline fd::layer_ptr create_max_pooling2d_layer(const json& data)
+inline fd::layer_ptr create_max_pooling2d_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::max_pool_layer>(name, 2); // todo
+    const auto pool_size = create_size2d(data["config"]["pool_size"]);
+    const auto strides = create_size2d(data["config"]["strides"]);
+    // todo: support pool_size != strides
+    fd::assertion(pool_size == strides, "pool_size not strides equal");
+    // todo: support non-proportional sizes
+    fd::assertion(pool_size.width_ == pool_size.height_,
+        "pooling not proportional");
+    return std::make_shared<fd::max_pool_layer>(name, pool_size.width_);
 }
 
-inline fd::layer_ptr create_average_pooling2d_layer(const json& data)
+inline fd::layer_ptr create_average_pooling2d_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::avg_pool_layer>(name, 2); // todo
+    const auto pool_size = create_size2d(data["config"]["pool_size"]);
+    const auto strides = create_size2d(data["config"]["strides"]);
+    // todo: support pool_size != strides
+    fd::assertion(pool_size == strides, "pool_size not strides equal");
+    // todo: support non-proportional sizes
+    fd::assertion(pool_size.width_ == pool_size.height_,
+        "pooling not proportional");
+    return std::make_shared<fd::avg_pool_layer>(name, pool_size.width_);
 }
 
-inline fd::layer_ptr create_upsampling2d_layer(const json& data)
+inline fd::layer_ptr create_upsampling2d_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::unpool_layer>(name, 2); // todo
+    const auto size = create_size2d(data["config"]["size"]);
+    fd::assertion(size.width_ == size.height_, "invalid scale factor");
+    return std::make_shared<fd::unpool_layer>(name, size.width_);
 }
 
-inline fd::layer_ptr create_dense_layer(const json& data)
+inline fd::layer_ptr create_dense_layer(
+    const get_param_f& get_param, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::fully_connected_layer>(name, 2, 3); // todo
+    const fd::float_vec weights = get_param(name, "weights");
+    fd::float_vec bias = get_param(name, "bias");
+    const bool use_bias = data["config"]["use_bias"];
+    if (!use_bias)
+    {
+        std::fill(std::begin(bias), std::end(bias), 0);
+    }
+    std::size_t units = data["config"]["units"];
+    fd::assertion(bias.size() == units, "invalid bias count");
+    fd::assertion(weights.size() % units == 0, "invalid weight count");
+    const std::size_t size_in = weights.size() / units;
+    return std::make_shared<fd::fully_connected_layer>(name, size_in, units);
 }
 
-inline fd::layer_ptr create_concatename_layer(const json& data)
+inline fd::layer_ptr create_concatename_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
-    return std::make_shared<fd::model>(name); // todo
+    return std::make_shared<fd::concatenate_layer>(name);
 }
 
-inline fd::layer_ptr create_flatten_layer(const json& data)
+inline fd::layer_ptr create_flatten_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<fd::flatten_layer>(name);
@@ -187,7 +257,8 @@ inline fd::activation_layer_ptr create_sigmoid_layer(const std::string& name)
     return std::make_shared<fd::sigmoid_layer>(name);
 }
 
-inline fd::activation_layer_ptr create_hard_sigmoid_layer(const std::string& name)
+inline fd::activation_layer_ptr create_hard_sigmoid_layer(
+    const std::string& name)
 {
     return std::make_shared<fd::hard_sigmoid_layer>(name);
 }
@@ -230,7 +301,8 @@ inline fd::activation_layer_ptr create_activation_layer(
     return result;
 }
 
-inline fd::layer_ptr create_activation_layer_as_layer(const json& data)
+inline fd::layer_ptr create_activation_layer_as_layer(
+    const get_param_f&, const json& data)
 {
     const std::string name = data["name"];
     const std::string type = data["config"]["activation"];
@@ -243,12 +315,13 @@ inline bool json_obj_has_member(const json& data,
     return data.is_object() && data.find(member_name) != data.end();
 }
 
-inline fd::layer_ptr create_layer(const json& data)
+inline fd::layer_ptr create_layer(
+    const get_param_f& get_param, const json& data)
 {
     const std::string name = data["name"];
 
     const std::unordered_map<std::string,
-            std::function<fd::layer_ptr(const json&)>>
+            std::function<fd::layer_ptr(const get_param_f&, const json&)>>
         creators = {
             {"Model", create_model_layer},
             {"Conv2D", create_conv2d_layer},
@@ -274,7 +347,7 @@ inline fd::layer_ptr create_layer(const json& data)
     }
 
     // todo: solve nicer
-    auto result = creator.unsafe_get_just()(data);
+    auto result = creator.unsafe_get_just()(get_param, data);
     if (json_obj_has_member(data["config"], "activation"))
     {
         result->set_activation(
@@ -293,7 +366,7 @@ create_activation_layer(data["activation"])
     */
 }
 
-inline fd::model create_model(const json& data)
+inline fd::model create_model(const get_param_f& get_param, const json& data)
 {
     //output_nodes
     //input_nodes
@@ -306,7 +379,8 @@ inline fd::model create_model(const json& data)
     }
 
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
-        create_layer, data["config"]["layers"]);
+        fplus::bind_1st_of_2(create_layer, get_param),
+        data["config"]["layers"]);
 
     // todo: remove
     const auto show_layer = [](const fd::layer_ptr& ptr) -> std::string
@@ -319,12 +393,6 @@ inline fd::model create_model(const json& data)
 
     return fd::model(name);
 }
-
-// todo load_model_from_data
-
-// todo load layers into model (also nested models)
-
-// todo: move everything into namespace
 
 struct test_case
 {
@@ -381,7 +449,17 @@ inline fd::model load_model(const std::string& path, bool verify = true)
     const auto json_str = maybe_json_str.unsafe_get_just();
     const auto json_data = json::parse(json_str);
 
-    const auto model = create_model(json_data["architecture"]);
+    const std::function<fd::float_vec(const std::string&, const std::string&)>
+        get_param = [&json_data]
+        (const std::string& layer_name, const std::string& param_name)
+        -> fd::float_vec
+    {
+        const fd::float_vec result =
+            json_data["trainable_params"][layer_name][param_name];
+        return result;
+    };
+
+    const auto model = create_model(get_param, json_data["architecture"]);
 
     const auto tests = load_test_cases(json_data);
 
@@ -400,3 +478,9 @@ inline void keras_import_test()
 {
     const auto model = load_model("keras_export/model.json");
 }
+
+
+// todo: fd: model auch immer nur als layer_ptr returnen? sequential auch von layer ableiten
+// todo: unordered_map<string,vwector<float_t>> params; mitgeben beim erzeugen
+// todo: move everything into namespace
+// todo: throws durch assertion ersetzen

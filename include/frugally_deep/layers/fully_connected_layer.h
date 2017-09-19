@@ -31,6 +31,7 @@ protected:
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
         const auto input_slice_with_bias_neuron = bias_pad_input(input);
+        // todo: assert correct size_out
         //return matrix3d(size_out_, matrix2d_to_matrix3d(
             //multiply(params_, input_slice_with_bias_neuron)).as_vector());
         return {input};

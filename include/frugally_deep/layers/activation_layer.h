@@ -28,9 +28,17 @@ public:
     }
     matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
-        assert(inputs.size() == 1);
-        const auto& input = inputs[0];
-        return {transform_input(input)};
+        // todo: is more than one matrix really allowed here?
+
+        const auto f = [this](const matrix3d& input) -> matrix3d
+        {
+            return transform_input(input);
+        };
+        // todo use this instead
+        //const auto f = fplus::bind_1st_of_2(
+        //    std::mem_fn(&activation_layer::transform_input)
+        //    *this);
+        return fplus::transform(f, inputs);
     }
 
 protected:

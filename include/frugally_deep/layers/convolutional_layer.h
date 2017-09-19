@@ -28,16 +28,17 @@ class convolutional_layer : public layer
 public:
     enum class padding { valid, same };
     static std::vector<filter> generate_filters(
-        std::size_t depth, const size2d& filter_size, std::size_t k)
+        const size3d& filter_size, std::size_t k)
     {
         return std::vector<filter>(k, filter(matrix3d(
-            size3d(depth, filter_size.height_, filter_size.width_)), 0));
+            size3d(filter_size)), 0));
     }
     explicit convolutional_layer(
             const std::string& name, const size3d& filter_size,
-            std::size_t k, const size2d& strides, padding p)
-        : layer(name)
-        //filters_(generate_filters(size_in.depth_, filter_size, k)),
+            std::size_t k, const size2d& strides, padding p,
+            const float_vec& weights, const float_vec& bias)
+        : layer(name),
+        filters_(generate_filters(filter_size, k))
         //padding_y_((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) / 2),
         //padding_x_((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) / 2),
         //stride_(stride)
@@ -46,6 +47,7 @@ public:
         assert(filter_size.width_ > 0); // todo remove
         assert(strides.width_ > 0); // todo remove
         assert(p == p); // todo remove
+        fill_filters(weights, bias);
         //assert((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
         //assert((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
     }
@@ -56,20 +58,21 @@ protected:
         const auto& input = inputs[0];
         return {convolve(stride_, padding_x_, padding_y_, filters_, input)};
     }
-    void fill_filters(const float_vec& values, const float_vec& biases)
+    void fill_filters(const float_vec& weights, const float_vec& biases)
     {
         assert(!filters_.empty());
         const std::size_t param_count = fplus::sum(fplus::transform(
                 [](const filter& f) -> std::size_t { return f.size().volume(); },
             filters_));
 
-        assert(static_cast<std::size_t>(values.size()) == param_count);
+        assert(static_cast<std::size_t>(weights.size()) == param_count);
         const auto filter_param_cnt = filters_.front().size().volume();
 
-        const auto filter_values = fplus::split_every(filter_param_cnt, values);
-        assert(filter_values.size() == filters_.size());
+        const auto filter_weights =
+            fplus::split_every(filter_param_cnt, weights);
+        assert(filter_weights.size() == filters_.size());
         assert(biases.size() == filters_.size());
-        auto it_filter_val = std::begin(filter_values);
+        auto it_filter_val = std::begin(filter_weights);
         auto it_filter_bias = std::begin(biases);
         for (auto& filt : filters_)
         {

@@ -81,6 +81,8 @@ private:
     float_vec values_;
 };
 
+typedef std::vector<matrix3d> matrix3ds;
+
 inline std::string show_matrix3d(const matrix3d& m)
 {
     std::string str;
@@ -287,6 +289,34 @@ inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
         m1.as_vector(), m2.as_vector()));
 }
 
+inline matrix3d concatenate_matrix3ds(const matrix3ds& ts)
+{
+    const auto matrix3d_size_without_depth = [](const matrix3d& t) -> fd::size2d
+    {
+        return t.size().without_depth();
+    };
+
+    fd::assertion(fplus::all_the_same_on(matrix3d_size_without_depth, ts),
+        "all tensors must have the same width and height");
+    
+    fd::assertion(!ts.empty(), "no tensors to concatenate");
+
+    const auto matrix3d_size_depth = [](const matrix3d& t) -> std::size_t
+    {
+        return t.size().depth_;
+    };
+    const std::size_t depth_sum = fplus::sum(fplus::transform(
+        matrix3d_size_depth, ts));
+
+    const auto as_vector = [](const matrix3d& t) -> fd::float_vec
+    {
+        return t.as_vector();
+    };
+    return matrix3d(
+        size3d(depth_sum, ts.front().size().height_, ts.front().size().width_),
+        fplus::transform_and_concat(as_vector, ts));
+}
+
 inline matrix3d add_to_matrix3d_elems(const matrix3d& m, float_t x)
 {
     return matrix3d(m.size(), fplus::transform([x](float_t e) -> float_t
@@ -425,7 +455,5 @@ inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
                 fplus::bind_1st_of_2(rotate_matrix2d_ccw, step_cnt_90_deg),
                 matrix3d_to_depth_slices(m)));
 }
-
-typedef std::vector<matrix3d> matrix3ds;
 
 } // namespace fd

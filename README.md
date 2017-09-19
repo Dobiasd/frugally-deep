@@ -183,3 +183,13 @@ float_t sollte float32 sein
 remove vscode directory
 
 support Sequential models
+
+replace assert with assertion
+
+rename unpool layer to upsampling2d
+
+rename all layers to keras names
+
+biases durch bias ersetzen
+
+member-funktionen frei machen wo geht

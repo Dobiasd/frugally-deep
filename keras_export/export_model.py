@@ -71,6 +71,7 @@ def show_batch_normalization_layer(layer):
         result['beta'] = K.get_value(layer.beta).tolist()
     if layer.scale:
         result['gamma'] = K.get_value(layer.gamma).tolist()
+    return result
 
 def show_dense_layer(layer):
     assert len(layer.input_shape) == 2, "Please flatten for dense layer."

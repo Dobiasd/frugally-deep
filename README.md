@@ -176,12 +176,10 @@ float_t sollte float32 sein
 
 remove vscode directory
 
-support Sequential models, test sequential as single model
+test sequential as single model
 
 klassiker aus keras als examples
 
 rename all layers to keras names (e.g. unpuul -> upsampling2d)
 
 member-funktionen frei machen wo geht
-
-model auch immer nur als layer_ptr returnen? sequential auch von layer ableiten

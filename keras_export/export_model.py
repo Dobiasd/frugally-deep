@@ -114,11 +114,7 @@ def get_all_weights(model):
     result = {}
     layers = model.layers
     for layer in layers:
-        #if type(layer).__name__ == 'Sequential':
-        #    layer = layer.model
-        #layer_type = type(layer).__name__
-        #assert layer_type != 'Sequential'
-        #if layer_type == 'Model':
+
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))
@@ -132,6 +128,14 @@ def get_all_weights(model):
                 result[name] = show_func(layer)
     return result
 
+def convert_sequential_to_model(model):
+    if type(model).__name__ == 'Sequential':
+        model = model.model
+    for i in range(len(model.layers)):
+        if type(model.layers[i]).__name__ in ['Model', 'Sequential']:
+            model.layers[i] = convert_sequential_to_model(model.layers[i])
+    return model
+
 def main():
     usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 3]'
     if len(sys.argv) != 3 and len(sys.argv) != 4:
@@ -144,6 +148,7 @@ def main():
         if len(sys.argv) == 4:
             test_count = int(sys.argv[3])
         model = load_model(in_path)
+        model = convert_sequential_to_model(model)
 
         # todo remove
         write_text_file(out_path + '.keras.yml', model.to_yaml()) 

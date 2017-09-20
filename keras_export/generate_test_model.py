@@ -77,12 +77,12 @@ def get_test_model_full():
 
     x = intermediate_model(x)
 
-    #intermediate_model_2 = Sequential()
-    #intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
-    #intermediate_model_2.add(Dense(5, activation='tanh'))
-    #intermediate_model_2.compile(optimizer='rmsprop',
-          #loss='categorical_crossentropy', metrics=['accuracy'])
-    #x = intermediate_model_2(x)
+    intermediate_model_2 = Sequential()
+    intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
+    intermediate_model_2.add(Dense(5, activation='tanh'))
+    intermediate_model_2.compile(optimizer='rmsprop',
+        loss='categorical_crossentropy', metrics=['accuracy'])
+    x = intermediate_model_2(x)
 
     x = Activation('sigmoid')(x)
     x = Dense(3)(x)

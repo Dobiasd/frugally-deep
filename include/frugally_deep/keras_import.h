@@ -132,10 +132,10 @@ inline fd::layer_ptr create_batch_normalization_layer(
     fd::float_t epsilon = data["config"]["epsilon"];
     const bool center = data["config"]["center"];
     const bool scale = data["config"]["scale"];
-    fd::float_vec beta = get_param(name, "beta");
-    fd::float_vec gamma = get_param(name, "gamma");
-    if (!scale) fill_with_zeros(gamma);
-    if (!center) fill_with_zeros(beta);
+    fd::float_vec gamma;
+    fd::float_vec beta;
+    if (scale) gamma = get_param(name, "gamma");
+    if (center) beta = get_param(name, "beta");
     return std::make_shared<fd::batch_normalization_layer>(
         name, epsilon, beta, gamma);
 }

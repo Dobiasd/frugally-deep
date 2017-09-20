@@ -33,8 +33,16 @@ protected:
         const auto& input = inputs[0];
         // todo: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
         auto slices = matrix3d_to_depth_slices(input);
-        slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_); // todo + epsilon
-        slices = fplus::zip_with(add_to_matrix2d_elems, slices, beta_);
+        if (!gamma_.empty())
+        {
+            assertion(slices.size() == gamma_.size(), "invalid gamma");
+            slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_); // todo + epsilon
+        }
+        if (!beta_.empty())
+        {
+            assertion(slices.size() == beta_.size(), "invalid beta");
+            slices = fplus::zip_with(add_to_matrix2d_elems, slices, beta_);
+        }
         return {matrix3d_from_depth_slices(slices)};
     }
 };

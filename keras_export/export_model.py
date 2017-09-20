@@ -66,10 +66,11 @@ def show_conv2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     assert layer.axis == -1
-    return {
-        'gamma': K.get_value(layer.gamma).tolist(),
-        'beta': K.get_value(layer.beta).tolist()
-        }
+    result = {}
+    if layer.center:
+        result['beta'] = K.get_value(layer.beta).tolist()
+    if layer.scale:
+        result['gamma'] = K.get_value(layer.gamma).tolist()
 
 def show_dense_layer(layer):
     assert len(layer.input_shape) == 2, "Please flatten for dense layer."
@@ -113,6 +114,11 @@ def get_all_weights(model):
     result = {}
     layers = model.layers
     for layer in layers:
+        #if type(layer).__name__ == 'Sequential':
+        #    layer = layer.model
+        #layer_type = type(layer).__name__
+        #assert layer_type != 'Sequential'
+        #if layer_type == 'Model':
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))

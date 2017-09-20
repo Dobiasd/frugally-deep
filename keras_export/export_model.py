@@ -116,7 +116,6 @@ def get_all_weights(model):
     result = {}
     layers = model.layers
     for layer in layers:
-
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))
@@ -133,6 +132,7 @@ def get_all_weights(model):
 def convert_sequential_to_model(model):
     if type(model).__name__ == 'Sequential':
         model = model.model
+    assert len(model.layers) > 0
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:
             model.layers[i] = convert_sequential_to_model(model.layers[i])

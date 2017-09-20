@@ -363,7 +363,6 @@ inline fd::model create_model(const get_param_f& get_param, const nlohmann::json
     //input_nodes
     const std::string name = data["config"]["name"];
 
-    // todo: ok for empty inner models?
     fd::assertion(data["config"]["layers"].is_array(), "missing layers array");
 
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(

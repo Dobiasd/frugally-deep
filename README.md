@@ -136,17 +136,17 @@ new structure:
   class Node
     inbound_nodes : [(node_id, tensor_idx)]
     outbound_layer : SharedPtr layer
-    output : maybe [Tensor3]
+    outputs : maybe [Tensor3]
     get_output : tensor_idx -> Tensor3
-    set_output : [Tensor3] -> () # only for nodes of input-layers?
+    set_outputs : [Tensor3] -> () # only for nodes of input-layers?
 
-  class model : public layer
-    nodes : Dict node_id, node
-    outputs : [node_id]
-    inputs : [node_id]
+  class Model : public Layer
+    nodes : Dict Node_id, Node
+    outputs : [Node_id]
+    inputs : [Node_id]
 
 run:
-  model.predict : [Tensor3] -> [Tensor3]
+  model.apply : [Tensor3] -> [Tensor3]
     call set_output on all input nodes
     ouput_nodes
       |> transform get_output

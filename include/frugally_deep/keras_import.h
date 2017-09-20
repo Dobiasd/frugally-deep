@@ -287,12 +287,9 @@ inline fd::activation_layer_ptr create_activation_layer(
         {"selu", create_selu_layer}
     };
 
-    const auto creator = fplus::get_from_map(creators, type);
-    fd::assertion(fplus::is_just(creator), "unknown activation type: " + type);
-
     return fplus::throw_on_nothing(
         std::runtime_error("unknown activation type: " + type),
-        creator)(name);
+        fplus::get_from_map(creators, type))(name);
 }
 
 inline fd::layer_ptr create_activation_layer_as_layer(
@@ -334,18 +331,15 @@ inline fd::layer_ptr create_layer(
         };
 
     const std::string type = data["class_name"];
-    const auto creator = fplus::get_from_map(creators, type);
-    fd::assertion(fplus::is_just(creator), "unknown type: " + type);
 
     auto result = fplus::throw_on_nothing(
         std::runtime_error("unknown layer type: " + type),
-        creator)(get_param, data);
+        fplus::get_from_map(creators, type))(get_param, data);
 
     if (json_obj_has_member(data["config"], "activation"))
     {
         result->set_activation(
-            create_activation_layer(
-                data["config"]["activation"], ""));
+            create_activation_layer(data["config"]["activation"], ""));
     }
     return result;
 

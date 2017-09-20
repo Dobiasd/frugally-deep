@@ -14,5 +14,5 @@
 
 int main()
 {
-    keras_import_test();
+    const auto model = fd::load_model("keras_export/model.json");
 }

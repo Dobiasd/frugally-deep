@@ -14,14 +14,12 @@
 
 #include <fplus/fplus.hpp>
 
-using json = nlohmann::json;
-
-inline fd::size3d create_size3d(const json& data)
+namespace fd
 {
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("size3d needs to be an array"));
-    }
+
+inline fd::size3d create_size3d(const nlohmann::json& data)
+{
+    fd::assertion(data.is_array(), "size3d needs to be an array");
     fd::assertion(data.size() > 0, "need at least one dimension");
     const std::size_t offset = data[0].is_null() ? 1 : 0;
     if (data.size() == 1 + offset)
@@ -30,23 +28,22 @@ inline fd::size3d create_size3d(const json& data)
         return fd::size3d(0, data[0 + offset], data[1 + offset]);
     if (data.size() == 3 + offset)
         return fd::size3d(data[0 + offset], data[1 + offset], data[2 + offset]);
-    throw std::runtime_error(std::string("size3d needs 1, 2 or 3 dimensions"));
+    fd::raise_error("size3d needs 1, 2 or 3 dimensions");
+    return fd::size3d(0, 0, 0);
 }
 
-inline fd::size2d create_size2d(const json& data)
+inline fd::size2d create_size2d(const nlohmann::json& data)
 {
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("size2d needs to be an array"));
-    }
+    fd::assertion(data.is_array(), "size2d needs to be an array");
     if (data.size() == 1)
         return fd::size2d(0, data[0]);
     if (data.size() == 2)
         return fd::size2d(data[0], data[1]);
-    throw std::runtime_error(std::string("size2d needs 1 or 2 dimensions"));
+    fd::raise_error("size2d needs 1 or 2 dimensions");
+    return fd::size2d(0, 0);
 }
 
-inline fd::matrix3d create_matrix3d(const json& data)
+inline fd::matrix3d create_matrix3d(const nlohmann::json& data)
 {
     const fd::size3d shape = create_size3d(data["shape"]);
     const fd::float_vec values = data["values"];
@@ -54,16 +51,13 @@ inline fd::matrix3d create_matrix3d(const json& data)
 }
 
 template <typename T, typename F>
-std::vector<T> create_vector(F f, const json& data)
+std::vector<T> create_vector(F f, const nlohmann::json& data)
 {
-    if (!data.is_array())
-    {
-        throw std::runtime_error(std::string("array needs to be an array"));
-    }
+    fd::assertion(data.is_array(), "array needs to be an array");
     return fplus::transform_convert<std::vector<T>>(f, data);
 }
 
-inline fd::float_t create_singleton_vec(const json& data)
+inline fd::float_t create_singleton_vec(const nlohmann::json& data)
 {
     fd::float_vec values = data;
     fd::assertion(values.size() == 1, "need exactly one value");
@@ -73,10 +67,10 @@ inline fd::float_t create_singleton_vec(const json& data)
 using get_param_f =
     std::function<fd::float_vec(const std::string&, const std::string&)>;
 
-fd::model create_model(const get_param_f& get_param, const json& data);
+fd::model create_model(const get_param_f& get_param, const nlohmann::json& data);
 
 inline fd::layer_ptr create_model_layer(
-    const get_param_f& get_param, const json& data)
+    const get_param_f& get_param, const nlohmann::json& data)
 {
     return std::make_shared<fd::model>(create_model(get_param, data));
 }
@@ -87,7 +81,7 @@ inline void fill_with_zeros(fd::float_vec& xs)
 }
 
 inline fd::layer_ptr create_conv2d_layer(
-    const get_param_f& get_param, const json& data)
+    const get_param_f& get_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     fd::float_vec bias = get_param(name, "bias");
@@ -124,7 +118,7 @@ inline fd::layer_ptr create_conv2d_layer(
 }
 
 inline fd::layer_ptr create_input_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const auto input_shape = create_size3d(data["config"]["batch_input_shape"]);
@@ -132,7 +126,7 @@ inline fd::layer_ptr create_input_layer(
 }
 
 inline fd::layer_ptr create_batch_normalization_layer(
-    const get_param_f& get_param, const json& data)
+    const get_param_f& get_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     fd::float_t epsilon = data["config"]["epsilon"];
@@ -147,7 +141,7 @@ inline fd::layer_ptr create_batch_normalization_layer(
 }
 
 inline fd::layer_ptr create_dropout_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     // dropout rate equals zero in forward pass
@@ -155,7 +149,7 @@ inline fd::layer_ptr create_dropout_layer(
 }
 
 inline fd::layer_ptr create_leaky_relu_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     fd::float_t alpha = data["config"]["alpha"];
@@ -163,7 +157,7 @@ inline fd::layer_ptr create_leaky_relu_layer(
 }
 
 inline fd::layer_ptr create_elu_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     fd::float_t alpha = data["config"]["alpha"];
@@ -171,7 +165,7 @@ inline fd::layer_ptr create_elu_layer(
 }
 
 inline fd::layer_ptr create_max_pooling2d_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const auto pool_size = create_size2d(data["config"]["pool_size"]);
@@ -185,7 +179,7 @@ inline fd::layer_ptr create_max_pooling2d_layer(
 }
 
 inline fd::layer_ptr create_average_pooling2d_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const auto pool_size = create_size2d(data["config"]["pool_size"]);
@@ -199,7 +193,7 @@ inline fd::layer_ptr create_average_pooling2d_layer(
 }
 
 inline fd::layer_ptr create_upsampling2d_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const auto size = create_size2d(data["config"]["size"]);
@@ -208,7 +202,7 @@ inline fd::layer_ptr create_upsampling2d_layer(
 }
 
 inline fd::layer_ptr create_dense_layer(
-    const get_param_f& get_param, const json& data)
+    const get_param_f& get_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const fd::float_vec weights = get_param(name, "weights");
@@ -223,14 +217,14 @@ inline fd::layer_ptr create_dense_layer(
 }
 
 inline fd::layer_ptr create_concatename_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<fd::concatenate_layer>(name);
 }
 
 inline fd::layer_ptr create_flatten_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<fd::flatten_layer>(name);
@@ -253,7 +247,7 @@ inline fd::activation_layer_ptr create_softplus_layer(const std::string& name)
 
 inline fd::activation_layer_ptr create_tanh_layer(const std::string& name)
 {
-    return std::make_shared<fd::tanh_layer>(name); // todo
+    return std::make_shared<fd::tanh_layer>(name);
 }
 
 inline fd::activation_layer_ptr create_sigmoid_layer(const std::string& name)
@@ -294,11 +288,7 @@ inline fd::activation_layer_ptr create_activation_layer(
     };
 
     const auto creator = fplus::get_from_map(creators, type);
-    if (fplus::is_nothing(creator))
-    {
-        throw std::runtime_error(
-            std::string("unknown activation type: ") + type);
-    }
+    fd::assertion(fplus::is_just(creator), "unknown activation type: ") + type);
 
     // todo: solve nicer
     auto result = creator.unsafe_get_just()(name);
@@ -306,26 +296,26 @@ inline fd::activation_layer_ptr create_activation_layer(
 }
 
 inline fd::layer_ptr create_activation_layer_as_layer(
-    const get_param_f&, const json& data)
+    const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const std::string type = data["config"]["activation"];
     return create_activation_layer(type, name);
 }
 
-inline bool json_obj_has_member(const json& data,
+inline bool json_obj_has_member(const nlohmann::json& data,
     const std::string& member_name)
 {
     return data.is_object() && data.find(member_name) != data.end();
 }
 
 inline fd::layer_ptr create_layer(
-    const get_param_f& get_param, const json& data)
+    const get_param_f& get_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
 
     const std::unordered_map<std::string,
-            std::function<fd::layer_ptr(const get_param_f&, const json&)>>
+            std::function<fd::layer_ptr(const get_param_f&, const nlohmann::json&)>>
         creators = {
             {"Model", create_model_layer},
             {"Conv2D", create_conv2d_layer},
@@ -345,10 +335,7 @@ inline fd::layer_ptr create_layer(
 
     const std::string type = data["class_name"];
     const auto creator = fplus::get_from_map(creators, type);
-    if (fplus::is_nothing(creator))
-    {
-        throw std::runtime_error(std::string("unknown type: ") + type);
-    }
+    fd::assertion(fplus::is_just(creator), "unknown type: " + type);
 
     // todo: solve nicer
     auto result = creator.unsafe_get_just()(get_param, data);
@@ -370,17 +357,14 @@ create_activation_layer(data["activation"])
     */
 }
 
-inline fd::model create_model(const get_param_f& get_param, const json& data)
+inline fd::model create_model(const get_param_f& get_param, const nlohmann::json& data)
 {
     //output_nodes
     //input_nodes
     const std::string name = data["config"]["name"];
 
-    if (!data["config"]["layers"].is_array())
-    {
-        // todo: ok for empty inner models?
-        throw std::runtime_error("no layers");
-    }
+    // todo: ok for empty inner models?
+    fd::assertion(data["config"]["layers"].is_array());
 
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
         fplus::bind_1st_of_2(create_layer, get_param),
@@ -406,28 +390,19 @@ struct test_case
 
 using test_cases = std::vector<test_case>;
 
-inline test_case load_test_case(const json& data)
+inline test_case load_test_case(const nlohmann::json& data)
 {
-    if (!data["inputs"].is_array())
-    {
-        throw std::runtime_error(std::string("test needs inputs"));
-    }
-    if (!data["outputs"].is_array())
-    {
-        throw std::runtime_error(std::string("test needs inputs"));
-    }
+    fd::assertion(data["inputs"].is_array(), "test needs inputs");
+    fd::assertion(data["outputs"].is_array(), "test needs outputs");
     return {
         create_vector<fd::matrix3d>(create_matrix3d, data["inputs"]),
         create_vector<fd::matrix3d>(create_matrix3d, data["outputs"])
     };
 }
 
-inline test_cases load_test_cases(const json& data)
+inline test_cases load_test_cases(const nlohmann::json& data)
 {
-    if (!data["tests"].is_array())
-    {
-        throw std::runtime_error(std::string("no tests"));
-    }
+    fd::assertion(data["tests"].is_array(), "no tests");
     return fplus::transform_convert<test_cases>(
         load_test_case, data["tests"]);
 }
@@ -438,17 +413,14 @@ inline bool run_test_cases(const fd::model&, const test_cases&)
     return true;
 }
 
-// thrown an std::runtime_error if a problem occurs.
+// Throws an std::runtime_error if a problem occurs.
 inline fd::model load_model(const std::string& path, bool verify = true)
 {
     const auto maybe_json_str = fplus::read_text_file_maybe(path)();
-    if (fplus::is_nothing(maybe_json_str))
-    {
-        throw std::runtime_error(std::string("Unable to load file: " + path));
-    }
+    fd::assertion(fplus::is_just(maybe_json_str), "Unable to load: " + path);
 
     const auto json_str = maybe_json_str.unsafe_get_just();
-    const auto json_data = json::parse(json_str);
+    const auto json_data = nlohmann::json::parse(json_str);
 
     const std::function<fd::float_vec(const std::string&, const std::string&)>
         get_param = [&json_data]
@@ -466,22 +438,12 @@ inline fd::model load_model(const std::string& path, bool verify = true)
 
     if (verify)
     {
-        if (!run_test_cases(model, tests))
-        {
-            throw std::runtime_error(std::string("Tests failed."));
-        }
+        fd::assertion(run_test_cases(model, tests), "Tests failed.");
     }
 
     return model;
 }
 
-inline void keras_import_test()
-{
-    const auto model = load_model("keras_export/model.json");
-}
-
+} // namespace fd
 
 // todo: fd: model auch immer nur als layer_ptr returnen? sequential auch von layer ableiten
-// todo: unordered_map<string,vwector<float_t>> params; mitgeben beim erzeugen
-// todo: move everything into namespace
-// todo: throws durch assertion ersetzen

@@ -253,7 +253,7 @@ inline fd::activation_layer_ptr create_softplus_layer(const std::string& name)
 
 inline fd::activation_layer_ptr create_tanh_layer(const std::string& name)
 {
-    return std::make_shared<fd::tanh_layer>(name, false, 0.5); // todo
+    return std::make_shared<fd::tanh_layer>(name); // todo
 }
 
 inline fd::activation_layer_ptr create_sigmoid_layer(const std::string& name)

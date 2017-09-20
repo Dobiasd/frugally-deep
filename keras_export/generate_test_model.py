@@ -43,7 +43,7 @@ def get_test_model_full():
     x = keras.layers.concatenate([x1, x2, x3])
 
     x = Conv2D(2, (3, 3), padding='valid')(x)
-    x = BatchNormalization()(x)
+    x = BatchNormalization(center=False)(x)
     x = Dropout(0.5)(x)
 
     x = keras.layers.concatenate([

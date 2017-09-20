@@ -81,17 +81,18 @@ inline fd::layer_ptr create_model_layer(
     return std::make_shared<fd::model>(create_model(get_param, data));
 }
 
+inline void fill_with_zeros(fd::float_vec& xs)
+{
+    std::fill(std::begin(xs), std::end(xs), 0);
+}
+
 inline fd::layer_ptr create_conv2d_layer(
     const get_param_f& get_param, const json& data)
 {
     const std::string name = data["name"];
     fd::float_vec bias = get_param(name, "bias");
     const bool use_bias = data["config"]["use_bias"];
-    if (!use_bias)
-    {
-        std::fill(std::begin(bias), std::end(bias), 0);
-    }
-    
+    if (!use_bias) fill_with_zeros(bias);
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
         fplus::choose<std::string, fd::convolutional_layer::padding>({
@@ -131,12 +132,18 @@ inline fd::layer_ptr create_input_layer(
 }
 
 inline fd::layer_ptr create_batch_normalization_layer(
-    const get_param_f&, const json& data)
+    const get_param_f& get_param, const json& data)
 {
-    // todo: beta, gamma
     const std::string name = data["name"];
     fd::float_t epsilon = data["config"]["epsilon"];
-    return std::make_shared<fd::batch_normalization_layer>(name, epsilon);
+    const bool center = data["config"]["center"];
+    const bool scale = data["config"]["scale"];
+    fd::float_vec beta = get_param(name, "beta");
+    fd::float_vec gamma = get_param(name, "gamma");
+    if (!scale) fill_with_zeros(gamma);
+    if (!center) fill_with_zeros(beta);
+    return std::make_shared<fd::batch_normalization_layer>(
+        name, epsilon, beta, gamma);
 }
 
 inline fd::layer_ptr create_dropout_layer(
@@ -207,10 +214,7 @@ inline fd::layer_ptr create_dense_layer(
     const fd::float_vec weights = get_param(name, "weights");
     fd::float_vec bias = get_param(name, "bias");
     const bool use_bias = data["config"]["use_bias"];
-    if (!use_bias)
-    {
-        std::fill(std::begin(bias), std::end(bias), 0);
-    }
+    if (!use_bias) fill_with_zeros(bias);
     std::size_t units = data["config"]["units"];
     fd::assertion(bias.size() == units, "invalid bias count");
     fd::assertion(weights.size() % units == 0, "invalid weight count");
@@ -424,11 +428,8 @@ inline test_cases load_test_cases(const json& data)
     {
         throw std::runtime_error(std::string("no tests"));
     }
-    const auto tests = fplus::transform_convert<test_cases>(
+    return fplus::transform_convert<test_cases>(
         load_test_case, data["tests"]);
-
-    // todo return without temp variable
-    return tests;
 }
 
 inline bool run_test_cases(const fd::model&, const test_cases&)

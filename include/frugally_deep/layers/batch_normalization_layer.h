@@ -15,11 +15,12 @@ namespace fd
 class batch_normalization_layer : public layer
 {
 public:
-    explicit batch_normalization_layer(const std::string& name, float_t epsilon)
+    explicit batch_normalization_layer(const std::string& name, float_t epsilon,
+        const float_vec& beta, const float_vec& gamma)
         : layer(name),
-        epsilon_(epsilon)
-        //beta_(size_in.depth_),
-        //gamma_(size_in.depth_)
+        epsilon_(epsilon),
+        beta_(beta),
+        gamma_(gamma)
     {
     }
 protected:

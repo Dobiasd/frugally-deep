@@ -30,39 +30,48 @@ namespace fd
 class convolution_transpose_layer : public layer
 {
 public:
-    static std::vector<filter> generate_filters(
-        std::size_t depth, const size2d& filter_size, std::size_t k)
-    {
-        return std::vector<filter>(k, filter(matrix3d(
-            size3d(depth, filter_size.height_, filter_size.width_)), 0));
-    }
+    enum class padding { valid, same };
     explicit convolution_transpose_layer(
-            const std::string& name, const size2d& filter_size,
-            std::size_t k, std::size_t stride)
-        : layer(name)
-        //filters_(generate_filters(size_in.depth_, filter_size, k)),
-        //padding_y_((size_out_.height_ / stride - size_in.height_ + filter_size.height_ - stride) / 2),
-        //padding_x_((size_out_.width_ / stride - size_in.width_ + filter_size.width_ - stride) / 2),
-        //stride_(stride)
+            const std::string& name, const size3d& filter_size,
+            std::size_t k, const size2d& strides, padding p,
+            const float_vec& weights, const float_vec& bias)
+        : layer(name),
+        filters_(generate_filters(filter_size, k, weights, bias)),
+        padding_(p),
+        strides_(strides)
     {
-        assert(k != 0);
-        assert(filter_size.width_ > 0); // todo remove
-        assert(stride > 0); // todo remove
-        //assert((size_out_.height_ / stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
-        //assert((size_out_.width_ / stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
+        assertion(k > 0, "needs at least one filter");
+        assertion(filter_size.volume() > 0, "filter must have volume");
+        assertion(strides.area() > 0, "invalid strides");
+        assertion(strides.width_ == strides.height_, "invalid strides");
     }
 protected:
     matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
-        assert(inputs.size() == 1);
-        const auto& input = inputs[0];
+        assertion(inputs.size() == 1, "only one input tensor allowed");
+        const auto& input = inputs.front();
+
+        assertion(strides_.width_ == strides_.height_, "invalid strides");
+        const std::size_t stride = strides_.width_;
+
+        assertion(filters_.size() > 0, "no filters");
+        const auto filter_size = filters_.front().size();
+        
+        std::size_t padding_y_ = 0;
+        std::size_t padding_x_ = 0;
+        if (padding_ == padding::same)
+        {
+            // todo: is this correct?
+            padding_y_ = (input.size().height_ * stride - input.size().height_ + filter_size.height_ - stride) / 2;
+            padding_x_ = (input.size().width_ * stride - input.size().width_ + filter_size.width_ - stride) / 2;
+        }
+
         return {convolve_transpose(
-            stride_, padding_x_, padding_y_, filters_, input)};
+            stride, padding_x_, padding_y_, filters_, input)};
     }
     filter_vec filters_;
-    std::size_t padding_y_;
-    std::size_t padding_x_;
-    std::size_t stride_;
+    padding padding_;
+    size2d strides_;
 };
 
 } // namespace fd

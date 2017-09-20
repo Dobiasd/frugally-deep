@@ -53,6 +53,38 @@ private:
 
 typedef std::vector<filter> filter_vec;
 
+static filter_vec generate_filters(
+    const size3d& filter_size, std::size_t k,
+    const float_vec& weights, const float_vec& bias)
+{
+    filter_vec filters(k, filter(matrix3d(
+        size3d(filter_size)), 0));
+
+    assertion(filters.empty(), "at least one filter needed");
+    const std::size_t param_count = fplus::sum(fplus::transform(
+            [](const filter& f) -> std::size_t { return f.size().volume(); },
+            filters));
+
+    assertion(static_cast<std::size_t>(weights.size()) == param_count,
+        "invalid weight size");
+    const auto filter_param_cnt = filters.front().size().volume();
+
+    const auto filter_weights =
+        fplus::split_every(filter_param_cnt, weights);
+    assertion(filter_weights.size() == filters.size(),
+        "invalid size of filter weights");
+    assertion(bias.size() == filters.size(), "invalid bias size");
+    auto it_filter_val = std::begin(filter_weights);
+    auto it_filter_bias = std::begin(bias);
+    for (auto& filt : filters)
+    {
+        filt.set_params(*it_filter_val, *it_filter_bias);
+        ++it_filter_val;
+        ++it_filter_bias;
+    }
+    return filters;
+}
+
 inline filter_vec flip_filters_spatially(const filter_vec& fs)
 {
     assert(!fs.empty());

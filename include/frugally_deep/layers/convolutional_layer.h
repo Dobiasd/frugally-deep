@@ -15,7 +15,6 @@
 
 #include <fplus/fplus.hpp>
 
-#include <cassert>
 #include <cstddef>
 #include <vector>
 
@@ -27,64 +26,47 @@ class convolutional_layer : public layer
 {
 public:
     enum class padding { valid, same };
-    static std::vector<filter> generate_filters(
-        const size3d& filter_size, std::size_t k)
-    {
-        return std::vector<filter>(k, filter(matrix3d(
-            size3d(filter_size)), 0));
-    }
+
     explicit convolutional_layer(
             const std::string& name, const size3d& filter_size,
             std::size_t k, const size2d& strides, padding p,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_filters(filter_size, k))
-        //padding_y_((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) / 2),
-        //padding_x_((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) / 2),
-        //stride_(stride)
+        filters_(generate_filters(filter_size, k, weights, bias)),
+        padding_(p),
+        strides_(strides)
     {
-        assert(k != 0);
-        assert(filter_size.width_ > 0); // todo remove
-        assert(strides.width_ > 0); // todo remove
-        assert(p == p); // todo remove
-        fill_filters(weights, bias);
-        //assert((size_out_.height_ * stride - size_in.height_ + filter_size.height_ - stride) % 2 == 0);
-        //assert((size_out_.width_ * stride - size_in.width_ + filter_size.width_ - stride) % 2 == 0);
+        assertion(k > 0, "needs at least one filter");
+        assertion(filter_size.volume() > 0, "filter must have volume");
+        assertion(strides.area() > 0, "invalid strides");
+        assertion(strides.width_ == strides.height_, "invalid strides");
     }
 protected:
     matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
-        assert(inputs.size() == 1);
-        const auto& input = inputs[0];
-        return {convolve(stride_, padding_x_, padding_y_, filters_, input)};
-    }
-    void fill_filters(const float_vec& weights, const float_vec& bias)
-    {
-        assert(!filters_.empty());
-        const std::size_t param_count = fplus::sum(fplus::transform(
-                [](const filter& f) -> std::size_t { return f.size().volume(); },
-            filters_));
+        assertion(inputs.size() == 1, "only one input tensor allowed");
+        const auto& input = inputs.front();
 
-        assert(static_cast<std::size_t>(weights.size()) == param_count);
-        const auto filter_param_cnt = filters_.front().size().volume();
+        assertion(strides_.width_ == strides_.height_, "invalid strides");
+        const std::size_t stride = strides_.width_;
 
-        const auto filter_weights =
-            fplus::split_every(filter_param_cnt, weights);
-        assert(filter_weights.size() == filters_.size());
-        assert(bias.size() == filters_.size());
-        auto it_filter_val = std::begin(filter_weights);
-        auto it_filter_bias = std::begin(bias);
-        for (auto& filt : filters_)
+        assertion(filters_.size() > 0, "no filters");
+        const auto filter_size = filters_.front().size();
+
+        std::size_t padding_y_ = 0;
+        std::size_t padding_x_ = 0;
+        if (padding_ == padding::same)
         {
-            filt.set_params(*it_filter_val, *it_filter_bias);
-            ++it_filter_val;
-            ++it_filter_bias;
+            // todo: is this correct?
+            padding_y_ = (input.size().height_ * stride - input.size().height_ + filter_size.height_ - stride) / 2;
+            padding_x_ = (input.size().width_ * stride - input.size().width_ + filter_size.width_ - stride) / 2;
         }
+
+        return {convolve(stride, padding_x_, padding_y_, filters_, input)};
     }
     filter_vec filters_;
-    std::size_t padding_y_;
-    std::size_t padding_x_;
-    std::size_t stride_;
+    padding padding_;
+    size2d strides_;
 };
 
 } // namespace fd

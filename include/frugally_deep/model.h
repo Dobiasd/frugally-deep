@@ -22,7 +22,7 @@ class model : public layer
 {
 public:
     explicit model(const std::string& name)
-        : layer(name)
+        : layer(name), nodes(), inputs(), outputs()
     {
     }
     virtual ~model()
@@ -38,8 +38,8 @@ protected:
     using node_ids = std::vector<node_id>;
 
     std::unordered_map<node_id, node> nodes;
-    node_ids outputs;
     node_ids inputs;
+    node_ids outputs;
 };
 
 } // namespace fd

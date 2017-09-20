@@ -154,8 +154,6 @@ run:
 model::get_output(tensor_idx) -> output[tensor_idx - 1]
 https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
 
-concat layer
-
 add travis
 
 ist upconv (conv transpose) fertig?
@@ -163,8 +161,6 @@ ist upconv (conv transpose) fertig?
 typedefs.h nach config.h umbenennen und globals da rein
 
 use cmake with doctests (see fplus)
-
-klassiker aus keras als examples
 
 add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
@@ -176,13 +172,13 @@ github project description: Use Keras models in C++ with this small header-only 
 
 add github project tags
 
-re-enable all compiler warnings
-
 float_t sollte float32 sein
 
 remove vscode directory
 
 support Sequential models, test sequential as single model
+
+klassiker aus keras als examples
 
 rename all layers to keras names (e.g. unpuul -> upsampling2d)
 

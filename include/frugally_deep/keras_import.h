@@ -288,7 +288,7 @@ inline fd::activation_layer_ptr create_activation_layer(
     };
 
     const auto creator = fplus::get_from_map(creators, type);
-    fd::assertion(fplus::is_just(creator), "unknown activation type: ") + type);
+    fd::assertion(fplus::is_just(creator), "unknown activation type: " + type);
 
     // todo: solve nicer
     auto result = creator.unsafe_get_just()(name);
@@ -364,7 +364,7 @@ inline fd::model create_model(const get_param_f& get_param, const nlohmann::json
     const std::string name = data["config"]["name"];
 
     // todo: ok for empty inner models?
-    fd::assertion(data["config"]["layers"].is_array());
+    fd::assertion(data["config"]["layers"].is_array(), "missing layers array");
 
     const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
         fplus::bind_1st_of_2(create_layer, get_param),

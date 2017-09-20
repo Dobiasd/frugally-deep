@@ -28,7 +28,7 @@ class layer
 {
 public:
     explicit layer(const std::string& name)
-        : name_(name)
+        : name_(name), activation_(nullptr)
     {
     }
     void set_activation(const activation_layer_ptr& activation)
@@ -53,8 +53,8 @@ public:
 
 protected:
     virtual matrix3ds apply_impl(const matrix3ds& input) const = 0;
-    activation_layer_ptr activation_;
     std::string name_;
+    activation_layer_ptr activation_;
 };
 
 

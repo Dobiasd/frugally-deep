@@ -1,10 +1,20 @@
+#!/usr/bin/env python
+"""Export a keras model to frugally-deep.
+"""
+
 import json
 import sys
+
+import numpy as np
 
 from keras.models import load_model
 from keras import backend as K
 
-import numpy as np
+__author__ = "Tobias Hermann"
+__copyright__ = "Copyright 2017, Tobias Hermann"
+__license__ = "MIT"
+__maintainer__ = "Tobias Hermann"
+__email__ = "editgym@gmail.com"
 
 def write_text_file(path, text):
     with open(path, "w") as text_file:

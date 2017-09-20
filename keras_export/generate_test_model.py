@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+"""Generate a test model for frugally-deep.
+"""
+
+import sys
+
+import numpy as np
+
 import keras
 from keras.models import Model, load_model, Sequential
 from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten
@@ -5,9 +13,11 @@ from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
-import numpy as np
-
-import sys
+__author__ = "Tobias Hermann"
+__copyright__ = "Copyright 2017, Tobias Hermann"
+__license__ = "MIT"
+__maintainer__ = "Tobias Hermann"
+__email__ = "editgym@gmail.com"
 
 np.random.seed(0)
 

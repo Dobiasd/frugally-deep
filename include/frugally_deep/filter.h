@@ -60,7 +60,7 @@ static filter_vec generate_filters(
     filter_vec filters(k, filter(matrix3d(
         size3d(filter_size)), 0));
 
-    assertion(filters.empty(), "at least one filter needed");
+    assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(
             [](const filter& f) -> std::size_t { return f.size().volume(); },
             filters));

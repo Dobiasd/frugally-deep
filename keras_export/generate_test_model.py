@@ -16,7 +16,7 @@ from keras import backend as K
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
-__maintainer__ = "Tobias Hermann"
+__maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 np.random.seed(0)

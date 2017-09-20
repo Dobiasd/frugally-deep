@@ -19,13 +19,13 @@ public:
     {
     }
 protected:
-    static float_t activation_function_def(float_t x)
+    static float_t activation_function(float_t x)
     {
         return std::tanh(x);
     };
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        return transform_matrix3d(activation_function_def, in_vol);
+        return transform_matrix3d(activation_function, in_vol);
     }
 };
 

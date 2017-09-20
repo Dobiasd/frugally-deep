@@ -104,23 +104,29 @@ def get_test_model_full():
 
     # fit to dummy data
 
+    training_data_size = 16
+    batch_size = 8
+    epochs = 1
+
     data_in = [
-        np.random.random(size=(16, *input1_shape)),
-        np.random.random(size=(16, *input2_shape)),
-        np.random.random(size=(16, *input3_shape)),
-        np.random.random(size=(16, *input4_shape))
+        np.random.random(size=(training_data_size, *input1_shape)),
+        np.random.random(size=(training_data_size, *input2_shape)),
+        np.random.random(size=(training_data_size, *input3_shape)),
+        np.random.random(size=(training_data_size, *input4_shape))
     ]
 
     data_out = [
-        np.random.random(size=(16, 3)),
-        np.random.random(size=(16, 3)),
-        np.random.random(size=(16, 3)),
-        np.random.random(size=(16, *input3_shape)),
-        np.random.random(size=(16, *input4_shape)),
-        np.random.random(size=(16, *input1_shape))
+        np.random.random(size=(training_data_size, 3)),
+        np.random.random(size=(training_data_size, 3)),
+        np.random.random(size=(training_data_size, 3)),
+        np.random.random(size=(training_data_size, *input3_shape)),
+        np.random.random(size=(training_data_size, *input4_shape)),
+        np.random.random(size=(training_data_size, *input1_shape))
     ]
 
-    model.fit(list(data_in), list(data_out), epochs=1, batch_size=8)
+    model.fit(list(data_in), list(data_out),
+        epochs=epochs, batch_size=batch_size)
+
     return model
 
 def main():

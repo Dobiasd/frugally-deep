@@ -21,13 +21,14 @@ def write_text_file(path, text):
         print(text, file=text_file)
 
 def arr_as_arr3(arr):
-    assert arr.shape[0] == 1
     depth = len(arr.shape)
+    if depth == 1:
+        return arr.reshape(1, 1, *arr.shape)
     if depth == 2:
-        return arr.reshape(1, 1, *arr.shape[1:])
+        return arr.reshape(1, *arr.shape)
     if depth == 3:
-        return arr.reshape(1, *arr.shape[1:])
-    if depth == 4:
+        return arr
+    if depth == 4 and arr.shape[0] == 1:
         return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')

@@ -445,5 +445,3 @@ inline fd::model load_model(const std::string& path, bool verify = true)
 }
 
 } // namespace fd
-
-// todo: fd: model auch immer nur als layer_ptr returnen? sequential auch von layer ableiten

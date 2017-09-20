@@ -58,7 +58,7 @@ protected:
         const auto& input = inputs[0];
         return {convolve(stride_, padding_x_, padding_y_, filters_, input)};
     }
-    void fill_filters(const float_vec& weights, const float_vec& biases)
+    void fill_filters(const float_vec& weights, const float_vec& bias)
     {
         assert(!filters_.empty());
         const std::size_t param_count = fplus::sum(fplus::transform(
@@ -71,9 +71,9 @@ protected:
         const auto filter_weights =
             fplus::split_every(filter_param_cnt, weights);
         assert(filter_weights.size() == filters_.size());
-        assert(biases.size() == filters_.size());
+        assert(bias.size() == filters_.size());
         auto it_filter_val = std::begin(filter_weights);
-        auto it_filter_bias = std::begin(biases);
+        auto it_filter_bias = std::begin(bias);
         for (auto& filt : filters_)
         {
             filt.set_params(*it_filter_val, *it_filter_bias);

@@ -290,9 +290,9 @@ inline fd::activation_layer_ptr create_activation_layer(
     const auto creator = fplus::get_from_map(creators, type);
     fd::assertion(fplus::is_just(creator), "unknown activation type: " + type);
 
-    // todo: solve nicer
-    auto result = creator.unsafe_get_just()(name);
-    return result;
+    return fplus::throw_on_nothing(
+        std::runtime_error("unknown activation type: " + type),
+        creator)(name);
 }
 
 inline fd::layer_ptr create_activation_layer_as_layer(
@@ -337,8 +337,10 @@ inline fd::layer_ptr create_layer(
     const auto creator = fplus::get_from_map(creators, type);
     fd::assertion(fplus::is_just(creator), "unknown type: " + type);
 
-    // todo: solve nicer
-    auto result = creator.unsafe_get_just()(get_param, data);
+    auto result = fplus::throw_on_nothing(
+        std::runtime_error("unknown layer type: " + type),
+        creator)(get_param, data);
+
     if (json_obj_has_member(data["config"], "activation"))
     {
         result->set_activation(

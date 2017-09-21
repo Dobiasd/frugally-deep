@@ -27,6 +27,12 @@ struct node_connection
 };
 using node_connections = std::vector<node_connection>;
 
+class node;
+using node_ptr = std::shared_ptr<node>;
+using node_ptrs = std::vector<node_ptr>;
+
+node_ptr get_node(const node_ptrs& pool, const node_connection& connection);
+
 class node
 {
 public:
@@ -36,38 +42,58 @@ public:
         const node_connections& inbound_nodes) :
             outbound_layer_id_(outbound_layer_id),
             idx_(idx),
-            inbound_nodes_(inbound_nodes),
+            inbound_connections_(inbound_nodes),
             outputs_()
     {
     }
-    matrix3d get_output(std::size_t) const
+    matrix3d get_output(const layer_ptrs& layers,
+        const node_ptrs& node_pool,
+        std::size_t tensor_idx) const
     {
-        // todo size_t parameter is tensor_idx
-        return matrix3d(size3d(0,0,0), {});
+        if (fplus::is_nothing(outputs_))
+            calculate_outputs(layers, node_pool);
+        const auto outputs = fplus::throw_on_nothing(
+            fd::error("no output values"), outputs_);
+        assertion(tensor_idx < outputs.size(), "invalid tensor index");
+        return outputs[tensor_idx];
     }
     void set_outputs(const matrix3ds& outputs)
     {
-        // todo: only for nodes of input-layers?
+        // todo: only for nodes of input-layers!
         outputs_ = fplus::just<matrix3ds>(outputs);
     }
     std::string outbound_layer_id_;
     std::size_t idx_;
-    node_connections inbound_nodes_;
+
 private:
-    fplus::maybe<matrix3ds> outputs_;
+    node_connections inbound_connections_;
+    void calculate_outputs(const layer_ptrs& layers,
+        const node_ptrs& node_pool) const
+    {
+        assertion(fplus::is_nothing(outputs_), "outputs already calculated");
+        matrix3ds inputs;
+        // todo: as transform
+        for (std::size_t i = 0; i < inbound_connections_.size(); ++i)
+        {
+            inputs.push_back(get_node(
+                node_pool, inbound_connections_[i])->get_output(layers,
+                    node_pool, inbound_connections_[i].tensor_idx_));
+        }
+        outputs_ = get_layer(layers, outbound_layer_id_)->apply(inputs);
+    }
+    mutable fplus::maybe<matrix3ds> outputs_;
 };
 
-using node_ptr = std::shared_ptr<node>;
-using node_ptrs = std::vector<node_ptr>;
-
-bool is_node_connected(const node_connection& connection, const node_ptr& target)
+inline bool is_node_connected(const node_connection& conn,
+    const node_ptr& target)
 {
     return
-        connection.layer_id_ == target->outbound_layer_id_ &&
-        connection.node_idx_ == target->idx_;
+        conn.layer_id_ == target->outbound_layer_id_ &&
+        conn.node_idx_ == target->idx_;
 }
 
-const node_ptr get_node(const node_ptrs& pool, const node_connection& connection)
+inline node_ptr get_node(const node_ptrs& pool,
+    const node_connection& connection)
 {
     return fplus::throw_on_nothing(
         fd::error("dangling node connection"),

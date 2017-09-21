@@ -131,7 +131,9 @@ def get_all_weights(model):
 
 def convert_sequential_to_model(model):
     if type(model).__name__ == 'Sequential':
+        name = model.name
         model = model.model
+        model.name = name
     assert len(model.layers) > 0
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:

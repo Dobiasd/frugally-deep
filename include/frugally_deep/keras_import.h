@@ -396,9 +396,9 @@ inline fd::model create_model(const get_param_f& get_param,
 
     // todo: remove
     const auto show_layer = [](const fd::layer_ptr& ptr) -> std::string
-        {
-            return ptr->name();
-        };
+    {
+        return ptr->name();
+    };
     std::cout
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
             << std::endl;
@@ -408,16 +408,27 @@ inline fd::model create_model(const get_param_f& get_param,
     const auto inputs = create_vector<node_connection>(
         create_node_connection, data["config"]["input_layers"]);
 
-    const auto outputs = create_vector<node_connection>(
-        create_node_connection, data["config"]["output_layers"]);
+    const auto layer_nodes = fplus::transform_convert<std::vector<node_ptrs>>(
+        create_nodes, data["config"]["layers"]);
 
-    const auto nodes_pool = fplus::append(
+    const auto get_inner_model_output_nodes =
+    [](const layer_ptr& ptr) -> node_ptrs
+    {
+        return ptr->get_possible_output_nodes();
+    };
+    const auto inner_models_output_nodes =
+        fplus::transform_and_concat(get_inner_model_output_nodes, layers);
+
+    const auto nodes_pool = fplus::concat<std::vector<node_ptrs>>({
         fplus::transform(create_input_node_from_connection, inputs),
-        fplus::concat(
-            fplus::transform_convert<std::vector<node_ptrs>>(
-                create_nodes, data["config"]["layers"])));
+        fplus::concat(layer_nodes),
+        inner_models_output_nodes});
 
-    return fd::model(name, layers, nodes_pool, inputs, outputs);
+    // todo: assert nodes are unique
+
+    const auto output_connections = create_vector<node_connection>(
+        create_node_connection, data["config"]["output_layers"]);
+    return fd::model(name, layers, nodes_pool, inputs, output_connections);
 }
 
 struct test_case

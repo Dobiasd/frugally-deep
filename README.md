@@ -188,3 +188,5 @@ member-funktionen frei machen wo geht
 write something about contributing to the project
 
 load-kram in internal load namespace verschieben
+
+inline vor alle freien Funktionen

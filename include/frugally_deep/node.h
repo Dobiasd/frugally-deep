@@ -50,13 +50,30 @@ public:
         // todo: only for nodes of input-layers?
         outputs_ = fplus::just<matrix3ds>(outputs);
     }
-private:
     std::string outbound_layer_id_;
     std::size_t idx_;
     node_connections inbound_nodes_;
+private:
     fplus::maybe<matrix3ds> outputs_;
 };
 
-using nodes = std::vector<node>;
+using node_ptr = std::shared_ptr<node>;
+using node_ptrs = std::vector<node_ptr>;
+
+bool is_node_connected(const node_connection& connection, const node_ptr& target)
+{
+    return
+        connection.layer_id_ == target->outbound_layer_id_ &&
+        connection.node_idx_ == target->idx_;
+}
+
+const node_ptr get_node(const node_ptrs& pool, const node_connection& connection)
+{
+    return fplus::throw_on_nothing(
+        fd::error("dangling node connection"),
+        fplus::find_first_by(
+            fplus::bind_1st_of_2(is_node_connected, connection),
+            pool));
+}
 
 } // namespace fd

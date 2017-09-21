@@ -23,29 +23,42 @@ class model : public layer
 public:
     explicit model(const std::string& name,
         const layer_ptrs& layers,
-        const nodes& node_pool,
-        const node_connections& inputs,
-        const node_connections& outputs)
+        const node_ptrs& node_pool,
+        const node_connections& input_connections,
+        const node_connections& output_connections)
             : layer(name),
             layers_(layers),
             node_pool_(node_pool),
-            inputs_(inputs),
-            outputs_(outputs)
+            input_connections_(input_connections),
+            output_connections_(output_connections)
     {
     }
     virtual ~model()
     {
     }
-protected:
-    virtual matrix3ds apply_impl(const matrix3ds& input) const override
+    matrix3ds predict(const matrix3ds& inputs) const
     {
+        return apply_impl(inputs);
+    }
+protected:
+    virtual matrix3ds apply_impl(const matrix3ds& inputs) const override
+    {
+        assertion(inputs.size() == input_connections_.size(),
+            "invalid number of input tensors for this model: " +
+            fplus::show(input_connections_.size()) + "required but " +
+            fplus::show(inputs.size()) + "provided");
+        for (std::size_t i = 0; i < inputs.size(); ++i)
+        {
+            get_node(node_pool_, input_connections_[i])->set_outputs(
+                {inputs[i]});
+        }
         // todo
-        return input;
+        return inputs;
     }
     layer_ptrs layers_;
-    nodes node_pool_;
-    node_connections inputs_;
-    node_connections outputs_;
+    node_ptrs node_pool_;
+    node_connections input_connections_;
+    node_connections output_connections_;
 };
 
 } // namespace fd

@@ -353,17 +353,17 @@ node_connection create_node_connection(const nlohmann::json& data)
     return node_connection(layer_id, node_idx, tensor_idx);
 }
 
-node create_node(const std::string layer_id,
+node_ptr create_node(const std::string layer_id,
     std::size_t node_idx,
     const nlohmann::json& inbound_nodes_data)
 {
     fd::assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
-    return node(layer_id, node_idx,
+    return std::make_shared<node>(layer_id, node_idx,
         create_vector<node_connection>(create_node_connection,
             inbound_nodes_data));
 }
 
-nodes create_nodes(const nlohmann::json& data)
+node_ptrs create_nodes(const nlohmann::json& data)
 {
     fd::assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
     const std::string layer_id = data["config"]["name"];
@@ -371,6 +371,14 @@ nodes create_nodes(const nlohmann::json& data)
     return fplus::transform_with_idx(
         fplus::bind_1st_of_3(create_node, layer_id),
         inbound_nodes_data);
+}
+
+node_ptr create_input_node_from_connection(const node_connection& connection)
+{
+    assertion(connection.node_idx_ == 0, "invalid input node connection");
+    const node_connections inbound_connections;
+    return std::make_shared<node>(
+        connection.layer_id_, connection.node_idx_, inbound_connections);
 }
 
 inline fd::model create_model(const get_param_f& get_param,
@@ -395,10 +403,6 @@ inline fd::model create_model(const get_param_f& get_param,
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
             << std::endl;
 
-    const auto nodes_pool = fplus::concat(
-        fplus::transform_convert<std::vector<nodes>>(
-            create_nodes, data["config"]["layers"]));
-
     fd::assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
     const auto inputs = create_vector<node_connection>(
@@ -406,6 +410,12 @@ inline fd::model create_model(const get_param_f& get_param,
 
     const auto outputs = create_vector<node_connection>(
         create_node_connection, data["config"]["output_layers"]);
+
+    const auto nodes_pool = fplus::append(
+        fplus::transform(create_input_node_from_connection, inputs),
+        fplus::concat(
+            fplus::transform_convert<std::vector<node_ptrs>>(
+                create_nodes, data["config"]["layers"])));
 
     return fd::model(name, layers, nodes_pool, inputs, outputs);
 }
@@ -435,9 +445,14 @@ inline test_cases load_test_cases(const nlohmann::json& data)
         load_test_case, data["tests"]);
 }
 
-inline bool run_test_cases(const fd::model&, const test_cases&)
+inline bool run_test_cases(const fd::model& model, const test_cases& tests)
 {
-    // todo
+    for (const auto& test_case : tests)
+    {
+        const auto output = model.predict(test_case.input_);
+        if (output != test_case.output_)
+            return false;
+    }
     return true;
 }
 

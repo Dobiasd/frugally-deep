@@ -14,17 +14,18 @@
 namespace fd
 {
 
+struct node_id
+{
+    std::string layer_id_;
+    std::size_t node_idx_;
+};
+using node_ids = std::vector<node_id>;
+
 class node
 {
 public:
-    struct node_id_tensor_idx
-    {
-        std::string node_id_;
-        std::size_t tensor_idx_;
-    };
-    using node_idxs_tensor_idxs = std::vector<node_id_tensor_idx>;
     explicit node(
-        const node_idxs_tensor_idxs& inbound_nodes,
+        const node_ids& inbound_nodes,
         const layer_ptr& output_layer) :
             inbound_nodes_(inbound_nodes),
             outbound_layer_(output_layer),
@@ -42,7 +43,7 @@ public:
         outputs_ = fplus::just<matrix3ds>(outputs);
     }
 private:
-    node_idxs_tensor_idxs inbound_nodes_;
+    node_ids inbound_nodes_;
     layer_ptr outbound_layer_;
     fplus::maybe<matrix3ds> outputs_;
 };

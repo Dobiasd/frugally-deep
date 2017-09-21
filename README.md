@@ -184,3 +184,10 @@ klassiker aus keras als examples
 rename all layers to keras names (e.g. unpuul -> upsampling2d)
 
 member-funktionen frei machen wo geht
+
+write something about contributing to the project
+
+load-kram in internal load namespace verschieben
+
+bei einem shared layer sind die inbound_nodes [[[1]],[[2]]]
+bei einem concat sind sie [[[1],[2]]]

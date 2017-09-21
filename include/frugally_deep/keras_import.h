@@ -342,18 +342,47 @@ inline fd::layer_ptr create_layer(
             create_activation_layer(data["config"]["activation"], ""));
     }
     return result;
-
-/*auto result = (data.find("inbound_nodes") == data.end() ||
-create_activation_layer(data["activation"])
-        !data["inbound_nodes"].is_array())
-    {
-        const std::string name = data["name"];
-        throw
-    }
-    */
 }
 
-inline fd::model create_model(const get_param_f& get_param, const nlohmann::json& data)
+struct connection
+{
+    connection(const std::string& layer_id,
+        std::size_t node_idx,
+        std::size_t tensor_idx)
+            : layer_id_(layer_id), node_idx_(node_idx), tensor_idx_(tensor_idx)
+    {}
+    std::string layer_id_;
+    std::size_t node_idx_;
+    std::size_t tensor_idx_;
+};
+using connections = std::vector<connection>;
+
+connection create_connection(const nlohmann::json& data)
+{
+    fd::assertion(data.is_array(), "invalid format for inbound node");
+    const std::string layer_id = data[0];
+    const std::size_t node_idx = data[1];
+    const std::size_t tensor_idx = data[2];
+    return {layer_id, node_idx, tensor_idx};
+}
+
+connection create_wrapped_connection(const nlohmann::json& data)
+{
+    const std::vector<nlohmann::json> data_vec = data;
+    return create_connection(data_vec.front());
+}
+
+connections create_layer_connections(const nlohmann::json& data)
+{
+    if (!json_obj_has_member(data, ("inbound_nodes")))
+        return {};
+    const nlohmann::json inbound_nodes = data["inbound_nodes"];
+    fd::assertion(inbound_nodes.is_array(), "no inbound_nodes");
+    return create_vector<connection>(create_wrapped_connection, inbound_nodes);
+}
+
+inline fd::model create_model(const get_param_f& get_param,
+    const nlohmann::json& data)
 {
     //output_nodes
     //input_nodes
@@ -373,6 +402,20 @@ inline fd::model create_model(const get_param_f& get_param, const nlohmann::json
     std::cout
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
             << std::endl;
+
+    const auto all_inbound_connections = fplus::concat(
+        fplus::transform_convert<std::vector<connections>>(
+            create_layer_connections,
+            data["config"]["layers"]));
+
+    fd::assertion(json_obj_has_member(data["config"], "input_layers"),
+            "model needs at least one input layer");
+        
+    fd::assertion(data["config"]["input_layers"].is_array(),
+            "input_layers needs to be an array");
+
+    const auto input_connections = fplus::transform_convert<connections>(
+            create_connection, data["config"]["input_layers"]);
 
     // todo
     return fd::model(name, {}, {}, {});

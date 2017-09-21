@@ -135,6 +135,7 @@ def convert_sequential_to_model(model):
     assert len(model.layers) > 0
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:
+            assert len(model.input_layers) > 0
             model.layers[i] = convert_sequential_to_model(model.layers[i])
     return model
 
@@ -153,7 +154,7 @@ def main():
         model = convert_sequential_to_model(model)
 
         # todo remove
-        write_text_file(out_path + '.keras.yml', model.to_yaml()) 
+        write_text_file(out_path + '.keras.yml', model.to_yaml())
 
         # todo remove
         write_text_file(out_path + '.keras.json', json.dumps(

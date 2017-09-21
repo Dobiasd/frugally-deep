@@ -288,7 +288,7 @@ inline fd::activation_layer_ptr create_activation_layer(
     };
 
     return fplus::throw_on_nothing(
-        std::runtime_error("unknown activation type: " + type),
+        fd::error("unknown activation type: " + type),
         fplus::get_from_map(creators, type))(name);
 }
 
@@ -333,7 +333,7 @@ inline fd::layer_ptr create_layer(
     const std::string type = data["class_name"];
 
     auto result = fplus::throw_on_nothing(
-        std::runtime_error("unknown layer type: " + type),
+        fd::error("unknown layer type: " + type),
         fplus::get_from_map(creators, type))(get_param, data);
 
     if (json_obj_has_member(data["config"], "activation"))
@@ -348,7 +348,7 @@ create_activation_layer(data["activation"])
         !data["inbound_nodes"].is_array())
     {
         const std::string name = data["name"];
-        throw std::runtime_error(name + ": inbound_nodes need to be an array");
+        throw
     }
     */
 }
@@ -374,7 +374,8 @@ inline fd::model create_model(const get_param_f& get_param, const nlohmann::json
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
             << std::endl;
 
-    return fd::model(name);
+    // todo
+    return fd::model(name, {}, {}, {});
 }
 
 struct test_case
@@ -408,7 +409,7 @@ inline bool run_test_cases(const fd::model&, const test_cases&)
     return true;
 }
 
-// Throws an std::runtime_error if a problem occurs.
+// Throws an exception if a problem occurs.
 inline fd::model load_model(const std::string& path, bool verify = true)
 {
     const auto maybe_json_str = fplus::read_text_file_maybe(path)();

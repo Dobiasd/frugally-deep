@@ -21,8 +21,18 @@ namespace fd
 class model : public layer
 {
 public:
-    explicit model(const std::string& name)
-        : layer(name), nodes(), inputs(), outputs()
+    using node_id = std::string;
+    using node_ids = std::vector<node_id>;
+    using node_dict = std::unordered_map<node_id, node>;
+    node_dict nodes_;
+    explicit model(const std::string& name,
+        const node_dict& nodes,
+        const node_ids& inputs,
+        const node_ids& outputs)
+            : layer(name),
+            nodes_(nodes),
+            inputs_(inputs),
+            outputs_(outputs)
     {
     }
     virtual ~model()
@@ -34,12 +44,8 @@ protected:
         // todo
         return input;
     }
-    using node_id = std::string;
-    using node_ids = std::vector<node_id>;
-
-    std::unordered_map<node_id, node> nodes;
-    node_ids inputs;
-    node_ids outputs;
+    node_ids inputs_;
+    node_ids outputs_;
 };
 
 } // namespace fd

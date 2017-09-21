@@ -15,9 +15,7 @@ class softmax_layer : public activation_layer
 {
 public:
     explicit softmax_layer(const std::string& name)
-        : activation_layer(name),
-        in_vol_max_(0),
-        unnormalized_sum_(0)
+        : activation_layer(name)
     {
     }
 protected:
@@ -34,17 +32,15 @@ protected:
 
         const auto unnormalized = transform_matrix3d(ex, input);
 
-        unnormalized_sum_ = fplus::sum(unnormalized.as_vector());
-        const auto div_by_unnormalized_sum = [this](float_t x) -> float_t
+        const auto unnormalized_sum = fplus::sum(unnormalized.as_vector());
+        const auto div_by_unnormalized_sum =
+            [unnormalized_sum](float_t x) -> float_t
         {
-            return x / unnormalized_sum_;
+            return x / unnormalized_sum;
         };
 
         return {transform_matrix3d(div_by_unnormalized_sum, unnormalized)};
     }
-
-    mutable float_t in_vol_max_;
-    mutable float_t unnormalized_sum_;
 };
 
 } // namespace fd

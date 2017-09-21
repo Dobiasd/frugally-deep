@@ -51,11 +51,6 @@ public:
         assertion(tensor_idx < outputs.size(), "invalid tensor index");
         return outputs[tensor_idx];
     }
-    void set_outputs(const matrix3ds& outputs)
-    {
-        // todo: only allow for input-layers!
-        outputs_ = fplus::just<matrix3ds>(outputs);
-    }
 
 private:
     node_connections inbound_connections_;
@@ -74,6 +69,8 @@ private:
         }
         outputs_ = apply_layer(layer, inputs);
     }
+
+    // caching of calculation results
     mutable fplus::maybe<matrix3ds> outputs_;
 };
 

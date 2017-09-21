@@ -48,6 +48,11 @@ public:
         nodes_ = layer_nodes;
     }
 
+    virtual void set_output(const matrix3d&) const
+    {
+        fd::raise_error("can not set input of this layer type");
+    }
+
     virtual matrix3ds apply(const matrix3ds& input) const final
     {
         const auto result = apply_impl(input);
@@ -57,23 +62,16 @@ public:
             return apply_activation_layer(activation_, result);
     }
 
-    matrix3d get_output(const layer_ptrs& layers,
+    virtual matrix3d get_output(const layer_ptrs& layers,
         std::size_t node_idx, std::size_t tensor_idx) const
     {
         assertion(node_idx < nodes_.size(), "invalid node index");
         return nodes_[node_idx].get_output(layers, *this, tensor_idx);
     }
 
-    void set_outputs(std::size_t node_idx, const matrix3ds& outputs)
+    virtual bool is_input_layer() const
     {
-        assertion(node_idx < nodes_.size(), "invalid node index");
-        nodes_[node_idx].set_outputs(outputs);
-    }
-
-    // todo: remove
-    virtual const std::string& name() const final
-    {
-        return name_;
+        return false;
     }
 
     std::string name_;
@@ -103,7 +101,7 @@ inline layer_ptr get_layer(const layer_ptrs& layers,
         return ptr->name_ == layer_id;
     };
     return fplus::throw_on_nothing(
-        fd::error("layer reference"),
+        fd::error("dangling layer reference: " + layer_id),
         fplus::find_first_by(is_matching_layer, layers));
 }
 

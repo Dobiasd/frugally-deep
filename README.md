@@ -152,9 +152,6 @@ run:
       |> transform get_output
       |> concat
 
-model::get_output(tensor_idx) -> output[tensor_idx - 1]
-https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
-
 add travis
 
 ist upconv (conv transpose) fertig?

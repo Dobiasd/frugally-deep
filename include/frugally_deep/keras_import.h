@@ -120,6 +120,8 @@ inline fd::layer_ptr create_conv2d_layer(
 inline fd::layer_ptr create_input_layer(
     const get_param_f&, const nlohmann::json& data)
 {
+    assertion(data["inbound_nodes"].empty(),
+        "input layer is not allowed to have inbound nodes");
     const std::string name = data["name"];
     const auto input_shape = create_size3d(data["config"]["batch_input_shape"]);
     return std::make_shared<fd::input_layer>(name, input_shape);
@@ -370,6 +372,12 @@ inline fd::layer_ptr create_layer(
     return result;
 }
 
+node create_input_node_from_connection(const node_connection& connection)
+{
+    assertion(connection.node_idx_ == 0, "invalid input node connection");
+    return node(node_connections({connection}));
+}
+
 inline fd::model create_model(const get_param_f& get_param,
     const nlohmann::json& data)
 {
@@ -386,7 +394,7 @@ inline fd::model create_model(const get_param_f& get_param,
     // todo: remove
     const auto show_layer = [](const fd::layer_ptr& ptr) -> std::string
     {
-        return ptr->name();
+        return ptr->name_;
     };
     std::cout
         << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
@@ -394,13 +402,15 @@ inline fd::model create_model(const get_param_f& get_param,
 
     fd::assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
-    const auto inputs = create_vector<node_connection>(
-        create_node_connection, data["config"]["input_layers"]);
+    const auto input_nodes = fplus::transform(create_input_node_from_connection,
+        create_vector<node_connection>(
+            create_node_connection, data["config"]["input_layers"]));
 
     const auto outputs = create_vector<node_connection>(
         create_node_connection, data["config"]["output_layers"]);
 
-    return fd::model(name, layers, inputs, outputs);
+    fd::model result(name, layers, outputs);
+    return result;
 }
 
 struct test_case

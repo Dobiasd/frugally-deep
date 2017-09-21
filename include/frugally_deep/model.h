@@ -21,16 +21,14 @@ namespace fd
 class model : public layer
 {
 public:
-    using node_id = std::string;
-    using node_ids = std::vector<node_id>;
-    using node_dict = std::unordered_map<node_id, node>;
-    node_dict nodes_;
     explicit model(const std::string& name,
-        const node_dict& nodes,
-        const node_ids& inputs,
-        const node_ids& outputs)
+        const layer_ptrs& layers,
+        const nodes& node_pool,
+        const node_connections& inputs,
+        const node_connections& outputs)
             : layer(name),
-            nodes_(nodes),
+            layers_(layers),
+            node_pool_(node_pool),
             inputs_(inputs),
             outputs_(outputs)
     {
@@ -44,8 +42,10 @@ protected:
         // todo
         return input;
     }
-    node_ids inputs_;
-    node_ids outputs_;
+    layer_ptrs layers_;
+    nodes node_pool_;
+    node_connections inputs_;
+    node_connections outputs_;
 };
 
 } // namespace fd

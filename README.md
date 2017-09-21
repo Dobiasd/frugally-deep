@@ -141,7 +141,7 @@ new structure:
     set_outputs : [Tensor3] -> () # only for nodes of input-layers?
 
   class Model : public Layer
-    nodes : Dict Node_id, Node
+    node_pool : Dict Node_id Node
     outputs : [Node_id]
     inputs : [Node_id]
 
@@ -188,6 +188,3 @@ member-funktionen frei machen wo geht
 write something about contributing to the project
 
 load-kram in internal load namespace verschieben
-
-bei einem shared layer sind die inbound_nodes [[[1]],[[2]]]
-bei einem concat sind sie [[[1],[2]]]

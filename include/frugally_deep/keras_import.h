@@ -306,6 +306,29 @@ inline bool json_obj_has_member(const nlohmann::json& data,
     return data.is_object() && data.find(member_name) != data.end();
 }
 
+node_connection create_node_connection(const nlohmann::json& data)
+{
+    fd::assertion(data.is_array(), "invalid format for inbound node");
+    const std::string layer_id = data[0];
+    const std::size_t node_idx = data[1];
+    const std::size_t tensor_idx = data[2];
+    return node_connection(layer_id, node_idx, tensor_idx);
+}
+
+node create_node(const nlohmann::json& inbound_nodes_data)
+{
+    fd::assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
+    return node(create_vector<node_connection>(create_node_connection,
+            inbound_nodes_data));
+}
+
+nodes create_nodes(const nlohmann::json& data)
+{
+    fd::assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
+    const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];
+    return fplus::transform(create_node, inbound_nodes_data);
+}
+
 inline fd::layer_ptr create_layer(
     const get_param_f& get_param, const nlohmann::json& data)
 {
@@ -341,44 +364,10 @@ inline fd::layer_ptr create_layer(
         result->set_activation(
             create_activation_layer(data["config"]["activation"], ""));
     }
+
+    result->set_nodes(create_nodes(data));
+
     return result;
-}
-
-node_connection create_node_connection(const nlohmann::json& data)
-{
-    fd::assertion(data.is_array(), "invalid format for inbound node");
-    const std::string layer_id = data[0];
-    const std::size_t node_idx = data[1];
-    const std::size_t tensor_idx = data[2];
-    return node_connection(layer_id, node_idx, tensor_idx);
-}
-
-node_ptr create_node(const std::string layer_id,
-    std::size_t node_idx,
-    const nlohmann::json& inbound_nodes_data)
-{
-    fd::assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
-    return std::make_shared<node>(layer_id, node_idx,
-        create_vector<node_connection>(create_node_connection,
-            inbound_nodes_data));
-}
-
-node_ptrs create_nodes(const nlohmann::json& data)
-{
-    fd::assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
-    const std::string layer_id = data["config"]["name"];
-    const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];
-    return fplus::transform_with_idx(
-        fplus::bind_1st_of_3(create_node, layer_id),
-        inbound_nodes_data);
-}
-
-node_ptr create_input_node_from_connection(const node_connection& connection)
-{
-    assertion(connection.node_idx_ == 0, "invalid input node connection");
-    const node_connections inbound_connections;
-    return std::make_shared<node>(
-        connection.layer_id_, connection.node_idx_, inbound_connections);
 }
 
 inline fd::model create_model(const get_param_f& get_param,
@@ -390,7 +379,7 @@ inline fd::model create_model(const get_param_f& get_param,
 
     fd::assertion(data["config"]["layers"].is_array(), "missing layers array");
 
-    const auto layers = fplus::transform_convert<std::vector<fd::layer_ptr>>(
+    const auto layers = create_vector<layer_ptr>(
         fplus::bind_1st_of_2(create_layer, get_param),
         data["config"]["layers"]);
 
@@ -408,27 +397,10 @@ inline fd::model create_model(const get_param_f& get_param,
     const auto inputs = create_vector<node_connection>(
         create_node_connection, data["config"]["input_layers"]);
 
-    const auto layer_nodes = fplus::transform_convert<std::vector<node_ptrs>>(
-        create_nodes, data["config"]["layers"]);
-
-    const auto get_inner_model_output_nodes =
-    [](const layer_ptr& ptr) -> node_ptrs
-    {
-        return ptr->get_possible_output_nodes();
-    };
-    const auto inner_models_output_nodes =
-        fplus::transform_and_concat(get_inner_model_output_nodes, layers);
-
-    const auto nodes_pool = fplus::concat<std::vector<node_ptrs>>({
-        fplus::transform(create_input_node_from_connection, inputs),
-        fplus::concat(layer_nodes),
-        inner_models_output_nodes});
-
-    // todo: assert nodes are unique
-
-    const auto output_connections = create_vector<node_connection>(
+    const auto outputs = create_vector<node_connection>(
         create_node_connection, data["config"]["output_layers"]);
-    return fd::model(name, layers, nodes_pool, inputs, output_connections);
+
+    return fd::model(name, layers, inputs, outputs);
 }
 
 struct test_case

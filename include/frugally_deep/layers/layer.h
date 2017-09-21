@@ -10,6 +10,8 @@
 
 #include "frugally_deep/matrix3d.h"
 
+#include "frugally_deep/node.h"
+
 #include <cstddef>
 #include <memory>
 
@@ -20,10 +22,6 @@ class layer;
 typedef std::shared_ptr<layer> layer_ptr;
 typedef std::vector<layer_ptr> layer_ptrs;
 
-class node;
-using node_ptr = std::shared_ptr<node>;
-using node_ptrs = std::vector<node_ptr>;
-
 class activation_layer;
 typedef std::shared_ptr<activation_layer> activation_layer_ptr;
 matrix3ds apply_activation_layer(const activation_layer_ptr& ptr, const matrix3ds& input);
@@ -32,16 +30,24 @@ class layer
 {
 public:
     explicit layer(const std::string& name)
-        : name_(name), activation_(nullptr)
+        : name_(name), nodes_(), activation_(nullptr)
     {
-    }
-    void set_activation(const activation_layer_ptr& activation)
-    {
-        activation_ = activation;
     }
     virtual ~layer()
     {
     }
+
+    // todo: move to ctor?
+    void set_activation(const activation_layer_ptr& activation)
+    {
+        activation_ = activation;
+    }
+
+    void set_nodes(const nodes& layer_nodes)
+    {
+        nodes_ = layer_nodes;
+    }
+
     virtual matrix3ds apply(const matrix3ds& input) const final
     {
         const auto result = apply_impl(input);
@@ -50,23 +56,44 @@ public:
         else
             return apply_activation_layer(activation_, result);
     }
+
+    matrix3d get_output(const layer_ptrs& layers,
+        std::size_t node_idx, std::size_t tensor_idx) const
+    {
+        assertion(node_idx < nodes_.size(), "invalid node index");
+        return nodes_[node_idx].get_output(layers, *this, tensor_idx);
+    }
+
+    void set_outputs(std::size_t node_idx, const matrix3ds& outputs)
+    {
+        assertion(node_idx < nodes_.size(), "invalid node index");
+        nodes_[node_idx].set_outputs(outputs);
+    }
+
     // todo: remove
     virtual const std::string& name() const final
     {
         return name_;
     }
 
-    virtual const node_ptrs get_possible_output_nodes() const
-    {
-        return {};
-    }
-
     std::string name_;
+    nodes nodes_;
 
 protected:
     virtual matrix3ds apply_impl(const matrix3ds& input) const = 0;
     activation_layer_ptr activation_;
 };
+
+matrix3d get_layer_output(const layer_ptrs& layers, const layer_ptr& layer,
+    std::size_t node_idx, std::size_t tensor_idx)
+{
+    return layer->get_output(layers, node_idx, tensor_idx);
+}
+
+matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs)
+{
+    return layer.apply(inputs);
+}
 
 inline layer_ptr get_layer(const layer_ptrs& layers,
     const std::string& layer_id)

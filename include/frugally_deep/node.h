@@ -25,53 +25,50 @@ struct node_connection
 };
 using node_connections = std::vector<node_connection>;
 
+// todo: unordered map instead?
+struct node_connection_less
+{
+   bool operator() (const node_connection& lhs, const node_connection& rhs) const
+   {
+        return
+            lhs.layer_id_ < rhs.layer_id_ ||
+            lhs.node_idx_ < rhs.node_idx_ ||
+            lhs.tensor_idx_ < rhs.tensor_idx_;
+   }
+};
+using output_dict = std::map<node_connection, matrix3ds, node_connection_less>;
+
 class layer;
 typedef std::shared_ptr<layer> layer_ptr;
 typedef std::vector<layer_ptr> layer_ptrs;
 layer_ptr get_layer(const layer_ptrs& layers, const std::string& layer_id);
-matrix3d get_layer_output(const layer_ptrs& layers, const layer_ptr& layer,
-    std::size_t node_idx, std::size_t tensor_idx);
+matrix3d get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+    const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx);
 matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs);
 
 class node
 {
 public:
     explicit node(const node_connections& inbound_nodes) :
-            inbound_connections_(inbound_nodes),
-            outputs_()
+            inbound_connections_(inbound_nodes)
     {
     }
-    matrix3d get_output(const layer_ptrs& layers, const layer& layer,
-        std::size_t tensor_idx) const
-    {
-        if (fplus::is_nothing(outputs_))
-            calculate_outputs(layers, layer);
-        const auto outputs = fplus::throw_on_nothing(
-            fd::error("no output values"), outputs_);
-        assertion(tensor_idx < outputs.size(), "invalid tensor index");
-        return outputs[tensor_idx];
-    }
-
-private:
-    node_connections inbound_connections_;
-    void calculate_outputs(const layer_ptrs& layers,
+    matrix3ds get_output(const layer_ptrs& layers, output_dict& output_cache,
         const layer& layer) const
     {
-        assertion(fplus::is_nothing(outputs_), "outputs already calculated");
         matrix3ds inputs;
         // todo: as transform
         for (std::size_t i = 0; i < inbound_connections_.size(); ++i)
         {
-            inputs.push_back(get_layer_output(layers, get_layer(
+            inputs.push_back(get_layer_output(layers, output_cache, get_layer(
                 layers, inbound_connections_[i].layer_id_),
                 inbound_connections_[i].node_idx_,
                 inbound_connections_[i].tensor_idx_));
         }
-        outputs_ = apply_layer(layer, inputs);
+        return apply_layer(layer, inputs);
     }
-
-    // caching of calculation results
-    mutable fplus::maybe<matrix3ds> outputs_;
+private:
+    node_connections inbound_connections_;
 };
 
 typedef std::vector<node> nodes;

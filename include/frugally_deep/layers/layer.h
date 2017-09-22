@@ -48,11 +48,6 @@ public:
         nodes_ = layer_nodes;
     }
 
-    virtual void set_output(const matrix3d&) const
-    {
-        fd::raise_error("can not set input of this layer type");
-    }
-
     virtual matrix3ds apply(const matrix3ds& input) const final
     {
         const auto result = apply_impl(input);
@@ -63,15 +58,23 @@ public:
     }
 
     virtual matrix3d get_output(const layer_ptrs& layers,
+        output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const
     {
-        assertion(node_idx < nodes_.size(), "invalid node index");
-        return nodes_[node_idx].get_output(layers, *this, tensor_idx);
-    }
+        const node_connection conn(name_, node_idx, tensor_idx);
 
-    virtual bool is_input_layer() const
-    {
-        return false;
+        if (!fplus::map_contains(output_cache, conn))
+        {
+            assertion(node_idx < nodes_.size(), "invalid node index");
+            output_cache[conn] =
+                nodes_[node_idx].get_output(layers, output_cache, *this);
+        }
+
+        const auto& outputs = fplus::get_from_map_unsafe(output_cache, conn);
+
+        assertion(tensor_idx < outputs.size(),
+            "invalid tensor index");
+        return outputs[tensor_idx];
     }
 
     std::string name_;
@@ -82,10 +85,11 @@ protected:
     activation_layer_ptr activation_;
 };
 
-matrix3d get_layer_output(const layer_ptrs& layers, const layer_ptr& layer,
+matrix3d get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+    const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
 {
-    return layer->get_output(layers, node_idx, tensor_idx);
+    return layer->get_output(layers, output_cache, node_idx, tensor_idx);
 }
 
 matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs)

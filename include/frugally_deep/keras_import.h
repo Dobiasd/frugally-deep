@@ -370,12 +370,6 @@ inline fd::layer_ptr create_layer(
     return result;
 }
 
-node create_input_node_from_connection(const node_connection& connection)
-{
-    assertion(connection.node_idx_ == 0, "invalid input node connection");
-    return node(node_connections({connection}));
-}
-
 inline fd::model create_model(const get_param_f& get_param,
     const nlohmann::json& data)
 {
@@ -400,14 +394,13 @@ inline fd::model create_model(const get_param_f& get_param,
 
     fd::assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
-    const auto input_nodes = fplus::transform(create_input_node_from_connection,
-        create_vector<node_connection>(
-            create_node_connection, data["config"]["input_layers"]));
+    const auto inputs = create_vector<node_connection>(
+        create_node_connection, data["config"]["input_layers"]);
 
     const auto outputs = create_vector<node_connection>(
         create_node_connection, data["config"]["output_layers"]);
 
-    fd::model result(name, layers, outputs);
+    fd::model result(name, layers, inputs, outputs);
     return result;
 }
 

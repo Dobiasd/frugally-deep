@@ -205,8 +205,6 @@ class model_layer machen, model dann nur predict, sonst nix
 
 model hat modellayer als shared_ptr, damit shallow copy geht
 
-predict macht cache auf, der durchgereicht wird, jede node hat id
-
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 
 test strides != 1
@@ -216,8 +214,6 @@ test paddings valid and same with non-fitting shapes
 geht SeparableConv2D schon?
 
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
-
-ein layer kann seine output_shape also nur dynamisch berechnen wenn er die input-shape gesagt bekommt. dense asserted dann halt auf input
 
 rename fully_connected_layer to dense_layer
 

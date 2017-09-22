@@ -21,7 +21,7 @@ public:
 protected:
     matrix3d transform_input(const matrix3d& in_vol) const override
     {
-        auto activation_function = [this](float_t x) -> float_t
+        const auto activation_function = [this](float_t x) -> float_t
         {
             return x > 0 ? static_cast<float_t>(1) : static_cast<float_t>(0);
         };

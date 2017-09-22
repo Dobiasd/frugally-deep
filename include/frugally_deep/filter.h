@@ -53,7 +53,7 @@ private:
 
 typedef std::vector<filter> filter_vec;
 
-static filter_vec generate_filters(
+intline filter_vec generate_filters(
     const size3d& filter_size, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {

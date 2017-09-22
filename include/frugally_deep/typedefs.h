@@ -21,17 +21,17 @@ typedef float_vec::iterator float_vec_it;
 typedef std::vector<float_vec> float_vecs;
 const float_t pi = static_cast<float_t>(std::acos(-1));
 
-std::runtime_error error(const std::string& error)
+inline std::runtime_error error(const std::string& error)
 {
     return std::runtime_error(error);
 }
 
-void raise_error(const std::string& msg)
+inline void raise_error(const std::string& msg)
 {
     throw error(msg);
 }
 
-void assertion(bool cond, const std::string& error)
+inline void assertion(bool cond, const std::string& error)
 {
     if (!cond)
     {

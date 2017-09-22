@@ -11,7 +11,6 @@
 namespace fd
 {
 
-// smooth relu
 class softplus_layer : public activation_layer
 {
 public:

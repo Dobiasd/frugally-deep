@@ -85,14 +85,14 @@ protected:
     activation_layer_ptr activation_;
 };
 
-matrix3d get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+inline matrix3d get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
     const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
 {
     return layer->get_output(layers, output_cache, node_idx, tensor_idx);
 }
 
-matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs)
+inline matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs)
 {
     return layer.apply(inputs);
 }

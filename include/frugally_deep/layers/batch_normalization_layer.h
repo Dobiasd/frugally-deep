@@ -11,6 +11,7 @@
 namespace fd
 {
 
+// todo: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
 // Since "batch size" is always 1 it simply scales and shifts the input tensor.
 class batch_normalization_layer : public layer
 {
@@ -29,9 +30,29 @@ protected:
     float_vec gamma_;
     matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
-        assert(inputs.size() == 1);
+        assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs[0];
-        // todo: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+
+        if (input.size().depth_ == 1 && input.size().height_ == 1)
+        {
+            auto result = input;
+            if (!gamma_.empty())
+            {
+                assertion(result.size().width_ == gamma_.size(), "invalid gamma");
+                result = matrix3d(result.size(),
+                    fplus::zip_with(std::multiplies<float_t>(),
+                        result.as_vector(), gamma_)); // todo + epsilon
+            }
+            if (!beta_.empty())
+            {
+                assertion(result.size().width_ == beta_.size(), "invalid beta");
+                result = matrix3d(result.size(),
+                    fplus::zip_with(std::multiplies<float_t>(),
+                        result.as_vector(), beta_));
+            }
+            return {result};
+        }
+
         auto slices = matrix3d_to_depth_slices(input);
         if (!gamma_.empty())
         {

@@ -19,6 +19,7 @@ Table of contents
   * [Introduction](#introduction)
   * [Usage](#usage)
   * [Requirements and Installation](#requirements-and-installation)
+  * [Internals](#internals)
 
 
 Introduction
@@ -90,7 +91,7 @@ Usage
 
 todo
 
-Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`.
+Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend.
 
 Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
@@ -115,13 +116,25 @@ const auto model = fdeep::load_model("fdeep_model.json");
 const auto result = model.predict({{{1,2,3}}});
 ```
 
+When using `export_model.py` some test cases are generated automatically and saved along with your model. `fdeep::load_model` runs these tests to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
+
+todo image example
+
 
 Requirements and Installation
 -----------------------------
 
-A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.6 and Visual C++ 2015
+A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 
 todo add installation like in fplus
+
+
+
+Internals
+---------
+
+frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `image_data_format` internally. `export_model.py` takes care of all necessary conversions.
+From then on everything is handled as a tensor with rank 3. Dense layers for example take its input flattened to a shape of `(1, 1, n)`. This is also the shape you will receive as the output of a `softmax` layer for example.
 
 
 todo
@@ -200,12 +213,6 @@ test strides != 1
 
 test paddings valid and same with non-fitting shapes
 
-mention in README that it is always channels_first internally
-
-mention in README that everything is a tensor3, dense eg is (1,1,n)
-
-mention in README that model needs to flatten before dense
-
 geht SeparableConv2D schon?
 
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
@@ -220,8 +227,6 @@ namespace fd -> fdeep
 
 float_t als template-parameter
 
-readme: tensorflow only tested bisher
-
 travis wie fplus, auch mit warnings und so
 
 size in shape umbenennen
@@ -229,5 +234,3 @@ size in shape umbenennen
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
 padding layer implementieren und testen
-
-mention tests in readme (How do I know the results are the same?)

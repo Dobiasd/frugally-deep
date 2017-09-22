@@ -315,7 +315,7 @@ inline bool json_obj_has_member(const nlohmann::json& data,
     return data.is_object() && data.find(member_name) != data.end();
 }
 
-node_connection create_node_connection(const nlohmann::json& data)
+inline node_connection create_node_connection(const nlohmann::json& data)
 {
     fd::assertion(data.is_array(), "invalid format for inbound node");
     const std::string layer_id = data[0];
@@ -324,14 +324,14 @@ node_connection create_node_connection(const nlohmann::json& data)
     return node_connection(layer_id, node_idx, tensor_idx);
 }
 
-node create_node(const nlohmann::json& inbound_nodes_data)
+inline node create_node(const nlohmann::json& inbound_nodes_data)
 {
     fd::assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
     return node(create_vector<node_connection>(create_node_connection,
             inbound_nodes_data));
 }
 
-nodes create_nodes(const nlohmann::json& data)
+inline nodes create_nodes(const nlohmann::json& data)
 {
     fd::assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
     const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];

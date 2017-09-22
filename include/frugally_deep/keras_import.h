@@ -84,6 +84,8 @@ inline fd::layer_ptr create_conv2d_layer(
     const get_param_f& get_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
     fd::float_vec bias = get_param(name, "bias");
     const bool use_bias = data["config"]["use_bias"];
     if (!use_bias) fill_with_zeros(bias);
@@ -170,6 +172,8 @@ inline fd::layer_ptr create_max_pooling2d_layer(
     const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
     const auto pool_size = create_size2d(data["config"]["pool_size"]);
     const auto strides = create_size2d(data["config"]["strides"]);
     // todo: support pool_size != strides
@@ -184,6 +188,8 @@ inline fd::layer_ptr create_average_pooling2d_layer(
     const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
     const auto pool_size = create_size2d(data["config"]["pool_size"]);
     const auto strides = create_size2d(data["config"]["strides"]);
     // todo: support pool_size != strides
@@ -198,6 +204,8 @@ inline fd::layer_ptr create_upsampling2d_layer(
     const get_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
     const auto size = create_size2d(data["config"]["size"]);
     fd::assertion(size.width_ == size.height_, "invalid scale factor");
     return std::make_shared<fd::unpool_layer>(name, size.width_);

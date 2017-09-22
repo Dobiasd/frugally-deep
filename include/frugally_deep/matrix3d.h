@@ -146,11 +146,6 @@ inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
     return matrix3d(out_size, in_vol.as_vector());
 }
 
-inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
-{
-    return matrix3d(size3d(1, 1, in_vol.size().volume()), in_vol.as_vector());
-}
-
 inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
 {
     matrix2d result(size2d(m.size().height_, m.size().width_));
@@ -459,6 +454,12 @@ inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
             fplus::transform(
                 fplus::bind_1st_of_2(rotate_matrix2d_ccw, step_cnt_90_deg),
                 matrix3d_to_depth_slices(m)));
+}
+
+inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
+{
+    const auto inv = transpose_matrix3d(in_vol);
+    return matrix3d(size3d(1, 1, inv.size().volume()), inv.as_vector());
 }
 
 } // namespace fd

@@ -19,33 +19,19 @@ namespace fd
 class fully_connected_layer : public layer
 {
 public:
-    static matrix2d generate_params(const float_vec& weights,
-        const float_vec& bias)
+    static matrix2d generate_params(std::size_t n_in,
+        const float_vec& weights, const float_vec& bias)
     {
-        const std::size_t n_in = weights.size() / bias.size();
-
         return matrix2d(size2d(n_in + 1, bias.size()),
             fplus::append(weights, bias));
-            /*
-        matrix2d result(size2d(bias.size(), n_in + 1));
-        std::size_t weight_idx = 0;
-        for (std::size_t y = 0; y < result.size().height_; ++y)
-        {
-            for (std::size_t x = 0; x < n_in; ++x)
-            {
-                result.set(y, x, weights[weight_idx++]);
-            }
-            result.set(y, n_in, bias[y]);
-        }
-        return result;
-        */
     }
     fully_connected_layer(const std::string& name, std::size_t units,
             const float_vec& weights,
             const float_vec& bias) :
         layer(name),
-        units_(units),
-        params_(generate_params(weights, bias))
+        n_in_(weights.size() / bias.size()),
+        n_out_(units),
+        params_(generate_params(n_in_, weights, bias))
     {
         assertion(bias.size() == units, "invalid bias count");
         assertion(weights.size() % units == 0, "invalid weight count");
@@ -58,7 +44,7 @@ protected:
         assertion(input.size().height_ == 1, "input needs to be flattened");
         assertion(input.size().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);
-        return {matrix3d(size3d(1, 1, units_),
+        return {matrix3d(size3d(1, 1, n_out_),
             multiply(bias_padded_input, params_).as_vector())};
     }
     static matrix2d bias_pad_input(const matrix3d& input)
@@ -67,7 +53,8 @@ protected:
             size2d(1, input.size().width_ + 1),
             fplus::append(input.as_vector(), {1}));
     }
-    std::size_t units_;
+    std::size_t n_in_;
+    std::size_t n_out_;
     matrix2d params_;
 };
 

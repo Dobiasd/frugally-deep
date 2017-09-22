@@ -200,10 +200,27 @@ test strides != 1
 
 test paddings valid and same with non-fitting shapes
 
-mention in README that it is always channel_first internally
+mention in README that it is always channels_first internally
 
 mention in README that everything is a tensor3, dense eg is (1,1,n)
 
 mention in README that model needs to flatten before dense
 
 geht SeparableConv2D schon?
+
+local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
+
+ein layer kann seine output_shape also nur dynamisch berechnen wenn er die input-shape gesagt bekommt. dense asserted dann halt auf input
+
+model nimmt vector aus 3tensors. das muessen dann soviele sein wie es input nodes gibt
+rename fully_connected_layer to dense_layer
+rename matrix to tensor
+namespace fd -> fdeep
+nicht von (neural) network sondern von (computational) graph sprechen oder model
+float_t als template-parameter
+readme: tensorflow only tested bisher
+travis wie fplus, auch mit warnings und so
+size in shape umbenennen
+json: CBOR fuer weights und biases? oder in base64 oder sowas?
+
+

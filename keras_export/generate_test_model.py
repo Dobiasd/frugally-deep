@@ -20,8 +20,12 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
-    inputs = Input(shape=(2,3,4))
-    x = Flatten()(inputs)
+    image_format = K.image_data_format()
+    input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
+    inputs = Input(input1_shape)
+    x = inputs
+    x = Conv2D(1, (1, 1), padding='valid')(x)
+    x = Flatten()(x)
     x = Dense(8)(x)
     x = Dense(5)(x)
     model = Model(inputs=inputs, outputs=x)
@@ -30,14 +34,12 @@ def get_test_model_small():
 
 def get_test_model_full():
     image_format = K.image_data_format()
-    image_format = 'channel_first' # todo remove
     input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
-
     input2_shape = input1_shape
     input3_shape = (4,)
     input4_shape = (2,3)
 
-    input1 = Input(shape=input1_shape) # (3, 4, 4)
+    input1 = Input(shape=input1_shape) # (3, 4, 4) channels_first notation
     input2 = Input(shape=input2_shape) # (3, 4, 4)
     input3 = Input(shape=input3_shape) # (3, 4, 4)
     input4 = Input(shape=input4_shape) # (3, 4, 4)
@@ -143,6 +145,7 @@ def main():
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(sys.argv[1])
+        print(model.summary())
 
 if __name__ == "__main__":
     main()

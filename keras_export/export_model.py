@@ -20,6 +20,14 @@ def write_text_file(path, text):
     with open(path, "w") as text_file:
         print(text, file=text_file)
 
+def arr3_to_channels_first_format(arr):
+    assert len(arr.shape) == 3
+    image_format = K.image_data_format()
+    if image_format == 'channels_last':
+        return np.swapaxes(arr, 0, 2)
+    else:
+        return arr
+
 def arr_as_arr3(arr):
     depth = len(arr.shape)
     if depth == 1:
@@ -27,9 +35,9 @@ def arr_as_arr3(arr):
     if depth == 2:
         return arr.reshape(1, *arr.shape)
     if depth == 3:
-        return arr
+        return arr3_to_channels_first_format(arr)
     if depth == 4 and arr.shape[0] == 1:
-        return arr.reshape(arr.shape[1:])
+        return arr3_to_channels_first_format(arr.reshape(arr.shape[1:]))
     else:
         raise ValueError('invalid number of dimensions')
 
@@ -55,6 +63,7 @@ def show_conv2d_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 2
     weight_flat = np.swapaxes(weights[0], 0, 2).flatten().tolist()
+    bias = weights[1].tolist()
     assert len(weight_flat) > 0
     assert layer.dilation_rate == (1,1)
     assert layer.padding in ['valid', 'same']
@@ -62,7 +71,7 @@ def show_conv2d_layer(layer):
     assert layer.input_shape[0] == None
     return {
         'weights': weight_flat,
-        'bias': weights[1].tolist()
+        'bias': bias
     }
 
 def show_batch_normalization_layer(layer):
@@ -81,6 +90,7 @@ def show_dense_layer(layer):
     assert layer.kernel_constraint == None
     assert layer.bias_constraint == None
     weights, bias = layer.get_weights()
+    assert len(weights.shape) == 2
     return {
         'weights': weights.flatten().tolist(),
         'bias': bias.tolist()

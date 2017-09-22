@@ -63,14 +63,15 @@ public:
     {
         const node_connection conn(name_, node_idx, tensor_idx);
 
-        if (!fplus::map_contains(output_cache, conn))
+        if (!fplus::map_contains(output_cache, conn.without_tensor_idx()))
         {
             assertion(node_idx < nodes_.size(), "invalid node index");
-            output_cache[conn] =
+            output_cache[conn.without_tensor_idx()] =
                 nodes_[node_idx].get_output(layers, output_cache, *this);
         }
 
-        const auto& outputs = fplus::get_from_map_unsafe(output_cache, conn);
+        const auto& outputs = fplus::get_from_map_unsafe(
+            output_cache, conn.without_tensor_idx());
 
         assertion(tensor_idx < outputs.size(),
             "invalid tensor index");

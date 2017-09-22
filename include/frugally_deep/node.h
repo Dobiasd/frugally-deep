@@ -19,6 +19,10 @@ struct node_connection
         std::size_t tensor_idx) :
             layer_id_(layer_id), node_idx_(node_idx), tensor_idx_(tensor_idx)
     {}
+    std::pair<std::string, std::size_t> without_tensor_idx() const
+    {
+        return std::make_pair(layer_id_, node_idx_);
+    }
     std::string layer_id_;
     std::size_t node_idx_;
     std::size_t tensor_idx_;
@@ -26,17 +30,7 @@ struct node_connection
 using node_connections = std::vector<node_connection>;
 
 // todo: unordered map instead?
-struct node_connection_less
-{
-   bool operator() (const node_connection& lhs, const node_connection& rhs) const
-   {
-        return
-            lhs.layer_id_ < rhs.layer_id_ ||
-            lhs.node_idx_ < rhs.node_idx_ ||
-            lhs.tensor_idx_ < rhs.tensor_idx_;
-   }
-};
-using output_dict = std::map<node_connection, matrix3ds, node_connection_less>;
+using output_dict = std::map<std::pair<std::string, std::size_t>, matrix3ds>;
 
 class layer;
 typedef std::shared_ptr<layer> layer_ptr;

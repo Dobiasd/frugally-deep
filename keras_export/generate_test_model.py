@@ -26,7 +26,13 @@ def get_test_model_small():
     x = inputs
     x = Conv2D(2, (4, 5), padding='valid')(x)
     x = Flatten()(x)
-    x = Dense(5)(x)
+    x = Dense(5, activation='hard_sigmoid')(x)
+    x = Dense(5, activation='selu')(x)
+    x = Dense(5, activation='sigmoid')(x)
+    x = Dense(5, activation='tanh')(x)
+    x = Dense(5, activation='softplus')(x)
+    x = Dense(5, activation='softmax')(x)
+
     model = Model(inputs=inputs, outputs=x)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
     return model
@@ -138,8 +144,8 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        #model = get_test_model_full()
-        model = get_test_model_small()
+        #model = get_test_model_small()
+        model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

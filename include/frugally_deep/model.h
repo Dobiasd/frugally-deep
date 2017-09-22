@@ -69,7 +69,8 @@ protected:
 
         for (std::size_t i = 0; i < inputs.size(); ++i)
         {
-            output_cache[input_connections_[i]] = {inputs[i]};
+            output_cache[input_connections_[i].without_tensor_idx()] =
+                {inputs[i]};
         }
 
         // todo: as transform

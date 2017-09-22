@@ -123,24 +123,6 @@ matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
     return out_vol;
 }
 
-inline matrix3d invert_x_y_positions(const matrix3d& in)
-{
-    matrix3d out(in.size());
-    for (std::size_t z = 0; z < in.size().depth_; ++z)
-    {
-        for (std::size_t y = 0; y < in.size().height_; ++y)
-        {
-            std::size_t y2 = in.size().height_ - (y + 1);
-            for (std::size_t x = 0; x < in.size().width_; ++x)
-            {
-                std::size_t x2 = in.size().width_ - (x + 1);
-                out.set(z, y, x, in.get(z, y2, x2));
-            }
-        }
-    }
-    return out;
-}
-
 inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
 {
     return matrix3d(out_size, in_vol.as_vector());
@@ -456,12 +438,21 @@ inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
                 matrix3d_to_depth_slices(m)));
 }
 
-inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
+inline matrix3d flatten_matrix3d(const matrix3d& vol)
 {
-    if (in_vol.size().height_ == 0 && in_vol.size().width_ == 0)
-        return in_vol;
-    const auto inv = transpose_matrix3d(in_vol);
-    return matrix3d(size3d(1, 1, inv.size().volume()), inv.as_vector());
+    float_vec values;
+    values.reserve(vol.size().volume());
+    for (std::size_t x = 0; x < vol.size().width_; ++x)
+    {
+        for (std::size_t y = 0; y < vol.size().height_; ++y)
+        {
+            for (std::size_t z = 0; z < vol.size().depth_; ++z)
+            {
+                values.push_back(vol.get(z, y, x));
+            }
+        }
+    }
+    return matrix3d(size3d(1, 1, values.size()), values);
 }
 
 } // namespace fd

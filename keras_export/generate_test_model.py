@@ -21,12 +21,11 @@ __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
     image_format = K.image_data_format()
-    input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
+    input1_shape = (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8)
     inputs = Input(input1_shape)
     x = inputs
-    x = Conv2D(1, (1, 1), padding='valid')(x)
+    x = Conv2D(2, (4, 5), padding='valid')(x)
     x = Flatten()(x)
-    x = Dense(8)(x)
     x = Dense(5)(x)
     model = Model(inputs=inputs, outputs=x)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')

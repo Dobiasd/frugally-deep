@@ -107,7 +107,8 @@ inline fd::layer_ptr create_conv2d_layer(
     fd::assertion(bias.size() == filter_count, "size of bias does not match");
 
     const fd::float_vec weights = get_param(name, "weights");
-    const fd::size2d kernel_size = create_size2d(data["config"]["kernel_size"]);
+    const fd::size2d kernel_size = swap_size2d_dims(
+        create_size2d(data["config"]["kernel_size"]));
     fd::assertion(weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t filter_depths =

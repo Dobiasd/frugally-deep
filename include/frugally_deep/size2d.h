@@ -53,4 +53,9 @@ inline std::string show_size2d(const size2d& size)
         ")");
 }
 
+size2d swap_size2d_dims(const size2d& size)
+{
+    return size2d(size.width_, size.height_);
+}
+
 } // namespace fd

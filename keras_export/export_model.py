@@ -62,15 +62,17 @@ def gen_test_data(model):
 def show_conv2d_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 2
-    weight_flat = np.swapaxes(weights[0], 0, 2).flatten().tolist()
+    assert len(weights[0].shape) == 4
+    weights_flat = np.swapaxes(
+        np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
     bias = weights[1].tolist()
-    assert len(weight_flat) > 0
+    assert len(weights_flat) > 0
     assert layer.dilation_rate == (1,1)
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     return {
-        'weights': weight_flat,
+        'weights': weights_flat,
         'bias': bias
     }
 

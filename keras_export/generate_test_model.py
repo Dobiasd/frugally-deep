@@ -19,24 +19,6 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-def get_test_model_small():
-    image_format = K.image_data_format()
-    input1_shape = (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8)
-    inputs = Input(input1_shape)
-    x = inputs
-    x = Conv2D(2, (4, 5), padding='valid')(x)
-    x = Flatten()(x)
-    x = Dense(5, activation='hard_sigmoid')(x)
-    x = Dense(5, activation='selu')(x)
-    x = Dense(5, activation='sigmoid')(x)
-    x = Dense(5, activation='tanh')(x)
-    x = Dense(5, activation='softplus')(x)
-    x = Dense(5, activation='softmax')(x)
-
-    model = Model(inputs=inputs, outputs=x)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-    return model
-
 def get_test_model_full():
     image_format = K.image_data_format()
     input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
@@ -144,7 +126,6 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        #model = get_test_model_small()
         model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,

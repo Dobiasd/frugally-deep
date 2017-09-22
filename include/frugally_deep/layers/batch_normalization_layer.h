@@ -47,7 +47,7 @@ protected:
             {
                 assertion(result.size().width_ == beta_.size(), "invalid beta");
                 result = matrix3d(result.size(),
-                    fplus::zip_with(std::multiplies<float_t>(),
+                    fplus::zip_with(std::plus<float_t>(),
                         result.as_vector(), beta_));
             }
             return {result};

@@ -178,12 +178,32 @@ test sequential as single model
 
 klassiker aus keras als examples
 
-rename all layers to keras names (e.g. unpuul -> upsampling2d)
+rename all layers to keras names (e.g. unpool -> upsampling2d)
 
 member-funktionen frei machen wo geht
 
 write something about contributing to the project
 
-load-kram in internal load namespace verschieben
+alles ausser load_model und model in internal namespace verschieben
 
 inline vor alle freien Funktionen
+
+class model_layer machen, model dann nur predict, sonst nix
+
+model hat modellayer als shared_ptr, damit shallow copy geht
+
+predict macht cache auf, der durchgereicht wird, jede node hat id
+
+wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
+
+test strides != 1
+
+test paddings valid and same with non-fitting shapes
+
+mention in README that it is always channel_first internally
+
+mention in README that everything is a tensor3, dense eg is (1,1,n)
+
+mention in README that model needs to flatten before dense
+
+geht SeparableConv2D schon?

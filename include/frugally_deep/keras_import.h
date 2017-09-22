@@ -53,7 +53,7 @@ inline fd::matrix3d create_matrix3d(const nlohmann::json& data)
 template <typename T, typename F>
 std::vector<T> create_vector(F f, const nlohmann::json& data)
 {
-    fd::assertion(data.is_array(), "array needs to be an array");
+    fd::assertion(data.is_array(), "data needs to be an array");
     return fplus::transform_convert<std::vector<T>>(f, data);
 }
 
@@ -212,10 +212,8 @@ inline fd::layer_ptr create_dense_layer(
     const bool use_bias = data["config"]["use_bias"];
     if (!use_bias) fill_with_zeros(bias);
     std::size_t units = data["config"]["units"];
-    fd::assertion(bias.size() == units, "invalid bias count");
-    fd::assertion(weights.size() % units == 0, "invalid weight count");
-    const std::size_t size_in = weights.size() / units;
-    return std::make_shared<fd::fully_connected_layer>(name, size_in, units);
+    return std::make_shared<fd::fully_connected_layer>(
+        name, units, weights, bias);
 }
 
 inline fd::layer_ptr create_concatename_layer(
@@ -438,12 +436,38 @@ inline test_cases load_test_cases(const nlohmann::json& data)
         load_test_case, data["tests"]);
 }
 
+inline bool is_test_output_ok(const matrix3d& output, const matrix3d& target)
+{
+    fd::assertion(output.size() == target.size(), "wrong output size");
+    for (std::size_t z = 0; z < output.size().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < output.size().height_; ++y)
+        {
+            for (std::size_t x = 0; x < output.size().width_; ++x)
+            {
+                if (!fplus::is_in_closed_interval_around(0.01,
+                    target.get(z, y, x), output.get(z, y, x)))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+inline bool are_test_outputs_ok(const matrix3ds& output,
+    const matrix3ds& target)
+{
+    return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
+}
+
 inline bool run_test_cases(const fd::model& model, const test_cases& tests)
 {
     for (const auto& test_case : tests)
     {
         const auto output = model.predict(test_case.input_);
-        if (output != test_case.output_)
+        if (!are_test_outputs_ok(output, test_case.output_))
             return false;
     }
     return true;

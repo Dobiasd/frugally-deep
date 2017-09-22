@@ -146,6 +146,11 @@ inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
     return matrix3d(out_size, in_vol.as_vector());
 }
 
+inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
+{
+    return matrix3d(size3d(in_vol.size().volume(), 1, 1), in_vol.as_vector());
+}
+
 inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
 {
     matrix2d result(size2d(m.size().height_, m.size().width_));
@@ -298,7 +303,7 @@ inline matrix3d concatenate_matrix3ds(const matrix3ds& ts)
 
     fd::assertion(fplus::all_the_same_on(matrix3d_size_without_depth, ts),
         "all tensors must have the same width and height");
-    
+
     fd::assertion(!ts.empty(), "no tensors to concatenate");
 
     const auto matrix3d_size_depth = [](const matrix3d& t) -> std::size_t

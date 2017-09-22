@@ -24,8 +24,7 @@ protected:
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
-        //return reshape_matrix3d(input, output_size());
-        return {input};
+        return {flatten_matrix3d(input)};
     }
 };
 

@@ -19,51 +19,51 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-np.random.seed(0)
-
 def get_test_model_small():
-    inputs = Input(shape=(10,))
-    x = Dense(3)(inputs)
-    x = Dense(4)(x)
+    inputs = Input(shape=(1,1,1))
+    x = Flatten()(inputs)
+    x = Dense(1)(x)
     model = Model(inputs=inputs, outputs=x)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
     return model
 
 def get_test_model_full():
-    input1_shape =\
-        (2, 3, 3) if K.image_data_format() == 'channels_last' else (3, 2, 3)
+    image_format = K.image_data_format()
+    image_format = 'channel_first' # todo remove
+    input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
+
     input2_shape = input1_shape
     input3_shape = (4,)
     input4_shape = (2,3)
 
-    input1 = Input(shape=input1_shape)
-    input2 = Input(shape=input2_shape)
-    input3 = Input(shape=input3_shape)
-    input4 = Input(shape=input4_shape)
+    input1 = Input(shape=input1_shape) # (3, 4, 4)
+    input2 = Input(shape=input2_shape) # (3, 4, 4)
+    input3 = Input(shape=input3_shape) # (3, 4, 4)
+    input4 = Input(shape=input4_shape) # (3, 4, 4)
 
     shared_conv = Conv2D(1, (1, 1),
-        padding='same', strides=2, name='shared_conv', activation='relu')
+        padding='valid', name='shared_conv', activation='relu')
 
-    up_scale_4 = UpSampling2D((4, 4))
-    x1 = shared_conv(up_scale_4(input1))
+    up_scale_2 = UpSampling2D((2, 2))
+    x1 = shared_conv(up_scale_2(input1)) # (1, 8, 8)
     x1 = LeakyReLU()(x1)
-    x2 = shared_conv(up_scale_4(input2))
+    x2 = shared_conv(up_scale_2(input2)) # (1, 8, 8)
     x2 = ELU()(x2)
-    x3 = Conv2D(1, (1, 1), padding='same', strides=2)(up_scale_4(input2))
-    x = keras.layers.concatenate([x1, x2, x3])
+    x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(input2)) # (1, 8, 8)
+    x = keras.layers.concatenate([x1, x2, x3]) # (3, 8, 8)
 
-    x = Conv2D(2, (3, 3), padding='valid')(x)
+    x = Conv2D(3, (1, 1), padding='valid')(x) # (3, 8, 8)
     x = BatchNormalization(center=False)(x)
     x = Dropout(0.5)(x)
 
     x = keras.layers.concatenate([
         MaxPooling2D((2,2))(x),
-        AveragePooling2D((2,2))(x)])
+        AveragePooling2D((2,2))(x)]) # (6, 4, 4)
 
-    x = Flatten()(x)
+    x = Flatten()(x) # (1, 1, 96)
     x = Dense(4, activation='hard_sigmoid')(x)
     x = BatchNormalization()(x)
-    x = Dense(3, activation='selu')(x)
+    x = Dense(3, activation='selu')(x) # (1, 1, 3)
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)
@@ -75,17 +75,18 @@ def get_test_model_full():
         name='intermediate_model')
     intermediate_model.compile(loss='mse', optimizer='nadam')
 
-    x = intermediate_model(x)
+    x = intermediate_model(x) # (1, 1, 5)
 
     intermediate_model_2 = Sequential()
     intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
     intermediate_model_2.add(Dense(5, activation='tanh'))
     intermediate_model_2.compile(optimizer='rmsprop',
         loss='categorical_crossentropy', metrics=['accuracy'])
-    x = intermediate_model_2(x)
+
+    x = intermediate_model_2(x) # (1, 1, 5)
 
     x = Activation('sigmoid')(x)
-    x = Dense(3)(x)
+    x = Dense(3)(x) # (1, 1, 3)
 
     shared_activation = Activation('tanh')
     output1 = Activation('softplus')(x)
@@ -134,7 +135,9 @@ def main():
         print('usage: [output path]')
         sys.exit(1)
     else:
-        model = get_test_model_full()
+        np.random.seed(0)
+        #model = get_test_model_full()
+        model = get_test_model_small()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

@@ -458,6 +458,8 @@ inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
 
 inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
 {
+    if (in_vol.size().height_ == 0 && in_vol.size().width_ == 0)
+        return in_vol;
     const auto inv = transpose_matrix3d(in_vol);
     return matrix3d(size3d(1, 1, inv.size().volume()), inv.as_vector());
 }

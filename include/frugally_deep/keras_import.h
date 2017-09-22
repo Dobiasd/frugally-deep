@@ -483,6 +483,10 @@ inline fd::model load_model(const std::string& path, bool verify = true)
     const auto json_str = maybe_json_str.unsafe_get_just();
     const auto json_data = nlohmann::json::parse(json_str);
 
+    const std::string image_data_format = json_data["image_data_format"];
+    assertion(image_data_format == "channels_last",
+        "only channels_last data format supported");
+
     const std::function<fd::float_vec(const std::string&, const std::string&)>
         get_param = [&json_data]
         (const std::string& layer_name, const std::string& param_name)

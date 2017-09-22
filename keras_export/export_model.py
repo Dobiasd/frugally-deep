@@ -182,6 +182,8 @@ def main():
 
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
 
+        json_output['image_data_format'] = K.image_data_format()
+
         write_text_file(out_path, json.dumps(
                 json_output, allow_nan=False, indent=2, sort_keys=True))
 

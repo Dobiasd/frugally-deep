@@ -212,15 +212,22 @@ local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-
 
 ein layer kann seine output_shape also nur dynamisch berechnen wenn er die input-shape gesagt bekommt. dense asserted dann halt auf input
 
-model nimmt vector aus 3tensors. das muessen dann soviele sein wie es input nodes gibt
 rename fully_connected_layer to dense_layer
+
 rename matrix to tensor
+
 namespace fd -> fdeep
-nicht von (neural) network sondern von (computational) graph sprechen oder model
+
 float_t als template-parameter
+
 readme: tensorflow only tested bisher
+
 travis wie fplus, auch mit warnings und so
+
 size in shape umbenennen
+
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
+padding layer implementieren und testen
 
+mention tests in readme (How do I know the results are the same?)

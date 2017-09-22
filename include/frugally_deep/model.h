@@ -31,7 +31,12 @@ public:
             input_connections_(input_connections),
             output_connections_(output_connections)
     {
-        // todo: make sure layers elems are unique
+        const auto get_layer_name = [](const layer_ptr& l_ptr) -> std::string
+        {
+            return l_ptr->name_;
+        };
+        assertion(fplus::all_unique_on(get_layer_name, layers),
+            "layer names must be unique");
     }
     virtual ~model()
     {
@@ -48,13 +53,7 @@ public:
         // https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
         node_idx = node_idx - 1;
         assertion(node_idx < nodes_.size(), "invalid node index");
-
-        // todo: eigene layer appenden?
         return layer::get_output(layers, output_cache, node_idx, tensor_idx);
-
-        // todo: append raus und nur layers_?
-        //return nodes_[node_idx].get_output(fplus::append(layers, layers_),
-          //  output_cache, *this, tensor_idx);
     }
 
 protected:
@@ -73,19 +72,13 @@ protected:
                 {inputs[i]};
         }
 
-        // todo: as transform
-        matrix3ds outputs;
-        for (std::size_t i = 0; i < output_connections_.size(); ++i)
+        const auto get_output = [this, &output_cache]
+            (const node_connection& conn) -> matrix3d
         {
-            outputs.push_back(get_layer(
-                layers_, output_connections_[i].layer_id_)->get_output(
-                    layers_,
-                    output_cache,
-                    output_connections_[i].node_idx_,
-                    output_connections_[i].tensor_idx_));
-        }
-
-        return outputs;
+            return get_layer(layers_, conn.layer_id_)->get_output(
+                layers_, output_cache, conn.node_idx_, conn.tensor_idx_);
+        };
+        return fplus::transform(get_output, output_connections_);
     }
     layer_ptrs layers_;
     node_connections input_connections_;

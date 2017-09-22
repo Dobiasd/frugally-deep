@@ -169,13 +169,6 @@ def main():
         model = load_model(in_path)
         model = convert_sequential_to_model(model)
 
-        # todo remove
-        write_text_file(out_path + '.keras.yml', model.to_yaml())
-
-        # todo remove
-        write_text_file(out_path + '.keras.json', json.dumps(
-                model.to_json(), allow_nan=False, indent=2, sort_keys=True))
-
         json_output = {}
 
         json_output['architecture'] = json.loads(model.to_json())

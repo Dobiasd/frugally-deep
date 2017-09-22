@@ -106,21 +106,9 @@ inline std::string show_matrix3d(const matrix3d& m)
 }
 
 template <typename F>
-matrix3d transform_matrix3d(F f, const matrix3d& in_vol)
+matrix3d transform_matrix3d(F f, const matrix3d& m)
 {
-    // todo: use as_vector instead to avoid nested loops
-    matrix3d out_vol(in_vol.size());
-    for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
-    {
-        for (std::size_t y = 0; y < in_vol.size().height_; ++y)
-        {
-            for (std::size_t x = 0; x < in_vol.size().width_; ++x)
-            {
-                out_vol.set(z, y, x, f(in_vol.get(z, y, x)));
-            }
-        }
-    }
-    return out_vol;
+    return matrix3d(m.size(), fplus::transform(f, m.as_vector()));
 }
 
 inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)

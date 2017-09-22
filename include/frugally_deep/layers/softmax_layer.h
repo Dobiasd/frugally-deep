@@ -23,10 +23,6 @@ protected:
     {
         const auto ex = [this](float_t x) -> float_t
         {
-            // todo: why does this trick make the gradient check fail?
-            // http://stackoverflow.com/q/9906136/1866775
-            //in_vol_max_ = fplus::maximum(input.as_vector());
-            //return std::exp(x - in_vol_max_);
             return std::exp(x);
         };
 

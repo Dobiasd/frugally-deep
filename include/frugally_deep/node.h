@@ -29,7 +29,6 @@ struct node_connection
 };
 using node_connections = std::vector<node_connection>;
 
-// todo: unordered map instead?
 using output_dict = std::map<std::pair<std::string, std::size_t>, matrix3ds>;
 
 class layer;
@@ -50,16 +49,15 @@ public:
     matrix3ds get_output(const layer_ptrs& layers, output_dict& output_cache,
         const layer& layer) const
     {
-        matrix3ds inputs;
-        // todo: as transform
-        for (std::size_t i = 0; i < inbound_connections_.size(); ++i)
+        const auto get_input = [this, &output_cache, &layers]
+            (const node_connection& conn) -> matrix3d
         {
-            inputs.push_back(get_layer_output(layers, output_cache, get_layer(
-                layers, inbound_connections_[i].layer_id_),
-                inbound_connections_[i].node_idx_,
-                inbound_connections_[i].tensor_idx_));
-        }
-        return apply_layer(layer, inputs);
+            return get_layer_output(layers, output_cache,
+                get_layer(layers, conn.layer_id_),
+                conn.node_idx_, conn.tensor_idx_);
+        };
+        return apply_layer(layer,
+            fplus::transform(get_input, inbound_connections_));
     }
 private:
     node_connections inbound_connections_;

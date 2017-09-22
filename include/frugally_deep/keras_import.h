@@ -393,15 +393,6 @@ inline fd::model create_model(const get_param_f& get_param,
         fplus::bind_1st_of_2(create_layer, get_param),
         data["config"]["layers"]);
 
-    // todo: remove
-    const auto show_layer = [](const fd::layer_ptr& ptr) -> std::string
-    {
-        return ptr->name_;
-    };
-    std::cout
-        << fplus::show_cont_with("\n", fplus::transform(show_layer, layers))
-            << std::endl;
-
     fd::assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
     const auto inputs = create_vector<node_connection>(
@@ -435,8 +426,7 @@ inline test_case load_test_case(const nlohmann::json& data)
 inline test_cases load_test_cases(const nlohmann::json& data)
 {
     fd::assertion(data["tests"].is_array(), "no tests");
-    return fplus::transform_convert<test_cases>(
-        load_test_case, data["tests"]);
+    return create_vector<test_case>(load_test_case, data["tests"]);
 }
 
 inline bool is_test_output_ok(const matrix3d& output, const matrix3d& target)
@@ -512,8 +502,3 @@ inline fd::model load_model(const std::string& path, bool verify = true)
 }
 
 } // namespace fd
-
-
-// todo replace transform_convert with create_vector
-
-// todo class node gucken https://github.com/fchollet/keras/blob/master/keras/engine/topology.py

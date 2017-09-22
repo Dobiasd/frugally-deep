@@ -37,7 +37,6 @@ public:
     {
     }
 
-    // todo: move to ctor?
     void set_activation(const activation_layer_ptr& activation)
     {
         activation_ = activation;

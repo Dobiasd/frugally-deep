@@ -11,7 +11,7 @@
 namespace fd
 {
 
-// todo: https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+// https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
 // Since "batch size" is always 1 it simply scales and shifts the input tensor.
 class batch_normalization_layer : public layer
 {
@@ -38,10 +38,11 @@ protected:
             auto result = input;
             if (!gamma_.empty())
             {
-                assertion(result.size().width_ == gamma_.size(), "invalid gamma");
+                assertion(result.size().width_ == gamma_.size(),
+                    "invalid gamma");
                 result = matrix3d(result.size(),
                     fplus::zip_with(std::multiplies<float_t>(),
-                        result.as_vector(), gamma_)); // todo + epsilon
+                        result.as_vector(), gamma_));
             }
             if (!beta_.empty())
             {
@@ -57,7 +58,7 @@ protected:
         if (!gamma_.empty())
         {
             assertion(slices.size() == gamma_.size(), "invalid gamma");
-            slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_); // todo + epsilon
+            slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_);
         }
         if (!beta_.empty())
         {

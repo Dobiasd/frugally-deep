@@ -115,8 +115,7 @@ def get_test_model_full():
         np.random.random(size=(training_data_size, *input1_shape))
     ]
 
-    model.fit(list(data_in), list(data_out),
-        epochs=epochs, batch_size=batch_size)
+    model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
 
     return model
 

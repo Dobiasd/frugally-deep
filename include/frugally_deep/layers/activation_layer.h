@@ -28,7 +28,6 @@ public:
     }
     matrix3ds apply_impl(const matrix3ds& inputs) const override
     {
-        // todo: is more than one matrix really allowed here?
         const auto f = fplus::bind_1st_of_2(
             std::mem_fn(&activation_layer::transform_input),
             this);

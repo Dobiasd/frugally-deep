@@ -368,7 +368,8 @@ inline fd::layer_ptr create_layer(
         fd::error("unknown layer type: " + type),
         fplus::get_from_map(creators, type))(get_param, data);
 
-    if (json_obj_has_member(data["config"], "activation"))
+    if (type != "Activation" &&
+        json_obj_has_member(data["config"], "activation"))
     {
         result->set_activation(
             create_activation_layer(data["config"]["activation"], ""));

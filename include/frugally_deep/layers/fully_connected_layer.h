@@ -23,9 +23,22 @@ public:
         const float_vec& bias)
     {
         const std::size_t n_in = weights.size() / bias.size();
-        return matrix2d(
-            size2d(bias.size(), n_in + 1),
+
+        return matrix2d(size2d(n_in + 1, bias.size()),
             fplus::append(weights, bias));
+            /*
+        matrix2d result(size2d(bias.size(), n_in + 1));
+        std::size_t weight_idx = 0;
+        for (std::size_t y = 0; y < result.size().height_; ++y)
+        {
+            for (std::size_t x = 0; x < n_in; ++x)
+            {
+                result.set(y, x, weights[weight_idx++]);
+            }
+            result.set(y, n_in, bias[y]);
+        }
+        return result;
+        */
     }
     fully_connected_layer(const std::string& name, std::size_t units,
             const float_vec& weights,
@@ -43,15 +56,15 @@ protected:
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs[0];
         assertion(input.size().height_ == 1, "input needs to be flattened");
-        assertion(input.size().width_ == 1, "input needs to be flattened");
+        assertion(input.size().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);
-        return {matrix3d(size3d(units_, 1, 1),
-            multiply(params_, bias_padded_input).as_vector())};
+        return {matrix3d(size3d(1, 1, units_),
+            multiply(bias_padded_input, params_).as_vector())};
     }
     static matrix2d bias_pad_input(const matrix3d& input)
     {
         return matrix2d(
-            size2d(input.size().depth_ + 1, 1),
+            size2d(1, input.size().width_ + 1),
             fplus::append(input.as_vector(), {1}));
     }
     std::size_t units_;

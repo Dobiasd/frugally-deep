@@ -148,7 +148,7 @@ inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
 
 inline matrix3d flatten_matrix3d(const matrix3d& in_vol)
 {
-    return matrix3d(size3d(in_vol.size().volume(), 1, 1), in_vol.as_vector());
+    return matrix3d(size3d(1, 1, in_vol.size().volume()), in_vol.as_vector());
 }
 
 inline matrix2d depth_slice(std::size_t z, const matrix3d& m)

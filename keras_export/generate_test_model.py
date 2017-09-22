@@ -20,9 +20,10 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
-    inputs = Input(shape=(1,1,1))
+    inputs = Input(shape=(2,3,4))
     x = Flatten()(inputs)
-    x = Dense(1)(x)
+    x = Dense(8)(x)
+    x = Dense(5)(x)
     model = Model(inputs=inputs, outputs=x)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
     return model

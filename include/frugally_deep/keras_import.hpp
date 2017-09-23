@@ -111,9 +111,7 @@ inline layer_ptr create_conv2d_layer(
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
-    float_vec bias = get_param(name, "bias");
-    const bool use_bias = data["config"]["use_bias"];
-    if (!use_bias) fill_with_zeros(bias);
+
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
         fplus::choose<std::string, conv2d_layer::padding>({
@@ -129,6 +127,10 @@ inline layer_ptr create_conv2d_layer(
         "strides not proportional");
 
     const std::size_t filter_count = data["config"]["filters"];
+    float_vec bias(filter_count, 0);
+    const bool use_bias = data["config"]["use_bias"];
+    if (use_bias)
+        bias = get_param(name, "bias");
     assertion(bias.size() == filter_count, "size of bias does not match");
 
     const float_vec weights = get_param(name, "weights");
@@ -203,7 +205,7 @@ inline layer_ptr create_max_pooling2d_layer(
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
     // todo: support pool_size != strides
-    assertion(pool_size == strides, "pool_size not strides equal");
+    assertion(pool_size == strides, "pool_size and strides not equal");
     // todo: support non-proportional sizes
     assertion(pool_size.width_ == pool_size.height_,
         "pooling not proportional");
@@ -219,7 +221,7 @@ inline layer_ptr create_average_pooling2d_layer(
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
     // todo: support pool_size != strides
-    assertion(pool_size == strides, "pool_size not strides equal");
+    assertion(pool_size == strides, "pool_size and strides not equal");
     // todo: support non-proportional sizes
     assertion(pool_size.width_ == pool_size.height_,
         "pooling not proportional");

@@ -82,8 +82,8 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * PReLU
 * Recurrent layers (LSTM etc.)
 * Reshape
-* SeparableConv2D
 * ThresholdedReLU
+* DepthwiseConv2D
 
 
 Usage
@@ -173,8 +173,6 @@ test pooling with non-fitting data
 
 test upsampling2d with non-even factors
 
-geht SeparableConv2D schon?
-
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
 
 float_t als template-parameter
@@ -184,3 +182,7 @@ travis wie fplus, auch mit warnings und so
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
 padding layer implementieren und testen
+
+performance: tensor3 as std::vector<std::shared_ptr<tensor2>>
+
+implement layers: SeparableConv2D, ZeroPadding2D

@@ -5,7 +5,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/release/frugally_deep_main",
+            "program": "${workspaceRoot}/release/frugally_deep_main_d",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",

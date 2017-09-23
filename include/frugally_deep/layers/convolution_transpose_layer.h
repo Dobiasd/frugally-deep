@@ -10,7 +10,7 @@
 #include "frugally_deep/convolution_transpose.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/shape2.h"
-#include "frugally_deep/size3d.h"
+#include "frugally_deep/shape3.h"
 #include "frugally_deep/layers/layer.h"
 
 #include <fplus/fplus.hpp>
@@ -32,7 +32,7 @@ class convolution_transpose_layer : public layer
 public:
     enum class padding { valid, same };
     explicit convolution_transpose_layer(
-            const std::string& name, const size3d& filter_size,
+            const std::string& name, const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
             const float_vec& weights, const float_vec& bias)
         : layer(name),

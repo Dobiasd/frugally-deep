@@ -15,7 +15,7 @@
 namespace fd
 {
 
-// Takes a single stack volume (size3d(n, 1, 1)) as input.
+// Takes a single stack volume (shape3(n, 1, 1)) as input.
 class fully_connected_layer : public layer
 {
 public:
@@ -44,7 +44,7 @@ protected:
         assertion(input.size().height_ == 1, "input needs to be flattened");
         assertion(input.size().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);
-        return {matrix3d(size3d(1, 1, n_out_),
+        return {matrix3d(shape3(1, 1, n_out_),
             multiply(bias_padded_input, params_).as_vector())};
     }
     static matrix2d bias_pad_input(const matrix3d& input)

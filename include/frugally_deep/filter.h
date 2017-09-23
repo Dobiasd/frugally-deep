@@ -9,7 +9,7 @@
 #include "frugally_deep/typedefs.h"
 
 #include "frugally_deep/matrix3d.h"
-#include "frugally_deep/size3d.h"
+#include "frugally_deep/shape3.h"
 
 #include <cassert>
 #include <cstddef>
@@ -24,7 +24,7 @@ public:
     filter(const matrix3d& m, float_t bias) : m_(m), bias_(bias)
     {
     }
-    const size3d& size() const
+    const shape3& size() const
     {
         return m_.size();
     }
@@ -54,11 +54,11 @@ private:
 typedef std::vector<filter> filter_vec;
 
 inline filter_vec generate_filters(
-    const size3d& filter_size, std::size_t k,
+    const shape3& filter_size, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
     filter_vec filters(k, filter(matrix3d(
-        size3d(filter_size)), 0));
+        shape3(filter_size)), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(
@@ -90,7 +90,7 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
     assert(!fs.empty());
     std::size_t k = fs.size();
     std::size_t d = fs.front().size().depth_;
-    size3d new_filter_size(
+    shape3 new_filter_size(
         k,
         fs.front().size().height_,
         fs.front().size().width_);

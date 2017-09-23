@@ -16,7 +16,7 @@
 #include "frugally_deep/model.h"
 #include "frugally_deep/node.h"
 #include "frugally_deep/shape2.h"
-#include "frugally_deep/size3d.h"
+#include "frugally_deep/shape3.h"
 #include "frugally_deep/typedefs.h"
 
 #include "frugally_deep/layers/avg_pool_layer.h"

@@ -10,7 +10,7 @@
 
 #include "frugally_deep/matrix2d.h"
 #include "frugally_deep/matrix3d_pos.h"
-#include "frugally_deep/size3d.h"
+#include "frugally_deep/shape3.h"
 
 #include <fplus/fplus.hpp>
 
@@ -26,13 +26,13 @@ namespace fd
 class matrix3d
 {
 public:
-    matrix3d(const size3d& shape, const float_vec& values) :
+    matrix3d(const shape3& shape, const float_vec& values) :
         size_(shape),
         values_(values)
     {
         assert(shape.volume() == values.size());
     }
-    explicit matrix3d(const size3d& shape) :
+    explicit matrix3d(const shape3& shape) :
         size_(shape),
         values_(shape.volume(), 0.0f)
     {
@@ -53,7 +53,7 @@ public:
     {
         set(matrix3d_pos(z, y, x), value);
     }
-    const size3d& size() const
+    const shape3& size() const
     {
         return size_;
     }
@@ -77,7 +77,7 @@ private:
             pos.y_ * size().width_ +
             pos.x_;
     };
-    size3d size_;
+    shape3 size_;
     float_vec values_;
 };
 
@@ -111,7 +111,7 @@ matrix3d transform_matrix3d(F f, const matrix3d& m)
     return matrix3d(m.size(), fplus::transform(f, m.as_vector()));
 }
 
-inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
+inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const shape3& out_size)
 {
     return matrix3d(out_size, in_vol.as_vector());
 }
@@ -141,7 +141,7 @@ inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
             ms)));
     std::size_t height = ms.front().size().height_;
     std::size_t width = ms.front().size().width_;
-    matrix3d m(size3d(ms.size(), height, width));
+    matrix3d m(shape3(ms.size(), height, width));
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
         for (std::size_t y = 0; y < m.size().height_; ++y)
@@ -184,7 +184,7 @@ inline matrix3d sparse_matrix3d(std::size_t step, const matrix3d& in)
 
 inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)
 {
-    matrix3d result(size3d(1, m.size().height_, m.size().width_));
+    matrix3d result(shape3(1, m.size().height_, m.size().width_));
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
@@ -283,7 +283,7 @@ inline matrix3d concatenate_matrix3ds(const matrix3ds& ts)
         return t.as_vector();
     };
     return matrix3d(
-        size3d(depth_sum, ts.front().size().height_, ts.front().size().width_),
+        shape3(depth_sum, ts.front().size().height_, ts.front().size().width_),
         fplus::transform_and_concat(as_vector, ts));
 }
 
@@ -440,7 +440,7 @@ inline matrix3d flatten_matrix3d(const matrix3d& vol)
             }
         }
     }
-    return matrix3d(size3d(1, 1, values.size()), values);
+    return matrix3d(shape3(1, 1, values.size()), values);
 }
 
 } // namespace fd

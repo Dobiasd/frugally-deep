@@ -53,7 +53,7 @@ protected:
         assert(in_vol.size().height_ % scale_factor == 0);
         assert(in_vol.size().width_ % scale_factor == 0);
         matrix3d out_vol(
-            size3d(
+            shape3(
                 in_vol.size().depth_,
                 in_vol.size().height_ / scale_factor,
                 in_vol.size().width_ / scale_factor));

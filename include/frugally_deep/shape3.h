@@ -17,10 +17,10 @@
 namespace fd
 {
 
-class size3d
+class shape3
 {
 public:
-    explicit size3d(
+    explicit shape3(
         std::size_t depth,
         std::size_t height,
         std::size_t width) :
@@ -44,7 +44,7 @@ public:
     std::size_t width_;
 };
 
-inline bool operator == (const size3d& lhs, const size3d& rhs)
+inline bool operator == (const shape3& lhs, const shape3& rhs)
 {
     return
         lhs.depth_ == rhs.depth_ &&
@@ -52,12 +52,12 @@ inline bool operator == (const size3d& lhs, const size3d& rhs)
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const size3d& lhs, const size3d& rhs)
+inline bool operator != (const shape3& lhs, const shape3& rhs)
 {
     return !(lhs == rhs);
 }
 
-inline std::string show_size3d(const size3d& size)
+inline std::string show_shape3(const shape3& size)
 {
     return std::string(
         "(" + std::to_string(size.depth_) +

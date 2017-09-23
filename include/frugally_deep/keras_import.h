@@ -17,19 +17,19 @@
 namespace fd
 {
 
-inline fd::size3d create_size3d(const nlohmann::json& data)
+inline fd::shape3 create_shape3(const nlohmann::json& data)
 {
-    fd::assertion(data.is_array(), "size3d needs to be an array");
+    fd::assertion(data.is_array(), "shape3 needs to be an array");
     fd::assertion(data.size() > 0, "need at least one dimension");
     const std::size_t offset = data[0].is_null() ? 1 : 0;
     if (data.size() == 1 + offset)
-        return fd::size3d(0, 0, data[0 + offset]);
+        return fd::shape3(0, 0, data[0 + offset]);
     if (data.size() == 2 + offset)
-        return fd::size3d(0, data[0 + offset], data[1 + offset]);
+        return fd::shape3(0, data[0 + offset], data[1 + offset]);
     if (data.size() == 3 + offset)
-        return fd::size3d(data[0 + offset], data[1 + offset], data[2 + offset]);
-    fd::raise_error("size3d needs 1, 2 or 3 dimensions");
-    return fd::size3d(0, 0, 0);
+        return fd::shape3(data[0 + offset], data[1 + offset], data[2 + offset]);
+    fd::raise_error("shape3 needs 1, 2 or 3 dimensions");
+    return fd::shape3(0, 0, 0);
 }
 
 inline fd::shape2 create_shape2(const nlohmann::json& data)
@@ -45,7 +45,7 @@ inline fd::shape2 create_shape2(const nlohmann::json& data)
 
 inline fd::matrix3d create_matrix3d(const nlohmann::json& data)
 {
-    const fd::size3d shape = create_size3d(data["shape"]);
+    const fd::shape3 shape = create_shape3(data["shape"]);
     const fd::float_vec values = data["values"];
     return fd::matrix3d(shape, values);
 }
@@ -113,7 +113,7 @@ inline fd::layer_ptr create_conv2d_layer(
         "invalid number of weights");
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
-    const fd::size3d filter_size(
+    const fd::shape3 filter_size(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
     return std::make_shared<fd::convolutional_layer>(name,
@@ -126,7 +126,7 @@ inline fd::layer_ptr create_input_layer(
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
     const std::string name = data["name"];
-    const auto input_shape = create_size3d(data["config"]["batch_input_shape"]);
+    const auto input_shape = create_shape3(data["config"]["batch_input_shape"]);
     return std::make_shared<fd::input_layer>(name, input_shape);
 }
 

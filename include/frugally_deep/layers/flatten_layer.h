@@ -11,7 +11,7 @@
 namespace fd
 {
 
-// Converts a volume into single column volume (size3d(n, 1, 1)).
+// Converts a volume into single column volume (shape3(n, 1, 1)).
 class flatten_layer : public layer
 {
 public:

@@ -37,7 +37,7 @@ protected:
     matrix3d unpool(const matrix3d& in_vol) const
     {
         matrix3d out_vol(
-            size3d(
+            shape3(
                 in_vol.size().depth_,
                 in_vol.size().height_ * scale_factor_,
                 in_vol.size().width_ * scale_factor_));

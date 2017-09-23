@@ -14,7 +14,7 @@ namespace fd
 class input_layer : public layer
 {
 public:
-    explicit input_layer(const std::string& name, const size3d& input_size)
+    explicit input_layer(const std::string& name, const shape3& input_size)
         : layer(name), input_size_(input_size), output_()
     {
     }
@@ -25,7 +25,7 @@ protected:
         assertion(inputs[0].size() == input_size_, "invalid input size");
         return inputs;
     }
-    size3d input_size_;
+    shape3 input_size_;
 
     // provide initial tensor for computation
     mutable fplus::maybe<matrix3d> output_;

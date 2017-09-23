@@ -137,33 +137,11 @@ frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `i
 From then on everything is handled as a tensor with rank 3. Dense layers for example take its input flattened to a shape of `(1, 1, n)`. This is also the shape you will receive as the output of a `softmax` layer for example.
 
 
+
+
+
 todo
 ----
-
-new structure:
-
-  class Layer
-    ctor(...)
-    pure virtual apply : [Tensor3] -> [Tensor3]
-
-  class Node
-    inbound_nodes : [(node_id, tensor_idx)]
-    outbound_layer : SharedPtr layer
-    outputs : maybe [Tensor3]
-    get_output : tensor_idx -> Tensor3
-    set_outputs : [Tensor3] -> () # only for nodes of input-layers?
-
-  class Model : public Layer
-    node_pool : Dict Node_id Node
-    outputs : [Node_id]
-    inputs : [Node_id]
-
-run:
-  model.apply : [Tensor3] -> [Tensor3]
-    call set_output on all input nodes
-    ouput_nodes
-      |> transform get_output
-      |> concat
 
 add travis
 
@@ -177,8 +155,6 @@ add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
 add merge layers (https://keras.io/layers/merge/)
 
-test keras export with different backend
-
 github project description: Use Keras models in C++ with this small header-only library.
 
 add github project tags
@@ -187,19 +163,13 @@ float_t sollte float32 sein
 
 remove vscode directory
 
-test sequential as single model
-
 klassiker aus keras als examples
 
 rename all layers to keras names (e.g. unpool -> upsampling2d)
 
-member-funktionen frei machen wo geht
-
 write something about contributing to the project
 
 alles ausser load_model und model in internal namespace verschieben
-
-inline vor alle freien Funktionen
 
 class model_layer machen, model dann nur predict, sonst nix
 
@@ -214,10 +184,6 @@ test paddings valid and same with non-fitting shapes
 geht SeparableConv2D schon?
 
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
-
-rename fully_connected_layer to dense_layer
-
-namespace fdeep -> fdeep
 
 float_t als template-parameter
 

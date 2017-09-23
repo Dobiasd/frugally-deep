@@ -69,8 +69,16 @@ def main():
         save_vgg19(dir_path, 'vgg19')
         save_resnet50(dir_path, 'resnet50')
         save_inceptionv3(dir_path, 'inceptionv3')
-        save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2')
+        #save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # wait for pip
         save_mobilenet(dir_path, 'mobilenet')
+
+        #keras_export/export_model.py keras_export/xception.h5 keras_export/xception.json
+        #keras_export/export_model.py keras_export/vgg16.h5 keras_export/vgg16.json
+        #keras_export/export_model.py keras_export/vgg19.h5 keras_export/vgg19.json
+        #keras_export/export_model.py keras_export/resnet50.h5 keras_export/resnet50.json
+        #keras_export/export_model.py keras_export/inceptionv3.h5 keras_export/inceptionv3.json
+        #keras_export/export_model.py keras_export/inceptionvresnetv2.h5 keras_export/inceptionvresnetv2.json
+        #keras_export/export_model.py keras_export/mobilenet.h5 keras_export/mobilenet.json
 
 if __name__ == "__main__":
     main()

@@ -35,65 +35,67 @@ inline tensor2 pad_tensor2(
     return out;
 }
 
-namespace internal
+namespace details
 {
-    inline void convolve_go(
-        std::size_t stride,
-        const tensor2& filter,
-        const tensor2& in,
-        tensor2& out)
-    {
-        const std::size_t fy = filter.size().height_;
-        const std::size_t fx = filter.size().width_;
-        for (std::size_t y = 0; y < out.size().height_; ++y)
-        {
-            for (std::size_t x = 0; x < out.size().width_; ++x)
-            {
-                for (std::size_t yf = 0; yf < fy; ++yf)
-                {
-                    for (std::size_t xf = 0; xf < fx; ++xf)
-                    {
-                        const float_t add_val = filter.get(yf, xf) *
-                            in.get(stride * y + yf, stride * x + xf);
-                        out.set(y, x, out.get(y, x) + add_val);
-                    }
-                }
-            }
-        }
-    }
 
-    // Give the compiler a chance to unroll the inner loops.
-    // In tests with a 3x3 filter and clang++ -O3
-    // the performance was increased by a factor of two by this.
-    template <
-        std::size_t stride,
-        std::size_t fy,
-        std::size_t fx
-        >
-    void convolve_go_template(
-        const tensor2& filter,
-        const tensor2& in,
-        tensor2& out)
+inline void convolve_go(
+    std::size_t stride,
+    const tensor2& filter,
+    const tensor2& in,
+    tensor2& out)
+{
+    const std::size_t fy = filter.size().height_;
+    const std::size_t fx = filter.size().width_;
+    for (std::size_t y = 0; y < out.size().height_; ++y)
     {
-        assert(filter.size().height_ == fy);
-        assert(filter.size().width_ == fx);
-        for (std::size_t y = 0; y < out.size().height_; ++y)
+        for (std::size_t x = 0; x < out.size().width_; ++x)
         {
-            for (std::size_t x = 0; x < out.size().width_; ++x)
+            for (std::size_t yf = 0; yf < fy; ++yf)
             {
-                for (std::size_t yf = 0; yf < fy; ++yf)
+                for (std::size_t xf = 0; xf < fx; ++xf)
                 {
-                    for (std::size_t xf = 0; xf < fx; ++xf)
-                    {
-                        const float_t add_val = filter.get(yf, xf) *
-                            in.get(stride * y + yf, stride * x + xf);
-                        out.set(y, x, out.get(y, x) + add_val);
-                    }
+                    const float_t add_val = filter.get(yf, xf) *
+                        in.get(stride * y + yf, stride * x + xf);
+                    out.set(y, x, out.get(y, x) + add_val);
                 }
             }
         }
     }
-} // namespace internal
+}
+
+// Give the compiler a chance to unroll the inner loops.
+// In tests with a 3x3 filter and clang++ -O3
+// the performance was increased by a factor of two by this.
+template <
+    std::size_t stride,
+    std::size_t fy,
+    std::size_t fx
+    >
+void convolve_go_template(
+    const tensor2& filter,
+    const tensor2& in,
+    tensor2& out)
+{
+    assert(filter.size().height_ == fy);
+    assert(filter.size().width_ == fx);
+    for (std::size_t y = 0; y < out.size().height_; ++y)
+    {
+        for (std::size_t x = 0; x < out.size().width_; ++x)
+        {
+            for (std::size_t yf = 0; yf < fy; ++yf)
+            {
+                for (std::size_t xf = 0; xf < fx; ++xf)
+                {
+                    const float_t add_val = filter.get(yf, xf) *
+                        in.get(stride * y + yf, stride * x + xf);
+                    out.set(y, x, out.get(y, x) + add_val);
+                }
+            }
+        }
+    }
+}
+
+} // namespace details
 
 inline tensor2 convolve(
     std::size_t stride,
@@ -121,23 +123,23 @@ inline tensor2 convolve(
     tensor2 out(shape2(h2, w2));
 
     if (stride == 1 && fy == 1 && fx == 1)
-        internal::convolve_go_template<1, 1, 1>(filter, in_padded, out);
+        details::convolve_go_template<1, 1, 1>(filter, in_padded, out);
 
     else if (stride == 1 && fy == 3 && fx == 3)
-        internal::convolve_go_template<1, 3, 3>(filter, in_padded, out);
+        details::convolve_go_template<1, 3, 3>(filter, in_padded, out);
     else if (stride == 1 && fy == 5 && fx == 5)
-        internal::convolve_go_template<1, 5, 5>(filter, in_padded, out);
+        details::convolve_go_template<1, 5, 5>(filter, in_padded, out);
 
     else if (stride == 2 && fy == 1 && fx == 1)
-        internal::convolve_go_template<2, 1, 1>(filter, in_padded, out);
+        details::convolve_go_template<2, 1, 1>(filter, in_padded, out);
 
     else if (stride == 2 && fy == 3 && fx == 3)
-        internal::convolve_go_template<2, 3, 3>(filter, in_padded, out);
+        details::convolve_go_template<2, 3, 3>(filter, in_padded, out);
     else if (stride == 2 && fy == 5 && fx == 5)
-        internal::convolve_go_template<2, 5, 5>(filter, in_padded, out);
+        details::convolve_go_template<2, 5, 5>(filter, in_padded, out);
 
     else
-        internal::convolve_go(stride, filter, in_padded, out);
+        details::convolve_go(stride, filter, in_padded, out);
 
     return out;
 }

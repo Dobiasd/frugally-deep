@@ -9,16 +9,17 @@
 int main()
 {
     std::vector<std::string> model_paths = {
-        "keras_export/model.json",
+        "keras_export/test_model.json",
         "keras_export/xception.json",
         "keras_export/vgg16.json",
         "keras_export/vgg19.json",
         "keras_export/resnet50.json",
-        "keras_export/inceptionv3.json",
-        "keras_export/inceptionvresnetv2.json",
-        "keras_export/mobilenet.json"
+        "keras_export/inceptionv3.json"
+        //"keras_export/inceptionvresnetv2.json", // wait for pip
+        //"keras_export/mobilenet.json" // relu6
     };
 
+    bool error = false;
     for (const auto& model_path : model_paths)
     {
         try
@@ -28,8 +29,14 @@ int main()
         catch (const std::exception& e)
         {
             std::cerr << e.what() << std::endl;
+            error = true;
         }
     }
 
-    std::cout << "done" << std::endl;
+    if (error)
+    {
+        std::cout << "There were errors." << std::endl;
+        return 1;
+    }
+    std::cout << "All imports and test OK." << std::endl;
 }

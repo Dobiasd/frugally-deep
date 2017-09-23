@@ -70,7 +70,7 @@ def main():
         save_resnet50(dir_path, 'resnet50')
         save_inceptionv3(dir_path, 'inceptionv3')
         #save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # wait for pip
-        save_mobilenet(dir_path, 'mobilenet')
+        #save_mobilenet(dir_path, 'mobilenet') #relu6
 
         #keras_export/export_model.py keras_export/xception.h5 keras_export/xception.json
         #keras_export/export_model.py keras_export/vgg16.h5 keras_export/vgg16.json

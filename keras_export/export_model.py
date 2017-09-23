@@ -164,7 +164,7 @@ def main():
     else:
         in_path = sys.argv[1]
         out_path = sys.argv[2]
-        test_count = 3
+        test_count = 1
         if len(sys.argv) == 4:
             test_count = int(sys.argv[3])
         model = load_model(in_path)

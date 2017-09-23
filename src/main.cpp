@@ -8,13 +8,28 @@
 
 int main()
 {
-    const auto model = fdeep::load_model("keras_export/model.json", true);
-    //const auto xception = fdeep::load_model("keras_export/xception.json");
-    //const auto vgg16 = fdeep::load_model("keras_export/vgg16.json");
-    //const auto vgg19 = fdeep::load_model("keras_export/vgg19.json", true);
-    //const auto resnet50 = fdeep::load_model("keras_export/resnet50.json");
-    //const auto vgginceptionv39 = fdeep::load_model("keras_export/inceptionv3.json");
-    //const auto inceptionvresnetv2 = fdeep::load_model("keras_export/inceptionvresnetv2.json");
-    //const auto mobilenet = fdeep::load_model("keras_export/mobilenet.json");
+    std::vector<std::string> model_paths = {
+        "keras_export/model.json",
+        "keras_export/xception.json",
+        "keras_export/vgg16.json",
+        "keras_export/vgg19.json",
+        "keras_export/resnet50.json",
+        "keras_export/inceptionv3.json",
+        "keras_export/inceptionvresnetv2.json",
+        "keras_export/mobilenet.json"
+    };
+
+    for (const auto& model_path : model_paths)
+    {
+        try
+        {
+            const auto model = fdeep::load_model(model_path);
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
     std::cout << "done" << std::endl;
 }

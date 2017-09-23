@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "frugally_deep/typedefs.h"
+
 #include "frugally_deep/convolution.h"
 #include "frugally_deep/filter.h"
 #include "frugally_deep/frugally_deep.h"
@@ -17,7 +19,6 @@
 #include "frugally_deep/node.h"
 #include "frugally_deep/shape2.h"
 #include "frugally_deep/shape3.h"
-#include "frugally_deep/typedefs.h"
 
 #include "frugally_deep/layers/average_pooling_2d_layer.h"
 #include "frugally_deep/layers/batch_normalization_layer.h"

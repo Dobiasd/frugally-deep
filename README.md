@@ -184,3 +184,7 @@ padding layer implementieren und testen
 lambdas ersetzen, vorallem getter
 
 .first statt operator[]
+
+assert durch assertion ersetzen
+
+size durch shape

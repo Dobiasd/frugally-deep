@@ -174,7 +174,7 @@ inline layer_ptr create_dropout_layer(
 {
     const std::string name = data["name"];
     // dropout rate equals zero in forward pass
-    return std::make_shared<identity_layer>(name);
+    return std::make_shared<linear_layer>(name);
 }
 
 inline layer_ptr create_leaky_relu_layer(
@@ -263,9 +263,9 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
-inline activation_layer_ptr create_identity_layer(const std::string& name)
+inline activation_layer_ptr create_linear_layer(const std::string& name)
 {
-    return std::make_shared<identity_layer>(name);
+    return std::make_shared<linear_layer>(name);
 }
 
 inline activation_layer_ptr create_softmax_layer(const std::string& name)
@@ -310,7 +310,7 @@ inline activation_layer_ptr create_activation_layer(
     const std::unordered_map<std::string,
         std::function<activation_layer_ptr(const std::string&)>>
     creators = {
-        {"linear", create_identity_layer},
+        {"linear", create_linear_layer},
         {"softmax", create_softmax_layer},
         {"softplus", create_softplus_layer},
         {"tanh", create_tanh_layer},

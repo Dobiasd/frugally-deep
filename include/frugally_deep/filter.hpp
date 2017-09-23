@@ -28,6 +28,10 @@ public:
     {
         return m_.size();
     }
+    std::size_t volume() const
+    {
+        return m_.size().volume();
+    }
     const tensor3& get_tensor3() const
     {
         return m_;
@@ -62,8 +66,7 @@ inline filter_vec generate_filters(
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(
-            [](const filter& f) -> std::size_t { return f.size().volume(); },
-            filters));
+            std::mem_fn(&filter::volume), filters));
 
     assertion(static_cast<std::size_t>(weights.size()) == param_count,
         "invalid weight size");

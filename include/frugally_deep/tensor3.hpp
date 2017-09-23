@@ -131,14 +131,14 @@ inline tensor2 depth_slice(std::size_t z, const tensor3& m)
 
 inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 {
-    assert(!ms.empty());
-    assert(
-        fplus::all_the_same(
-            fplus::transform([](const tensor2& m) -> shape2
-            {
-                return m.size();
-            },
-            ms)));
+    assertion(!ms.empty(), "no tensor2s");
+    // todo: solve without lambda
+    const auto tensor2_shape = [](const tensor2& t) -> shape2
+    {
+        return t.size();
+    };
+    assertion(fplus::all_the_same_on(tensor2_shape, ms),
+        "all tensor2s must have the same size");
     std::size_t height = ms.front().size().height_;
     std::size_t width = ms.front().size().width_;
     tensor3 m(shape3(ms.size(), height, width));
@@ -158,8 +158,7 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 inline std::vector<tensor2> tensor3_to_depth_slices(const tensor3& m)
 {
     std::vector<tensor2> ms(
-        m.size().depth_,
-        tensor2(shape2(m.size().height_, m.size().width_)));
+        m.size().depth_, tensor2(shape2(m.size().height_, m.size().width_)));
 
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
@@ -261,6 +260,7 @@ inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
 
 inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 {
+    // todo: solve without lambda
     const auto tensor3_size_without_depth = [](const tensor3& t) -> shape2
     {
         return t.size().without_depth();
@@ -271,6 +271,7 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 
     assertion(!ts.empty(), "no tensors to concatenate");
 
+    // todo: solve without lambda
     const auto tensor3_size_depth = [](const tensor3& t) -> std::size_t
     {
         return t.size().depth_;
@@ -278,6 +279,7 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
     const std::size_t depth_sum = fplus::sum(fplus::transform(
         tensor3_size_depth, ts));
 
+    // todo: solve without lambda
     const auto as_vector = [](const tensor3& t) -> float_vec
     {
         return t.as_vector();

@@ -30,11 +30,8 @@ public:
             input_connections_(input_connections),
             output_connections_(output_connections)
     {
-        const auto get_layer_name = [](const layer_ptr& l_ptr) -> std::string
-        {
-            return l_ptr->name_;
-        };
-        assertion(fplus::all_unique_on(get_layer_name, layers),
+        assertion(fplus::all_unique(
+            fplus::transform(fplus_get_ptr_mem(name_), layers)),
             "layer names must be unique");
     }
 

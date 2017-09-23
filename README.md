@@ -34,7 +34,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) - also a small header-only library
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
-* does not make use of a GPU.
+* does not make use of a GPU and is quite slow. ;-)
 
 
 ### Supported layer types

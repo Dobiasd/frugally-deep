@@ -56,7 +56,7 @@ public:
     {
         set(tensor2_pos(y, x), value);
     }
-    const shape2& size() const
+    const shape2& shape() const
     {
         return size_;
     }
@@ -69,7 +69,7 @@ private:
     std::size_t idx(const tensor2_pos& pos) const
     {
         return
-            pos.y_ * size().width_ +
+            pos.y_ * shape().width_ +
             pos.x_;
     };
     shape2 size_;
@@ -80,9 +80,9 @@ inline std::string show_tensor2(const tensor2& m)
 {
     std::string str;
     str += "[";
-    for (std::size_t y = 0; y < m.size().height_; ++y)
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width_; ++x)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
             str += std::to_string(m.get(y, x)) + ",";
         }
@@ -95,7 +95,7 @@ inline std::string show_tensor2(const tensor2& m)
 template <typename F>
 tensor2 transform_tensor2(F f, const tensor2& m)
 {
-    return tensor2(m.size(), fplus::transform(f, m.as_vector()));
+    return tensor2(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
 inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_size)
@@ -106,11 +106,11 @@ inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_size)
 inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)
 {
     tensor2 out(shape2(
-        in.size().height_ * step - (step - 1),
-        in.size().width_ * step - (step - 1)));
-    for (std::size_t y = 0; y < in.size().height_; ++y)
+        in.shape().height_ * step - (step - 1),
+        in.shape().width_ * step - (step - 1)));
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < in.size().width_; ++x)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
             out.set(y * step, x * step, in.get(y, x));
         }
@@ -120,14 +120,14 @@ inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)
 
 inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
-    assertion(a.size().width_ == b.size().height_, "invalid tensor shapes");
+    assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
 
-    std::size_t inner = a.size().width_;
-    tensor2 m(shape2(a.size().height_, b.size().width_));
+    std::size_t inner = a.shape().width_;
+    tensor2 m(shape2(a.shape().height_, b.shape().width_));
 
-    for (std::size_t y = 0; y < a.size().height_; ++y)
+    for (std::size_t y = 0; y < a.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < b.size().width_; ++x)
+        for (std::size_t x = 0; x < b.shape().width_; ++x)
         {
             float_t sum = 0;
             for (std::size_t i = 0; i < inner; ++i)
@@ -149,19 +149,19 @@ inline float_t tensor2_mean_value(const tensor2& m)
 {
     return
         tensor2_sum_all_values(m) /
-        static_cast<float_t>(m.size().area());
+        static_cast<float_t>(m.shape().area());
 }
 
 inline tensor2 add_tensor2s(const tensor2& m1, const tensor2& m2)
 {
-    assertion(m1.size() == m2.size(), "unequal tensor shapes");
-    return tensor2(m1.size(), fplus::zip_with(std::plus<float_t>(),
+    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
+    return tensor2(m1.shape(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
 inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
 {
-    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x + e;
     }, m.as_vector()));
@@ -169,7 +169,7 @@ inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
 
 inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
 {
-    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return e - x;
     }, m.as_vector()));
@@ -177,7 +177,7 @@ inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
 
 inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
 {
-    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x * e;
     }, m.as_vector()));
@@ -185,7 +185,7 @@ inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
 
 inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
 {
-    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return e / x;
     }, m.as_vector()));
@@ -199,10 +199,10 @@ inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
 
 inline tensor2 transpose_tensor2(const tensor2& m)
 {
-    tensor2 result(shape2(m.size().width_, m.size().height_));
-    for (std::size_t x = 0; x < m.size().width_; ++x)
+    tensor2 result(shape2(m.shape().width_, m.shape().height_));
+    for (std::size_t x = 0; x < m.shape().width_; ++x)
     {
-        for (std::size_t y = 0; y < m.size().height_; ++y)
+        for (std::size_t y = 0; y < m.shape().height_; ++y)
         {
             result.set(x, y, m.get(y, x));
         }
@@ -212,12 +212,12 @@ inline tensor2 transpose_tensor2(const tensor2& m)
 
 inline tensor2 flip_tensor2_horizontally(const tensor2& m)
 {
-    tensor2 result(m.size());
-    for (std::size_t y = 0; y < m.size().height_; ++y)
+    tensor2 result(m.shape());
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width_; ++x)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
-            result.set(y, m.size().width_ - (x + 1), m.get(y, x));
+            result.set(y, m.shape().width_ - (x + 1), m.get(y, x));
         }
     }
     return result;

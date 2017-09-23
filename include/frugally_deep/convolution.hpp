@@ -23,11 +23,11 @@ inline tensor2 pad_tensor2(
     const tensor2& in)
 {
     tensor2 out(shape2(
-        in.size().height_ + 2 * padding_y,
-        in.size().width_ + 2 * padding_x));
-    for (std::size_t y = 0; y < in.size().height_; ++y)
+        in.shape().height_ + 2 * padding_y,
+        in.shape().width_ + 2 * padding_x));
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < in.size().width_; ++x)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
             out.set(y + padding_y, x + padding_x, in.get(y, x));
         }
@@ -44,11 +44,11 @@ inline void convolve_go(
     const tensor2& in,
     tensor2& out)
 {
-    const std::size_t fy = filter.size().height_;
-    const std::size_t fx = filter.size().width_;
-    for (std::size_t y = 0; y < out.size().height_; ++y)
+    const std::size_t fy = filter.shape().height_;
+    const std::size_t fx = filter.shape().width_;
+    for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < out.size().width_; ++x)
+        for (std::size_t x = 0; x < out.shape().width_; ++x)
         {
             for (std::size_t yf = 0; yf < fy; ++yf)
             {
@@ -76,11 +76,11 @@ void convolve_go_template(
     const tensor2& in,
     tensor2& out)
 {
-    assertion(filter.size().height_ == fy, "invalid filter height");
-    assertion(filter.size().width_ == fx, "invalid filter width");
-    for (std::size_t y = 0; y < out.size().height_; ++y)
+    assertion(filter.shape().height_ == fy, "invalid filter height");
+    assertion(filter.shape().width_ == fx, "invalid filter width");
+    for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < out.size().width_; ++x)
+        for (std::size_t x = 0; x < out.shape().width_; ++x)
         {
             for (std::size_t yf = 0; yf < fy; ++yf)
             {
@@ -105,10 +105,10 @@ inline tensor2 convolve(
     const tensor2& in_orig)
 {
     assertion(stride > 0, "invalid stride");
-    const std::size_t h1 = in_orig.size().height_;
-    const std::size_t w1 = in_orig.size().width_;
-    const std::size_t fy = filter.size().height_;
-    const std::size_t fx = filter.size().width_;
+    const std::size_t h1 = in_orig.shape().height_;
+    const std::size_t w1 = in_orig.shape().width_;
+    const std::size_t fy = filter.shape().height_;
+    const std::size_t fx = filter.shape().width_;
     const std::size_t py = padding_y;
     const std::size_t px = padding_x;
 

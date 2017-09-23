@@ -33,21 +33,21 @@ protected:
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();
 
-        if (input.size().depth_ == 1 && input.size().height_ == 1)
+        if (input.shape().depth_ == 1 && input.shape().height_ == 1)
         {
             auto result = input;
             if (!gamma_.empty())
             {
-                assertion(result.size().width_ == gamma_.size(),
+                assertion(result.shape().width_ == gamma_.size(),
                     "invalid gamma");
-                result = tensor3(result.size(),
+                result = tensor3(result.shape(),
                     fplus::zip_with(std::multiplies<float_t>(),
                         result.as_vector(), gamma_));
             }
             if (!beta_.empty())
             {
-                assertion(result.size().width_ == beta_.size(), "invalid beta");
-                result = tensor3(result.size(),
+                assertion(result.shape().width_ == beta_.size(), "invalid beta");
+                result = tensor3(result.shape(),
                     fplus::zip_with(std::plus<float_t>(),
                         result.as_vector(), beta_));
             }

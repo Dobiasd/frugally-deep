@@ -184,7 +184,3 @@ travis wie fplus, auch mit warnings und so
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
 padding layer implementieren und testen
-
-assert durch assertion ersetzen
-
-size durch shape

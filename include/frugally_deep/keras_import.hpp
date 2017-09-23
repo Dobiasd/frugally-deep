@@ -422,12 +422,12 @@ inline test_cases load_test_cases(const nlohmann::json& data)
 
 inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
 {
-    assertion(output.size() == target.size(), "wrong output size");
-    for (std::size_t z = 0; z < output.size().depth_; ++z)
+    assertion(output.shape() == target.shape(), "wrong output size");
+    for (std::size_t z = 0; z < output.shape().depth_; ++z)
     {
-        for (std::size_t y = 0; y < output.size().height_; ++y)
+        for (std::size_t y = 0; y < output.shape().height_; ++y)
         {
-            for (std::size_t x = 0; x < output.size().width_; ++x)
+            for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
                     static_cast<float_t>(0.01),

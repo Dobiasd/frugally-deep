@@ -27,11 +27,11 @@ inline tensor2 unpad_tensor2(
     const tensor2& in)
 {
     tensor2 out(shape2(
-        in.size().height_ - 2 * padding_y,
-        in.size().width_ - 2 * padding_x));
-    for (std::size_t y = 0; y < out.size().height_; ++y)
+        in.shape().height_ - 2 * padding_y,
+        in.shape().width_ - 2 * padding_x));
+    for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < out.size().width_; ++x)
+        for (std::size_t x = 0; x < out.shape().width_; ++x)
         {
             out.set(y, x, in.get(y + padding_y, x + padding_x));
         }
@@ -45,11 +45,11 @@ inline void convolve_transpose_go(
     const tensor2& in,
     tensor2& out)
 {
-    const std::size_t fy = filter.size().height_;
-    const std::size_t fx = filter.size().width_;
-    for (std::size_t y = 0; y < in.size().height_; ++y)
+    const std::size_t fy = filter.shape().height_;
+    const std::size_t fx = filter.shape().width_;
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < in.size().width_; ++x)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
             for (std::size_t yf = 0; yf < fy; ++yf)
             {
@@ -77,11 +77,11 @@ void convolve_transpose_go_template(
     const tensor2& in,
     tensor2& out)
 {
-    assertion(filter.size().height_ == fy, "invalid filter size");
-    assertion(filter.size().width_ == fx, "invalid filter witdh");
-    for (std::size_t y = 0; y < in.size().height_; ++y)
+    assertion(filter.shape().height_ == fy, "invalid filter size");
+    assertion(filter.shape().width_ == fx, "invalid filter witdh");
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < in.size().width_; ++x)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
             for (std::size_t yf = 0; yf < fy; ++yf)
             {
@@ -124,10 +124,10 @@ inline tensor2 convolve_transpose(
     const tensor2& in)
 {
     assertion(stride > 0, "invalid stride");
-    const std::size_t h1 = in.size().height_;
-    const std::size_t w1 = in.size().width_;
-    const std::size_t fy = filter.size().height_;
-    const std::size_t fx = filter.size().width_;
+    const std::size_t h1 = in.shape().height_;
+    const std::size_t w1 = in.shape().width_;
+    const std::size_t fy = filter.shape().height_;
+    const std::size_t fx = filter.shape().width_;
     const std::size_t h2 = fy - 2 * unpadding_y + stride * (h1 - 1);
     const std::size_t w2 = fx - 2 * unpadding_x + stride * (w1 - 1);
 

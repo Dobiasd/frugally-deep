@@ -48,21 +48,21 @@ protected:
             FinalizePixelFunc finalize_pixel_func,
             const tensor3& in_vol)
     {
-        assertion(in_vol.size().height_ % scale_factor == 0,
+        assertion(in_vol.shape().height_ % scale_factor == 0,
             "invalid data height");
-        assertion(in_vol.size().width_ % scale_factor == 0,
+        assertion(in_vol.shape().width_ % scale_factor == 0,
             "invalid data width");
         tensor3 out_vol(
             shape3(
-                in_vol.size().depth_,
-                in_vol.size().height_ / scale_factor,
-                in_vol.size().width_ / scale_factor));
-        for (std::size_t z = 0; z < in_vol.size().depth_; ++z)
+                in_vol.shape().depth_,
+                in_vol.shape().height_ / scale_factor,
+                in_vol.shape().width_ / scale_factor));
+        for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
         {
-            for (std::size_t y = 0; y < out_vol.size().height_; ++y)
+            for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
             {
                 std::size_t y_in = y * scale_factor;
-                for (std::size_t x = 0; x < out_vol.size().width_; ++x)
+                for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
                 {
                     std::size_t x_in = x * scale_factor;
                     float_t acc = acc_init;

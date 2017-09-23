@@ -51,15 +51,15 @@ protected:
         const std::size_t stride = strides_.width_;
 
         assertion(filters_.size() > 0, "no filters");
-        const auto filter_size = filters_.front().size();
+        const auto filter_size = filters_.front().shape();
 
         std::size_t padding_y_ = 0;
         std::size_t padding_x_ = 0;
         if (padding_ == padding::same)
         {
             // todo: is this correct?
-            padding_y_ = (input.size().height_ * stride - input.size().height_ + filter_size.height_ - stride) / 2;
-            padding_x_ = (input.size().width_ * stride - input.size().width_ + filter_size.width_ - stride) / 2;
+            padding_y_ = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
+            padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
         }
 
         return {convolve(stride, padding_x_, padding_y_, filters_, input)};

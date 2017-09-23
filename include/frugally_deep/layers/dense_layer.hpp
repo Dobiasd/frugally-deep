@@ -41,8 +41,8 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        assertion(input.size().height_ == 1, "input needs to be flattened");
-        assertion(input.size().depth_ == 1, "input needs to be flattened");
+        assertion(input.shape().height_ == 1, "input needs to be flattened");
+        assertion(input.shape().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);
         return {tensor3(shape3(1, 1, n_out_),
             multiply(bias_padded_input, params_).as_vector())};
@@ -50,7 +50,7 @@ protected:
     static tensor2 bias_pad_input(const tensor3& input)
     {
         return tensor2(
-            shape2(1, input.size().width_ + 1),
+            shape2(1, input.shape().width_ + 1),
             fplus::append(input.as_vector(), {1}));
     }
     std::size_t n_in_;

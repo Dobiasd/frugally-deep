@@ -53,17 +53,17 @@ public:
     {
         set(tensor3_pos(z, y, x), value);
     }
-    const shape3& size() const
+    const shape3& shape() const
     {
         return size_;
     }
     const shape2 size_without_depth() const
     {
-        return size().without_depth();
+        return shape().without_depth();
     }
     std::size_t depth() const
     {
-        return size().depth_;
+        return shape().depth_;
     }
     const float_vec& as_vector() const
     {
@@ -74,8 +74,8 @@ private:
     std::size_t idx(const tensor3_pos& pos) const
     {
         return
-            pos.z_ * size().height_ * size().width_ +
-            pos.y_ * size().width_ +
+            pos.z_ * shape().height_ * shape().width_ +
+            pos.y_ * shape().width_ +
             pos.x_;
     };
     shape3 size_;
@@ -88,12 +88,12 @@ inline std::string show_tensor3(const tensor3& m)
 {
     std::string str;
     str += "[";
-    for (std::size_t z = 0; z < m.size().depth_; ++z)
+    for (std::size_t z = 0; z < m.shape().depth_; ++z)
     {
         str += "[";
-        for (std::size_t y = 0; y < m.size().height_; ++y)
+        for (std::size_t y = 0; y < m.shape().height_; ++y)
         {
-            for (std::size_t x = 0; x < m.size().width_; ++x)
+            for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
                 str += fplus::show_float_fill_left<float_t>(' ', 8, 4,
                     m.get(z, y, x)) + ",";
@@ -109,7 +109,7 @@ inline std::string show_tensor3(const tensor3& m)
 template <typename F>
 tensor3 transform_tensor3(F f, const tensor3& m)
 {
-    return tensor3(m.size(), fplus::transform(f, m.as_vector()));
+    return tensor3(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
 inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_size)
@@ -119,10 +119,10 @@ inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_size)
 
 inline tensor2 depth_slice(std::size_t z, const tensor3& m)
 {
-    tensor2 result(shape2(m.size().height_, m.size().width_));
-    for (std::size_t y = 0; y < m.size().height_; ++y)
+    tensor2 result(shape2(m.shape().height_, m.shape().width_));
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width_; ++x)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
             result.set(y, x, m.get(z, y, x));
         }
@@ -134,16 +134,16 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 {
     assertion(!ms.empty(), "no tensor2s");
     assertion(
-        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor2, size, shape2), ms),
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor2, shape, shape2), ms),
         "all tensor2s must have the same size");
-    std::size_t height = ms.front().size().height_;
-    std::size_t width = ms.front().size().width_;
+    std::size_t height = ms.front().shape().height_;
+    std::size_t width = ms.front().shape().width_;
     tensor3 m(shape3(ms.size(), height, width));
-    for (std::size_t z = 0; z < m.size().depth_; ++z)
+    for (std::size_t z = 0; z < m.shape().depth_; ++z)
     {
-        for (std::size_t y = 0; y < m.size().height_; ++y)
+        for (std::size_t y = 0; y < m.shape().height_; ++y)
         {
-            for (std::size_t x = 0; x < m.size().width_; ++x)
+            for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
                 m.set(z, y, x, ms[z].get(y, x));
             }
@@ -155,13 +155,13 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 inline std::vector<tensor2> tensor3_to_depth_slices(const tensor3& m)
 {
     std::vector<tensor2> ms(
-        m.size().depth_, tensor2(shape2(m.size().height_, m.size().width_)));
+        m.shape().depth_, tensor2(shape2(m.shape().height_, m.shape().width_)));
 
-    for (std::size_t z = 0; z < m.size().depth_; ++z)
+    for (std::size_t z = 0; z < m.shape().depth_; ++z)
     {
-        for (std::size_t y = 0; y < m.size().height_; ++y)
+        for (std::size_t y = 0; y < m.shape().height_; ++y)
         {
-            for (std::size_t x = 0; x < m.size().width_; ++x)
+            for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
                 ms[z].set(y, x, m.get(z, y, x));
             }
@@ -180,10 +180,10 @@ inline tensor3 sparse_tensor3(std::size_t step, const tensor3& in)
 
 inline tensor3 tensor2_to_tensor3(const tensor2& m)
 {
-    tensor3 result(shape3(1, m.size().height_, m.size().width_));
-    for (std::size_t y = 0; y < m.size().height_; ++y)
+    tensor3 result(shape3(1, m.shape().height_, m.shape().width_));
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t x = 0; x < m.size().width_; ++x)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
             result.set(0, y, x, m.get(y, x));
         }
@@ -198,11 +198,11 @@ inline std::pair<tensor3_pos, tensor3_pos> tensor3_min_max_pos(
     tensor3_pos result_max(0, 0, 0);
     float_t value_max = std::numeric_limits<float_t>::lowest();
     float_t value_min = std::numeric_limits<float_t>::max();
-    for (std::size_t z = 0; z < vol.size().depth_; ++z)
+    for (std::size_t z = 0; z < vol.shape().depth_; ++z)
     {
-        for (std::size_t y = 0; y < vol.size().height_; ++y)
+        for (std::size_t y = 0; y < vol.shape().height_; ++y)
         {
-            for (std::size_t x = 0; x < vol.size().width_; ++x)
+            for (std::size_t x = 0; x < vol.shape().width_; ++x)
             {
                 auto current_value = vol.get(z, y, x);
                 if (current_value > value_max)
@@ -250,8 +250,8 @@ inline float_t tensor3_min_value(const tensor3& m)
 
 inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
 {
-    assertion(m1.size() == m2.size(), "unequal tensor shapes");
-    return tensor3(m1.size(), fplus::zip_with(std::plus<float_t>(),
+    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
+    return tensor3(m1.shape(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
@@ -267,13 +267,13 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
         fplus_c_mem_fn_t(tensor3, depth, std::size_t), ts));
 
     return tensor3(
-        shape3(depth_sum, ts.front().size().height_, ts.front().size().width_),
+        shape3(depth_sum, ts.front().shape().height_, ts.front().shape().width_),
         fplus::transform_and_concat(fplus_mem_fn(as_vector), ts));
 }
 
 inline tensor3 add_to_tensor3_elems(const tensor3& m, float_t x)
 {
-    return tensor3(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x + e;
     }, m.as_vector()));
@@ -281,7 +281,7 @@ inline tensor3 add_to_tensor3_elems(const tensor3& m, float_t x)
 
 inline tensor3 multiply_tensor3_elems(const tensor3& m, float_t x)
 {
-    return tensor3(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x * e;
     }, m.as_vector()));
@@ -296,8 +296,8 @@ inline tensor3 sum_tensor3s(const std::vector<tensor3>& ms)
 inline tensor3 multiply_tensor3s_elementwise(
     const tensor3& m1, const tensor3& m2)
 {
-    assertion(m1.size() == m2.size(), "unequal tensor shapes");
-    return tensor3(m1.size(), fplus::zip_with(std::multiplies<float_t>(),
+    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
+    return tensor3(m1.shape(), fplus::zip_with(std::multiplies<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
@@ -344,7 +344,7 @@ inline float_t tensor3_mean_value(const tensor3& m)
 {
     return
         tensor3_sum_all_values(m) /
-        static_cast<float_t>(m.size().volume());
+        static_cast<float_t>(m.shape().volume());
 }
 
 inline tensor3 operator + (const tensor3& lhs, const tensor3& rhs)
@@ -369,7 +369,7 @@ inline tensor3 operator / (const tensor3& m, float_t divisor)
 
 inline bool operator == (const tensor3& a, const tensor3& b)
 {
-    return a.size() == b.size() && a.as_vector() == b.as_vector();
+    return a.shape() == b.shape() && a.as_vector() == b.as_vector();
 }
 
 inline bool operator != (const tensor3& a, const tensor3& b)
@@ -413,12 +413,12 @@ inline tensor3 rotate_tensor3_ccw(int step_cnt_90_deg, const tensor3& m)
 inline tensor3 flatten_tensor3(const tensor3& vol)
 {
     float_vec values;
-    values.reserve(vol.size().volume());
-    for (std::size_t x = 0; x < vol.size().width_; ++x)
+    values.reserve(vol.shape().volume());
+    for (std::size_t x = 0; x < vol.shape().width_; ++x)
     {
-        for (std::size_t y = 0; y < vol.size().height_; ++y)
+        for (std::size_t y = 0; y < vol.shape().height_; ++y)
         {
-            for (std::size_t z = 0; z < vol.size().depth_; ++z)
+            for (std::size_t z = 0; z < vol.shape().depth_; ++z)
             {
                 values.push_back(vol.get(z, y, x));
             }

@@ -24,13 +24,13 @@ public:
     filter(const tensor3& m, float_t bias) : m_(m), bias_(bias)
     {
     }
-    const shape3& size() const
+    const shape3& shape() const
     {
-        return m_.size();
+        return m_.shape();
     }
     std::size_t volume() const
     {
-        return m_.size().volume();
+        return m_.shape().volume();
     }
     const tensor3& get_tensor3() const
     {
@@ -46,9 +46,9 @@ public:
     }
     void set_params(const float_vec& weights, float_t bias)
     {
-        assertion(weights.size() == m_.size().volume(),
+        assertion(weights.size() == m_.shape().volume(),
             "invalid parameter count");
-        m_ = tensor3(m_.size(), weights);
+        m_ = tensor3(m_.shape(), weights);
         bias_ = bias;
     }
 private:
@@ -71,7 +71,7 @@ inline filter_vec generate_filters(
 
     assertion(static_cast<std::size_t>(weights.size()) == param_count,
         "invalid weight size");
-    const auto filter_param_cnt = filters.front().size().volume();
+    const auto filter_param_cnt = filters.front().shape().volume();
 
     const auto filter_weights =
         fplus::split_every(filter_param_cnt, weights);
@@ -93,23 +93,23 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
 {
     assertion(!fs.empty(), "no filter given");
     std::size_t k = fs.size();
-    std::size_t d = fs.front().size().depth_;
-    shape3 new_filter_size(
+    std::size_t d = fs.front().shape().depth_;
+    shape3 new_filter_shape(
         k,
-        fs.front().size().height_,
-        fs.front().size().width_);
+        fs.front().shape().height_,
+        fs.front().shape().width_);
     filter_vec result;
     result.reserve(d);
     for (std::size_t i = 0; i < d; ++i)
     {
-        tensor3 new_f_mat(new_filter_size);
+        tensor3 new_f_mat(new_filter_shape);
         float_t bias = 0;
         for (std::size_t j = 0; j < k; ++j)
         {
-            for (std::size_t y = 0; y < new_filter_size.height_; ++y)
+            for (std::size_t y = 0; y < new_filter_shape.height_; ++y)
             {
                 //std::size_t y2 = new_filter_size.height_ - (y + 1);
-                for (std::size_t x = 0; x < new_filter_size.width_; ++x)
+                for (std::size_t x = 0; x < new_filter_shape.width_; ++x)
                 {
                     //std::size_t x2 = new_filter_size.width_ - (x + 1);
                     new_f_mat.set(j, y, x, fs[j].get(i, y, x));

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/typedefs.hpp"
+#include "frugally_deep/common.hpp"
 
 #include "frugally_deep/shape2.hpp"
 #include "frugally_deep/tensor2_pos.hpp"

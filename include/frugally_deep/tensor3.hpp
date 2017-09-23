@@ -57,6 +57,14 @@ public:
     {
         return size_;
     }
+    const shape2 size_without_depth() const
+    {
+        return size().without_depth();
+    }
+    std::size_t depth() const
+    {
+        return size().depth_;
+    }
     const float_vec& as_vector() const
     {
         return values_;
@@ -132,12 +140,8 @@ inline tensor2 depth_slice(std::size_t z, const tensor3& m)
 inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 {
     assertion(!ms.empty(), "no tensor2s");
-    // todo: solve without lambda
-    const auto tensor2_shape = [](const tensor2& t) -> shape2
-    {
-        return t.size();
-    };
-    assertion(fplus::all_the_same_on(tensor2_shape, ms),
+    assertion(
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor2, size, shape2), ms),
         "all tensor2s must have the same size");
     std::size_t height = ms.front().size().height_;
     std::size_t width = ms.front().size().width_;
@@ -260,33 +264,18 @@ inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
 
 inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 {
-    // todo: solve without lambda
-    const auto tensor3_size_without_depth = [](const tensor3& t) -> shape2
-    {
-        return t.size().without_depth();
-    };
-
-    assertion(fplus::all_the_same_on(tensor3_size_without_depth, ts),
+    assertion(fplus::all_the_same_on(
+        fplus_c_mem_fn_t(tensor3, size_without_depth, shape2), ts),
         "all tensors must have the same width and height");
 
     assertion(!ts.empty(), "no tensors to concatenate");
 
-    // todo: solve without lambda
-    const auto tensor3_size_depth = [](const tensor3& t) -> std::size_t
-    {
-        return t.size().depth_;
-    };
     const std::size_t depth_sum = fplus::sum(fplus::transform(
-        tensor3_size_depth, ts));
+        fplus_c_mem_fn_t(tensor3, depth, std::size_t), ts));
 
-    // todo: solve without lambda
-    const auto as_vector = [](const tensor3& t) -> float_vec
-    {
-        return t.as_vector();
-    };
     return tensor3(
         shape3(depth_sum, ts.front().size().height_, ts.front().size().width_),
-        fplus::transform_and_concat(as_vector, ts));
+        fplus::transform_and_concat(fplus_mem_fn(as_vector), ts));
 }
 
 inline tensor3 add_to_tensor3_elems(const tensor3& m, float_t x)

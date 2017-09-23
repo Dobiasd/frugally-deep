@@ -16,7 +16,7 @@ namespace fdeep
 {
 
 // Takes a single stack volume (shape3(n, 1, 1)) as input.
-class fully_connected_layer : public layer
+class dense_layer : public layer
 {
 public:
     static tensor2 generate_params(std::size_t n_in,
@@ -25,7 +25,7 @@ public:
         return tensor2(shape2(n_in + 1, bias.size()),
             fplus::append(weights, bias));
     }
-    fully_connected_layer(const std::string& name, std::size_t units,
+    dense_layer(const std::string& name, std::size_t units,
             const float_vec& weights,
             const float_vec& bias) :
         layer(name),

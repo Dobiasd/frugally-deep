@@ -221,7 +221,7 @@ inline layer_ptr create_dense_layer(
     const bool use_bias = data["config"]["use_bias"];
     if (!use_bias) fill_with_zeros(bias);
     std::size_t units = data["config"]["units"];
-    return std::make_shared<fully_connected_layer>(
+    return std::make_shared<dense_layer>(
         name, units, weights, bias);
 }
 

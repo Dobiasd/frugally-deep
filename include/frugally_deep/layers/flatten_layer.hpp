@@ -22,7 +22,7 @@ public:
 protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
-        assert(inputs.size() == 1);
+        assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
         return {flatten_tensor3(input)};
     }

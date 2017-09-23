@@ -30,7 +30,7 @@ public:
         size_(shape),
         values_(values)
     {
-        assert(shape.volume() == values.size());
+        assertion(shape.volume() == values.size(), "invalid number of values");
     }
     explicit tensor3(const shape3& shape) :
         size_(shape),
@@ -68,13 +68,6 @@ public:
     const float_vec& as_vector() const
     {
         return values_;
-    }
-    void overwrite_values(const float_vec_const_it vs_begin,
-        const float_vec_const_it vs_end)
-    {
-        assert(static_cast<std::size_t>(std::distance(vs_begin, vs_end)) ==
-            size().volume());
-        std::copy(vs_begin, vs_end, std::begin(values_));
     }
 
 private:
@@ -257,7 +250,7 @@ inline float_t tensor3_min_value(const tensor3& m)
 
 inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
 {
-    assert(m1.size() == m2.size());
+    assertion(m1.size() == m2.size(), "unequal tensor shapes");
     return tensor3(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
@@ -296,14 +289,14 @@ inline tensor3 multiply_tensor3_elems(const tensor3& m, float_t x)
 
 inline tensor3 sum_tensor3s(const std::vector<tensor3>& ms)
 {
-    assert(!ms.empty());
+    assertion(!ms.empty(), "no tensors given");
     return fplus::fold_left_1(add_tensor3s, ms);
 }
 
 inline tensor3 multiply_tensor3s_elementwise(
     const tensor3& m1, const tensor3& m2)
 {
-    assert(m1.size() == m2.size());
+    assertion(m1.size() == m2.size(), "unequal tensor shapes");
     return tensor3(m1.size(), fplus::zip_with(std::multiplies<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }

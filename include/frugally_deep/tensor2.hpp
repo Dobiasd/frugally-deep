@@ -28,7 +28,7 @@ public:
         size_(shape),
         values_(values)
     {
-        assert(shape.area() == values.size());
+        assertion(shape.area() == values.size(), "invalid number of values");
     }
     tensor2(const shape2& shape, const float_t& value) :
         size_(shape),
@@ -63,13 +63,6 @@ public:
     const float_vec& as_vector() const
     {
         return values_;
-    }
-    void overwrite_values(const float_vec_const_it vs_begin,
-        const float_vec_const_it vs_end)
-    {
-        assert(static_cast<std::size_t>(std::distance(vs_begin, vs_end)) ==
-            size().area());
-        std::copy(vs_begin, vs_end, std::begin(values_));
     }
 
 private:
@@ -127,7 +120,7 @@ inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)
 
 inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
-    assert(a.size().width_ == b.size().height_);
+    assertion(a.size().width_ == b.size().height_, "invalid tensor shapes");
 
     std::size_t inner = a.size().width_;
     tensor2 m(shape2(a.size().height_, b.size().width_));
@@ -161,7 +154,7 @@ inline float_t tensor2_mean_value(const tensor2& m)
 
 inline tensor2 add_tensor2s(const tensor2& m1, const tensor2& m2)
 {
-    assert(m1.size() == m2.size());
+    assertion(m1.size() == m2.size(), "unequal tensor shapes");
     return tensor2(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
@@ -200,7 +193,7 @@ inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
 
 inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
 {
-    assert(!ms.empty());
+    assertion(!ms.empty(), "no tensors given");
     return fplus::fold_left_1(add_tensor2s, ms);
 }
 
@@ -255,7 +248,7 @@ inline tensor2 rotate_tensor2_ccw(int step_cnt_90_deg, const tensor2& m)
     }
     else
     {
-        assert(false);
+        assertion(false, "invalid rotation step count");
         return m;
     }
 }

@@ -76,8 +76,8 @@ void convolve_go_template(
     const tensor2& in,
     tensor2& out)
 {
-    assert(filter.size().height_ == fy);
-    assert(filter.size().width_ == fx);
+    assertion(filter.size().height_ == fy, "invalid filter height");
+    assertion(filter.size().width_ == fx, "invalid filter width");
     for (std::size_t y = 0; y < out.size().height_; ++y)
     {
         for (std::size_t x = 0; x < out.size().width_; ++x)
@@ -104,7 +104,7 @@ inline tensor2 convolve(
     const tensor2& filter,
     const tensor2& in_orig)
 {
-    assert(stride > 0);
+    assertion(stride > 0, "invalid stride");
     const std::size_t h1 = in_orig.size().height_;
     const std::size_t w1 = in_orig.size().width_;
     const std::size_t fy = filter.size().height_;
@@ -112,8 +112,8 @@ inline tensor2 convolve(
     const std::size_t py = padding_y;
     const std::size_t px = padding_x;
 
-    assert(fy <= h1);
-    assert(fx <= w1);
+    assertion(fy <= h1, "filter height too large for data");
+    assertion(fx <= w1, "filter width too large for data");
 
     const std::size_t h2 = (h1 - fy + 2 * py) / stride + 1;
     const std::size_t w2 = (w1 - fx + 2 * px) / stride + 1;

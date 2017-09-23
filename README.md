@@ -169,6 +169,10 @@ test strides != 1
 
 test paddings valid and same with non-fitting shapes
 
+test pooling with non-fitting data
+
+test upsampling2d with non-even factors
+
 geht SeparableConv2D schon?
 
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
@@ -180,10 +184,6 @@ travis wie fplus, auch mit warnings und so
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
 padding layer implementieren und testen
-
-lambdas ersetzen, vorallem getter
-
-.first statt operator[]
 
 assert durch assertion ersetzen
 

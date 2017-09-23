@@ -77,8 +77,8 @@ void convolve_transpose_go_template(
     const tensor2& in,
     tensor2& out)
 {
-    assert(filter.size().height_ == fy);
-    assert(filter.size().width_ == fx);
+    assertion(filter.size().height_ == fy, "invalid filter size");
+    assertion(filter.size().width_ == fx, "invalid filter witdh");
     for (std::size_t y = 0; y < in.size().height_; ++y)
     {
         for (std::size_t x = 0; x < in.size().width_; ++x)
@@ -123,7 +123,7 @@ inline tensor2 convolve_transpose(
     const tensor2& filter,
     const tensor2& in)
 {
-    assert(stride > 0);
+    assertion(stride > 0, "invalid stride");
     const std::size_t h1 = in.size().height_;
     const std::size_t w1 = in.size().width_;
     const std::size_t fy = filter.size().height_;

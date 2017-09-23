@@ -25,13 +25,11 @@ public:
         layer(name),
         scale_factor_(scale_factor)
     {
-        //assert(size_in.height_ % scale_factor == 0);
-        //assert(size_in.width_ % scale_factor == 0);
     }
 protected:
     tensor3s apply_impl(const tensor3s& inputs) const override final
     {
-        assert(inputs.size() == 1);
+        assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
         return {pool(input)};
     }
@@ -50,8 +48,10 @@ protected:
             FinalizePixelFunc finalize_pixel_func,
             const tensor3& in_vol)
     {
-        assert(in_vol.size().height_ % scale_factor == 0);
-        assert(in_vol.size().width_ % scale_factor == 0);
+        assertion(in_vol.size().height_ % scale_factor == 0,
+            "invalid data height");
+        assertion(in_vol.size().width_ % scale_factor == 0,
+            "invalid data width");
         tensor3 out_vol(
             shape3(
                 in_vol.size().depth_,

@@ -46,7 +46,8 @@ public:
     }
     void set_params(const float_vec& weights, float_t bias)
     {
-        assert(weights.size() == m_.size().volume());
+        assertion(weights.size() == m_.size().volume(),
+            "invalid parameter count");
         m_ = tensor3(m_.size(), weights);
         bias_ = bias;
     }
@@ -90,7 +91,7 @@ inline filter_vec generate_filters(
 
 inline filter_vec flip_filters_spatially(const filter_vec& fs)
 {
-    assert(!fs.empty());
+    assertion(!fs.empty(), "no filter given");
     std::size_t k = fs.size();
     std::size_t d = fs.front().size().depth_;
     shape3 new_filter_size(

@@ -165,8 +165,6 @@ remove vscode directory
 
 klassiker aus keras als examples
 
-rename all layers to keras names (e.g. unpool -> upsampling2d)
-
 write something about contributing to the project
 
 alles ausser load_model und model in internal namespace verschieben

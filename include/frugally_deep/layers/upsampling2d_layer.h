@@ -17,10 +17,10 @@
 namespace fdeep
 {
 
-class unpool_layer : public layer
+class upsampling2d_layer : public layer
 {
 public:
-    explicit unpool_layer(const std::string& name, std::size_t scale_factor) :
+    explicit upsampling2d_layer(const std::string& name, std::size_t scale_factor) :
         layer(name),
         scale_factor_(scale_factor)
     {
@@ -31,10 +31,10 @@ protected:
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
-        return {unpool(input)};
+        return {upsampling2d(input)};
     }
     const std::size_t scale_factor_;
-    tensor3 unpool(const tensor3& in_vol) const
+    tensor3 upsampling2d(const tensor3& in_vol) const
     {
         tensor3 out_vol(
             shape3(

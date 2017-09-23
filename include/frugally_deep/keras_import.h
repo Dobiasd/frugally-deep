@@ -91,9 +91,9 @@ inline layer_ptr create_conv2d_layer(
     if (!use_bias) fill_with_zeros(bias);
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
-        fplus::choose<std::string, convolutional_layer::padding>({
-        { std::string("valid"), convolutional_layer::padding::valid },
-        { std::string("same"), convolutional_layer::padding::same },
+        fplus::choose<std::string, conv2d_layer::padding>({
+        { std::string("valid"), conv2d_layer::padding::valid },
+        { std::string("same"), conv2d_layer::padding::same },
     }, padding_str);
     assertion(fplus::is_just(maybe_padding), "no padding");
     const auto padding = maybe_padding.unsafe_get_just();
@@ -116,7 +116,7 @@ inline layer_ptr create_conv2d_layer(
     const shape3 filter_size(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
-    return std::make_shared<convolutional_layer>(name,
+    return std::make_shared<conv2d_layer>(name,
         filter_size, filter_count, strides, padding, weights, bias);
 }
 
@@ -182,7 +182,7 @@ inline layer_ptr create_max_pooling2d_layer(
     // todo: support non-proportional sizes
     assertion(pool_size.width_ == pool_size.height_,
         "pooling not proportional");
-    return std::make_shared<max_pool_layer>(name, pool_size.width_);
+    return std::make_shared<max_pooling_2d_layer>(name, pool_size.width_);
 }
 
 inline layer_ptr create_average_pooling2d_layer(
@@ -198,7 +198,7 @@ inline layer_ptr create_average_pooling2d_layer(
     // todo: support non-proportional sizes
     assertion(pool_size.width_ == pool_size.height_,
         "pooling not proportional");
-    return std::make_shared<avg_pool_layer>(name, pool_size.width_);
+    return std::make_shared<average_pooling_2d_layer>(name, pool_size.width_);
 }
 
 inline layer_ptr create_upsampling2d_layer(
@@ -209,7 +209,7 @@ inline layer_ptr create_upsampling2d_layer(
         "only channels_last data format supported");
     const auto size = create_shape2(data["config"]["size"]);
     assertion(size.width_ == size.height_, "invalid scale factor");
-    return std::make_shared<unpool_layer>(name, size.width_);
+    return std::make_shared<upsampling2d_layer>(name, size.width_);
 }
 
 inline layer_ptr create_dense_layer(

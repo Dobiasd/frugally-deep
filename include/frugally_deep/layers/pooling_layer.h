@@ -18,10 +18,10 @@ namespace fdeep
 {
 
 // Abstract base class for pooling layers
-class pool_layer : public layer
+class pooling_layer : public layer
 {
 public:
-    explicit pool_layer(const std::string& name, std::size_t scale_factor) :
+    explicit pooling_layer(const std::string& name, std::size_t scale_factor) :
         layer(name),
         scale_factor_(scale_factor)
     {

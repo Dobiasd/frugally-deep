@@ -22,12 +22,12 @@ namespace fdeep
 {
 
 // todo: variable padding, variable strides
-class convolutional_layer : public layer
+class conv2d_layer : public layer
 {
 public:
     enum class padding { valid, same };
 
-    explicit convolutional_layer(
+    explicit conv2d_layer(
             const std::string& name, const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
             const float_vec& weights, const float_vec& bias)

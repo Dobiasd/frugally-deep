@@ -27,11 +27,11 @@ namespace fdeep
 // aka. backward strided convolution
 // aka. fractionally strided convolution
 // aka. deconvolution
-class convolution_transpose_layer : public layer
+class conv2d_transpose_layer : public layer
 {
 public:
     enum class padding { valid, same };
-    explicit convolution_transpose_layer(
+    explicit conv2d_transpose_layer(
             const std::string& name, const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
             const float_vec& weights, const float_vec& bias)

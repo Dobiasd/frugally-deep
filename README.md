@@ -230,3 +230,7 @@ size in shape umbenennen
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
 padding layer implementieren und testen
+
+lambdas ersetzen, vorallem getter
+
+.first statt operator[]

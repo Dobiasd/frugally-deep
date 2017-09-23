@@ -5,5 +5,5 @@ stuff
 src/applications
 *sublime*
 .sconsign.dblite
-keras_export/model.h5
-keras_export/model.json
+keras_export/*.h5
+keras_export/*.json

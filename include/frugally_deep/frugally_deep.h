@@ -48,3 +48,5 @@
 #include "frugally_deep/layers/upsampling2d_layer.h"
 
 #include "frugally_deep/keras_import.h"
+
+#include "frugally_deep/model.h"

@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 // Abstract base class for pooling layers
@@ -85,4 +85,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

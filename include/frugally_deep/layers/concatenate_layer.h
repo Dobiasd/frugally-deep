@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-namespace fd
+namespace fdeep
 {
 
 class concatenate_layer : public layer
@@ -25,4 +25,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

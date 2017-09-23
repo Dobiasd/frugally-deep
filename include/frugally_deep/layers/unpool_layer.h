@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 class unpool_layer : public layer
@@ -57,4 +57,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

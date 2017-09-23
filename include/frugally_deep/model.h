@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace fd
+namespace fdeep
 {
 
 class model : public layer
@@ -85,4 +85,4 @@ protected:
     node_connections output_connections_;
 };
 
-} // namespace fd
+} // namespace fdeep

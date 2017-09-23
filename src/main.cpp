@@ -14,5 +14,5 @@
 
 int main()
 {
-    const auto model = fd::load_model("keras_export/model.json");
+    const auto model = fdeep::load_model("keras_export/model.json");
 }

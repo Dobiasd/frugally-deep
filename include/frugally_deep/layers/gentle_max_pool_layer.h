@@ -12,7 +12,7 @@
 
 #include <limits>
 
-namespace fd
+namespace fdeep
 {
 
 // A (linear) blend between max pooling and average pooling.
@@ -64,4 +64,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

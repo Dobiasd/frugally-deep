@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <string>
 
-namespace fd
+namespace fdeep
 {
 
 class shape3
@@ -66,4 +66,4 @@ inline std::string show_shape3(const shape3& size)
         ")");
 }
 
-} // namespace fd
+} // namespace fdeep

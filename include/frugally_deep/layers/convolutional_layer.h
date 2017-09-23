@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 // todo: variable padding, variable strides
@@ -69,4 +69,4 @@ protected:
     shape2 strides_;
 };
 
-} // namespace fd
+} // namespace fdeep

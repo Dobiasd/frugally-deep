@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/activation_layer.h"
 
-namespace fd
+namespace fdeep
 {
 
 class leaky_relu_layer : public activation_layer
@@ -30,4 +30,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

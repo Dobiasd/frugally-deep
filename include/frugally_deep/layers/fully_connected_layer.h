@@ -12,7 +12,7 @@
 
 #include <fplus/fplus.hpp>
 
-namespace fd
+namespace fdeep
 {
 
 // Takes a single stack volume (shape3(n, 1, 1)) as input.
@@ -58,4 +58,4 @@ protected:
     tensor2 params_;
 };
 
-} // namespace fd
+} // namespace fdeep

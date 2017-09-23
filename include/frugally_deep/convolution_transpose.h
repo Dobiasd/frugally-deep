@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 namespace internal
@@ -248,4 +248,4 @@ inline tensor3 convolve_transpose(
         fplus::transform(convolve_transpose_in, filters));
 }
 
-} // namespace fd
+} // namespace fdeep

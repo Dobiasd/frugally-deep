@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace fd
+namespace fdeep
 {
 
 class layer;
@@ -105,8 +105,8 @@ inline layer_ptr get_layer(const layer_ptrs& layers,
         return ptr->name_ == layer_id;
     };
     return fplus::throw_on_nothing(
-        fd::error("dangling layer reference: " + layer_id),
+        error("dangling layer reference: " + layer_id),
         fplus::find_first_by(is_matching_layer, layers));
 }
 
-} // namespace fd
+} // namespace fdeep

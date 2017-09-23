@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 inline tensor2 pad_tensor2(
@@ -236,4 +236,4 @@ inline tensor3 convolve(
         fplus::transform(convole_in, filters));
 }
 
-} // namespace fd
+} // namespace fdeep

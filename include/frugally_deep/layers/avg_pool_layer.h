@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/pool_layer.h"
 
-namespace fd
+namespace fdeep
 {
 
 class avg_pool_layer : public pool_layer
@@ -42,4 +42,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

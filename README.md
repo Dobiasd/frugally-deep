@@ -217,15 +217,11 @@ local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-
 
 rename fully_connected_layer to dense_layer
 
-rename matrix to tensor
-
-namespace fd -> fdeep
+namespace fdeep -> fdeep
 
 float_t als template-parameter
 
 travis wie fplus, auch mit warnings und so
-
-size in shape umbenennen
 
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 

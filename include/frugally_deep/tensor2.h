@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 class tensor2
@@ -260,4 +260,4 @@ inline tensor2 rotate_tensor2_ccw(int step_cnt_90_deg, const tensor2& m)
     }
 }
 
-} // namespace fd
+} // namespace fdeep

@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-namespace fd
+namespace fdeep
 {
 
 // Converts a volume into single column volume (shape3(n, 1, 1)).
@@ -28,4 +28,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/activation_layer.h"
 
-namespace fd
+namespace fdeep
 {
 
 // https://arxiv.org/pdf/1706.02515.pdf
@@ -32,4 +32,4 @@ protected:
     }
 };
 
-} // namespace fd
+} // namespace fdeep

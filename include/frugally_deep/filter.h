@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 class filter
@@ -118,4 +118,4 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
     return result;
 }
 
-} // namespace fd
+} // namespace fdeep

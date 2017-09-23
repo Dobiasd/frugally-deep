@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fd
+namespace fdeep
 {
 
 // upconvolution layer
@@ -74,4 +74,4 @@ protected:
     shape2 strides_;
 };
 
-} // namespace fd
+} // namespace fdeep

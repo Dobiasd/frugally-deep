@@ -10,6 +10,7 @@
 #include "frugally_deep/json.hpp"
 #include <fplus/fplus.hpp>
 #include <iostream>
+#include <chrono>
 
 namespace fdeep { namespace internal
 {
@@ -445,5 +446,20 @@ inline bool are_test_outputs_ok(const tensor3s& output,
 {
     return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
 }
+
+class timer
+{
+public:
+    timer() : beg_(clock::now()) {}
+    void reset() { beg_ = clock::now(); }
+    double elapsed() const {
+        return std::chrono::duration_cast<second>
+            (clock::now() - beg_).count(); }
+private:
+    typedef std::chrono::high_resolution_clock clock;
+    typedef std::chrono::duration<double,
+        std::ratio<1>> second;
+    std::chrono::time_point<clock> beg_;
+};
 
 } } // namespace fdeep, namespace internal

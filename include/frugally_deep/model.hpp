@@ -31,19 +31,39 @@ private:
 inline model load_model(const std::string& path, bool verify = true,
     bool verbose = true)
 {
-    const auto log = verbose ?
-        [](const std::string& msg) { std::cout << msg << std::endl; } :
-        [](const std::string&) {};
+    const auto log = [verbose](const std::string& msg)
+    {
+        if (verbose)
+            std::cout << msg << std::endl;
+    };
 
-    log("Reading " + path);
+    const auto log_sol = [verbose](const std::string& msg)
+    {
+        if (verbose)
+            std::cout << msg << " ... " << std::flush;
+    };
+
+    internal::timer stopwatch;
+    const auto log_duration = [&stopwatch, verbose]()
+    {
+        if (verbose)
+            std::cout << " done. elapsed time: " <<
+                fplus::show_float(0, 6, stopwatch.elapsed()) << " s" <<
+                std::endl;
+                stopwatch.reset();
+    };
+
+    log_sol("Reading " + path);
     auto maybe_json_str = fplus::read_text_file_maybe(path)();
     internal::assertion(fplus::is_just(maybe_json_str),
         "Unable to load: " + path);
+    log_duration();
 
-    log("Parsing JSON");
+    log_sol("Parsing JSON");
     const auto json_data =
         nlohmann::json::parse(maybe_json_str.unsafe_get_just());
     maybe_json_str = fplus::nothing<std::string>(); // free RAM
+    log_duration();
 
     const std::string image_data_format = json_data["image_data_format"];
     internal::assertion(image_data_format == "channels_last",
@@ -60,25 +80,28 @@ inline model load_model(const std::string& path, bool verify = true,
         return result;
     };
 
-    log("Building model");
+    log_sol("Building model");
     const model full_model(
         internal::create_model_layer(get_param, json_data["architecture"]));
+    log_duration();
 
     if (verify)
     {
         if (!json_data["tests"].is_array())
         {
-            log("No test cases available");
+            log_sol("No test cases available");
         }
         else
         {
-            log("Loading tests");
+            log_sol("Loading tests");
+            log_duration();
             const auto tests = internal::load_test_cases(json_data["tests"]);
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
-                log("Running test " + fplus::show(i) +
+                log_sol("Running test " + fplus::show(i + 1) +
                     " of " + fplus::show(tests.size()));
                 const auto output = full_model.predict(tests[i].input_);
+                log_duration();
                 internal::assertion(are_test_outputs_ok(
                     output, tests[i].output_), "test failed");
             }

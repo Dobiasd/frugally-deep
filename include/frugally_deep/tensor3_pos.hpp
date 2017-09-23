@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/typedefs.h"
+#include "frugally_deep/typedefs.hpp"
 
 #include <cstddef>
 #include <cstdlib>

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/frugally_deep.h"
+#include "frugally_deep/frugally_deep.hpp"
 #include "frugally_deep/json.hpp"
 #include <fplus/fplus.hpp>
 #include <iostream>

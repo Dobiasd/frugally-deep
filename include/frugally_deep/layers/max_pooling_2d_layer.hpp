@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/layers/pooling_layer.h"
+#include "frugally_deep/layers/pooling_layer.hpp"
 
 #include <limits>
 

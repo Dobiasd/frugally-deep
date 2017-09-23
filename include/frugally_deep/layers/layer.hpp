@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "frugally_deep/typedefs.h"
+#include "frugally_deep/typedefs.hpp"
 
-#include "frugally_deep/tensor3.h"
+#include "frugally_deep/tensor3.hpp"
 
-#include "frugally_deep/node.h"
+#include "frugally_deep/node.hpp"
 
 #include <cstddef>
 #include <memory>

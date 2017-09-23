@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "frugally_deep/typedefs.h"
+#include "frugally_deep/typedefs.hpp"
 
-#include "frugally_deep/filter.h"
+#include "frugally_deep/filter.hpp"
 
 #include <cassert>
 #include <cstddef>

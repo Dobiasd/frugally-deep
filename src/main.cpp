@@ -4,13 +4,7 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
-#include "frugally_deep/frugally_deep.h"
-
-#include <fplus/fplus.hpp>
-
-#include <cassert>
-#include <fstream>
-#include <iostream>
+#include "frugally_deep/frugally_deep.hpp"
 
 int main()
 {

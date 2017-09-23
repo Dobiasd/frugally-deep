@@ -244,10 +244,14 @@ inline layer_ptr create_dense_layer(
 {
     const std::string name = data["name"];
     const float_vec weights = get_param(name, "weights");
-    float_vec bias = get_param(name, "bias");
-    const bool use_bias = data["config"]["use_bias"];
-    if (!use_bias) fill_with_zeros(bias);
+
     std::size_t units = data["config"]["units"];
+    float_vec bias(units, 0);
+    const bool use_bias = data["config"]["use_bias"];
+    if (use_bias)
+        bias = get_param(name, "bias");
+    assertion(bias.size() == units, "size of bias does not match");
+
     return std::make_shared<dense_layer>(
         name, units, weights, bias);
 }

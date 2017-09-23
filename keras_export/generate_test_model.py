@@ -51,7 +51,7 @@ def get_test_model_full():
         AveragePooling2D((2,2))(x)]) # (6, 4, 4)
 
     x = Flatten()(x) # (1, 1, 96)
-    x = Dense(4, activation='hard_sigmoid')(x)
+    x = Dense(4, activation='hard_sigmoid', use_bias=False)(x)
     x = BatchNormalization()(x)
     x = Dense(3, activation='selu')(x) # (1, 1, 3)
 

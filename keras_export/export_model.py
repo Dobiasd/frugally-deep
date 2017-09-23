@@ -65,7 +65,6 @@ def show_conv2d_layer(layer):
     assert len(weights[0].shape) == 4
     weights_flat = np.swapaxes(
         np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
-
     assert len(weights_flat) > 0
     assert layer.dilation_rate == (1,1)
     assert layer.padding in ['valid', 'same']
@@ -90,15 +89,15 @@ def show_batch_normalization_layer(layer):
 def show_dense_layer(layer):
     assert len(layer.input_shape) == 2, "Please flatten for dense layer."
     assert layer.input_shape[0] == None, "Please flatten for dense layer."
-    assert layer.use_bias == True
-    assert layer.kernel_constraint == None
-    assert layer.bias_constraint == None
-    weights, bias = layer.get_weights()
-    assert len(weights.shape) == 2
-    return {
-        'weights': weights.flatten().tolist(),
-        'bias': bias.tolist()
-        }
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 2
+    result = {
+        'weights': weights[0].flatten().tolist()
+    }
+    if len(weights) == 2:
+        result['bias'] = weights[1].tolist()
+    return result
 
 def get_dict_keys(d):
     return [key for key in d]

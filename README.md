@@ -159,19 +159,11 @@ github project description: Use Keras models in C++ with this small header-only 
 
 add github project tags
 
-float_t sollte float32 sein
-
 remove vscode directory
 
 klassiker aus keras als examples
 
 write something about contributing to the project
-
-alles ausser load_model und model in internal namespace verschieben
-
-class model_layer machen, model dann nur predict, sonst nix
-
-model hat modellayer als shared_ptr, damit shallow copy geht
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 

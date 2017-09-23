@@ -20,8 +20,10 @@ public:
     {
     }
 protected:
-    const float_t alpha_ = 1.6732632423543772848170429916717;
-    const float_t scale_ = 1.0507009873554804934193349852946;
+    const float_t alpha_ =
+        static_cast<float_t>(1.6732632423543772848170429916717);
+    const float_t scale_ =
+        static_cast<float_t>(1.0507009873554804934193349852946);
     tensor3 transform_input(const tensor3& in_vol) const override
     {
         auto activation_function = [this](float_t x) -> float_t

@@ -21,7 +21,8 @@ public:
 protected:
     static float_t activation_function(float_t x)
     {
-        return std::min(1.0, std::max(0.0, (0.2 * x) + 0.5));
+        return static_cast<float_t>(
+            std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
     };
     tensor3 transform_input(const tensor3& in_vol) const override
     {

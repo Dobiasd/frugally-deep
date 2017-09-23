@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class layer;
@@ -109,4 +109,4 @@ inline layer_ptr get_layer(const layer_ptrs& layers,
         fplus::find_first_by(is_matching_layer, layers));
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

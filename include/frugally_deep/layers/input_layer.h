@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class input_layer : public layer
@@ -31,4 +31,4 @@ protected:
     mutable fplus::maybe<tensor3> output_;
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

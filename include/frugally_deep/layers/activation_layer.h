@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 // Abstract base class for actication layers
@@ -44,4 +44,4 @@ inline tensor3s apply_activation_layer(const activation_layer_ptr& ptr,
     return ptr == nullptr ? input : ptr->apply(input);
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

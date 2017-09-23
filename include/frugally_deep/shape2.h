@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <string>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class shape2
@@ -58,4 +58,4 @@ inline shape2 swap_shape2_dims(const shape2& size)
     return shape2(size.width_, size.height_);
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

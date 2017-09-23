@@ -11,7 +11,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 typedef double float_t;
@@ -39,4 +39,4 @@ inline void assertion(bool cond, const std::string& error)
     }
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

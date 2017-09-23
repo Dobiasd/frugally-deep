@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class tensor3
@@ -443,4 +443,4 @@ inline tensor3 flatten_tensor3(const tensor3& vol)
     return tensor3(shape3(1, 1, values.size()), values);
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

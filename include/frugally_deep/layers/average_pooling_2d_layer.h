@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/pooling_layer.h"
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class average_pooling_2d_layer : public pooling_layer
@@ -42,4 +42,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

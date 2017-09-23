@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 // https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
@@ -69,4 +69,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

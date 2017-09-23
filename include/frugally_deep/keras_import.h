@@ -14,7 +14,7 @@
 
 #include <fplus/fplus.hpp>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 inline shape3 create_shape3(const nlohmann::json& data)
@@ -64,15 +64,42 @@ inline float_t create_singleton_vec(const nlohmann::json& data)
     return values[0];
 }
 
+inline node_connection create_node_connection(const nlohmann::json& data)
+{
+    assertion(data.is_array(), "invalid format for inbound node");
+    const std::string layer_id = data[0];
+    const std::size_t node_idx = data[1];
+    const std::size_t tensor_idx = data[2];
+    return node_connection(layer_id, node_idx, tensor_idx);
+}
+
 using get_param_f =
     std::function<float_vec(const std::string&, const std::string&)>;
 
-model create_model(const get_param_f& get_param, const nlohmann::json& data);
+layer_ptr create_layer(const get_param_f&, const nlohmann::json&);
 
 inline layer_ptr create_model_layer(
     const get_param_f& get_param, const nlohmann::json& data)
 {
-    return std::make_shared<model>(create_model(get_param, data));
+    //output_nodes
+    //input_nodes
+    const std::string name = data["config"]["name"];
+
+    assertion(data["config"]["layers"].is_array(), "missing layers array");
+
+    const auto layers = create_vector<layer_ptr>(
+        fplus::bind_1st_of_2(create_layer, get_param),
+        data["config"]["layers"]);
+
+    assertion(data["config"]["input_layers"].is_array(), "no input layers");
+
+    const auto inputs = create_vector<node_connection>(
+        create_node_connection, data["config"]["input_layers"]);
+
+    const auto outputs = create_vector<node_connection>(
+        create_node_connection, data["config"]["output_layers"]);
+
+    return std::make_shared<model_layer>(name, layers, inputs, outputs);
 }
 
 inline void fill_with_zeros(float_vec& xs)
@@ -315,15 +342,6 @@ inline bool json_obj_has_member(const nlohmann::json& data,
     return data.is_object() && data.find(member_name) != data.end();
 }
 
-inline node_connection create_node_connection(const nlohmann::json& data)
-{
-    assertion(data.is_array(), "invalid format for inbound node");
-    const std::string layer_id = data[0];
-    const std::size_t node_idx = data[1];
-    const std::size_t tensor_idx = data[2];
-    return node_connection(layer_id, node_idx, tensor_idx);
-}
-
 inline node create_node(const nlohmann::json& inbound_nodes_data)
 {
     assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
@@ -380,31 +398,6 @@ inline layer_ptr create_layer(
     return result;
 }
 
-inline model create_model(const get_param_f& get_param,
-    const nlohmann::json& data)
-{
-    //output_nodes
-    //input_nodes
-    const std::string name = data["config"]["name"];
-
-    assertion(data["config"]["layers"].is_array(), "missing layers array");
-
-    const auto layers = create_vector<layer_ptr>(
-        fplus::bind_1st_of_2(create_layer, get_param),
-        data["config"]["layers"]);
-
-    assertion(data["config"]["input_layers"].is_array(), "no input layers");
-
-    const auto inputs = create_vector<node_connection>(
-        create_node_connection, data["config"]["input_layers"]);
-
-    const auto outputs = create_vector<node_connection>(
-        create_node_connection, data["config"]["output_layers"]);
-
-    model result(name, layers, inputs, outputs);
-    return result;
-}
-
 struct test_case
 {
     tensor3s input_;
@@ -455,50 +448,67 @@ inline bool are_test_outputs_ok(const tensor3s& output,
     return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
 }
 
-inline bool run_test_cases(const model& model, const test_cases& tests)
+} } // namespace fdeep, namespace internal
+
+
+namespace fdeep
 {
-    for (const auto& test_case : tests)
+
+using tensor3 = internal::tensor3;
+using tensor3s = internal::tensor3s;
+
+class model
+{
+public:
+    model(const internal::layer_ptr& model_layer) : model_layer_(model_layer) {}
+    tensor3s predict(const tensor3s& inputs) const
     {
-        const auto output = model.predict(test_case.input_);
-        if (!are_test_outputs_ok(output, test_case.output_))
-            return false;
+        return model_layer_->apply(inputs);
     }
-    return true;
-}
+private:
+    internal::layer_ptr model_layer_;
+};
 
 // Throws an exception if a problem occurs.
 inline model load_model(const std::string& path, bool verify = true)
 {
     const auto maybe_json_str = fplus::read_text_file_maybe(path)();
-    assertion(fplus::is_just(maybe_json_str), "Unable to load: " + path);
+    internal::assertion(fplus::is_just(maybe_json_str),
+        "Unable to load: " + path);
 
     const auto json_str = maybe_json_str.unsafe_get_just();
     const auto json_data = nlohmann::json::parse(json_str);
 
     const std::string image_data_format = json_data["image_data_format"];
-    assertion(image_data_format == "channels_last",
+    internal::assertion(image_data_format == "channels_last",
         "only channels_last data format supported");
 
-    const std::function<float_vec(const std::string&, const std::string&)>
+    const std::function<internal::float_vec(
+            const std::string&, const std::string&)>
         get_param = [&json_data]
         (const std::string& layer_name, const std::string& param_name)
-        -> float_vec
+        -> internal::float_vec
     {
-        const float_vec result =
+        const internal::float_vec result =
             json_data["trainable_params"][layer_name][param_name];
         return result;
     };
 
-    const auto model = create_model(get_param, json_data["architecture"]);
-
-    const auto tests = load_test_cases(json_data);
+    const model full_model(
+        internal::create_model_layer(get_param, json_data["architecture"]));
 
     if (verify)
     {
-        assertion(run_test_cases(model, tests), "Tests failed.");
+        const auto tests = internal::load_test_cases(json_data);
+        for (const auto& test_case : tests)
+        {
+            const auto output = full_model.predict(test_case.input_);
+            internal::assertion(are_test_outputs_ok(output, test_case.output_),
+                "test failed");
+        }
     }
 
-    return model;
+    return full_model;
 }
 
 } // namespace fdeep

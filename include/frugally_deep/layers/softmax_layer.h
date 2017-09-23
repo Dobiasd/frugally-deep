@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class softmax_layer : public activation_layer
@@ -39,4 +39,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

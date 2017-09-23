@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <string>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class tensor2_pos
@@ -45,4 +45,4 @@ inline std::string show_tensor2_pos(const tensor2_pos& pos)
         ")");
 }
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

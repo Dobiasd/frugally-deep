@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class upsampling2d_layer : public layer
@@ -57,4 +57,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

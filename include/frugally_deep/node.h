@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 struct node_connection
@@ -65,4 +65,4 @@ private:
 
 typedef std::vector<node> nodes;
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

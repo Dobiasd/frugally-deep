@@ -15,14 +15,13 @@
 #include <cstddef>
 #include <memory>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
-class model : public layer
+class model_layer : public layer
 {
 public:
-
-    explicit model(const std::string& name,
+    explicit model_layer(const std::string& name,
         const layer_ptrs& layers,
         const node_connections& input_connections,
         const node_connections& output_connections)
@@ -37,13 +36,6 @@ public:
         };
         assertion(fplus::all_unique_on(get_layer_name, layers),
             "layer names must be unique");
-    }
-    virtual ~model()
-    {
-    }
-    tensor3s predict(const tensor3s& inputs) const
-    {
-        return apply_impl(inputs);
     }
 
     tensor3 get_output(const layer_ptrs& layers,
@@ -85,4 +77,4 @@ protected:
     node_connections output_connections_;
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/activation_layer.h"
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class elu_layer : public activation_layer
@@ -32,4 +32,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

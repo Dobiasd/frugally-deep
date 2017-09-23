@@ -10,7 +10,7 @@
 
 #include <limits>
 
-namespace fdeep
+namespace fdeep { namespace internal
 {
 
 class max_pooling_2d_layer : public pooling_layer
@@ -44,4 +44,4 @@ protected:
     }
 };
 
-} // namespace fdeep
+} } // namespace fdeep, namespace internal

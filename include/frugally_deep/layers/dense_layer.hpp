@@ -40,7 +40,7 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs[0];
+        const auto& input = inputs.front();
         assertion(input.size().height_ == 1, "input needs to be flattened");
         assertion(input.size().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);

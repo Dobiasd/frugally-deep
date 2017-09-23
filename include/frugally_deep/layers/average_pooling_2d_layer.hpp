@@ -14,8 +14,9 @@ namespace fdeep { namespace internal
 class average_pooling_2d_layer : public pooling_layer
 {
 public:
-    explicit average_pooling_2d_layer(const std::string& name, std::size_t scale_factor) :
-            pooling_layer(name, scale_factor)
+    explicit average_pooling_2d_layer(const std::string& name,
+        std::size_t scale_factor) :
+        pooling_layer(name, scale_factor)
     {
     }
 protected:

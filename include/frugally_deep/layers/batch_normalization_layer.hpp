@@ -31,7 +31,7 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
-        const auto& input = inputs[0];
+        const auto& input = inputs.front();
 
         if (input.size().depth_ == 1 && input.size().height_ == 1)
         {

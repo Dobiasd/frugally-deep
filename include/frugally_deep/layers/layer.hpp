@@ -24,7 +24,8 @@ typedef std::vector<layer_ptr> layer_ptrs;
 
 class activation_layer;
 typedef std::shared_ptr<activation_layer> activation_layer_ptr;
-tensor3s apply_activation_layer(const activation_layer_ptr& ptr, const tensor3s& input);
+tensor3s apply_activation_layer(const activation_layer_ptr& ptr,
+    const tensor3s& input);
 
 class layer
 {
@@ -85,7 +86,8 @@ protected:
     activation_layer_ptr activation_;
 };
 
-inline tensor3 get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+inline tensor3 get_layer_output(const layer_ptrs& layers,
+    output_dict& output_cache,
     const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
 {

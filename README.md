@@ -147,8 +147,6 @@ add travis
 
 ist upconv (conv transpose) fertig?
 
-typedefs.h nach config.h umbenennen und globals da rein
-
 use cmake with doctests (see fplus)
 
 add 1D layers: Conv, MaxPool, AvgPool, Upsampling

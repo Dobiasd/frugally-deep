@@ -22,7 +22,7 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "need exactly one input");
-        assertion(inputs[0].size() == input_size_, "invalid input size");
+        assertion(inputs.front().size() == input_size_, "invalid input size");
         return inputs;
     }
     shape3 input_size_;

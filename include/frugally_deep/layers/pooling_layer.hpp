@@ -32,7 +32,7 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override final
     {
         assert(inputs.size() == 1);
-        const auto& input = inputs[0];
+        const auto& input = inputs.front();
         return {pool(input)};
     }
 

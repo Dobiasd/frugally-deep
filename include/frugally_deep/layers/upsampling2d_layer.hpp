@@ -20,9 +20,10 @@ namespace fdeep { namespace internal
 class upsampling2d_layer : public layer
 {
 public:
-    explicit upsampling2d_layer(const std::string& name, std::size_t scale_factor) :
-        layer(name),
-        scale_factor_(scale_factor)
+    explicit upsampling2d_layer(const std::string& name,
+        std::size_t scale_factor) :
+    layer(name),
+    scale_factor_(scale_factor)
     {
         assert(scale_factor_ % 2 == 0);
     }
@@ -30,7 +31,7 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override final
     {
         assert(inputs.size() == 1);
-        const auto& input = inputs[0];
+        const auto& input = inputs.front();
         return {upsampling2d(input)};
     }
     const std::size_t scale_factor_;

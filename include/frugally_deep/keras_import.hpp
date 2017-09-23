@@ -18,7 +18,7 @@ inline shape3 create_shape3(const nlohmann::json& data)
 {
     assertion(data.is_array(), "shape3 needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
-    const std::size_t offset = data[0].is_null() ? 1 : 0;
+    const std::size_t offset = data.front().is_null() ? 1 : 0;
     if (data.size() == 1 + offset)
         return shape3(0, 0, data[0 + offset]);
     if (data.size() == 2 + offset)
@@ -33,9 +33,9 @@ inline shape2 create_shape2(const nlohmann::json& data)
 {
     assertion(data.is_array(), "shape2 needs to be an array");
     if (data.size() == 1)
-        return shape2(0, data[0]);
+        return shape2(0, data.front());
     if (data.size() == 2)
-        return shape2(data[0], data[1]);
+        return shape2(data.front(), data[1]);
     raise_error("shape2 needs 1 or 2 dimensions");
     return shape2(0, 0);
 }
@@ -58,13 +58,13 @@ inline float_t create_singleton_vec(const nlohmann::json& data)
 {
     float_vec values = data;
     assertion(values.size() == 1, "need exactly one value");
-    return values[0];
+    return values.front();
 }
 
 inline node_connection create_node_connection(const nlohmann::json& data)
 {
     assertion(data.is_array(), "invalid format for inbound node");
-    const std::string layer_id = data[0];
+    const std::string layer_id = data.front();
     const std::size_t node_idx = data[1];
     const std::size_t tensor_idx = data[2];
     return node_connection(layer_id, node_idx, tensor_idx);
@@ -349,7 +349,8 @@ inline node create_node(const nlohmann::json& inbound_nodes_data)
 inline nodes create_nodes(const nlohmann::json& data)
 {
     assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
-    const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];
+    const std::vector<nlohmann::json> inbound_nodes_data =
+        data["inbound_nodes"];
     return fplus::transform(create_node, inbound_nodes_data);
 }
 

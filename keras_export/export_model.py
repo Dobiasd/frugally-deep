@@ -157,7 +157,7 @@ def convert_sequential_to_model(model):
 
 def main():
     usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 1]'
-    if len(sys.argv) != 1 and len(sys.argv) != 4:
+    if len(sys.argv) != 3 and len(sys.argv) != 4:
         print(usage)
         sys.exit(1)
     else:

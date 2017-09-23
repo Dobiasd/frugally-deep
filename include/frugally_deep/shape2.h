@@ -15,10 +15,10 @@
 namespace fd
 {
 
-class size2d
+class shape2
 {
 public:
-    explicit size2d(
+    explicit shape2(
         std::size_t height,
         std::size_t width) :
             height_(height),
@@ -34,18 +34,18 @@ public:
     std::size_t width_;
 };
 
-inline bool operator == (const size2d& lhs, const size2d& rhs)
+inline bool operator == (const shape2& lhs, const shape2& rhs)
 {
     return
         lhs.height_ == rhs.height_ &&
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const size2d& lhs, const size2d& rhs)
+inline bool operator != (const shape2& lhs, const shape2& rhs)
 {
     return !(lhs == rhs);
 }
-inline std::string show_size2d(const size2d& size)
+inline std::string show_shape2(const shape2& size)
 {
     return std::string(
         "(" + std::to_string(size.height_) +
@@ -53,9 +53,9 @@ inline std::string show_size2d(const size2d& size)
         ")");
 }
 
-inline size2d swap_size2d_dims(const size2d& size)
+inline shape2 swap_shape2_dims(const shape2& size)
 {
-    return size2d(size.width_, size.height_);
+    return shape2(size.width_, size.height_);
 }
 
 } // namespace fd

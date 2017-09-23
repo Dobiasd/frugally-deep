@@ -32,15 +32,15 @@ inline fd::size3d create_size3d(const nlohmann::json& data)
     return fd::size3d(0, 0, 0);
 }
 
-inline fd::size2d create_size2d(const nlohmann::json& data)
+inline fd::shape2 create_shape2(const nlohmann::json& data)
 {
-    fd::assertion(data.is_array(), "size2d needs to be an array");
+    fd::assertion(data.is_array(), "shape2 needs to be an array");
     if (data.size() == 1)
-        return fd::size2d(0, data[0]);
+        return fd::shape2(0, data[0]);
     if (data.size() == 2)
-        return fd::size2d(data[0], data[1]);
-    fd::raise_error("size2d needs 1 or 2 dimensions");
-    return fd::size2d(0, 0);
+        return fd::shape2(data[0], data[1]);
+    fd::raise_error("shape2 needs 1 or 2 dimensions");
+    return fd::shape2(0, 0);
 }
 
 inline fd::matrix3d create_matrix3d(const nlohmann::json& data)
@@ -98,7 +98,7 @@ inline fd::layer_ptr create_conv2d_layer(
     fd::assertion(fplus::is_just(maybe_padding), "no padding");
     const auto padding = maybe_padding.unsafe_get_just();
 
-    const fd::size2d strides = create_size2d(data["config"]["strides"]);
+    const fd::shape2 strides = create_shape2(data["config"]["strides"]);
 
     fd::assertion(strides.width_ == strides.height_,
         "strides not proportional");
@@ -107,8 +107,8 @@ inline fd::layer_ptr create_conv2d_layer(
     fd::assertion(bias.size() == filter_count, "size of bias does not match");
 
     const fd::float_vec weights = get_param(name, "weights");
-    const fd::size2d kernel_size = swap_size2d_dims(
-        create_size2d(data["config"]["kernel_size"]));
+    const fd::shape2 kernel_size = swap_shape2_dims(
+        create_shape2(data["config"]["kernel_size"]));
     fd::assertion(weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t filter_depths =
@@ -175,8 +175,8 @@ inline fd::layer_ptr create_max_pooling2d_layer(
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
-    const auto pool_size = create_size2d(data["config"]["pool_size"]);
-    const auto strides = create_size2d(data["config"]["strides"]);
+    const auto pool_size = create_shape2(data["config"]["pool_size"]);
+    const auto strides = create_shape2(data["config"]["strides"]);
     // todo: support pool_size != strides
     fd::assertion(pool_size == strides, "pool_size not strides equal");
     // todo: support non-proportional sizes
@@ -191,8 +191,8 @@ inline fd::layer_ptr create_average_pooling2d_layer(
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
-    const auto pool_size = create_size2d(data["config"]["pool_size"]);
-    const auto strides = create_size2d(data["config"]["strides"]);
+    const auto pool_size = create_shape2(data["config"]["pool_size"]);
+    const auto strides = create_shape2(data["config"]["strides"]);
     // todo: support pool_size != strides
     fd::assertion(pool_size == strides, "pool_size not strides equal");
     // todo: support non-proportional sizes
@@ -207,7 +207,7 @@ inline fd::layer_ptr create_upsampling2d_layer(
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
-    const auto size = create_size2d(data["config"]["size"]);
+    const auto size = create_shape2(data["config"]["size"]);
     fd::assertion(size.width_ == size.height_, "invalid scale factor");
     return std::make_shared<fd::unpool_layer>(name, size.width_);
 }

@@ -9,7 +9,7 @@
 #include "frugally_deep/convolution.h"
 #include "frugally_deep/convolution_transpose.h"
 #include "frugally_deep/filter.h"
-#include "frugally_deep/size2d.h"
+#include "frugally_deep/shape2.h"
 #include "frugally_deep/size3d.h"
 #include "frugally_deep/layers/layer.h"
 
@@ -29,7 +29,7 @@ public:
 
     explicit convolutional_layer(
             const std::string& name, const size3d& filter_size,
-            std::size_t k, const size2d& strides, padding p,
+            std::size_t k, const shape2& strides, padding p,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_filters(filter_size, k, weights, bias)),
@@ -66,7 +66,7 @@ protected:
     }
     filter_vec filters_;
     padding padding_;
-    size2d strides_;
+    shape2 strides_;
 };
 
 } // namespace fd

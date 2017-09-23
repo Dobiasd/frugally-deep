@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/size2d.h"
+#include "frugally_deep/shape2.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -34,9 +34,9 @@ public:
         return depth_ * height_ * width_;
     }
 
-    size2d without_depth() const
+    shape2 without_depth() const
     {
-        return size2d(height_, width_);
+        return shape2(height_, width_);
     }
 
     std::size_t depth_;

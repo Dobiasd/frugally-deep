@@ -15,7 +15,7 @@
 #include "frugally_deep/matrix3d_pos.h"
 #include "frugally_deep/model.h"
 #include "frugally_deep/node.h"
-#include "frugally_deep/size2d.h"
+#include "frugally_deep/shape2.h"
 #include "frugally_deep/size3d.h"
 #include "frugally_deep/typedefs.h"
 

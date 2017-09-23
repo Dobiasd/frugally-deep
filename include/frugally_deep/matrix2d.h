@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/size2d.h"
+#include "frugally_deep/shape2.h"
 #include "frugally_deep/matrix2d_pos.h"
 
 #include <fplus/fplus.hpp>
@@ -24,18 +24,18 @@ namespace fd
 class matrix2d
 {
 public:
-    matrix2d(const size2d& shape, const float_vec& values) :
+    matrix2d(const shape2& shape, const float_vec& values) :
         size_(shape),
         values_(values)
     {
         assert(shape.area() == values.size());
     }
-    matrix2d(const size2d& shape, const float_t& value) :
+    matrix2d(const shape2& shape, const float_t& value) :
         size_(shape),
         values_(fplus::replicate(shape.area(), value))
     {
     }
-    explicit matrix2d(const size2d& shape) :
+    explicit matrix2d(const shape2& shape) :
         size_(shape),
         values_(shape.area(), 0.0f)
     {
@@ -56,7 +56,7 @@ public:
     {
         set(matrix2d_pos(y, x), value);
     }
-    const size2d& size() const
+    const shape2& size() const
     {
         return size_;
     }
@@ -79,7 +79,7 @@ private:
             pos.y_ * size().width_ +
             pos.x_;
     };
-    size2d size_;
+    shape2 size_;
     float_vec values_;
 };
 
@@ -105,14 +105,14 @@ matrix2d transform_matrix2d(F f, const matrix2d& m)
     return matrix2d(m.size(), fplus::transform(f, m.as_vector()));
 }
 
-inline matrix2d reshape_matrix2d(const matrix2d& m, const size2d& out_size)
+inline matrix2d reshape_matrix2d(const matrix2d& m, const shape2& out_size)
 {
     return matrix2d(out_size, m.as_vector());
 }
 
 inline matrix2d sparse_matrix2d(std::size_t step, const matrix2d& in)
 {
-    matrix2d out(size2d(
+    matrix2d out(shape2(
         in.size().height_ * step - (step - 1),
         in.size().width_ * step - (step - 1)));
     for (std::size_t y = 0; y < in.size().height_; ++y)
@@ -130,7 +130,7 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
     assert(a.size().width_ == b.size().height_);
 
     std::size_t inner = a.size().width_;
-    matrix2d m(size2d(a.size().height_, b.size().width_));
+    matrix2d m(shape2(a.size().height_, b.size().width_));
 
     for (std::size_t y = 0; y < a.size().height_; ++y)
     {
@@ -206,7 +206,7 @@ inline matrix2d sum_matrix2ds(const std::vector<matrix2d>& ms)
 
 inline matrix2d transpose_matrix2d(const matrix2d& m)
 {
-    matrix2d result(size2d(m.size().width_, m.size().height_));
+    matrix2d result(shape2(m.size().width_, m.size().height_));
     for (std::size_t x = 0; x < m.size().width_; ++x)
     {
         for (std::size_t y = 0; y < m.size().height_; ++y)

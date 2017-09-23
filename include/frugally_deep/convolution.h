@@ -22,7 +22,7 @@ inline matrix2d pad_matrix2d(
     std::size_t padding_x,
     const matrix2d& in)
 {
-    matrix2d out(size2d(
+    matrix2d out(shape2(
         in.size().height_ + 2 * padding_y,
         in.size().width_ + 2 * padding_x));
     for (std::size_t y = 0; y < in.size().height_; ++y)
@@ -118,7 +118,7 @@ inline matrix2d convolve(
 
     const matrix2d in_padded = pad_matrix2d(padding_y, padding_x, in_orig);
 
-    matrix2d out(size2d(h2, w2));
+    matrix2d out(shape2(h2, w2));
 
     if (stride == 1 && fy == 1 && fx == 1)
         internal::convolve_go_template<1, 1, 1>(filter, in_padded, out);

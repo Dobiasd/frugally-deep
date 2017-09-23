@@ -22,7 +22,7 @@ public:
     static matrix2d generate_params(std::size_t n_in,
         const float_vec& weights, const float_vec& bias)
     {
-        return matrix2d(size2d(n_in + 1, bias.size()),
+        return matrix2d(shape2(n_in + 1, bias.size()),
             fplus::append(weights, bias));
     }
     fully_connected_layer(const std::string& name, std::size_t units,
@@ -50,7 +50,7 @@ protected:
     static matrix2d bias_pad_input(const matrix3d& input)
     {
         return matrix2d(
-            size2d(1, input.size().width_ + 1),
+            shape2(1, input.size().width_ + 1),
             fplus::append(input.as_vector(), {1}));
     }
     std::size_t n_in_;

@@ -26,7 +26,7 @@ inline matrix2d unpad_matrix2d(
     std::size_t padding_x,
     const matrix2d& in)
 {
-    matrix2d out(size2d(
+    matrix2d out(shape2(
         in.size().height_ - 2 * padding_y,
         in.size().width_ - 2 * padding_x));
     for (std::size_t y = 0; y < out.size().height_; ++y)
@@ -130,7 +130,7 @@ inline matrix2d convolve_transpose(
     const std::size_t h2 = fy - 2 * unpadding_y + stride * (h1 - 1);
     const std::size_t w2 = fx - 2 * unpadding_x + stride * (w1 - 1);
 
-    matrix2d out(size2d(h2 + 2 * unpadding_y, w2 + 2 * unpadding_x));
+    matrix2d out(shape2(h2 + 2 * unpadding_y, w2 + 2 * unpadding_x));
 
     if (stride == 1 && fy == 1 && fx == 1)
         internal::convolve_transpose_go_template<1, 1, 1>(filter, in, out);

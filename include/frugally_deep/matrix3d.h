@@ -118,7 +118,7 @@ inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const size3d& out_size)
 
 inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
 {
-    matrix2d result(size2d(m.size().height_, m.size().width_));
+    matrix2d result(shape2(m.size().height_, m.size().width_));
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
@@ -134,7 +134,7 @@ inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
     assert(!ms.empty());
     assert(
         fplus::all_the_same(
-            fplus::transform([](const matrix2d& m) -> size2d
+            fplus::transform([](const matrix2d& m) -> shape2
             {
                 return m.size();
             },
@@ -159,7 +159,7 @@ inline std::vector<matrix2d> matrix3d_to_depth_slices(const matrix3d& m)
 {
     std::vector<matrix2d> ms(
         m.size().depth_,
-        matrix2d(size2d(m.size().height_, m.size().width_)));
+        matrix2d(shape2(m.size().height_, m.size().width_)));
 
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
@@ -261,7 +261,7 @@ inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
 
 inline matrix3d concatenate_matrix3ds(const matrix3ds& ts)
 {
-    const auto matrix3d_size_without_depth = [](const matrix3d& t) -> fd::size2d
+    const auto matrix3d_size_without_depth = [](const matrix3d& t) -> fd::shape2
     {
         return t.size().without_depth();
     };

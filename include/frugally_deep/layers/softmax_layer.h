@@ -19,14 +19,14 @@ public:
     {
     }
 protected:
-    matrix3d transform_input(const matrix3d& input) const override
+    tensor3 transform_input(const tensor3& input) const override
     {
         const auto ex = [this](float_t x) -> float_t
         {
             return std::exp(x);
         };
 
-        const auto unnormalized = transform_matrix3d(ex, input);
+        const auto unnormalized = transform_tensor3(ex, input);
 
         const auto unnormalized_sum = fplus::sum(unnormalized.as_vector());
         const auto div_by_unnormalized_sum =
@@ -35,7 +35,7 @@ protected:
             return x / unnormalized_sum;
         };
 
-        return {transform_matrix3d(div_by_unnormalized_sum, unnormalized)};
+        return {transform_tensor3(div_by_unnormalized_sum, unnormalized)};
     }
 };
 

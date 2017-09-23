@@ -23,9 +23,9 @@ protected:
     {
         return 1 / (1 + std::exp(-x));
     };
-    matrix3d transform_input(const matrix3d& in_vol) const override
+    tensor3 transform_input(const tensor3& in_vol) const override
     {
-        return transform_matrix3d(activation_function, in_vol);
+        return transform_tensor3(activation_function, in_vol);
     }
 };
 

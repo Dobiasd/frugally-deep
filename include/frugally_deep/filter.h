@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/matrix3d.h"
+#include "frugally_deep/tensor3.h"
 #include "frugally_deep/shape3.h"
 
 #include <cassert>
@@ -21,14 +21,14 @@ namespace fd
 class filter
 {
 public:
-    filter(const matrix3d& m, float_t bias) : m_(m), bias_(bias)
+    filter(const tensor3& m, float_t bias) : m_(m), bias_(bias)
     {
     }
     const shape3& size() const
     {
         return m_.size();
     }
-    const matrix3d& get_matrix3d() const
+    const tensor3& get_tensor3() const
     {
         return m_;
     }
@@ -43,11 +43,11 @@ public:
     void set_params(const float_vec& weights, float_t bias)
     {
         assert(weights.size() == m_.size().volume());
-        m_ = matrix3d(m_.size(), weights);
+        m_ = tensor3(m_.size(), weights);
         bias_ = bias;
     }
 private:
-    matrix3d m_;
+    tensor3 m_;
     float_t bias_;
 };
 
@@ -57,7 +57,7 @@ inline filter_vec generate_filters(
     const shape3& filter_size, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
-    filter_vec filters(k, filter(matrix3d(
+    filter_vec filters(k, filter(tensor3(
         shape3(filter_size)), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
@@ -98,7 +98,7 @@ inline filter_vec flip_filters_spatially(const filter_vec& fs)
     result.reserve(d);
     for (std::size_t i = 0; i < d; ++i)
     {
-        matrix3d new_f_mat(new_filter_size);
+        tensor3 new_f_mat(new_filter_size);
         float_t bias = 0;
         for (std::size_t j = 0; j < k; ++j)
         {

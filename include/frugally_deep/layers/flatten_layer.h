@@ -20,11 +20,11 @@ public:
     {
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
-        return {flatten_matrix3d(input)};
+        return {flatten_tensor3(input)};
     }
 };
 

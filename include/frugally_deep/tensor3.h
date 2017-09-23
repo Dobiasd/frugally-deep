@@ -8,8 +8,8 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/matrix2d.h"
-#include "frugally_deep/matrix3d_pos.h"
+#include "frugally_deep/tensor2.h"
+#include "frugally_deep/tensor3_pos.h"
 #include "frugally_deep/shape3.h"
 
 #include <fplus/fplus.hpp>
@@ -23,35 +23,35 @@
 namespace fd
 {
 
-class matrix3d
+class tensor3
 {
 public:
-    matrix3d(const shape3& shape, const float_vec& values) :
+    tensor3(const shape3& shape, const float_vec& values) :
         size_(shape),
         values_(values)
     {
         assert(shape.volume() == values.size());
     }
-    explicit matrix3d(const shape3& shape) :
+    explicit tensor3(const shape3& shape) :
         size_(shape),
         values_(shape.volume(), 0.0f)
     {
     }
-    float_t get(const matrix3d_pos& pos) const
+    float_t get(const tensor3_pos& pos) const
     {
         return values_[idx(pos)];
     }
     float_t get(std::size_t z, std::size_t y, std::size_t x) const
     {
-        return get(matrix3d_pos(z, y, x));
+        return get(tensor3_pos(z, y, x));
     }
-    void set(const matrix3d_pos& pos, float_t value)
+    void set(const tensor3_pos& pos, float_t value)
     {
         values_[idx(pos)] = value;
     }
     void set(std::size_t z, std::size_t y, std::size_t x, float_t value)
     {
-        set(matrix3d_pos(z, y, x), value);
+        set(tensor3_pos(z, y, x), value);
     }
     const shape3& size() const
     {
@@ -70,7 +70,7 @@ public:
     }
 
 private:
-    std::size_t idx(const matrix3d_pos& pos) const
+    std::size_t idx(const tensor3_pos& pos) const
     {
         return
             pos.z_ * size().height_ * size().width_ +
@@ -81,9 +81,9 @@ private:
     float_vec values_;
 };
 
-typedef std::vector<matrix3d> matrix3ds;
+typedef std::vector<tensor3> tensor3s;
 
-inline std::string show_matrix3d(const matrix3d& m)
+inline std::string show_tensor3(const tensor3& m)
 {
     std::string str;
     str += "[";
@@ -106,19 +106,19 @@ inline std::string show_matrix3d(const matrix3d& m)
 }
 
 template <typename F>
-matrix3d transform_matrix3d(F f, const matrix3d& m)
+tensor3 transform_tensor3(F f, const tensor3& m)
 {
-    return matrix3d(m.size(), fplus::transform(f, m.as_vector()));
+    return tensor3(m.size(), fplus::transform(f, m.as_vector()));
 }
 
-inline matrix3d reshape_matrix3d(const matrix3d& in_vol, const shape3& out_size)
+inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_size)
 {
-    return matrix3d(out_size, in_vol.as_vector());
+    return tensor3(out_size, in_vol.as_vector());
 }
 
-inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
+inline tensor2 depth_slice(std::size_t z, const tensor3& m)
 {
-    matrix2d result(shape2(m.size().height_, m.size().width_));
+    tensor2 result(shape2(m.size().height_, m.size().width_));
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
@@ -129,19 +129,19 @@ inline matrix2d depth_slice(std::size_t z, const matrix3d& m)
     return result;
 }
 
-inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
+inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 {
     assert(!ms.empty());
     assert(
         fplus::all_the_same(
-            fplus::transform([](const matrix2d& m) -> shape2
+            fplus::transform([](const tensor2& m) -> shape2
             {
                 return m.size();
             },
             ms)));
     std::size_t height = ms.front().size().height_;
     std::size_t width = ms.front().size().width_;
-    matrix3d m(shape3(ms.size(), height, width));
+    tensor3 m(shape3(ms.size(), height, width));
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
         for (std::size_t y = 0; y < m.size().height_; ++y)
@@ -155,11 +155,11 @@ inline matrix3d matrix3d_from_depth_slices(const std::vector<matrix2d>& ms)
     return m;
 }
 
-inline std::vector<matrix2d> matrix3d_to_depth_slices(const matrix3d& m)
+inline std::vector<tensor2> tensor3_to_depth_slices(const tensor3& m)
 {
-    std::vector<matrix2d> ms(
+    std::vector<tensor2> ms(
         m.size().depth_,
-        matrix2d(shape2(m.size().height_, m.size().width_)));
+        tensor2(shape2(m.size().height_, m.size().width_)));
 
     for (std::size_t z = 0; z < m.size().depth_; ++z)
     {
@@ -174,17 +174,17 @@ inline std::vector<matrix2d> matrix3d_to_depth_slices(const matrix3d& m)
     return ms;
 }
 
-inline matrix3d sparse_matrix3d(std::size_t step, const matrix3d& in)
+inline tensor3 sparse_tensor3(std::size_t step, const tensor3& in)
 {
-    return matrix3d_from_depth_slices(
+    return tensor3_from_depth_slices(
         fplus::transform(
-            fplus::bind_1st_of_2(sparse_matrix2d, step),
-            matrix3d_to_depth_slices(in)));
+            fplus::bind_1st_of_2(sparse_tensor2, step),
+            tensor3_to_depth_slices(in)));
 }
 
-inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)
+inline tensor3 tensor2_to_tensor3(const tensor2& m)
 {
-    matrix3d result(shape3(1, m.size().height_, m.size().width_));
+    tensor3 result(shape3(1, m.size().height_, m.size().width_));
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
@@ -195,11 +195,11 @@ inline matrix3d matrix2d_to_matrix3d(const matrix2d& m)
     return result;
 }
 
-inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
-    const matrix3d& vol)
+inline std::pair<tensor3_pos, tensor3_pos> tensor3_min_max_pos(
+    const tensor3& vol)
 {
-    matrix3d_pos result_min(0, 0, 0);
-    matrix3d_pos result_max(0, 0, 0);
+    tensor3_pos result_min(0, 0, 0);
+    tensor3_pos result_max(0, 0, 0);
     float_t value_max = std::numeric_limits<float_t>::lowest();
     float_t value_min = std::numeric_limits<float_t>::max();
     for (std::size_t z = 0; z < vol.size().depth_; ++z)
@@ -211,12 +211,12 @@ inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
                 auto current_value = vol.get(z, y, x);
                 if (current_value > value_max)
                 {
-                    result_max = matrix3d_pos(z, y, x);
+                    result_max = tensor3_pos(z, y, x);
                     value_max = current_value;
                 }
                 if (current_value < value_min)
                 {
-                    result_min = matrix3d_pos(z, y, x);
+                    result_min = tensor3_pos(z, y, x);
                     value_min = current_value;
                 }
             }
@@ -225,208 +225,208 @@ inline std::pair<matrix3d_pos, matrix3d_pos> matrix3d_min_max_pos(
     return std::make_pair(result_min, result_max);
 }
 
-inline matrix3d_pos matrix3d_max_pos(const matrix3d& vol)
+inline tensor3_pos tensor3_max_pos(const tensor3& vol)
 {
-    return matrix3d_min_max_pos(vol).second;
+    return tensor3_min_max_pos(vol).second;
 }
 
-inline matrix3d_pos matrix3d_min_pos(const matrix3d& vol)
+inline tensor3_pos tensor3_min_pos(const tensor3& vol)
 {
-    return matrix3d_min_max_pos(vol).second;
+    return tensor3_min_max_pos(vol).second;
 }
 
-inline std::pair<float_t, float_t> matrix3d_min_max_value(const matrix3d& vol)
+inline std::pair<float_t, float_t> tensor3_min_max_value(const tensor3& vol)
 {
-    auto min_max_positions = matrix3d_min_max_pos(vol);
+    auto min_max_positions = tensor3_min_max_pos(vol);
     return std::make_pair(
         vol.get(min_max_positions.first), vol.get(min_max_positions.second));
 }
 
-inline float_t matrix3d_max_value(const matrix3d& m)
+inline float_t tensor3_max_value(const tensor3& m)
 {
-    return m.get(matrix3d_max_pos(m));
+    return m.get(tensor3_max_pos(m));
 }
 
-inline float_t matrix3d_min_value(const matrix3d& m)
+inline float_t tensor3_min_value(const tensor3& m)
 {
-    return m.get(matrix3d_min_pos(m));
+    return m.get(tensor3_min_pos(m));
 }
 
-inline matrix3d add_matrix3ds(const matrix3d& m1, const matrix3d& m2)
+inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
 {
     assert(m1.size() == m2.size());
-    return matrix3d(m1.size(), fplus::zip_with(std::plus<float_t>(),
+    return tensor3(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
-inline matrix3d concatenate_matrix3ds(const matrix3ds& ts)
+inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 {
-    const auto matrix3d_size_without_depth = [](const matrix3d& t) -> fd::shape2
+    const auto tensor3_size_without_depth = [](const tensor3& t) -> fd::shape2
     {
         return t.size().without_depth();
     };
 
-    fd::assertion(fplus::all_the_same_on(matrix3d_size_without_depth, ts),
+    fd::assertion(fplus::all_the_same_on(tensor3_size_without_depth, ts),
         "all tensors must have the same width and height");
 
     fd::assertion(!ts.empty(), "no tensors to concatenate");
 
-    const auto matrix3d_size_depth = [](const matrix3d& t) -> std::size_t
+    const auto tensor3_size_depth = [](const tensor3& t) -> std::size_t
     {
         return t.size().depth_;
     };
     const std::size_t depth_sum = fplus::sum(fplus::transform(
-        matrix3d_size_depth, ts));
+        tensor3_size_depth, ts));
 
-    const auto as_vector = [](const matrix3d& t) -> fd::float_vec
+    const auto as_vector = [](const tensor3& t) -> fd::float_vec
     {
         return t.as_vector();
     };
-    return matrix3d(
+    return tensor3(
         shape3(depth_sum, ts.front().size().height_, ts.front().size().width_),
         fplus::transform_and_concat(as_vector, ts));
 }
 
-inline matrix3d add_to_matrix3d_elems(const matrix3d& m, float_t x)
+inline tensor3 add_to_tensor3_elems(const tensor3& m, float_t x)
 {
-    return matrix3d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return x + e;
     }, m.as_vector()));
 }
 
-inline matrix3d multiply_matrix3d_elems(const matrix3d& m, float_t x)
+inline tensor3 multiply_tensor3_elems(const tensor3& m, float_t x)
 {
-    return matrix3d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return x * e;
     }, m.as_vector()));
 }
 
-inline matrix3d sum_matrix3ds(const std::vector<matrix3d>& ms)
+inline tensor3 sum_tensor3s(const std::vector<tensor3>& ms)
 {
     assert(!ms.empty());
-    return fplus::fold_left_1(add_matrix3ds, ms);
+    return fplus::fold_left_1(add_tensor3s, ms);
 }
 
-inline matrix3d multiply_matrix3ds_elementwise(
-    const matrix3d& m1, const matrix3d& m2)
+inline tensor3 multiply_tensor3s_elementwise(
+    const tensor3& m1, const tensor3& m2)
 {
     assert(m1.size() == m2.size());
-    return matrix3d(m1.size(), fplus::zip_with(std::multiplies<float_t>(),
+    return tensor3(m1.size(), fplus::zip_with(std::multiplies<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
-inline matrix3d multiply_matrix3d(const matrix3d& m, float_t factor)
+inline tensor3 multiply_tensor3(const tensor3& m, float_t factor)
 {
     auto multiply_value_by_factor = [factor](const float_t x) -> float_t
     {
         return factor * x;
     };
-    return transform_matrix3d(multiply_value_by_factor, m);
+    return transform_tensor3(multiply_value_by_factor, m);
 }
 
-inline matrix3d divide_matrix3d(const matrix3d& m, float_t divisor)
+inline tensor3 divide_tensor3(const tensor3& m, float_t divisor)
 {
-    return multiply_matrix3d(m, 1 / divisor);
+    return multiply_tensor3(m, 1 / divisor);
 }
 
-inline matrix3d mean_matrix3d(const std::vector<matrix3d>& ms)
+inline tensor3 mean_tensor3(const std::vector<tensor3>& ms)
 {
-    return divide_matrix3d(sum_matrix3ds(ms), static_cast<float_t>(ms.size()));
+    return divide_tensor3(sum_tensor3s(ms), static_cast<float_t>(ms.size()));
 }
 
-inline matrix3d sub_matrix3d(const matrix3d& m1, const matrix3d& m2)
+inline tensor3 sub_tensor3(const tensor3& m1, const tensor3& m2)
 {
-    return add_matrix3ds(m1, multiply_matrix3d(m2, -1));
+    return add_tensor3s(m1, multiply_tensor3(m2, -1));
 }
 
-inline matrix3d abs_matrix3d_values(const matrix3d& m)
+inline tensor3 abs_tensor3_values(const tensor3& m)
 {
-    return transform_matrix3d(fplus::abs<float_t>, m);
+    return transform_tensor3(fplus::abs<float_t>, m);
 }
 
-inline matrix3d abs_diff_matrix3ds(const matrix3d& m1, const matrix3d& m2)
+inline tensor3 abs_diff_tensor3s(const tensor3& m1, const tensor3& m2)
 {
-    return abs_matrix3d_values(sub_matrix3d(m1, m2));
+    return abs_tensor3_values(sub_tensor3(m1, m2));
 }
 
-inline float_t matrix3d_sum_all_values(const matrix3d& m)
+inline float_t tensor3_sum_all_values(const tensor3& m)
 {
     return fplus::sum(m.as_vector());
 }
 
-inline float_t matrix3d_mean_value(const matrix3d& m)
+inline float_t tensor3_mean_value(const tensor3& m)
 {
     return
-        matrix3d_sum_all_values(m) /
+        tensor3_sum_all_values(m) /
         static_cast<float_t>(m.size().volume());
 }
 
-inline matrix3d operator + (const matrix3d& lhs, const matrix3d& rhs)
+inline tensor3 operator + (const tensor3& lhs, const tensor3& rhs)
 {
-    return add_matrix3ds(lhs, rhs);
+    return add_tensor3s(lhs, rhs);
 }
 
-inline matrix3d operator - (const matrix3d& lhs, const matrix3d& rhs)
+inline tensor3 operator - (const tensor3& lhs, const tensor3& rhs)
 {
-    return sub_matrix3d(lhs, rhs);
+    return sub_tensor3(lhs, rhs);
 }
 
-inline matrix3d operator * (const matrix3d& m, float_t factor)
+inline tensor3 operator * (const tensor3& m, float_t factor)
 {
-    return multiply_matrix3d(m, factor);
+    return multiply_tensor3(m, factor);
 }
 
-inline matrix3d operator / (const matrix3d& m, float_t divisor)
+inline tensor3 operator / (const tensor3& m, float_t divisor)
 {
-    return divide_matrix3d(m, divisor);
+    return divide_tensor3(m, divisor);
 }
 
-inline bool operator == (const matrix3d& a, const matrix3d& b)
+inline bool operator == (const tensor3& a, const tensor3& b)
 {
     return a.size() == b.size() && a.as_vector() == b.as_vector();
 }
 
-inline bool operator != (const matrix3d& a, const matrix3d& b)
+inline bool operator != (const tensor3& a, const tensor3& b)
 {
     return !(a == b);
 }
 
-inline matrix3d& operator += (matrix3d& lhs, const matrix3d& rhs)
+inline tensor3& operator += (tensor3& lhs, const tensor3& rhs)
 {
     lhs = lhs + rhs;
     return lhs;
 }
 
-inline matrix3d transpose_matrix3d(const matrix3d& m)
+inline tensor3 transpose_tensor3(const tensor3& m)
 {
     return
-        matrix3d_from_depth_slices(
+        tensor3_from_depth_slices(
             fplus::transform(
-                transpose_matrix2d,
-                matrix3d_to_depth_slices(m)));
+                transpose_tensor2,
+                tensor3_to_depth_slices(m)));
 }
 
-inline matrix3d flip_matrix3d_horizontally(const matrix3d& m)
+inline tensor3 flip_tensor3_horizontally(const tensor3& m)
 {
     return
-        matrix3d_from_depth_slices(
+        tensor3_from_depth_slices(
             fplus::transform(
-                flip_matrix2d_horizontally,
-                matrix3d_to_depth_slices(m)));
+                flip_tensor2_horizontally,
+                tensor3_to_depth_slices(m)));
 }
 
-inline matrix3d rotate_matrix3d_ccw(int step_cnt_90_deg, const matrix3d& m)
+inline tensor3 rotate_tensor3_ccw(int step_cnt_90_deg, const tensor3& m)
 {
     return
-        matrix3d_from_depth_slices(
+        tensor3_from_depth_slices(
             fplus::transform(
-                fplus::bind_1st_of_2(rotate_matrix2d_ccw, step_cnt_90_deg),
-                matrix3d_to_depth_slices(m)));
+                fplus::bind_1st_of_2(rotate_tensor2_ccw, step_cnt_90_deg),
+                tensor3_to_depth_slices(m)));
 }
 
-inline matrix3d flatten_matrix3d(const matrix3d& vol)
+inline tensor3 flatten_tensor3(const tensor3& vol)
 {
     float_vec values;
     values.reserve(vol.size().volume());
@@ -440,7 +440,7 @@ inline matrix3d flatten_matrix3d(const matrix3d& vol)
             }
         }
     }
-    return matrix3d(shape3(1, 1, values.size()), values);
+    return tensor3(shape3(1, 1, values.size()), values);
 }
 
 } // namespace fd

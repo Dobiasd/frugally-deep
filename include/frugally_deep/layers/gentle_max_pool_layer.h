@@ -34,7 +34,7 @@ public:
 protected:
     const float_t max_weight_;
     const float_t avg_weight_;
-    matrix3d pool(const matrix3d& in_vol) const override
+    tensor3 pool(const tensor3& in_vol) const override
     {
         float_t pool_helper_acc_init = std::numeric_limits<float>::lowest();
         float_t pool_helper_acc2_init = 0;

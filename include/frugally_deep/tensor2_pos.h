@@ -15,10 +15,10 @@
 namespace fd
 {
 
-class matrix2d_pos
+class tensor2_pos
 {
 public:
-    explicit matrix2d_pos(
+    explicit tensor2_pos(
         std::size_t y,
         std::size_t x) :
             y_(y),
@@ -30,14 +30,14 @@ public:
     std::size_t x_;
 };
 
-inline bool operator == (const matrix2d_pos& lhs, const matrix2d_pos& rhs)
+inline bool operator == (const tensor2_pos& lhs, const tensor2_pos& rhs)
 {
     return
         lhs.y_ == rhs.y_ &&
         lhs.x_ == rhs.x_;
 }
 
-inline std::string show_matrix2d_pos(const matrix2d_pos& pos)
+inline std::string show_tensor2_pos(const tensor2_pos& pos)
 {
     return std::string(
         "(" + std::to_string(pos.y_) +

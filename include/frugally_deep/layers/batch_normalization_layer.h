@@ -28,7 +28,7 @@ protected:
     float_t epsilon_;
     float_vec beta_;
     float_vec gamma_;
-    matrix3ds apply_impl(const matrix3ds& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs[0];
@@ -40,32 +40,32 @@ protected:
             {
                 assertion(result.size().width_ == gamma_.size(),
                     "invalid gamma");
-                result = matrix3d(result.size(),
+                result = tensor3(result.size(),
                     fplus::zip_with(std::multiplies<float_t>(),
                         result.as_vector(), gamma_));
             }
             if (!beta_.empty())
             {
                 assertion(result.size().width_ == beta_.size(), "invalid beta");
-                result = matrix3d(result.size(),
+                result = tensor3(result.size(),
                     fplus::zip_with(std::plus<float_t>(),
                         result.as_vector(), beta_));
             }
             return {result};
         }
 
-        auto slices = matrix3d_to_depth_slices(input);
+        auto slices = tensor3_to_depth_slices(input);
         if (!gamma_.empty())
         {
             assertion(slices.size() == gamma_.size(), "invalid gamma");
-            slices = fplus::zip_with(multiply_matrix2d_elems, slices, gamma_);
+            slices = fplus::zip_with(multiply_tensor2_elems, slices, gamma_);
         }
         if (!beta_.empty())
         {
             assertion(slices.size() == beta_.size(), "invalid beta");
-            slices = fplus::zip_with(add_to_matrix2d_elems, slices, beta_);
+            slices = fplus::zip_with(add_to_tensor2_elems, slices, beta_);
         }
-        return {matrix3d_from_depth_slices(slices)};
+        return {tensor3_from_depth_slices(slices)};
     }
 };
 

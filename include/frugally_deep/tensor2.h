@@ -9,7 +9,7 @@
 #include "frugally_deep/typedefs.h"
 
 #include "frugally_deep/shape2.h"
-#include "frugally_deep/matrix2d_pos.h"
+#include "frugally_deep/tensor2_pos.h"
 
 #include <fplus/fplus.hpp>
 
@@ -21,40 +21,40 @@
 namespace fd
 {
 
-class matrix2d
+class tensor2
 {
 public:
-    matrix2d(const shape2& shape, const float_vec& values) :
+    tensor2(const shape2& shape, const float_vec& values) :
         size_(shape),
         values_(values)
     {
         assert(shape.area() == values.size());
     }
-    matrix2d(const shape2& shape, const float_t& value) :
+    tensor2(const shape2& shape, const float_t& value) :
         size_(shape),
         values_(fplus::replicate(shape.area(), value))
     {
     }
-    explicit matrix2d(const shape2& shape) :
+    explicit tensor2(const shape2& shape) :
         size_(shape),
         values_(shape.area(), 0.0f)
     {
     }
-    float_t get(const matrix2d_pos& pos) const
+    float_t get(const tensor2_pos& pos) const
     {
         return values_[idx(pos)];
     }
     float_t get(std::size_t y, std::size_t x) const
     {
-        return get(matrix2d_pos(y, x));
+        return get(tensor2_pos(y, x));
     }
-    void set(const matrix2d_pos& pos, float_t value)
+    void set(const tensor2_pos& pos, float_t value)
     {
         values_[idx(pos)] = value;
     }
     void set(std::size_t y, std::size_t x, float_t value)
     {
-        set(matrix2d_pos(y, x), value);
+        set(tensor2_pos(y, x), value);
     }
     const shape2& size() const
     {
@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    std::size_t idx(const matrix2d_pos& pos) const
+    std::size_t idx(const tensor2_pos& pos) const
     {
         return
             pos.y_ * size().width_ +
@@ -83,7 +83,7 @@ private:
     float_vec values_;
 };
 
-inline std::string show_matrix2d(const matrix2d& m)
+inline std::string show_tensor2(const tensor2& m)
 {
     std::string str;
     str += "[";
@@ -100,19 +100,19 @@ inline std::string show_matrix2d(const matrix2d& m)
 }
 
 template <typename F>
-matrix2d transform_matrix2d(F f, const matrix2d& m)
+tensor2 transform_tensor2(F f, const tensor2& m)
 {
-    return matrix2d(m.size(), fplus::transform(f, m.as_vector()));
+    return tensor2(m.size(), fplus::transform(f, m.as_vector()));
 }
 
-inline matrix2d reshape_matrix2d(const matrix2d& m, const shape2& out_size)
+inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_size)
 {
-    return matrix2d(out_size, m.as_vector());
+    return tensor2(out_size, m.as_vector());
 }
 
-inline matrix2d sparse_matrix2d(std::size_t step, const matrix2d& in)
+inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)
 {
-    matrix2d out(shape2(
+    tensor2 out(shape2(
         in.size().height_ * step - (step - 1),
         in.size().width_ * step - (step - 1)));
     for (std::size_t y = 0; y < in.size().height_; ++y)
@@ -125,12 +125,12 @@ inline matrix2d sparse_matrix2d(std::size_t step, const matrix2d& in)
     return out;
 }
 
-inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
+inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
     assert(a.size().width_ == b.size().height_);
 
     std::size_t inner = a.size().width_;
-    matrix2d m(shape2(a.size().height_, b.size().width_));
+    tensor2 m(shape2(a.size().height_, b.size().width_));
 
     for (std::size_t y = 0; y < a.size().height_; ++y)
     {
@@ -147,66 +147,66 @@ inline matrix2d multiply(const matrix2d& a, const matrix2d& b)
     return m;
 }
 
-inline float_t matrix2d_sum_all_values(const matrix2d& m)
+inline float_t tensor2_sum_all_values(const tensor2& m)
 {
     return fplus::sum(m.as_vector());
 }
 
-inline float_t matrix2d_mean_value(const matrix2d& m)
+inline float_t tensor2_mean_value(const tensor2& m)
 {
     return
-        matrix2d_sum_all_values(m) /
+        tensor2_sum_all_values(m) /
         static_cast<float_t>(m.size().area());
 }
 
-inline matrix2d add_matrix2ds(const matrix2d& m1, const matrix2d& m2)
+inline tensor2 add_tensor2s(const tensor2& m1, const tensor2& m2)
 {
     assert(m1.size() == m2.size());
-    return matrix2d(m1.size(), fplus::zip_with(std::plus<float_t>(),
+    return tensor2(m1.size(), fplus::zip_with(std::plus<float_t>(),
         m1.as_vector(), m2.as_vector()));
 }
 
-inline matrix2d add_to_matrix2d_elems(const matrix2d& m, float_t x)
+inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
 {
-    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return x + e;
     }, m.as_vector()));
 }
 
-inline matrix2d sub_from_matrix2d_elems(const matrix2d& m, float_t x)
+inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
 {
-    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return e - x;
     }, m.as_vector()));
 }
 
-inline matrix2d multiply_matrix2d_elems(const matrix2d& m, float_t x)
+inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
 {
-    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return x * e;
     }, m.as_vector()));
 }
 
-inline matrix2d divide_matrix2d_elems(const matrix2d& m, float_t x)
+inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
 {
-    return matrix2d(m.size(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.size(), fplus::transform([x](float_t e) -> float_t
     {
         return e / x;
     }, m.as_vector()));
 }
 
-inline matrix2d sum_matrix2ds(const std::vector<matrix2d>& ms)
+inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
 {
     assert(!ms.empty());
-    return fplus::fold_left_1(add_matrix2ds, ms);
+    return fplus::fold_left_1(add_tensor2s, ms);
 }
 
-inline matrix2d transpose_matrix2d(const matrix2d& m)
+inline tensor2 transpose_tensor2(const tensor2& m)
 {
-    matrix2d result(shape2(m.size().width_, m.size().height_));
+    tensor2 result(shape2(m.size().width_, m.size().height_));
     for (std::size_t x = 0; x < m.size().width_; ++x)
     {
         for (std::size_t y = 0; y < m.size().height_; ++y)
@@ -217,9 +217,9 @@ inline matrix2d transpose_matrix2d(const matrix2d& m)
     return result;
 }
 
-inline matrix2d flip_matrix2d_horizontally(const matrix2d& m)
+inline tensor2 flip_tensor2_horizontally(const tensor2& m)
 {
-    matrix2d result(m.size());
+    tensor2 result(m.size());
     for (std::size_t y = 0; y < m.size().height_; ++y)
     {
         for (std::size_t x = 0; x < m.size().width_; ++x)
@@ -230,7 +230,7 @@ inline matrix2d flip_matrix2d_horizontally(const matrix2d& m)
     return result;
 }
 
-inline matrix2d rotate_matrix2d_ccw(int step_cnt_90_deg, const matrix2d& m)
+inline tensor2 rotate_tensor2_ccw(int step_cnt_90_deg, const tensor2& m)
 {
     if (step_cnt_90_deg < 0)
     {
@@ -243,15 +243,15 @@ inline matrix2d rotate_matrix2d_ccw(int step_cnt_90_deg, const matrix2d& m)
     }
     else if (step_cnt_90_deg == 1)
     {
-        return transpose_matrix2d(flip_matrix2d_horizontally(m));
+        return transpose_tensor2(flip_tensor2_horizontally(m));
     }
     else if (step_cnt_90_deg == 2)
     {
-        return rotate_matrix2d_ccw(1, rotate_matrix2d_ccw(1, m));
+        return rotate_tensor2_ccw(1, rotate_tensor2_ccw(1, m));
     }
     else if (step_cnt_90_deg == 3)
     {
-        return flip_matrix2d_horizontally(transpose_matrix2d(m));
+        return flip_tensor2_horizontally(transpose_tensor2(m));
     }
     else
     {

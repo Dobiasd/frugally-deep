@@ -19,13 +19,13 @@ public:
     {
     }
 protected:
-    matrix3d transform_input(const matrix3d& in_vol) const override
+    tensor3 transform_input(const tensor3& in_vol) const override
     {
         auto activation_function = [](float_t x) -> float_t
         {
             return static_cast<float_t>(log1p(std::exp(x)));
         };
-        return transform_matrix3d(activation_function, in_vol);
+        return transform_tensor3(activation_function, in_vol);
     }
 };
 

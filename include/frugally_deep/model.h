@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/matrix3d.h"
+#include "frugally_deep/tensor3.h"
 
 #include "frugally_deep/layers/layer.h"
 
@@ -41,12 +41,12 @@ public:
     virtual ~model()
     {
     }
-    matrix3ds predict(const matrix3ds& inputs) const
+    tensor3s predict(const tensor3s& inputs) const
     {
         return apply_impl(inputs);
     }
 
-    matrix3d get_output(const layer_ptrs& layers,
+    tensor3 get_output(const layer_ptrs& layers,
         output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const override
     {
@@ -57,7 +57,7 @@ public:
     }
 
 protected:
-    virtual matrix3ds apply_impl(const matrix3ds& inputs) const override
+    virtual tensor3s apply_impl(const tensor3s& inputs) const override
     {
         output_dict output_cache;
 
@@ -73,7 +73,7 @@ protected:
         }
 
         const auto get_output = [this, &output_cache]
-            (const node_connection& conn) -> matrix3d
+            (const node_connection& conn) -> tensor3
         {
             return get_layer(layers_, conn.layer_id_)->get_output(
                 layers_, output_cache, conn.node_idx_, conn.tensor_idx_);

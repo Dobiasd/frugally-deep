@@ -46,7 +46,7 @@ public:
         assertion(strides.width_ == strides.height_, "invalid strides");
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
         const auto& input = inputs.front();

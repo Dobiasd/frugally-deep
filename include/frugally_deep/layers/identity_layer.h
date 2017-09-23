@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    matrix3d transform_input(const matrix3d& in_vol) const override
+    tensor3 transform_input(const tensor3& in_vol) const override
     {
         return in_vol;
     }

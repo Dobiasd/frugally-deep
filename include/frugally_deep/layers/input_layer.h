@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "need exactly one input");
         assertion(inputs[0].size() == input_size_, "invalid input size");
@@ -28,7 +28,7 @@ protected:
     shape3 input_size_;
 
     // provide initial tensor for computation
-    mutable fplus::maybe<matrix3d> output_;
+    mutable fplus::maybe<tensor3> output_;
 };
 
 } // namespace fd

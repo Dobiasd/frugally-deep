@@ -27,16 +27,16 @@ public:
         assert(scale_factor_ % 2 == 0);
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override final
+    tensor3s apply_impl(const tensor3s& inputs) const override final
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
         return {unpool(input)};
     }
     const std::size_t scale_factor_;
-    matrix3d unpool(const matrix3d& in_vol) const
+    tensor3 unpool(const tensor3& in_vol) const
     {
-        matrix3d out_vol(
+        tensor3 out_vol(
             shape3(
                 in_vol.size().depth_,
                 in_vol.size().height_ * scale_factor_,

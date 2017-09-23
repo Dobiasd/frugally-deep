@@ -8,7 +8,7 @@
 
 #include "frugally_deep/typedefs.h"
 
-#include "frugally_deep/matrix3d.h"
+#include "frugally_deep/tensor3.h"
 
 #include "frugally_deep/node.h"
 
@@ -24,7 +24,7 @@ typedef std::vector<layer_ptr> layer_ptrs;
 
 class activation_layer;
 typedef std::shared_ptr<activation_layer> activation_layer_ptr;
-matrix3ds apply_activation_layer(const activation_layer_ptr& ptr, const matrix3ds& input);
+tensor3s apply_activation_layer(const activation_layer_ptr& ptr, const tensor3s& input);
 
 class layer
 {
@@ -47,7 +47,7 @@ public:
         nodes_ = layer_nodes;
     }
 
-    virtual matrix3ds apply(const matrix3ds& input) const final
+    virtual tensor3s apply(const tensor3s& input) const final
     {
         const auto result = apply_impl(input);
         if (activation_ == nullptr)
@@ -56,7 +56,7 @@ public:
             return apply_activation_layer(activation_, result);
     }
 
-    virtual matrix3d get_output(const layer_ptrs& layers,
+    virtual tensor3 get_output(const layer_ptrs& layers,
         output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const
     {
@@ -81,18 +81,18 @@ public:
     nodes nodes_;
 
 protected:
-    virtual matrix3ds apply_impl(const matrix3ds& input) const = 0;
+    virtual tensor3s apply_impl(const tensor3s& input) const = 0;
     activation_layer_ptr activation_;
 };
 
-inline matrix3d get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+inline tensor3 get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
     const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
 {
     return layer->get_output(layers, output_cache, node_idx, tensor_idx);
 }
 
-inline matrix3ds apply_layer(const layer& layer, const matrix3ds& inputs)
+inline tensor3s apply_layer(const layer& layer, const tensor3s& inputs)
 {
     return layer.apply(inputs);
 }

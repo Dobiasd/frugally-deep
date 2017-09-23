@@ -21,7 +21,7 @@ public:
     {
     }
 protected:
-    matrix3d pool(const matrix3d& in_vol) const override
+    tensor3 pool(const tensor3& in_vol) const override
     {
         float_t pool_helper_acc_init = std::numeric_limits<float>::lowest();
         auto pool_helper_max = [](float_t acc, float_t val) -> float_t

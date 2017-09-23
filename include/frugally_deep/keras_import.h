@@ -43,11 +43,11 @@ inline fd::shape2 create_shape2(const nlohmann::json& data)
     return fd::shape2(0, 0);
 }
 
-inline fd::matrix3d create_matrix3d(const nlohmann::json& data)
+inline fd::tensor3 create_tensor3(const nlohmann::json& data)
 {
     const fd::shape3 shape = create_shape3(data["shape"]);
     const fd::float_vec values = data["values"];
-    return fd::matrix3d(shape, values);
+    return fd::tensor3(shape, values);
 }
 
 template <typename T, typename F>
@@ -407,8 +407,8 @@ inline fd::model create_model(const get_param_f& get_param,
 
 struct test_case
 {
-    fd::matrix3ds input_;
-    fd::matrix3ds output_;
+    fd::tensor3s input_;
+    fd::tensor3s output_;
 };
 
 using test_cases = std::vector<test_case>;
@@ -418,8 +418,8 @@ inline test_case load_test_case(const nlohmann::json& data)
     fd::assertion(data["inputs"].is_array(), "test needs inputs");
     fd::assertion(data["outputs"].is_array(), "test needs outputs");
     return {
-        create_vector<fd::matrix3d>(create_matrix3d, data["inputs"]),
-        create_vector<fd::matrix3d>(create_matrix3d, data["outputs"])
+        create_vector<fd::tensor3>(create_tensor3, data["inputs"]),
+        create_vector<fd::tensor3>(create_tensor3, data["outputs"])
     };
 }
 
@@ -429,7 +429,7 @@ inline test_cases load_test_cases(const nlohmann::json& data)
     return create_vector<test_case>(load_test_case, data["tests"]);
 }
 
-inline bool is_test_output_ok(const matrix3d& output, const matrix3d& target)
+inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
 {
     fd::assertion(output.size() == target.size(), "wrong output size");
     for (std::size_t z = 0; z < output.size().depth_; ++z)
@@ -449,8 +449,8 @@ inline bool is_test_output_ok(const matrix3d& output, const matrix3d& target)
     return true;
 }
 
-inline bool are_test_outputs_ok(const matrix3ds& output,
-    const matrix3ds& target)
+inline bool are_test_outputs_ok(const tensor3s& output,
+    const tensor3s& target)
 {
     return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
 }

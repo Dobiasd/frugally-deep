@@ -19,9 +19,9 @@ public:
     {
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& input) const override
+    tensor3s apply_impl(const tensor3s& input) const override
     {
-        return {concatenate_matrix3ds(input)};
+        return {concatenate_tensor3s(input)};
     }
 };
 

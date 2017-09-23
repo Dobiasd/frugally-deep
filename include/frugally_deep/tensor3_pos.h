@@ -15,10 +15,10 @@
 namespace fd
 {
 
-class matrix3d_pos
+class tensor3_pos
 {
 public:
-    explicit matrix3d_pos(
+    explicit tensor3_pos(
         std::size_t z,
         std::size_t y,
         std::size_t x) :
@@ -33,7 +33,7 @@ public:
     std::size_t x_;
 };
 
-inline bool operator == (const matrix3d_pos& lhs, const matrix3d_pos& rhs)
+inline bool operator == (const tensor3_pos& lhs, const tensor3_pos& rhs)
 {
     return
         lhs.z_ == rhs.z_ &&
@@ -41,7 +41,7 @@ inline bool operator == (const matrix3d_pos& lhs, const matrix3d_pos& rhs)
         lhs.x_ == rhs.x_;
 }
 
-inline std::string show_matrix3d_pos(const matrix3d_pos& pos)
+inline std::string show_tensor3_pos(const tensor3_pos& pos)
 {
     return std::string(
         "(" + std::to_string(pos.z_) +

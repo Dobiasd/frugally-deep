@@ -8,7 +8,7 @@
 
 #include "frugally_deep/layers/layer.h"
 
-#include "frugally_deep/matrix2d.h"
+#include "frugally_deep/tensor2.h"
 
 #include <fplus/fplus.hpp>
 
@@ -19,10 +19,10 @@ namespace fd
 class fully_connected_layer : public layer
 {
 public:
-    static matrix2d generate_params(std::size_t n_in,
+    static tensor2 generate_params(std::size_t n_in,
         const float_vec& weights, const float_vec& bias)
     {
-        return matrix2d(shape2(n_in + 1, bias.size()),
+        return tensor2(shape2(n_in + 1, bias.size()),
             fplus::append(weights, bias));
     }
     fully_connected_layer(const std::string& name, std::size_t units,
@@ -37,25 +37,25 @@ public:
         assertion(weights.size() % units == 0, "invalid weight count");
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs[0];
         assertion(input.size().height_ == 1, "input needs to be flattened");
         assertion(input.size().depth_ == 1, "input needs to be flattened");
         const auto bias_padded_input = bias_pad_input(input);
-        return {matrix3d(shape3(1, 1, n_out_),
+        return {tensor3(shape3(1, 1, n_out_),
             multiply(bias_padded_input, params_).as_vector())};
     }
-    static matrix2d bias_pad_input(const matrix3d& input)
+    static tensor2 bias_pad_input(const tensor3& input)
     {
-        return matrix2d(
+        return tensor2(
             shape2(1, input.size().width_ + 1),
             fplus::append(input.as_vector(), {1}));
     }
     std::size_t n_in_;
     std::size_t n_out_;
-    matrix2d params_;
+    tensor2 params_;
 };
 
 } // namespace fd

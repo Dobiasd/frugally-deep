@@ -29,7 +29,7 @@ public:
         //assert(size_in.width_ % scale_factor == 0);
     }
 protected:
-    matrix3ds apply_impl(const matrix3ds& inputs) const override final
+    tensor3s apply_impl(const tensor3s& inputs) const override final
     {
         assert(inputs.size() == 1);
         const auto& input = inputs[0];
@@ -37,22 +37,22 @@ protected:
     }
 
     const std::size_t scale_factor_;
-    virtual matrix3d pool(const matrix3d& input) const = 0;
+    virtual tensor3 pool(const tensor3& input) const = 0;
 
     template <typename AccPixelFunc, typename AccPixelFunc2,
             typename FinalizePixelFunc>
-    static matrix3d pool_helper(
+    static tensor3 pool_helper(
             std::size_t scale_factor,
             float_t acc_init,
             float_t acc2_init,
             AccPixelFunc acc_pixel_func,
             AccPixelFunc2 acc2_pixel_func,
             FinalizePixelFunc finalize_pixel_func,
-            const matrix3d& in_vol)
+            const tensor3& in_vol)
     {
         assert(in_vol.size().height_ % scale_factor == 0);
         assert(in_vol.size().width_ % scale_factor == 0);
-        matrix3d out_vol(
+        tensor3 out_vol(
             shape3(
                 in_vol.size().depth_,
                 in_vol.size().height_ / scale_factor,

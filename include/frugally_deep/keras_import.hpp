@@ -416,8 +416,7 @@ inline test_case load_test_case(const nlohmann::json& data)
 
 inline test_cases load_test_cases(const nlohmann::json& data)
 {
-    assertion(data["tests"].is_array(), "no tests");
-    return create_vector<test_case>(load_test_case, data["tests"]);
+    return create_vector<test_case>(load_test_case, data);
 }
 
 inline bool is_test_output_ok(const tensor3& output, const tensor3& target)

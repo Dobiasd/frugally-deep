@@ -28,14 +28,22 @@ private:
 };
 
 // Throws an exception if a problem occurs.
-inline model load_model(const std::string& path, bool verify = true)
+inline model load_model(const std::string& path, bool verify = true,
+    bool verbose = true)
 {
-    const auto maybe_json_str = fplus::read_text_file_maybe(path)();
+    const auto log = verbose ?
+        [](const std::string& msg) { std::cout << msg << std::endl; } :
+        [](const std::string&) {};
+
+    log("Reading " + path);
+    auto maybe_json_str = fplus::read_text_file_maybe(path)();
     internal::assertion(fplus::is_just(maybe_json_str),
         "Unable to load: " + path);
 
-    const auto json_str = maybe_json_str.unsafe_get_just();
-    const auto json_data = nlohmann::json::parse(json_str);
+    log("Parsing JSON");
+    const auto json_data =
+        nlohmann::json::parse(maybe_json_str.unsafe_get_just());
+    maybe_json_str = fplus::nothing<std::string>(); // free RAM
 
     const std::string image_data_format = json_data["image_data_format"];
     internal::assertion(image_data_format == "channels_last",
@@ -52,17 +60,29 @@ inline model load_model(const std::string& path, bool verify = true)
         return result;
     };
 
+    log("Building model");
     const model full_model(
         internal::create_model_layer(get_param, json_data["architecture"]));
 
     if (verify)
     {
-        const auto tests = internal::load_test_cases(json_data);
-        for (const auto& test_case : tests)
+        if (!json_data["tests"].is_array())
         {
-            const auto output = full_model.predict(test_case.input_);
-            internal::assertion(are_test_outputs_ok(output, test_case.output_),
-                "test failed");
+            log("No test cases available");
+        }
+        else
+        {
+            log("Loading tests");
+            const auto tests = internal::load_test_cases(json_data["tests"]);
+            for (std::size_t i = 0; i < tests.size(); ++i)
+            {
+                log("Running test " + fplus::show(i) +
+                    " of " + fplus::show(tests.size()));
+                const auto output = full_model.predict(tests[i].input_);
+                internal::assertion(are_test_outputs_ok(
+                    output, tests[i].output_), "test failed");
+            }
+            log("All tests OK");
         }
     }
 

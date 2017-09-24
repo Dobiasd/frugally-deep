@@ -15,17 +15,17 @@ class input_layer : public layer
 {
 public:
     explicit input_layer(const std::string& name, const shape3& input_size)
-        : layer(name), input_size_(input_size), output_()
+        : layer(name), input_shape_(input_size), output_()
     {
     }
 protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "need exactly one input");
-        assertion(inputs.front().shape() == input_size_, "invalid input size");
+        assertion(inputs.front().shape() == input_shape_, "invalid input size");
         return inputs;
     }
-    shape3 input_size_;
+    shape3 input_shape_;
 
     // provide initial tensor for computation
     mutable fplus::maybe<tensor3> output_;

@@ -25,18 +25,18 @@ class tensor2
 {
 public:
     tensor2(const shape2& shape, const float_vec& values) :
-        size_(shape),
+        shape_(shape),
         values_(values)
     {
         assertion(shape.area() == values.size(), "invalid number of values");
     }
     tensor2(const shape2& shape, const float_t& value) :
-        size_(shape),
+        shape_(shape),
         values_(fplus::replicate(shape.area(), value))
     {
     }
     explicit tensor2(const shape2& shape) :
-        size_(shape),
+        shape_(shape),
         values_(shape.area(), 0.0f)
     {
     }
@@ -58,7 +58,7 @@ public:
     }
     const shape2& shape() const
     {
-        return size_;
+        return shape_;
     }
     const float_vec& as_vector() const
     {
@@ -72,7 +72,7 @@ private:
             pos.y_ * shape().width_ +
             pos.x_;
     };
-    shape2 size_;
+    shape2 shape_;
     float_vec values_;
 };
 

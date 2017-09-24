@@ -27,13 +27,13 @@ class tensor3
 {
 public:
     tensor3(const shape3& shape, const float_vec& values) :
-        size_(shape),
+        shape_(shape),
         values_(values)
     {
         assertion(shape.volume() == values.size(), "invalid number of values");
     }
     explicit tensor3(const shape3& shape) :
-        size_(shape),
+        shape_(shape),
         values_(shape.volume(), 0.0f)
     {
     }
@@ -55,7 +55,7 @@ public:
     }
     const shape3& shape() const
     {
-        return size_;
+        return shape_;
     }
     const shape2 size_without_depth() const
     {
@@ -78,7 +78,7 @@ private:
             pos.y_ * shape().width_ +
             pos.x_;
     };
-    shape3 size_;
+    shape3 shape_;
     float_vec values_;
 };
 

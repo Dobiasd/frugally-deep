@@ -195,8 +195,6 @@ why did conv work with padding xy swapped?
 
 support filters without bias
 
-size_ -> shape_
-
 shrink test epsilon
 
 tensorflow backend asserten, dazuschreiben wegen padding und so

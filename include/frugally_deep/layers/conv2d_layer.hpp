@@ -53,15 +53,21 @@ protected:
         assertion(filters_.size() > 0, "no filters");
         const auto filter_size = filters_.front().shape();
 
-        std::size_t padding_y_ = 0;
-        std::size_t padding_x_ = 0;
+        // https://stackoverflow.com/a/44002660/1866775
+        std::size_t padding_top = 0;
+        std::size_t padding_bottom = 0;
+        std::size_t padding_left = 0;
+        std::size_t padding_right = 0;
         if (padding_ == padding::same)
         {
-            padding_y_ = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
-            padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
+            padding_top = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
+            padding_left = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
+            padding_bottom = padding_top + (filter_size.height_ % 2 == 0 ? 1 : 0);
+            padding_right = padding_left + (filter_size.width_ % 2 == 0 ? 1 : 0);
         }
-
-        return {convolve(stride, padding_y_, padding_x_, filters_, input)};
+        return {convolve(stride,
+            padding_top, padding_bottom, padding_left, padding_right,
+            filters_, input)};
     }
     filter_vec filters_;
     padding padding_;

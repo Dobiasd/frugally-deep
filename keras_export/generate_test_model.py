@@ -21,11 +21,14 @@ __email__ = "editgym@gmail.com"
 
 def get_test_model_full():
     image_format = K.image_data_format()
+    input0_shape = (6, 4, 3) if image_format == 'channels_last' else (3, 6, 4)
     input1_shape = (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4)
     input2_shape = input1_shape
     input3_shape = (4,)
     input4_shape = (2,3)
 
+
+    input0 = Input(shape=input0_shape) # (3, 4, 6)
     input1 = Input(shape=input1_shape) # (3, 4, 4) channels_first notation
     input2 = Input(shape=input2_shape) # (3, 4, 4)
     input3 = Input(shape=input3_shape) # (3, 4, 4)
@@ -93,9 +96,19 @@ def get_test_model_full():
     output5 = input4
     output6 = input1
 
+    #todo strides
+    conv_outputs = []
+    for d in range(1, 2):
+        for w in range(1, 5):
+            for h in range(1, 5):
+                for padding in ['same', 'valid']:
+                    conv_outputs.append(
+                        Conv2D(d, (w, h), padding=padding)(input0))
+
     model = Model(
-        inputs=[input1, input2, input3, input4],
-        outputs=[output1, output2, output3, output4, output5, output6],
+        inputs=[input0, input1, input2, input3, input4],
+        outputs=conv_outputs +
+            [output1, output2, output3, output4, output5, output6],
         name='full_model')
 
     model.compile(loss='mse', optimizer='nadam')
@@ -107,13 +120,16 @@ def get_test_model_full():
     epochs = 1
 
     data_in = [
+        np.random.random(size=(training_data_size, *input0_shape)),
         np.random.random(size=(training_data_size, *input1_shape)),
         np.random.random(size=(training_data_size, *input2_shape)),
         np.random.random(size=(training_data_size, *input3_shape)),
-        np.random.random(size=(training_data_size, *input4_shape))
+        np.random.random(size=(training_data_size, *input4_shape)),
     ]
 
-    data_out = [
+    conv_out_data = [np.random.random(size=(training_data_size, *x.shape[1:])) for x in conv_outputs]
+
+    data_out = conv_out_data + [
         np.random.random(size=(training_data_size, 3)),
         np.random.random(size=(training_data_size, 3)),
         np.random.random(size=(training_data_size, 3)),

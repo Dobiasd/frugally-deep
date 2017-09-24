@@ -18,18 +18,20 @@ namespace fdeep { namespace internal
 {
 
 inline tensor2 pad_tensor2(
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const tensor2& in)
 {
     tensor2 out(shape2(
-        in.shape().height_ + 2 * padding_y,
-        in.shape().width_ + 2 * padding_x));
+        in.shape().height_ + padding_top + padding_bottom,
+        in.shape().width_ + padding_left + padding_right));
     for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            out.set(y + padding_y, x + padding_x, in.get(y, x));
+            out.set(y + padding_top, x + padding_left, in.get(y, x));
         }
     }
     return out;
@@ -99,8 +101,10 @@ void convolve_go_template(
 
 inline tensor2 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const tensor2& filter,
     const tensor2& in_orig)
 {
@@ -109,16 +113,15 @@ inline tensor2 convolve(
     const std::size_t w1 = in_orig.shape().width_;
     const std::size_t fy = filter.shape().height_;
     const std::size_t fx = filter.shape().width_;
-    const std::size_t py = padding_y;
-    const std::size_t px = padding_x;
 
     assertion(fy <= h1, "filter height too large for data");
     assertion(fx <= w1, "filter width too large for data");
 
-    const std::size_t h2 = (h1 - fy + 2 * py) / stride + 1;
-    const std::size_t w2 = (w1 - fx + 2 * px) / stride + 1;
+    const std::size_t h2 = (h1 - fy + padding_top + padding_bottom) / stride + 1;
+    const std::size_t w2 = (w1 - fx + padding_left + padding_right) / stride + 1;
 
-    const tensor2 in_padded = pad_tensor2(padding_y, padding_x, in_orig);
+    const tensor2 in_padded = pad_tensor2(
+        padding_top, padding_bottom, padding_left, padding_right, in_orig);
 
     tensor2 out(shape2(h2, w2));
 
@@ -146,15 +149,18 @@ inline tensor2 convolve(
 
 inline tensor3 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const tensor2& filter,
     const tensor3& in)
 {
     const auto conv_func = [&](const tensor2& in_slice)
     {
         return convolve(
-            stride, padding_y, padding_x, filter, in_slice);
+            stride, padding_top, padding_bottom, padding_left, padding_right,
+            filter, in_slice);
     };
     return
         tensor3_from_depth_slices(
@@ -165,15 +171,18 @@ inline tensor3 convolve(
 
 inline tensor3 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const tensor3& filters,
     const tensor2& in)
 {
     const auto conv_func = [&](const tensor2& filter_slice)
     {
         return convolve(
-            stride, padding_y, padding_x, filter_slice, in);
+            stride, padding_top, padding_bottom, padding_left, padding_right,
+            filter_slice, in);
     };
     return
         tensor3_from_depth_slices(
@@ -184,8 +193,10 @@ inline tensor3 convolve(
 
 inline tensor2 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const tensor3& filter,
     const tensor3& in)
 {
@@ -193,7 +204,8 @@ inline tensor2 convolve(
         const tensor2& filter_slice, const tensor2& in_slice)
     {
         return convolve(
-            stride, padding_y, padding_x, filter_slice, in_slice);
+            stride, padding_top, padding_bottom, padding_left, padding_right,
+            filter_slice, in_slice);
     };
     return
         sum_tensor2s(
@@ -205,13 +217,16 @@ inline tensor2 convolve(
 
 inline tensor2 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const filter& f,
     const tensor3& in)
 {
     const auto without_bias = convolve(
-        stride, padding_y, padding_x, f.get_tensor3(), in);
+        stride, padding_top, padding_bottom, padding_left, padding_right,
+        f.get_tensor3(), in);
     const auto add_bias = [&](const float_t val)
     {
         return val + f.get_bias();
@@ -221,8 +236,10 @@ inline tensor2 convolve(
 
 inline tensor3 convolve(
     std::size_t stride,
-    std::size_t padding_y,
-    std::size_t padding_x,
+    std::size_t padding_top,
+    std::size_t padding_bottom,
+    std::size_t padding_left,
+    std::size_t padding_right,
     const std::vector<filter>& filters,
     const tensor3& in)
 {
@@ -231,7 +248,8 @@ inline tensor3 convolve(
 
     const auto convole_in = [&](const filter& f)
     {
-        return convolve(stride, padding_y, padding_x, f, in);
+        return convolve(stride,
+            padding_top, padding_bottom, padding_left, padding_right, f, in);
     };
 
     return tensor3_from_depth_slices(

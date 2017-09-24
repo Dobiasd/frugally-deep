@@ -175,22 +175,22 @@ inline layer_ptr create_separable_conv2D_layer(
         bias = get_param(name, "bias");
     assertion(bias.size() == filter_count, "size of bias does not match");
 
-    const float_vec weights_0 = get_param(name, "weights_0");
-    const float_vec weights_1 = get_param(name, "weights_1");
+    const float_vec slice_weights = get_param(name, "slice_weights");
+    const float_vec stack_weights = get_param(name, "stack_weights");
     const shape2 kernel_size = swap_shape2_dims(
         create_shape2(data["config"]["kernel_size"]));
-    assertion(weights_0.size() % kernel_size.area() == 0,
+    assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
-    assertion(weights_1.size() % filter_count == 0,
+    assertion(stack_weights.size() % filter_count == 0,
         "invalid number of weights");
-    const std::size_t input_depth = weights_0.size() / kernel_size.area();
-    const std::size_t filter_depths_1 = weights_1.size() / input_depth;
+    const std::size_t input_depth = slice_weights.size() / kernel_size.area();
+    const std::size_t filter_depths_1 = stack_weights.size() / input_depth;
     assertion(filter_depths_1 == filter_count, "invalid weights sizes");
     const shape3 filter_size(1, kernel_size.height_, kernel_size.width_);
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
         filter_size, filter_count, strides, padding,
-        weights_0, weights_1, bias_0, bias);
+        slice_weights, stack_weights, bias_0, bias);
 }
 
 inline layer_ptr create_input_layer(

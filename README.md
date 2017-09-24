@@ -50,11 +50,13 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * MaxPooling2D
 * ReLU
 * SeLU
+* SeparableConv2D
 * Sigmoid
 * Softmax
 * Softplus
 * Tanh
 * UpSampling2D
+* ZeroPadding2D
 
 
 ### Also supports
@@ -153,6 +155,8 @@ add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
 add merge layers (https://keras.io/layers/merge/)
 
+support dilated convolution
+
 github project description: Use Keras models in C++ with this small header-only library.
 
 add github project tags
@@ -181,10 +185,12 @@ travis wie fplus, auch mit warnings und so
 
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
-padding layer implementieren und testen
-
-performance: tensor3 as std::vector<std::shared_ptr<tensor2>>
+performance improvements
 
 implement layers: ZeroPadding2D
 
 clean up SeparableConv2D creation
+
+why did conv work with padding xy swapped?
+
+support filters without bias

@@ -82,19 +82,19 @@ def show_separable_conv_2D_layer(layer):
     assert len(weights) == 2 or len(weights) == 3
     assert len(weights[0].shape) == 4
     assert len(weights[1].shape) == 4
-    weights_flat_0 = np.swapaxes(
+    slice_weights = np.swapaxes(
         np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
-    weights_flat_1 = np.swapaxes(
+    stack_weights = np.swapaxes(
         np.swapaxes(weights[1], 0, 3), 1, 2).flatten().tolist()
-    assert len(weights_flat_0) > 0
-    assert len(weights_flat_1) > 0
+    assert len(slice_weights) > 0
+    assert len(stack_weights) > 0
     assert layer.dilation_rate == (1,1)
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     result = {
-        'weights_0': weights_flat_0,
-        'weights_1': weights_flat_1,
+        'slice_weights': slice_weights,
+        'stack_weights': stack_weights,
     }
     if len(weights) == 3:
         result['bias'] = weights[2].tolist()

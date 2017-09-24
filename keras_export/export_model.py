@@ -77,6 +77,29 @@ def show_conv2d_layer(layer):
         result['bias'] = weights[1].tolist()
     return result
 
+def show_separable_conv_2D_layer(layer):
+    weights = layer.get_weights()
+    assert len(weights) == 2 or len(weights) == 3
+    assert len(weights[0].shape) == 4
+    assert len(weights[1].shape) == 4
+    weights_flat_0 = np.swapaxes(
+        np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
+    weights_flat_1 = np.swapaxes(
+        np.swapaxes(weights[1], 0, 3), 1, 2).flatten().tolist()
+    assert len(weights_flat_0) > 0
+    assert len(weights_flat_1) > 0
+    assert layer.dilation_rate == (1,1)
+    assert layer.padding in ['valid', 'same']
+    assert len(layer.input_shape) == 4
+    assert layer.input_shape[0] == None
+    result = {
+        'weights_0': weights_flat_0,
+        'weights_1': weights_flat_1,
+    }
+    if len(weights) == 3:
+        result['bias'] = weights[2].tolist()
+    return result
+
 def show_batch_normalization_layer(layer):
     assert layer.axis == -1 or layer.axis == 3
     result = {}
@@ -123,6 +146,7 @@ def is_ascii(str):
 def get_all_weights(model):
     show_layer_functions = {
         'Conv2D': show_conv2d_layer,
+        'SeparableConv2D': show_separable_conv_2D_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer
     }

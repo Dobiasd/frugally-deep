@@ -11,8 +11,8 @@ int main()
     std::vector<std::string> model_paths = {
         "keras_export/test_model.json",
         //"keras_export/xception.json",
-        //"keras_export/vgg16.json",
-        //"keras_export/vgg19.json",
+        "keras_export/vgg16.json",
+        "keras_export/vgg19.json",
         //"keras_export/resnet50.json",
         //"keras_export/inceptionv3.json"
         //"keras_export/inceptionvresnetv2.json", // wait for pip
@@ -20,8 +20,10 @@ int main()
     };
 
     bool error = false;
+
     for (const auto& model_path : model_paths)
     {
+        #ifdef NDEBUG
         try
         {
             const auto model = fdeep::load_model(model_path);
@@ -31,6 +33,9 @@ int main()
             std::cerr << e.what() << std::endl;
             error = true;
         }
+        #else
+            const auto model = fdeep::load_model(model_path);
+        #endif
     }
 
     if (error)

@@ -147,6 +147,52 @@ inline layer_ptr create_conv2d_layer(
         filter_size, filter_count, strides, padding, weights, bias);
 }
 
+inline layer_ptr create_separable_conv2D_layer(
+    const get_param_f& get_param, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
+
+    const std::string padding_str = data["config"]["padding"];
+    const auto maybe_padding =
+        fplus::choose<std::string, separable_conv2d_layer::padding>({
+        { std::string("valid"), separable_conv2d_layer::padding::valid },
+        { std::string("same"), separable_conv2d_layer::padding::same },
+    }, padding_str);
+    assertion(fplus::is_just(maybe_padding), "no padding");
+    const auto padding = maybe_padding.unsafe_get_just();
+
+    const shape2 strides = create_shape2(data["config"]["strides"]);
+
+    assertion(strides.width_ == strides.height_,
+        "strides not proportional");
+
+    const std::size_t filter_count = data["config"]["filters"];
+    float_vec bias(filter_count, 0);
+    const bool use_bias = data["config"]["use_bias"];
+    if (use_bias)
+        bias = get_param(name, "bias");
+    assertion(bias.size() == filter_count, "size of bias does not match");
+
+    const float_vec weights_0 = get_param(name, "weights_0");
+    const float_vec weights_1 = get_param(name, "weights_1");
+    const shape2 kernel_size = swap_shape2_dims(
+        create_shape2(data["config"]["kernel_size"]));
+    assertion(weights_0.size() % kernel_size.area() == 0,
+        "invalid number of weights");
+    assertion(weights_1.size() % filter_count == 0,
+        "invalid number of weights");
+    const std::size_t input_depth = weights_0.size() / kernel_size.area();
+    const std::size_t filter_depths_1 = weights_1.size() / input_depth;
+    assertion(filter_depths_1 == filter_count, "invalid weights sizes");
+    const shape3 filter_size(1, kernel_size.height_, kernel_size.width_);
+    float_vec bias_0(input_depth, 0);
+    return std::make_shared<separable_conv2d_layer>(name, input_depth,
+        filter_size, filter_count, strides, padding,
+        weights_0, weights_1, bias_0, bias);
+}
+
 inline layer_ptr create_input_layer(
     const get_param_f&, const nlohmann::json& data)
 {
@@ -371,6 +417,7 @@ inline layer_ptr create_layer(
         creators = {
             {"Model", create_model_layer},
             {"Conv2D", create_conv2d_layer},
+            {"SeparableConv2D", create_separable_conv2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},

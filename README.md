@@ -185,4 +185,6 @@ padding layer implementieren und testen
 
 performance: tensor3 as std::vector<std::shared_ptr<tensor2>>
 
-implement layers: SeparableConv2D, ZeroPadding2D
+implement layers: ZeroPadding2D
+
+clean up SeparableConv2D creation

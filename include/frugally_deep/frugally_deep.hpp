@@ -36,6 +36,7 @@
 #include "frugally_deep/layers/model_layer.hpp"
 #include "frugally_deep/layers/pooling_layer.hpp"
 #include "frugally_deep/layers/relu_layer.hpp"
+#include "frugally_deep/layers/separable_conv2d_layer.hpp"
 #include "frugally_deep/layers/selu_layer.hpp"
 #include "frugally_deep/layers/sigmoid_layer.hpp"
 #include "frugally_deep/layers/softmax_layer.hpp"

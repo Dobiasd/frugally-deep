@@ -61,7 +61,7 @@ protected:
             padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
         }
 
-        return {convolve(stride, padding_x_, padding_y_, filters_, input)};
+        return {convolve(stride, padding_y_, padding_x_, filters_, input)};
     }
     filter_vec filters_;
     padding padding_;

@@ -41,7 +41,8 @@ namespace details
 {
 
 inline void convolve_go(
-    std::size_t stride,
+    std::size_t strides_y,
+    std::size_t strides_x,
     const tensor2& filter,
     const tensor2& in,
     tensor2& out)
@@ -57,7 +58,7 @@ inline void convolve_go(
                 for (std::size_t xf = 0; xf < fx; ++xf)
                 {
                     const float_t add_val = filter.get(yf, xf) *
-                        in.get(stride * y + yf, stride * x + xf);
+                        in.get(strides_y * y + yf, strides_x * x + xf);
                     out.set(y, x, out.get(y, x) + add_val);
                 }
             }
@@ -69,7 +70,8 @@ inline void convolve_go(
 // In tests with a 3x3 filter and clang++ -O3
 // the performance was increased by a factor of two by this.
 template <
-    std::size_t stride,
+    std::size_t stride_y,
+    std::size_t stride_x,
     std::size_t fy,
     std::size_t fx
     >
@@ -89,7 +91,7 @@ void convolve_go_template(
                 for (std::size_t xf = 0; xf < fx; ++xf)
                 {
                     const float_t add_val = filter.get(yf, xf) *
-                        in.get(stride * y + yf, stride * x + xf);
+                        in.get(stride_y * y + yf, stride_x * x + xf);
                     out.set(y, x, out.get(y, x) + add_val);
                 }
             }
@@ -100,7 +102,10 @@ void convolve_go_template(
 } // namespace details
 
 inline tensor2 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -108,7 +113,7 @@ inline tensor2 convolve(
     const tensor2& filter,
     const tensor2& in_orig)
 {
-    assertion(stride > 0, "invalid stride");
+    assertion(strides_x * strides_y > 0, "invalid stride");
     const std::size_t h1 = in_orig.shape().height_;
     const std::size_t w1 = in_orig.shape().width_;
     const std::size_t fy = filter.shape().height_;
@@ -117,38 +122,38 @@ inline tensor2 convolve(
     assertion(fy <= h1, "filter height too large for data");
     assertion(fx <= w1, "filter width too large for data");
 
-    const std::size_t h2 = (h1 - fy + padding_top + padding_bottom) / stride + 1;
-    const std::size_t w2 = (w1 - fx + padding_left + padding_right) / stride + 1;
-
     const tensor2 in_padded = pad_tensor2(
         padding_top, padding_bottom, padding_left, padding_right, in_orig);
 
-    tensor2 out(shape2(h2, w2));
+    tensor2 out(shape2(out_height, out_width));
 
-    if (stride == 1 && fy == 1 && fx == 1)
-        details::convolve_go_template<1, 1, 1>(filter, in_padded, out);
+    if (strides_y == 1 && strides_x == 1 && fy == 1 && fx == 1)
+        details::convolve_go_template<1, 1, 1, 1>(filter, in_padded, out);
 
-    else if (stride == 1 && fy == 3 && fx == 3)
-        details::convolve_go_template<1, 3, 3>(filter, in_padded, out);
-    else if (stride == 1 && fy == 5 && fx == 5)
-        details::convolve_go_template<1, 5, 5>(filter, in_padded, out);
+    else if (strides_y == 1 && strides_x == 1 && fy == 3 && fx == 3)
+        details::convolve_go_template<1, 1, 3, 3>(filter, in_padded, out);
+    else if (strides_y == 1 && strides_x == 1 && fy == 5 && fx == 5)
+        details::convolve_go_template<1, 1, 5, 5>(filter, in_padded, out);
 
-    else if (stride == 2 && fy == 1 && fx == 1)
-        details::convolve_go_template<2, 1, 1>(filter, in_padded, out);
+    else if (strides_y == 2 && strides_x == 2 && fy == 1 && fx == 1)
+        details::convolve_go_template<2, 2, 1, 1>(filter, in_padded, out);
 
-    else if (stride == 2 && fy == 3 && fx == 3)
-        details::convolve_go_template<2, 3, 3>(filter, in_padded, out);
-    else if (stride == 2 && fy == 5 && fx == 5)
-        details::convolve_go_template<2, 5, 5>(filter, in_padded, out);
+    else if (strides_y == 2 && strides_x == 2 && fy == 3 && fx == 3)
+        details::convolve_go_template<2, 2, 3, 3>(filter, in_padded, out);
+    else if (strides_y == 2 && strides_x == 2 && fy == 5 && fx == 5)
+        details::convolve_go_template<2, 2, 5, 5>(filter, in_padded, out);
 
     else
-        details::convolve_go(stride, filter, in_padded, out);
+        details::convolve_go(strides_y, strides_x, filter, in_padded, out);
 
     return out;
 }
 
 inline tensor3 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -158,8 +163,9 @@ inline tensor3 convolve(
 {
     const auto conv_func = [&](const tensor2& in_slice)
     {
-        return convolve(
-            stride, padding_top, padding_bottom, padding_left, padding_right,
+        return convolve(out_height, out_width,
+            strides_y, strides_x,
+            padding_top, padding_bottom, padding_left, padding_right,
             filter, in_slice);
     };
     return
@@ -170,7 +176,10 @@ inline tensor3 convolve(
 }
 
 inline tensor3 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -180,8 +189,9 @@ inline tensor3 convolve(
 {
     const auto conv_func = [&](const tensor2& filter_slice)
     {
-        return convolve(
-            stride, padding_top, padding_bottom, padding_left, padding_right,
+        return convolve(out_height, out_width,
+            strides_y, strides_x,
+            padding_top, padding_bottom, padding_left, padding_right,
             filter_slice, in);
     };
     return
@@ -192,7 +202,10 @@ inline tensor3 convolve(
 }
 
 inline tensor2 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -203,10 +216,13 @@ inline tensor2 convolve(
     const auto conv_func = [&](
         const tensor2& filter_slice, const tensor2& in_slice)
     {
-        return convolve(
-            stride, padding_top, padding_bottom, padding_left, padding_right,
+        return convolve(out_height, out_width,
+            strides_y, strides_x,
+            padding_top, padding_bottom, padding_left, padding_right,
             filter_slice, in_slice);
     };
+    assertion(filter.shape().depth_ == in.shape().depth_,
+        "invalid filter depth");
     return
         sum_tensor2s(
             fplus::zip_with(
@@ -216,7 +232,10 @@ inline tensor2 convolve(
 }
 
 inline tensor2 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -224,8 +243,9 @@ inline tensor2 convolve(
     const filter& f,
     const tensor3& in)
 {
-    const auto without_bias = convolve(
-        stride, padding_top, padding_bottom, padding_left, padding_right,
+    const auto without_bias = convolve(out_height, out_width,
+        strides_y, strides_x,
+        padding_top, padding_bottom, padding_left, padding_right,
         f.get_tensor3(), in);
     const auto add_bias = [&](const float_t val)
     {
@@ -235,7 +255,10 @@ inline tensor2 convolve(
 }
 
 inline tensor3 convolve(
-    std::size_t stride,
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t padding_top,
     std::size_t padding_bottom,
     std::size_t padding_left,
@@ -248,12 +271,67 @@ inline tensor3 convolve(
 
     const auto convole_in = [&](const filter& f)
     {
-        return convolve(stride,
+        return convolve(out_height, out_width, strides_y, strides_x,
             padding_top, padding_bottom, padding_left, padding_right, f, in);
     };
 
     return tensor3_from_depth_slices(
         fplus::transform(convole_in, filters));
+}
+
+enum class padding { valid, same };
+
+inline tensor3 convolve(
+    shape2 strides,
+    padding pad_type,
+    const std::vector<filter>& filters,
+    const tensor3& input)
+{
+    assertion(filters.size() > 0, "no filters");
+    const auto filter_size = filters.front().shape();
+
+    // https://www.tensorflow.org/api_guides/python/nn#Convolution
+    const int filter_height = static_cast<int>(filter_size.height_);
+    const int filter_width = static_cast<int>(filter_size.width_);
+    const int in_height = static_cast<int>(input.shape().height_);
+    const int in_width = static_cast<int>(input.shape().width_);
+    const int strides_y = static_cast<int>(strides.height_);
+    const int strides_x = static_cast<int>(strides.width_);
+
+    int out_height = fplus::ceil(static_cast<float>(in_height - filter_height + 1) / static_cast<float>(strides_y) - 0.001);
+    int out_width = fplus::ceil(static_cast<float>(in_width - filter_width + 1) / static_cast<float>(strides_x) - 0.001);
+    int pad_along_height = 0;
+    int pad_along_width = 0;
+
+    if (pad_type == padding::same)
+    {
+        out_height = fplus::ceil(static_cast<float>(in_height) / static_cast<float>(strides_y) - 0.001);
+        out_width  = fplus::ceil(static_cast<float>(in_width) / static_cast<float>(strides_x) - 0.001);
+
+        if (in_height % strides_y == 0)
+            pad_along_height = std::max(filter_height - strides_y, 0);
+        else
+            pad_along_height = std::max(filter_height - (in_height % strides_y), 0);
+        if (in_width % strides_x == 0)
+            pad_along_width = std::max(filter_width - strides_x, 0);
+        else
+            pad_along_width = std::max(filter_width - (in_width % strides_x), 0);
+    }
+    const int pad_top = pad_along_height / 2;
+    const int pad_bottom = pad_along_height - pad_top;
+    const int pad_left = pad_along_width / 2;
+    const int pad_right = pad_along_width - pad_left;
+
+    return convolve(
+        static_cast<std::size_t>(out_height),
+        static_cast<std::size_t>(out_width),
+        static_cast<std::size_t>(strides_y),
+        static_cast<std::size_t>(strides_x),
+        static_cast<std::size_t>(pad_top),
+        static_cast<std::size_t>(pad_bottom),
+        static_cast<std::size_t>(pad_left),
+        static_cast<std::size_t>(pad_right),
+        filters, input);
 }
 
 } } // namespace fdeep, namespace internal

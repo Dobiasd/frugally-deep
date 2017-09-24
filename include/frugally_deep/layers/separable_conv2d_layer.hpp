@@ -27,59 +27,52 @@ namespace fdeep { namespace internal
 class separable_conv2d_layer : public layer
 {
 public:
-    enum class padding { valid, same };
-
     explicit separable_conv2d_layer(
             const std::string& name, std::size_t input_depth,
             const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
-            const float_vec& weights_0, const float_vec& weights_1,
+            const float_vec& slice_weights, const float_vec& stack_weights,
             const float_vec& bias_0,
             const float_vec& bias)
         : layer(name),
-        filters_0_(generate_filters(
-            filter_size, input_depth, weights_0, bias_0)),
-        filters_1_(generate_filters(
-            shape3(input_depth, 1, 1), k, weights_1, bias)),
+        filters_slice_(generate_filters(
+            filter_size, input_depth, slice_weights, bias_0)),
+        filters_stack_(generate_filters(
+            shape3(input_depth, 1, 1), k, stack_weights, bias)),
         padding_(p),
         strides_(strides)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_size.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
-        assertion(strides.width_ == strides.height_, "invalid strides");
     }
 protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        const auto& input = inputs.front();
 
-        assertion(strides_.width_ == strides_.height_, "invalid strides");
-        const std::size_t stride = strides_.width_;
+        const auto input_slices = tensor3_to_depth_slices(inputs.front());
 
-        assertion(filters_0_.size() > 0, "no filters");
-        const auto filter_size = filters_0_.front().shape();
+        assertion(input_slices.size() == filters_slice_.size(),
+            "invalid input depth");
 
-        // todo: same as in conv2d layer
-        std::size_t padding_top = 0;
-        std::size_t padding_bottom = 0;
-        std::size_t padding_left = 0;
-        std::size_t padding_right = 0;
-        if (padding_ == padding::same)
+        const auto convolve_slice =
+            [&](const tensor2& slice, const filter& f) -> tensor2
         {
-            padding_top = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
-            padding_left = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
-            padding_bottom = padding_top + (filter_size.height_ % 2 == 0 ? 1 : 0);
-            padding_right = padding_left + (filter_size.width_ % 2 == 0 ? 1 : 0);
-        }
-        const auto temp = convolve(stride,
-            padding_top, padding_bottom, padding_left, padding_right,
-            filters_0_, input);
-        return {convolve(stride, 0, 0, 0, 0, filters_1_, temp)};
+            assertion(f.shape().depth_ == 1, "invalid filter depth");
+            const auto result = convolve(strides_, padding_,
+                filter_vec(1, f), tensor2_to_tensor3(slice));
+            assertion(result.shape().depth_ == 1, "invalid conv output");
+            return tensor3_to_depth_slices(result).front();
+        };
+
+        const auto temp = tensor3_from_depth_slices(fplus::zip_with(
+            convolve_slice, input_slices, filters_slice_));
+
+        return {convolve(shape2(1, 1), padding::valid, filters_stack_, temp)};
     }
-    filter_vec filters_0_;
-    filter_vec filters_1_;
+    filter_vec filters_slice_;
+    filter_vec filters_stack_;
     padding padding_;
     shape2 strides_;
 };

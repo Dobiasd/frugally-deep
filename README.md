@@ -155,7 +155,7 @@ add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
 add merge layers (https://keras.io/layers/merge/)
 
-support dilated convolution
+support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
 
 github project description: Use Keras models in C++ with this small header-only library.
 
@@ -194,3 +194,11 @@ clean up SeparableConv2D creation
 why did conv work with padding xy swapped?
 
 support filters without bias
+
+size_ -> shape_
+
+shrink test epsilon
+
+tensorflow backend asserten, dazuschreiben wegen padding und so
+
+depth_multiplier for separableConv2D

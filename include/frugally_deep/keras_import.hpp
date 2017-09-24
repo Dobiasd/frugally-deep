@@ -114,17 +114,15 @@ inline layer_ptr create_conv2d_layer(
 
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
-        fplus::choose<std::string, conv2d_layer::padding>({
-        { std::string("valid"), conv2d_layer::padding::valid },
-        { std::string("same"), conv2d_layer::padding::same },
+        fplus::choose<std::string, padding>({
+        { std::string("valid"), padding::valid },
+        { std::string("same"), padding::same },
     }, padding_str);
     assertion(fplus::is_just(maybe_padding), "no padding");
     const auto padding = maybe_padding.unsafe_get_just();
 
-    const shape2 strides = create_shape2(data["config"]["strides"]);
-
-    assertion(strides.width_ == strides.height_,
-        "strides not proportional");
+    const shape2 strides = swap_shape2_dims(
+        create_shape2(data["config"]["strides"]));
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -156,14 +154,15 @@ inline layer_ptr create_separable_conv2D_layer(
 
     const std::string padding_str = data["config"]["padding"];
     const auto maybe_padding =
-        fplus::choose<std::string, separable_conv2d_layer::padding>({
-        { std::string("valid"), separable_conv2d_layer::padding::valid },
-        { std::string("same"), separable_conv2d_layer::padding::same },
+        fplus::choose<std::string, padding>({
+        { std::string("valid"), padding::valid },
+        { std::string("same"), padding::same },
     }, padding_str);
     assertion(fplus::is_just(maybe_padding), "no padding");
     const auto padding = maybe_padding.unsafe_get_just();
 
-    const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 strides = swap_shape2_dims(
+        create_shape2(data["config"]["strides"]));
 
     assertion(strides.width_ == strides.height_,
         "strides not proportional");

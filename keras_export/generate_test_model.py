@@ -27,7 +27,6 @@ def get_test_model_full():
     input3_shape = (4,)
     input4_shape = (2,3)
 
-
     input0 = Input(shape=input0_shape) # (3, 4, 6)
     input1 = Input(shape=input1_shape) # (3, 4, 4) channels_first notation
     input2 = Input(shape=input2_shape) # (3, 4, 4)
@@ -98,12 +97,21 @@ def get_test_model_full():
 
     #todo strides
     conv_outputs = []
-    for d in range(1, 2):
-        for w in range(1, 5):
-            for h in range(1, 5):
-                for padding in ['same', 'valid']:
-                    conv_outputs.append(
-                        Conv2D(d, (w, h), padding=padding)(input0))
+    conv_outputs.append(SeparableConv2D(2, (3, 3),
+                    padding='same')(input0))
+    #for padding in ['valid', 'same']:
+    #    for h in range(1, 5):
+    #        for sy in range(1, 5):
+    #            conv_outputs.append(Conv2D(2, (1, h), strides=(1, sy),
+    #                padding=padding)(input0))
+    #            conv_outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
+    #                padding=padding)(input0))
+    #    for w in range(1, 5):
+    #        for sx in range(1, 5):
+    #            conv_outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
+    #                padding=padding)(input0))
+    #            conv_outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
+    #                padding=padding)(input0))
 
     model = Model(
         inputs=[input0, input1, input2, input3, input4],
@@ -127,7 +135,8 @@ def get_test_model_full():
         np.random.random(size=(training_data_size, *input4_shape)),
     ]
 
-    conv_out_data = [np.random.random(size=(training_data_size, *x.shape[1:])) for x in conv_outputs]
+    conv_out_data = [np.random.random(
+        size=(training_data_size, *x.shape[1:])) for x in conv_outputs]
 
     data_out = conv_out_data + [
         np.random.random(size=(training_data_size, 3)),

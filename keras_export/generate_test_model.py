@@ -8,7 +8,7 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
-from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -43,6 +43,11 @@ def get_test_model_full():
     x = keras.layers.concatenate([x1, x2, x3]) # (3, 8, 8)
 
     x = Conv2D(3, (1, 1), padding='valid')(x) # (3, 8, 8)
+    #x = SeparableConv2D(3, (3, 3), padding='valid')(x) # (3, 8, 8)
+    x = Conv2D(4, (3, 3), padding='same')(x) # (3, 8, 8)
+    x = Conv2D(5, (3, 1), padding='same')(x) # (3, 8, 8)
+    x = Conv2D(2, (1, 3), padding='same')(x) # (3, 8, 8)
+    x = Conv2D(3, (5, 5), padding='same')(x) # (3, 8, 8)
     x = BatchNormalization(center=False)(x)
     x = Dropout(0.5)(x)
 

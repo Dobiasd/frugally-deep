@@ -57,7 +57,6 @@ protected:
         std::size_t padding_x_ = 0;
         if (padding_ == padding::same)
         {
-            // todo: is this correct?
             padding_y_ = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
             padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
         }

@@ -113,13 +113,11 @@ inline layer_ptr create_conv2d_layer(
         "only channels_last data format supported");
 
     const std::string padding_str = data["config"]["padding"];
-    const auto maybe_padding =
+    const auto pad_type = fplus::throw_on_nothing(error("no padding"),
         fplus::choose<std::string, padding>({
         { std::string("valid"), padding::valid },
         { std::string("same"), padding::same },
-    }, padding_str);
-    assertion(fplus::is_just(maybe_padding), "no padding");
-    const auto padding = maybe_padding.unsafe_get_just();
+    }, padding_str));
 
     const shape2 strides = swap_shape2_dims(
         create_shape2(data["config"]["strides"]));
@@ -142,7 +140,7 @@ inline layer_ptr create_conv2d_layer(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
     return std::make_shared<conv2d_layer>(name,
-        filter_size, filter_count, strides, padding, weights, bias);
+        filter_size, filter_count, strides, pad_type, weights, bias);
 }
 
 inline layer_ptr create_separable_conv2D_layer(
@@ -153,19 +151,14 @@ inline layer_ptr create_separable_conv2D_layer(
         "only channels_last data format supported");
 
     const std::string padding_str = data["config"]["padding"];
-    const auto maybe_padding =
+    const auto pad_type = fplus::throw_on_nothing(error("no padding"),
         fplus::choose<std::string, padding>({
         { std::string("valid"), padding::valid },
         { std::string("same"), padding::same },
-    }, padding_str);
-    assertion(fplus::is_just(maybe_padding), "no padding");
-    const auto padding = maybe_padding.unsafe_get_just();
-
+    }, padding_str));
+    const std::size_t depth_multiplier = data["config"]["depth_multiplier"];
     const shape2 strides = swap_shape2_dims(
         create_shape2(data["config"]["strides"]));
-
-    assertion(strides.width_ == strides.height_,
-        "strides not proportional");
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -182,13 +175,16 @@ inline layer_ptr create_separable_conv2D_layer(
         "invalid number of weights");
     assertion(stack_weights.size() % filter_count == 0,
         "invalid number of weights");
-    const std::size_t input_depth = slice_weights.size() / kernel_size.area();
-    const std::size_t filter_depths_1 = stack_weights.size() / input_depth;
-    assertion(filter_depths_1 == filter_count, "invalid weights sizes");
-    const shape3 filter_size(1, kernel_size.height_, kernel_size.width_);
-    float_vec bias_0(input_depth, 0);
+    const std::size_t input_depth = slice_weights.size() /
+        (depth_multiplier * kernel_size.area());
+    const std::size_t stack_output_depths_1 =
+        stack_weights.size() / (depth_multiplier * input_depth);
+    assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
+    const shape3 filter_size(1,
+        kernel_size.height_, kernel_size.width_);
+    float_vec bias_0(depth_multiplier * input_depth, 0);
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
-        filter_size, filter_count, strides, padding,
+        filter_size, filter_count, strides, pad_type, depth_multiplier,
         slice_weights, stack_weights, bias_0, bias);
 }
 
@@ -482,7 +478,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_t>(0.0001),
+                    static_cast<float_t>(0.01),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
                     return false;

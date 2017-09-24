@@ -82,8 +82,8 @@ def show_separable_conv_2D_layer(layer):
     assert len(weights) == 2 or len(weights) == 3
     assert len(weights[0].shape) == 4
     assert len(weights[1].shape) == 4
-    slice_weights = np.swapaxes(
-        np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
+    slice_weights = np.swapaxes(np.swapaxes(
+        np.swapaxes(weights[0], 0, 3), 1, 2), 0, 1).flatten().tolist()
     stack_weights = np.swapaxes(
         np.swapaxes(weights[1], 0, 3), 1, 2).flatten().tolist()
     assert len(slice_weights) > 0

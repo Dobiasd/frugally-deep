@@ -19,6 +19,25 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
+def get_small_test_model():
+    image_format = K.image_data_format()
+    input_shape = (6, 4, 2) if image_format == 'channels_last' else (2, 6, 4)
+    input = Input(shape=input_shape)
+    x = SeparableConv2D(3, (3, 3), padding='same', depth_multiplier=5, use_bias=False)(input)
+
+    model = Model(inputs=[input], outputs=x)
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 16
+    batch_size = 8
+    epochs = 1
+    data_in = [np.random.random(size=(training_data_size, *input_shape))]
+    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))]
+    model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
+    return model
+
+
 def get_test_model_full():
     image_format = K.image_data_format()
     input0_shape = (6, 4, 3) if image_format == 'channels_last' else (3, 6, 4)
@@ -27,42 +46,35 @@ def get_test_model_full():
     input3_shape = (4,)
     input4_shape = (2,3)
 
-    input0 = Input(shape=input0_shape) # (3, 4, 6)
-    input1 = Input(shape=input1_shape) # (3, 4, 4) channels_first notation
-    input2 = Input(shape=input2_shape) # (3, 4, 4)
-    input3 = Input(shape=input3_shape) # (3, 4, 4)
-    input4 = Input(shape=input4_shape) # (3, 4, 4)
+    input0 = Input(shape=input0_shape) #(3, 4, 6)
+    input1 = Input(shape=input1_shape) #(3, 4, 4) channels_first notation
+    input2 = Input(shape=input2_shape) #(3, 4, 4)
+    input3 = Input(shape=input3_shape) #(3, 4, 4)
+    input4 = Input(shape=input4_shape) #(3, 4, 4)
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')
 
     up_scale_2 = UpSampling2D((2, 2))
-    x1 = shared_conv(up_scale_2(input1)) # (1, 8, 8)
+    x1 = shared_conv(up_scale_2(input1)) #(1, 8, 8)
     x1 = LeakyReLU()(x1)
-    x2 = shared_conv(up_scale_2(input2)) # (1, 8, 8)
+    x2 = shared_conv(up_scale_2(input2)) #(1, 8, 8)
     x2 = ELU()(x2)
-    x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(input2)) # (1, 8, 8)
-    x = keras.layers.concatenate([x1, x2, x3]) # (3, 8, 8)
+    x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(input2)) #(1, 8, 8)
+    x = keras.layers.concatenate([x1, x2, x3]) #(3, 8, 8)
 
-    x = Conv2D(4, (1, 1), padding='valid')(x) # (4, 8, 8)
-    x = SeparableConv2D(7, (5, 3), padding='same')(x) # (7, 8, 8)
-    x = SeparableConv2D(6, (3, 3), padding='same')(x) # (3, 8, 8)
-    x = Conv2D(4, (3, 3), padding='same')(x) # (4, 8, 8)
-    x = Conv2D(5, (3, 1), padding='same')(x) # (5, 8, 8)
-    x = Conv2D(2, (1, 3), padding='same')(x) # (2, 8, 8)
-    x = Conv2D(3, (5, 5), padding='same')(x) # (3, 8, 8)
-    x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x) # (3, 8, 8)
+    x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x) #(3, 8, 8)
     x = BatchNormalization(center=False)(x)
     x = Dropout(0.5)(x)
 
     x = keras.layers.concatenate([
         MaxPooling2D((2,2))(x),
-        AveragePooling2D((2,2))(x)]) # (6, 4, 4)
+        AveragePooling2D((2,2))(x)]) #(6, 4, 4)
 
-    x = Flatten()(x) # (1, 1, 96)
+    x = Flatten()(x) #(1, 1, 96)
     x = Dense(4, activation='hard_sigmoid', use_bias=False)(x)
     x = BatchNormalization()(x)
-    x = Dense(3, activation='selu')(x) # (1, 1, 3)
+    x = Dense(3, activation='selu')(x) #(1, 1, 3)
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)
@@ -74,7 +86,7 @@ def get_test_model_full():
         name='intermediate_model')
     intermediate_model.compile(loss='mse', optimizer='nadam')
 
-    x = intermediate_model(x) # (1, 1, 5)
+    x = intermediate_model(x) #(1, 1, 5)
 
     intermediate_model_2 = Sequential()
     intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
@@ -82,10 +94,10 @@ def get_test_model_full():
     intermediate_model_2.compile(optimizer='rmsprop',
         loss='categorical_crossentropy', metrics=['accuracy'])
 
-    x = intermediate_model_2(x) # (1, 1, 5)
+    x = intermediate_model_2(x) #(1, 1, 5)
 
     x = Activation('sigmoid')(x)
-    x = Dense(3)(x) # (1, 1, 3)
+    x = Dense(3)(x) #(1, 1, 3)
 
     shared_activation = Activation('tanh')
     output1 = Activation('softplus')(x)
@@ -97,21 +109,25 @@ def get_test_model_full():
 
     #todo strides
     conv_outputs = []
-    conv_outputs.append(SeparableConv2D(2, (3, 3),
-                    padding='same')(input0))
-    #for padding in ['valid', 'same']:
-    #    for h in range(1, 5):
-    #        for sy in range(1, 5):
-    #            conv_outputs.append(Conv2D(2, (1, h), strides=(1, sy),
-    #                padding=padding)(input0))
-    #            conv_outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
-    #                padding=padding)(input0))
-    #    for w in range(1, 5):
-    #        for sx in range(1, 5):
-    #            conv_outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
-    #                padding=padding)(input0))
-    #            conv_outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
-    #                padding=padding)(input0))
+    for padding in ['valid', 'same']:
+        for h in range(1, 5):
+            for sy in range(1, 5):
+                conv_outputs.append(Conv2D(2, (1, h), strides=(1, sy),
+                    padding=padding)(input0))
+                conv_outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
+                    padding=padding)(input0))
+        for w in range(1, 5):
+            for sx in range(1, 5):
+                conv_outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
+                    padding=padding)(input0))
+                conv_outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
+                    padding=padding)(input0))
+    for depth_multiplier in range(1, 3):
+        for out_depth in range(1, 3):
+            conv_outputs.append(SeparableConv2D(out_depth, (3, 3),
+            depth_multiplier=depth_multiplier)(input0))
+
+    conv_outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(input0))
 
     model = Model(
         inputs=[input0, input1, input2, input3, input4],
@@ -157,6 +173,7 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
+        #model = get_small_test_model()
         model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,

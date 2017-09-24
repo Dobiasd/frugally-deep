@@ -163,15 +163,11 @@ add github project tags
 
 remove vscode directory
 
-klassiker aus keras als examples
+alle klassiker aus keras als examples
 
 write something about contributing to the project
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
-
-test strides != 1
-
-test paddings valid and same with non-fitting shapes
 
 test pooling with non-fitting data
 
@@ -189,12 +185,8 @@ performance improvements
 
 implement layers: ZeroPadding2D
 
-clean up SeparableConv2D creation
-
-why did conv work with padding xy swapped?
-
 support filters without bias
 
 tensorflow backend asserten, dazuschreiben wegen padding und so
 
-depth_multiplier for separableConv2D
+get output shapes for test data in test model automatically

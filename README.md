@@ -195,8 +195,6 @@ why did conv work with padding xy swapped?
 
 support filters without bias
 
-shrink test epsilon
-
 tensorflow backend asserten, dazuschreiben wegen padding und so
 
 depth_multiplier for separableConv2D

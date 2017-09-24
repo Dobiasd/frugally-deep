@@ -482,7 +482,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_t>(0.01),
+                    static_cast<float_t>(0.0001),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
                     return false;

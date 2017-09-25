@@ -31,6 +31,7 @@ public:
             const std::string& name, std::size_t input_depth,
             const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
+            bool padding_valid_uses_offset, bool padding_same_uses_offset,
             std::size_t depth_multiplier,
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
@@ -42,9 +43,11 @@ public:
         filters_pointwise_(generate_filters(
             shape3(depth_multiplier * input_depth, 1, 1),
             k, pointwise_weights, bias)),
+        strides_(strides),
         padding_(p),
-        depth_multiplier_(depth_multiplier),
-        strides_(strides)
+        padding_valid_uses_offset_(padding_valid_uses_offset),
+        padding_same_uses_offset_(padding_same_uses_offset),
+        depth_multiplier_(depth_multiplier)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_size.volume() > 0, "filter must have volume");
@@ -68,8 +71,7 @@ protected:
         {
             assertion(f.shape().depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_,
-                false, false,
-                filter_vec(1, f), tensor2_to_tensor3(slice));
+                false, filter_vec(1, f), tensor2_to_tensor3(slice));
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
         };
@@ -79,14 +81,19 @@ protected:
         const auto temp = concatenate_tensor3s(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        return {convolve(shape2(1, 1), padding::valid, false, false,
+        bool use_offset =
+            (padding_ == padding::valid && padding_valid_uses_offset_) ||
+            (padding_ == padding::same && padding_same_uses_offset_);
+        return {convolve(shape2(1, 1), padding::valid, use_offset,
             filters_pointwise_, temp)};
     }
     filter_vec filters_depthwise_;
     filter_vec filters_pointwise_;
-    padding padding_;
-    std::size_t depth_multiplier_;
     shape2 strides_;
+    padding padding_;
+    bool padding_valid_uses_offset_;
+    bool padding_same_uses_offset_;
+    std::size_t depth_multiplier_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -304,8 +304,7 @@ enum class padding { valid, same };
 inline tensor3 convolve(
     shape2 strides,
     padding pad_type,
-    bool offset_y_to_center,
-    bool offset_x_to_center,
+    bool use_offset,
     const std::vector<filter>& filters,
     const tensor3& input)
 {
@@ -347,11 +346,11 @@ inline tensor3 convolve(
     int offset_y = 0;
     int offset_x = 0;
 
-    if (offset_y_to_center)
+    if (use_offset)
     {
         offset_y = ((in_height + pad_top + pad_bottom - filter_height) % strides_y) / 2;
     }
-    if (offset_x_to_center)
+    if (use_offset)
     {
         offset_x = ((in_width + pad_left + pad_right - filter_width) % strides_x) / 2;
     }

@@ -9,12 +9,13 @@
 int main()
 {
     std::vector<std::string> model_paths = {
-        "keras_export/test_model.json",
-        //"keras_export/xception.json",
+        "keras_export/test_model_small.json",
+        "keras_export/test_model_full.json",
+        "keras_export/xception.json",
         "keras_export/vgg16.json",
         "keras_export/vgg19.json",
-        //"keras_export/resnet50.json",
-        //"keras_export/inceptionv3.json"
+        "keras_export/resnet50.json",
+        "keras_export/inceptionv3.json"
         //"keras_export/inceptionvresnetv2.json", // wait for pip
         //"keras_export/mobilenet.json" // relu6
     };

@@ -22,28 +22,19 @@ __email__ = "editgym@gmail.com"
 def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
-        (1, 16, 1) if image_format == 'channels_last' else (1, 1, 16),
+        (1, 6, 1) if image_format == 'channels_last' else (1, 1, 6),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    counter = 0
-    for padding in ['valid', 'same']:
-        for h in range(1, 6):
-            for sy in range(1, 4):
-                outputs.append(Conv2D(1, (1, h), strides=(1, sy),
-                    padding=padding)(inputs[0]))
-                print(counter, padding, h, sy)
-                counter = counter + 1
-    #outputs.append(SeparableConv2D(1, (1, 5), strides=(3, 3),
-        #padding='same')(inputs[0]))
+    outputs.append(Conv2D(1, (1, 1), strides=(1, 3), padding='same')(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 8
-    batch_size = 4
+    training_data_size = 1
+    batch_size = 1
     epochs = 1
     data_in = [np.random.random(size=(training_data_size, *input_shape))
         for input_shape in input_shapes]
@@ -145,8 +136,8 @@ def get_test_model_full():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 8
-    batch_size = 4
+    training_data_size = 1
+    batch_size = 1
     epochs = 1
     data_in = [np.random.random(size=(training_data_size, *input_shape))
         for input_shape in input_shapes]

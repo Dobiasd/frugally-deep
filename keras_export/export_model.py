@@ -180,6 +180,29 @@ def convert_sequential_to_model(model):
             model.layers[i] = convert_sequential_to_model(model.layers[i])
     return model
 
+def conv2d_offset_normal_eval(padding, x):
+    kernel = K.variable(value=np.array([[[[1]]]]), dtype='float32')
+    return K.conv2d(x, kernel, strides=(3,3), padding=padding)
+
+def conv2d_offset_separable_eval(padding, x):
+    depthwise_kernel = K.variable(value=np.array([[[[1]]]]),
+        dtype='float32')
+    pointwise_kernel = K.variable(value=np.array([[[[1]]]]),
+        dtype='float32')
+    return K.separable_conv2d(x, depthwise_kernel,
+        pointwise_kernel, strides=(3,3), padding=padding)
+
+def check_conv2d_offset(eval_f, padding):
+    image_format = K.image_data_format()
+    in_arr = np.array([[[[0, 1, 2, 3, 4, 5]]]])
+    if image_format == 'channels_last':
+        in_arr = np.swapaxes(in_arr, 1, 3)
+    input = K.variable(value=in_arr, dtype='float32')
+    output = eval_f(padding, input)
+    result = K.eval(output).flatten().tolist()
+    assert result in [[0, 3], [1, 4]]
+    return result == [1, 4]
+
 def main():
     usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 1]'
     if len(sys.argv) != 3 and len(sys.argv) != 4:
@@ -199,6 +222,15 @@ def main():
         json_output['trainable_params'] = get_all_weights(model)
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
         json_output['image_data_format'] = K.image_data_format()
+        json_output['conv2d_padding_valid_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_normal_eval, 'valid')
+        json_output['conv2d_padding_same_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_normal_eval, 'same')
+        json_output['separable_conv2d_padding_valid_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_separable_eval, 'valid')
+        json_output['separable_conv2d_padding_same_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_separable_eval, 'same')
+
         write_text_file(out_path, json.dumps(
             json_output, allow_nan=False, indent=2, sort_keys=True))
 

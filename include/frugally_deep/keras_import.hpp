@@ -83,11 +83,13 @@ inline node_connection create_node_connection(const nlohmann::json& data)
 
 using get_param_f =
     std::function<float_vec(const std::string&, const std::string&)>;
+using get_global_param_f = std::function<nlohmann::json(const std::string&)>;
 
-layer_ptr create_layer(const get_param_f&, const nlohmann::json&);
+layer_ptr create_layer(const get_param_f&, const get_global_param_f&,
+    const nlohmann::json&);
 
-inline layer_ptr create_model_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_model_layer(const get_param_f& get_param,
+    const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     //output_nodes
     //input_nodes
@@ -96,7 +98,7 @@ inline layer_ptr create_model_layer(
     assertion(data["config"]["layers"].is_array(), "missing layers array");
 
     const auto layers = create_vector<layer_ptr>(
-        fplus::bind_1st_of_2(create_layer, get_param),
+        fplus::bind_1st_and_2nd_of_3(create_layer, get_param, get_global_param),
         data["config"]["layers"]);
 
     assertion(data["config"]["input_layers"].is_array(), "no input layers");
@@ -115,8 +117,8 @@ inline void fill_with_zeros(float_vec& xs)
     std::fill(std::begin(xs), std::end(xs), 0);
 }
 
-inline layer_ptr create_conv2d_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
+    const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
@@ -149,12 +151,18 @@ inline layer_ptr create_conv2d_layer(
     const shape3 filter_size(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
+    const bool padding_valid_uses_offset =
+        get_global_param("conv2d_padding_valid_uses_offset");
+    const bool padding_same_uses_offset =
+        get_global_param("conv2d_padding_same_uses_offset");
     return std::make_shared<conv2d_layer>(name,
-        filter_size, filter_count, strides, pad_type, weights, bias);
+        filter_size, filter_count, strides, pad_type,
+        padding_valid_uses_offset, padding_same_uses_offset,
+        weights, bias);
 }
 
-inline layer_ptr create_separable_conv2D_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
+    const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
@@ -193,13 +201,19 @@ inline layer_ptr create_separable_conv2D_layer(
     const shape3 filter_size(1,
         kernel_size.height_, kernel_size.width_);
     float_vec bias_0(depth_multiplier * input_depth, 0);
+    const bool padding_valid_uses_offset =
+        get_global_param("separable_conv2d_padding_valid_uses_offset");
+    const bool padding_same_uses_offset =
+        get_global_param("separable_conv2d_padding_same_uses_offset");
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
-        filter_size, filter_count, strides, pad_type, depth_multiplier,
+        filter_size, filter_count, strides, pad_type,
+        padding_valid_uses_offset, padding_same_uses_offset,
+        depth_multiplier,
         slice_weights, stack_weights, bias_0, bias);
 }
 
 inline layer_ptr create_input_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
@@ -208,8 +222,8 @@ inline layer_ptr create_input_layer(
     return std::make_shared<input_layer>(name, input_shape);
 }
 
-inline layer_ptr create_batch_normalization_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
+    const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     float_t epsilon = data["config"]["epsilon"];
@@ -224,7 +238,7 @@ inline layer_ptr create_batch_normalization_layer(
 }
 
 inline layer_ptr create_dropout_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     // dropout rate equals zero in forward pass
@@ -232,7 +246,7 @@ inline layer_ptr create_dropout_layer(
 }
 
 inline layer_ptr create_leaky_relu_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     float_t alpha = data["config"]["alpha"];
@@ -240,7 +254,7 @@ inline layer_ptr create_leaky_relu_layer(
 }
 
 inline layer_ptr create_elu_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     float_t alpha = data["config"]["alpha"];
@@ -248,7 +262,7 @@ inline layer_ptr create_elu_layer(
 }
 
 inline layer_ptr create_max_pooling2d_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
@@ -264,7 +278,7 @@ inline layer_ptr create_max_pooling2d_layer(
 }
 
 inline layer_ptr create_average_pooling2d_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
@@ -280,7 +294,7 @@ inline layer_ptr create_average_pooling2d_layer(
 }
 
 inline layer_ptr create_upsampling2d_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
@@ -290,8 +304,8 @@ inline layer_ptr create_upsampling2d_layer(
     return std::make_shared<upsampling2d_layer>(name, size.width_);
 }
 
-inline layer_ptr create_dense_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_dense_layer(const get_param_f& get_param,
+    const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const float_vec weights = get_param(name, "weights");
@@ -308,14 +322,14 @@ inline layer_ptr create_dense_layer(
 }
 
 inline layer_ptr create_concatename_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<concatenate_layer>(name);
 }
 
 inline layer_ptr create_flatten_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<flatten_layer>(name);
@@ -384,7 +398,7 @@ inline activation_layer_ptr create_activation_layer(
 }
 
 inline layer_ptr create_activation_layer_as_layer(
-    const get_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const std::string type = data["config"]["activation"];
@@ -412,13 +426,14 @@ inline nodes create_nodes(const nlohmann::json& data)
     return fplus::transform(create_node, inbound_nodes_data);
 }
 
-inline layer_ptr create_layer(
-    const get_param_f& get_param, const nlohmann::json& data)
+inline layer_ptr create_layer(const get_param_f& get_param,
+    const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
 
     const std::unordered_map<std::string,
-            std::function<layer_ptr(const get_param_f&, const nlohmann::json&)>>
+            std::function<layer_ptr(const get_param_f&,
+                const get_global_param_f&, const nlohmann::json&)>>
         creators = {
             {"Model", create_model_layer},
             {"Conv2D", create_conv2d_layer},
@@ -441,7 +456,7 @@ inline layer_ptr create_layer(
 
     auto result = fplus::throw_on_nothing(
         error("unknown layer type: " + type),
-        fplus::get_from_map(creators, type))(get_param, data);
+        fplus::get_from_map(creators, type))(get_param, get_global_param, data);
 
     if (type != "Activation" &&
         json_obj_has_member(data["config"], "activation"))

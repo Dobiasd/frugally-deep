@@ -28,11 +28,14 @@ public:
     explicit conv2d_layer(
             const std::string& name, const shape3& filter_size,
             std::size_t k, const shape2& strides, padding p,
+            bool padding_valid_uses_offset, bool padding_same_uses_offset,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_filters(filter_size, k, weights, bias)),
+        strides_(strides),
         padding_(p),
-        strides_(strides)
+        padding_valid_uses_offset_(padding_valid_uses_offset),
+        padding_same_uses_offset_(padding_same_uses_offset)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_size.volume() > 0, "filter must have volume");
@@ -42,13 +45,17 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        return {convolve(strides_, padding_,
-            padding_ == padding::same, padding_ == padding::same,
+        bool use_offset =
+            (padding_ == padding::valid && padding_valid_uses_offset_) ||
+            (padding_ == padding::same && padding_same_uses_offset_);
+        return {convolve(strides_, padding_, use_offset,
             filters_, inputs.front())};
     }
     filter_vec filters_;
-    padding padding_;
     shape2 strides_;
+    padding padding_;
+    bool padding_valid_uses_offset_;
+    bool padding_same_uses_offset_;
 };
 
 } } // namespace fdeep, namespace internal

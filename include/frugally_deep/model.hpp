@@ -60,7 +60,7 @@ inline model load_model(const std::string& path, bool verify = true,
     log_duration();
 
     log_sol("Parsing JSON");
-    const auto json_data =
+    auto json_data =
         nlohmann::json::parse(maybe_json_str.unsafe_get_just());
     maybe_json_str = fplus::nothing<std::string>(); // free RAM
     log_duration();
@@ -80,9 +80,16 @@ inline model load_model(const std::string& path, bool verify = true,
         return result;
     };
 
+    const std::function<nlohmann::json(const std::string&)>
+        get_global_param =
+            [&json_data](const std::string& param_name) -> nlohmann::json
+    {
+        return json_data[param_name];
+    };
+
     log_sol("Building model");
-    const model full_model(
-        internal::create_model_layer(get_param, json_data["architecture"]));
+    const model full_model(internal::create_model_layer(
+        get_param, get_global_param, json_data["architecture"]));
     log_duration();
 
     if (verify)
@@ -96,6 +103,7 @@ inline model load_model(const std::string& path, bool verify = true,
             log_sol("Loading tests");
             log_duration();
             const auto tests = internal::load_test_cases(json_data["tests"]);
+            json_data = {}; // free RAM
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
                 log_sol("Running test " + fplus::show(i + 1) +

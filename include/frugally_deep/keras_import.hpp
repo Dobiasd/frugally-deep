@@ -335,6 +335,33 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
+inline layer_ptr create_zero_padding2d_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
+    const auto create_size_t = [](const nlohmann::json& int_data) -> std::size_t
+    {
+        const int val = int_data;
+        assertion(val >= 0, "invalid size_t value");
+        return static_cast<std::size_t>(val);
+    };
+    const auto padding =
+        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            data["config"]["padding"]);
+    assertion(padding.size() == 2 &&
+        padding[0].size() == 2 && padding[1].size() == 2,
+        "invalid padding format");
+    const std::size_t top_pad = padding[1][0];
+    const std::size_t bottom_pad = padding[1][1];
+    const std::size_t left_pad = padding[0][0];
+    const std::size_t right_pad = padding[0][1];
+    return std::make_shared<zero_padding2d_layer>(name,
+        top_pad, bottom_pad, left_pad, right_pad);
+}
+
 inline activation_layer_ptr create_linear_layer(const std::string& name)
 {
     return std::make_shared<linear_layer>(name);
@@ -449,6 +476,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Dense", create_dense_layer},
             {"Concatenate", create_concatename_layer},
             {"Flatten", create_flatten_layer},
+            {"ZeroPadding2D", create_zero_padding2d_layer},
             {"Activation", create_activation_layer_as_layer}
         };
 

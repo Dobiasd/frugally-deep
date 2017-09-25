@@ -45,6 +45,7 @@
 #include "frugally_deep/layers/sigmoid_layer.hpp"
 #include "frugally_deep/layers/tanh_layer.hpp"
 #include "frugally_deep/layers/upsampling2d_layer.hpp"
+#include "frugally_deep/layers/zero_padding2d_layer.hpp"
 
 #include "frugally_deep/keras_import.hpp"
 

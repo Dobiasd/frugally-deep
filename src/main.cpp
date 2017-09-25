@@ -12,9 +12,9 @@ int main()
         "keras_export/test_model_small.json",
         "keras_export/test_model_full.json",
         "keras_export/xception.json", // todo: pool with pool_size != strides
-        "keras_export/vgg16.json",
-        "keras_export/vgg19.json",
-        "keras_export/resnet50.json",
+        //"keras_export/vgg16.json",
+        //"keras_export/vgg19.json",
+        "keras_export/resnet50.json", // todo: pool with pool_size != strides
         "keras_export/inceptionv3.json"
         //"keras_export/inceptionvresnetv2.json", // wait for pip
         //"keras_export/mobilenet.json" // relu6

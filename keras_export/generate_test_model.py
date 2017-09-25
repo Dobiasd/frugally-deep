@@ -8,7 +8,7 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
-from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -73,6 +73,9 @@ def get_test_model_full():
             outputs.append(SeparableConv2D(out_depth, (3, 3),
                 depth_multiplier=depth_multiplier)(inputs[0]))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
+    outputs.append(ZeroPadding2D(2)(inputs[0]))
+    outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
+    outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[0]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')

@@ -427,4 +427,25 @@ inline tensor3 flatten_tensor3(const tensor3& vol)
     return tensor3(shape3(1, 1, values.size()), values);
 }
 
+inline tensor3 pad_tensor3(std::size_t top_pad, std::size_t bottom_pad,
+    std::size_t left_pad, std::size_t right_pad,
+    const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().depth_,
+        in.shape().height_ + top_pad + bottom_pad,
+        in.shape().width_ + left_pad + right_pad));
+    for (std::size_t x = 0; x < in.shape().width_; ++x)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            {
+                result.set(z, y + top_pad, x + left_pad, in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
 } } // namespace fdeep, namespace internal

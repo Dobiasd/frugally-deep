@@ -181,8 +181,6 @@ travis wie fplus, auch mit warnings und so
 
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
 
-performance improvements
-
-implement layers: ZeroPadding2D
+performance improvements, conv, use pad_tensor3, no slicing
 
 support filters without bias

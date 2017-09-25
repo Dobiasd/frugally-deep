@@ -492,6 +492,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
 inline bool are_test_outputs_ok(const tensor3s& output,
     const tensor3s& target)
 {
+    assertion(output.size() == target.size(), "invalid output count");
     return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
 }
 

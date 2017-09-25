@@ -206,6 +206,8 @@ inline tensor2 convolve_transpose(
         return convolve_transpose(
             stride, unpadding_y, unpadding_x, filter_slice, in_slice);
     };
+    assertion(filter.shape().depth_ == in.shape().depth_,
+        "invalid filter depth");
     return
         sum_tensor2s(
             fplus::zip_with(

@@ -73,6 +73,8 @@ protected:
             return result;
         };
 
+        assertion(input_slices.size() == filters_depthwise_.size(),
+            "invalid depthwise filter count");
         const auto temp = concatenate_tensor3s(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 

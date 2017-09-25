@@ -93,7 +93,7 @@ Usage
 
 todo
 
-Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend.
+Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend. Models created with other backends are not officially supported or tested.
 
 Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
@@ -186,7 +186,3 @@ performance improvements
 implement layers: ZeroPadding2D
 
 support filters without bias
-
-tensorflow backend asserten, dazuschreiben wegen padding und so
-
-get output shapes for test data in test model automatically

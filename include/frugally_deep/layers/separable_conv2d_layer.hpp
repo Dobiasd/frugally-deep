@@ -68,6 +68,7 @@ protected:
         {
             assertion(f.shape().depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_,
+                false, false,
                 filter_vec(1, f), tensor2_to_tensor3(slice));
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
@@ -78,7 +79,8 @@ protected:
         const auto temp = concatenate_tensor3s(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        return {convolve(shape2(1, 1), padding::valid, filters_pointwise_, temp)};
+        return {convolve(shape2(1, 1), padding::valid, false, false,
+            filters_pointwise_, temp)};
     }
     filter_vec filters_depthwise_;
     filter_vec filters_pointwise_;

@@ -42,7 +42,9 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        return {convolve(strides_, padding_, filters_, inputs.front())};
+        return {convolve(strides_, padding_,
+            padding_ == padding::same, padding_ == padding::same,
+            filters_, inputs.front())};
     }
     filter_vec filters_;
     padding padding_;

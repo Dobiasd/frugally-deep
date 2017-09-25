@@ -19,19 +19,26 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-def get_small_test_model():
+def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
-        (1, 8, 1) if image_format == 'channels_last' else (1, 1, 8)
+        (1, 16, 1) if image_format == 'channels_last' else (1, 1, 16),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
-    counter = 0
     outputs = []
-    outputs.append(Conv2D(1, (1, 1), strides=(1, 4), padding='same',
-        use_bias=False)(inputs[0]))
+    counter = 0
+    for padding in ['valid', 'same']:
+        for h in range(1, 6):
+            for sy in range(1, 4):
+                outputs.append(Conv2D(1, (1, h), strides=(1, sy),
+                    padding=padding)(inputs[0]))
+                print(counter, padding, h, sy)
+                counter = counter + 1
+    #outputs.append(SeparableConv2D(1, (1, 5), strides=(3, 3),
+        #padding='same')(inputs[0]))
 
-    model = Model(inputs=inputs, outputs=outputs, name='full_model')
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -134,7 +141,7 @@ def get_test_model_full():
         inputs[1]
     ]
 
-    model = Model(inputs=inputs, outputs=outputs, name='full_model')
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_full')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -154,7 +161,7 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        #model = get_small_test_model()
+        #model = get_test_model_small()
         model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,

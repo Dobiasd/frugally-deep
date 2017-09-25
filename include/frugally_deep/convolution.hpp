@@ -49,6 +49,8 @@ inline void convolve_go(
 {
     const std::size_t fy = filter.shape().height_;
     const std::size_t fx = filter.shape().width_;
+    const std::size_t ofst_y = ((in.shape().height_ - 1) % strides_y) / 2;
+    const std::size_t ofst_x = ((in.shape().width_ - 1) % strides_x) / 2;
     for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < out.shape().width_; ++x)
@@ -58,7 +60,8 @@ inline void convolve_go(
                 for (std::size_t xf = 0; xf < fx; ++xf)
                 {
                     const float_t add_val = filter.get(yf, xf) *
-                        in.get(strides_y * y + yf, strides_x * x + xf);
+                        in.get(strides_y * y + yf + ofst_y,
+                            strides_x * x + xf + ofst_x);
                     out.set(y, x, out.get(y, x) + add_val);
                 }
             }
@@ -70,8 +73,8 @@ inline void convolve_go(
 // In tests with a 3x3 filter and clang++ -O3
 // the performance was increased by a factor of two by this.
 template <
-    std::size_t stride_y,
-    std::size_t stride_x,
+    std::size_t strides_y,
+    std::size_t strides_x,
     std::size_t fy,
     std::size_t fx
     >
@@ -82,6 +85,8 @@ void convolve_go_template(
 {
     assertion(filter.shape().height_ == fy, "invalid filter height");
     assertion(filter.shape().width_ == fx, "invalid filter width");
+    const std::size_t ofst_y = ((in.shape().height_ - 1) % strides_y) / 2;
+    const std::size_t ofst_x = ((in.shape().width_ - 1) % strides_x) / 2;
     for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < out.shape().width_; ++x)
@@ -91,7 +96,8 @@ void convolve_go_template(
                 for (std::size_t xf = 0; xf < fx; ++xf)
                 {
                     const float_t add_val = filter.get(yf, xf) *
-                        in.get(stride_y * y + yf, stride_x * x + xf);
+                        in.get(strides_y * y + yf + ofst_y,
+                            strides_x * x + xf + ofst_x);
                     out.set(y, x, out.get(y, x) + add_val);
                 }
             }

@@ -21,19 +21,27 @@ __email__ = "editgym@gmail.com"
 
 def get_small_test_model():
     image_format = K.image_data_format()
-    input_shape = (6, 4, 2) if image_format == 'channels_last' else (2, 6, 4)
-    input = Input(shape=input_shape)
-    x = SeparableConv2D(3, (3, 3), padding='same', depth_multiplier=5, use_bias=False)(input)
+    input_shapes = [
+        (1, 8, 1) if image_format == 'channels_last' else (1, 1, 8)
+    ]
+    inputs = [Input(shape=s) for s in input_shapes]
 
-    model = Model(inputs=[input], outputs=x)
+    counter = 0
+    outputs = []
+    outputs.append(Conv2D(1, (1, 1), strides=(1, 4), padding='same',
+        use_bias=False)(inputs[0]))
+
+    model = Model(inputs=inputs, outputs=outputs, name='full_model')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 16
-    batch_size = 8
+    training_data_size = 8
+    batch_size = 4
     epochs = 1
-    data_in = [np.random.random(size=(training_data_size, *input_shape))]
-    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))]
+    data_in = [np.random.random(size=(training_data_size, *input_shape))
+        for input_shape in input_shapes]
+    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
+        for x in outputs]
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
@@ -46,27 +54,27 @@ def get_test_model_full():
         (4,),
         (2,3)
     ]
-    inputs = [Input(shape=s) for s in input_shapes] #(3, 4, 6)
+    inputs = [Input(shape=s) for s in input_shapes]
 
-    conv_outputs = []
+    outputs = []
     for padding in ['valid', 'same']:
         for h in range(1, 6):
             for sy in range(1, 4):
-                conv_outputs.append(Conv2D(2, (1, h), strides=(1, sy),
+                outputs.append(Conv2D(2, (1, h), strides=(1, sy),
                     padding=padding)(inputs[0]))
-                conv_outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
+                outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
                     padding=padding)(inputs[0]))
         for w in range(1, 6):
             for sx in range(1, 4):
-                conv_outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
+                outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
                     padding=padding)(inputs[0]))
-                conv_outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
+                outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
                     padding=padding)(inputs[0]))
     for depth_multiplier in range(1, 3):
         for out_depth in range(1, 3):
-            conv_outputs.append(SeparableConv2D(out_depth, (3, 3),
-            depth_multiplier=depth_multiplier)(inputs[0]))
-    conv_outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
+            outputs.append(SeparableConv2D(out_depth, (3, 3),
+                depth_multiplier=depth_multiplier)(inputs[0]))
+    outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')
@@ -117,7 +125,7 @@ def get_test_model_full():
 
     shared_activation = Activation('tanh')
 
-    outputs = conv_outputs + [
+    outputs = outputs + [
         Activation('softplus')(x),
         Activation('softmax')(x),
         shared_activation(x),
@@ -130,8 +138,8 @@ def get_test_model_full():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 16
-    batch_size = 8
+    training_data_size = 8
+    batch_size = 4
     epochs = 1
     data_in = [np.random.random(size=(training_data_size, *input_shape))
         for input_shape in input_shapes]

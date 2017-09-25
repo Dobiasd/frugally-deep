@@ -195,17 +195,12 @@ def main():
         model = convert_sequential_to_model(model)
 
         json_output = {}
-
         json_output['architecture'] = json.loads(model.to_json())
-
         json_output['trainable_params'] = get_all_weights(model)
-
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
-
         json_output['image_data_format'] = K.image_data_format()
-
         write_text_file(out_path, json.dumps(
-                json_output, allow_nan=False, indent=2, sort_keys=True))
+            json_output, allow_nan=False, indent=2, sort_keys=True))
 
 if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ int main()
     std::vector<std::string> model_paths = {
         "keras_export/test_model_small.json",
         "keras_export/test_model_full.json",
-        "keras_export/xception.json",
+        "keras_export/xception.json", // todo: pool with pool_size != strides
         "keras_export/vgg16.json",
         "keras_export/vgg19.json",
         "keras_export/resnet50.json",
@@ -31,7 +31,7 @@ int main()
         }
         catch (const std::exception& e)
         {
-            std::cerr << e.what() << std::endl;
+            std::cerr << "\nERROR:" << e.what() << std::endl;
             error = true;
         }
         #else

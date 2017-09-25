@@ -7,7 +7,17 @@
 #pragma once
 
 #include "frugally_deep/frugally_deep.hpp"
+
+#if defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
+#endif
+// source: https://github.com/nlohmann/json
 #include "frugally_deep/json.hpp"
+#if defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic pop
+#endif
+
 #include <fplus/fplus.hpp>
 #include <iostream>
 #include <chrono>

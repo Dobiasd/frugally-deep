@@ -67,7 +67,7 @@ inline filter_vec generate_filters(
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(
-            std::mem_fn(&filter::volume), filters));
+        fplus_c_mem_fn_t(filter, volume, std::size_t), filters));
 
     assertion(static_cast<std::size_t>(weights.size()) == param_count,
         "invalid weight size");

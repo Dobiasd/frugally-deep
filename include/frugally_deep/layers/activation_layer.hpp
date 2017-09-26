@@ -28,9 +28,10 @@ public:
     }
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
-        const auto f = fplus::bind_1st_of_2(
-            std::mem_fn(&activation_layer::transform_input),
-            this);
+        const auto f = [this](const tensor3& t) -> tensor3
+        {
+            return transform_input(t);
+        };
         return fplus::transform(f, inputs);
     }
 

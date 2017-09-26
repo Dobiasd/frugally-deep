@@ -114,7 +114,7 @@ inline layer_ptr create_model_layer(const get_param_f& get_param,
 
 inline void fill_with_zeros(float_vec& xs)
 {
-    std::fill(std::begin(xs), std::end(xs), 0);
+    std::fill(std::begin(xs), std::end(xs), static_cast<float_t>(0));
 }
 
 inline layer_ptr create_conv2d_layer(const get_param_f& get_param,

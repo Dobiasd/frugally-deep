@@ -18,7 +18,7 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-store_floats_human_redable = False
+store_floats_human_redable = True
 
 def write_text_file(path, text):
     with open(path, "w") as text_file:
@@ -113,6 +113,7 @@ def show_separable_conv_2D_layer(layer):
     return result
 
 def show_batch_normalization_layer(layer):
+    print('layer.axis', layer.axis)
     assert layer.axis == -1 or layer.axis == 3
     result = {}
     if layer.center:

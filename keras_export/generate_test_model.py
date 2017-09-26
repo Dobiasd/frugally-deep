@@ -20,15 +20,16 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
-    input = Input(shape=(2,1,2))
-    x = BatchNormalization()(input)
+    shape = (2,1,1)
+    input = Input(shape=shape)
+    x = BatchNormalization(axis=3, center=False)(input)
     model = Model(inputs=input, outputs=x, name='test_model_small')
 
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    data_in = [np.random.random(size=(10, 2, 1, 2))]
-    data_out = [np.random.random(size=(10, 2, 1, 2))]
+    data_in = [np.random.random(size=(10, *shape))]
+    data_out = [np.random.random(size=(10, *shape))]
     #for fit_iter in range(0, 40):
     model.fit(data_in, data_out, epochs=40)
     return model

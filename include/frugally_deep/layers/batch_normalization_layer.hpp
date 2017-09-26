@@ -33,39 +33,40 @@ protected:
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();
 
-        if (input.shape().depth_ == 1 && input.shape().height_ == 1)
+        const auto transform_slice = [this]
+            (const tensor2& slice, const std::size_t idx) -> tensor2
         {
-            auto result = input;
+            const auto mu = tensor2_mean_value(slice);
+            const auto xmu = sub_from_tensor2_elems(slice, mu);
+            const auto sq = transform_tensor2(fplus::square<float_t>, xmu);
+            const auto var = tensor2_mean_value(sq);
+            const auto sqrtvar = std::sqrt(var + epsilon_);
+            auto ivar = static_cast<float_t>(1) / sqrtvar;
             if (!gamma_.empty())
-            {
-                assertion(result.shape().width_ == gamma_.size(),
-                    "invalid gamma");
-                result = tensor3(result.shape(),
-                    fplus::zip_with(std::multiplies<float_t>(),
-                        result.as_vector(), gamma_));
-            }
+                ivar *= gamma_[idx];
+            auto out = multiply_tensor2_elems(xmu, ivar);
             if (!beta_.empty())
-            {
-                assertion(result.shape().width_ == beta_.size(), "invalid beta");
-                result = tensor3(result.shape(),
-                    fplus::zip_with(std::plus<float_t>(),
-                        result.as_vector(), beta_));
-            }
-            return {result};
-        }
+                out = add_to_tensor2_elems(out, beta_[idx]);
+            return out;
+        };
 
-        auto slices = tensor3_to_depth_slices(input);
+        const auto slices = tensor3_to_depth_slices(input);
         if (!gamma_.empty())
         {
             assertion(slices.size() == gamma_.size(), "invalid gamma");
-            slices = fplus::zip_with(multiply_tensor2_elems, slices, gamma_);
         }
         if (!beta_.empty())
         {
             assertion(slices.size() == beta_.size(), "invalid beta");
-            slices = fplus::zip_with(add_to_tensor2_elems, slices, beta_);
         }
-        return {tensor3_from_depth_slices(slices)};
+
+        std::vector<tensor2> result;
+        result.reserve(slices.size());
+        for (std::size_t idx = 0; idx < slices.size(); ++idx)
+        {
+            result.push_back(transform_slice(slices[idx], idx));
+        }
+        return {tensor3_from_depth_slices(result)};
     }
 };
 

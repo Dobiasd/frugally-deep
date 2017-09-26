@@ -2,7 +2,9 @@
 """Export a keras model to frugally-deep.
 """
 
+import base64
 import json
+import struct
 import sys
 
 import numpy as np
@@ -15,6 +17,8 @@ __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
+
+store_floats_human_redable = False
 
 def write_text_file(path, text):
     with open(path, "w") as text_file:
@@ -42,9 +46,10 @@ def arr_as_arr3(arr):
         raise ValueError('invalid number of dimensions')
 
 def show_tensor3(tens):
+    values = tens.flatten().tolist()
     return {
         'shape': tens.shape,
-        'values': tens.flatten().tolist()
+        'values': decode_float_list(values)
     }
 
 def show_test_data_as_3tensor(arr):
@@ -59,6 +64,11 @@ def gen_test_data(model):
         'outputs': list(map(show_test_data_as_3tensor, data_out))
     }
 
+def decode_float_list(xs):
+    if store_floats_human_redable:
+        return xs
+    return base64.b64encode(struct.pack('%sf' % len(xs), *xs)).decode('ascii')
+
 def show_conv2d_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
@@ -71,10 +81,11 @@ def show_conv2d_layer(layer):
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     result = {
-        'weights': weights_flat
+        'weights': decode_float_list(weights_flat)
     }
     if len(weights) == 2:
-        result['bias'] = weights[1].tolist()
+        bias = weights[1].tolist()
+        result['bias'] = decode_float_list(bias)
     return result
 
 def show_separable_conv_2D_layer(layer):
@@ -93,20 +104,23 @@ def show_separable_conv_2D_layer(layer):
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     result = {
-        'slice_weights': slice_weights,
-        'stack_weights': stack_weights,
+        'slice_weights': decode_float_list(slice_weights),
+        'stack_weights': decode_float_list(stack_weights),
     }
     if len(weights) == 3:
-        result['bias'] = weights[2].tolist()
+        bias =weights[2].tolist()
+        result['bias'] = decode_float_list(bias)
     return result
 
 def show_batch_normalization_layer(layer):
     assert layer.axis == -1 or layer.axis == 3
     result = {}
     if layer.center:
-        result['beta'] = K.get_value(layer.beta).tolist()
+        beta = K.get_value(layer.beta).tolist()
+        result['beta'] = decode_float_list(beta)
     if layer.scale:
-        result['gamma'] = K.get_value(layer.gamma).tolist()
+        gamma = K.get_value(layer.gamma).tolist()
+        result['gamma'] = decode_float_list(gamma)
     return result
 
 def show_dense_layer(layer):
@@ -115,11 +129,13 @@ def show_dense_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 2
+    weights_flat = weights[0].flatten().tolist()
     result = {
-        'weights': weights[0].flatten().tolist()
+        'weights': decode_float_list(weights_flat)
     }
     if len(weights) == 2:
-        result['bias'] = weights[1].tolist()
+        bias = weights[1].tolist()
+        result['bias'] = decode_float_list(bias)
     return result
 
 def get_dict_keys(d):

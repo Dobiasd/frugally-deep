@@ -8,7 +8,7 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
-from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D, ZeroPadding2D
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D, ZeroPadding2D, Conv2DTranspose
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -20,27 +20,17 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
-    image_format = K.image_data_format()
-    input_shapes = [
-        (1, 6, 1) if image_format == 'channels_last' else (1, 1, 6),
-    ]
-    inputs = [Input(shape=s) for s in input_shapes]
+    input = Input(shape=(2,1,2))
+    x = BatchNormalization()(input)
+    model = Model(inputs=input, outputs=x, name='test_model_small')
 
-    outputs = []
-    outputs.append(Conv2D(1, (1, 1), strides=(1, 3), padding='same')(inputs[0]))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
-    batch_size = 1
-    epochs = 1
-    data_in = [np.random.random(size=(training_data_size, *input_shape))
-        for input_shape in input_shapes]
-    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
-        for x in outputs]
-    model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
+    data_in = [np.random.random(size=(10, 2, 1, 2))]
+    data_out = [np.random.random(size=(10, 2, 1, 2))]
+    #for fit_iter in range(0, 40):
+    model.fit(data_in, data_out, epochs=40)
     return model
 
 def get_test_model_full():
@@ -155,8 +145,8 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        #model = get_test_model_small()
-        model = get_test_model_full()
+        model = get_test_model_small()
+        #model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

@@ -69,15 +69,13 @@ inline model load_model(const std::string& path, bool verify = true,
     internal::assertion(image_data_format == "channels_last",
         "only channels_last data format supported");
 
-    const std::function<internal::float_vec(
+    const std::function<nlohmann::json(
             const std::string&, const std::string&)>
         get_param = [&json_data]
         (const std::string& layer_name, const std::string& param_name)
-        -> internal::float_vec
+        -> nlohmann::json
     {
-        const internal::float_vec result =
-            json_data["trainable_params"][layer_name][param_name];
-        return result;
+        return json_data["trainable_params"][layer_name][param_name];
     };
 
     const std::function<nlohmann::json(const std::string&)>

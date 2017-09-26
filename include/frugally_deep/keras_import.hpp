@@ -12,19 +12,15 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #endif
-
 #if defined _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4706)
 #endif
-
 // source: https://github.com/nlohmann/json
 #include "frugally_deep/json.hpp"
-
 #if defined _MSC_VER
 #pragma warning( pop )
 #endif
-
 #if defined(__GNUC__) || defined(__GNUG__)
 #pragma GCC diagnostic pop
 #endif
@@ -62,10 +58,78 @@ inline shape2 create_shape2(const nlohmann::json& data)
     return shape2(0, 0);
 }
 
+using BYTE = std::uint8_t;
+// source: https://stackoverflow.com/a/31322410/1866775
+static const BYTE from_base64[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  62, 255,  62, 255,  63,
+     52,  53,  54,  55,  56,  57,  58,  59,  60,  61, 255, 255, 255, 255, 255, 255,
+    255,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
+     15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25, 255, 255, 255, 255,  63,
+    255,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,
+     41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51, 255, 255, 255, 255, 255};
+static const char to_base64[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+std::vector<BYTE> Base64_decode(std::string encoded_string)
+{
+    // Make sure string length is a multiple of 4
+    while ((encoded_string.size() % 4) != 0)
+        encoded_string.push_back('=');
+    size_t encoded_size = encoded_string.size();
+    std::vector<BYTE> ret;
+    ret.reserve(3*encoded_size/4);
+
+    for (size_t i=0; i<encoded_size; i += 4)
+    {
+        // Get values for each group of four base 64 characters
+        BYTE b4[4];
+        b4[0] = (encoded_string[i+0] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+0])] : 0xff;
+        b4[1] = (encoded_string[i+1] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+1])] : 0xff;
+        b4[2] = (encoded_string[i+2] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+2])] : 0xff;
+        b4[3] = (encoded_string[i+3] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+3])] : 0xff;
+        // Transform into a group of three bytes
+        BYTE b3[3];
+        b3[0] = static_cast<BYTE>(((b4[0] & 0x3f) << 2) + ((b4[1] & 0x30) >> 4));
+        b3[1] = static_cast<BYTE>(((b4[1] & 0x0f) << 4) + ((b4[2] & 0x3c) >> 2));
+        b3[2] = static_cast<BYTE>(((b4[2] & 0x03) << 6) + ((b4[3] & 0x3f) >> 0));
+        // Add the byte to the return value if it isn't part of an '=' character (indicated by 0xff)
+        if (b4[1] != 0xff) ret.push_back(b3[0]);
+        if (b4[2] != 0xff) ret.push_back(b3[1]);
+        if (b4[3] != 0xff) ret.push_back(b3[2]);
+    }
+    return ret;
+}
+
+inline float_vec decode_floats(const nlohmann::json& data)
+{
+    assertion(data.is_array() || data.is_string(),
+        "invalid float array format");
+
+    if (data.is_array() )
+    {
+        const float_vec result = data;
+        return result;
+    }
+
+    const std::string str = data;
+    const auto res = Base64_decode(str);
+    float_vec out;
+    assertion(res.size() % 4 == 0, "invalid float vector data");
+    out.reserve(res.size() / 4);
+    for (std::size_t i = 0; i < res.size(); i+=4)
+    {
+        float val = *(reinterpret_cast<const float*>(&(res[i])));
+        out.push_back(val);
+    }
+    return out;
+}
+
 inline tensor3 create_tensor3(const nlohmann::json& data)
 {
     const shape3 shape = create_shape3(data["shape"]);
-    const float_vec values = data["values"];
+    const float_vec values = decode_floats(data["values"]);
     return tensor3(shape, values);
 }
 
@@ -93,7 +157,7 @@ inline node_connection create_node_connection(const nlohmann::json& data)
 }
 
 using get_param_f =
-    std::function<float_vec(const std::string&, const std::string&)>;
+    std::function<nlohmann::json(const std::string&, const std::string&)>;
 using get_global_param_f = std::function<nlohmann::json(const std::string&)>;
 
 layer_ptr create_layer(const get_param_f&, const get_global_param_f&,
@@ -149,10 +213,10 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
-        bias = get_param(name, "bias");
+        bias = decode_floats(get_param(name, "bias"));
     assertion(bias.size() == filter_count, "size of bias does not match");
 
-    const float_vec weights = get_param(name, "weights");
+    const float_vec weights = decode_floats(get_param(name, "weights"));
     const shape2 kernel_size = swap_shape2_dims(
         create_shape2(data["config"]["kernel_size"]));
     assertion(weights.size() % kernel_size.area() == 0,
@@ -193,11 +257,11 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
-        bias = get_param(name, "bias");
+        bias = decode_floats(get_param(name, "bias"));
     assertion(bias.size() == filter_count, "size of bias does not match");
 
-    const float_vec slice_weights = get_param(name, "slice_weights");
-    const float_vec stack_weights = get_param(name, "stack_weights");
+    const float_vec slice_weights = decode_floats(get_param(name, "slice_weights"));
+    const float_vec stack_weights = decode_floats(get_param(name, "stack_weights"));
     const shape2 kernel_size = swap_shape2_dims(
         create_shape2(data["config"]["kernel_size"]));
     assertion(slice_weights.size() % kernel_size.area() == 0,
@@ -242,8 +306,8 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
     const bool scale = data["config"]["scale"];
     float_vec gamma;
     float_vec beta;
-    if (scale) gamma = get_param(name, "gamma");
-    if (center) beta = get_param(name, "beta");
+    if (scale) gamma = decode_floats(get_param(name, "gamma"));
+    if (center) beta = decode_floats(get_param(name, "beta"));
     return std::make_shared<batch_normalization_layer>(
         name, epsilon, beta, gamma);
 }
@@ -319,13 +383,13 @@ inline layer_ptr create_dense_layer(const get_param_f& get_param,
     const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    const float_vec weights = get_param(name, "weights");
+    const float_vec weights = decode_floats(get_param(name, "weights"));
 
     std::size_t units = data["config"]["units"];
     float_vec bias(units, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
-        bias = get_param(name, "bias");
+        bias = decode_floats(get_param(name, "bias"));
     assertion(bias.size() == units, "size of bias does not match");
 
     return std::make_shared<dense_layer>(

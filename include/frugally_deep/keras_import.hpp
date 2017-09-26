@@ -12,8 +12,19 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #endif
+
+#if defined _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4706)
+#endif
+
 // source: https://github.com/nlohmann/json
 #include "frugally_deep/json.hpp"
+
+#if defined _MSC_VER
+#pragma warning( pop )
+#endif
+
 #if defined(__GNUC__) || defined(__GNUG__)
 #pragma GCC diagnostic pop
 #endif

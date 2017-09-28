@@ -220,7 +220,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
         "invalid number of weights");
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
-    const shape3 filter_size(
+    const shape3 filter_shape(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
     const bool padding_valid_uses_offset =
@@ -228,7 +228,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const bool padding_same_uses_offset =
         get_global_param("conv2d_padding_same_uses_offset");
     return std::make_shared<conv2d_layer>(name,
-        filter_size, filter_count, strides, pad_type,
+        filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset, padding_same_uses_offset,
         weights, bias);
 }
@@ -269,7 +269,7 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    const shape3 filter_size(1,
+    const shape3 filter_shape(1,
         kernel_size.height_, kernel_size.width_);
     float_vec bias_0(input_depth, 0);
     const bool padding_valid_uses_offset =
@@ -277,7 +277,7 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     const bool padding_same_uses_offset =
         get_global_param("separable_conv2d_padding_same_uses_offset");
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
-        filter_size, filter_count, strides, pad_type,
+        filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset, padding_same_uses_offset,
         slice_weights, stack_weights, bias_0, bias);
 }

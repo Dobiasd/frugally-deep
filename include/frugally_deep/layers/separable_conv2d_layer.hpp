@@ -28,7 +28,7 @@ class separable_conv2d_layer : public layer
 public:
     explicit separable_conv2d_layer(
             const std::string& name, std::size_t input_depth,
-            const shape3& filter_size,
+            const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             bool padding_valid_uses_offset, bool padding_same_uses_offset,
             const float_vec& depthwise_weights,
@@ -36,7 +36,7 @@ public:
             const float_vec& bias_0,
             const float_vec& bias)
         : layer(name),
-        filters_depthwise_(generate_filters(filter_size,
+        filters_depthwise_(generate_filters(filter_shape,
             input_depth, depthwise_weights, bias_0)),
         filters_pointwise_(generate_filters(shape3(input_depth, 1, 1),
             k, pointwise_weights, bias)),
@@ -46,7 +46,7 @@ public:
         padding_same_uses_offset_(padding_same_uses_offset)
     {
         assertion(k > 0, "needs at least one filter");
-        assertion(filter_size.volume() > 0, "filter must have volume");
+        assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
         assertion(filters_depthwise_.size() == input_depth,
             "invalid number of filters");

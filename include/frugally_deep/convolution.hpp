@@ -309,11 +309,11 @@ inline tensor3 convolve(
     const tensor3& input)
 {
     assertion(filters.size() > 0, "no filters");
-    const auto filter_size = filters.front().shape();
+    const auto filter_shape = filters.front().shape();
 
     // https://www.tensorflow.org/api_guides/python/nn#Convolution
-    const int filter_height = static_cast<int>(filter_size.height_);
-    const int filter_width = static_cast<int>(filter_size.width_);
+    const int filter_height = static_cast<int>(filter_shape.height_);
+    const int filter_width = static_cast<int>(filter_shape.width_);
     const int in_height = static_cast<int>(input.shape().height_);
     const int in_width = static_cast<int>(input.shape().width_);
     const int strides_y = static_cast<int>(strides.height_);

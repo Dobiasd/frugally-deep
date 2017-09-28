@@ -32,16 +32,16 @@ class conv2d_transpose_layer : public layer
 public:
     enum class padding { valid, same };
     explicit conv2d_transpose_layer(
-            const std::string& name, const shape3& filter_size,
+            const std::string& name, const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_filters(filter_size, k, weights, bias)),
+        filters_(generate_filters(filter_shape, k, weights, bias)),
         padding_(p),
         strides_(strides)
     {
         assertion(k > 0, "needs at least one filter");
-        assertion(filter_size.volume() > 0, "filter must have volume");
+        assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
         assertion(strides.width_ == strides.height_, "invalid strides");
     }
@@ -55,15 +55,15 @@ protected:
         const std::size_t stride = strides_.width_;
 
         assertion(filters_.size() > 0, "no filters");
-        const auto filter_size = filters_.front().shape();
+        const auto filter_shape = filters_.front().shape();
 
         std::size_t padding_y_ = 0;
         std::size_t padding_x_ = 0;
         if (padding_ == padding::same)
         {
             // todo: is this correct?
-            padding_y_ = (input.shape().height_ * stride - input.shape().height_ + filter_size.height_ - stride) / 2;
-            padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_size.width_ - stride) / 2;
+            padding_y_ = (input.shape().height_ * stride - input.shape().height_ + filter_shape.height_ - stride) / 2;
+            padding_x_ = (input.shape().width_ * stride - input.shape().width_ + filter_shape.width_ - stride) / 2;
         }
 
         return {convolve_transpose(

@@ -59,11 +59,11 @@ private:
 typedef std::vector<filter> filter_vec;
 
 inline filter_vec generate_filters(
-    const shape3& filter_size, std::size_t k,
+    const shape3& filter_shape, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
     filter_vec filters(k, filter(tensor3(
-        shape3(filter_size)), 0));
+        shape3(filter_shape)), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(

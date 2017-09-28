@@ -25,19 +25,19 @@ class conv2d_layer : public layer
 {
 public:
     explicit conv2d_layer(
-            const std::string& name, const shape3& filter_size,
+            const std::string& name, const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             bool padding_valid_uses_offset, bool padding_same_uses_offset,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_filters(filter_size, k, weights, bias)),
+        filters_(generate_filters(filter_shape, k, weights, bias)),
         strides_(strides),
         padding_(p),
         padding_valid_uses_offset_(padding_valid_uses_offset),
         padding_same_uses_offset_(padding_same_uses_offset)
     {
         assertion(k > 0, "needs at least one filter");
-        assertion(filter_size.volume() > 0, "filter must have volume");
+        assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
     }
 protected:

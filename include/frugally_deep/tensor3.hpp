@@ -421,11 +421,6 @@ inline tensor3 pad_tensor3(std::size_t top_pad, std::size_t bottom_pad,
     return result;
 }
 
-} // namespace internal
-
-using tensor3 = internal::tensor3;
-using tensor3s = internal::tensor3s;
-
 // (height, width, depth) -> (depth, height, width)
 inline tensor3 depth_last_to_depth_first(const tensor3& in)
 {
@@ -446,12 +441,56 @@ inline tensor3 depth_last_to_depth_first(const tensor3& in)
     return result;
 }
 
+// (depth, height, width) -> (height, width, depth)
+inline tensor3 depth_first_to_depth_last(const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().height_,
+        in.shape().width_,
+        in.shape().depth_));
+    for (std::size_t x = 0; x < in.shape().width_; ++x)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            {
+                result.set(y, x, z, in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
+} // namespace internal
+
+using tensor3 = internal::tensor3;
+using tensor3s = internal::tensor3s;
+
 // assumes pixels in 8-bit BGR format, data stored row-wise
 inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
     std::size_t height, std::size_t width)
 {
-    internal::float_vec values(value_ptr, value_ptr + height * width * 3);
-    return depth_last_to_depth_first(tensor3(shape3(3, height, width), values));
+    const std::vector<std::uint8_t> bytes(
+        value_ptr, value_ptr + height * width * 3);
+    const auto values = fplus::transform([](std::uint8_t b) -> float_t
+    {
+        return static_cast<float_t>(b) / 255;
+    }, bytes);
+    return internal::depth_last_to_depth_first(
+        tensor3(shape3(3, height, width), values));
+}
+
+// converts a tensor to a 8-bit BGR image, data stored row-wise
+inline void tensor3_to_bgr_image(const tensor3& t, std::uint8_t* value_ptr,
+    std::size_t bytes_available)
+{
+    const auto values = depth_first_to_depth_last(t).as_vector();
+    internal::assertion(bytes_available == values.size(), "invalid buffer size");
+    const auto bytes = fplus::transform([](float_t v) -> std::uint8_t
+    {
+        return static_cast<std::uint8_t>(v * 255);
+    }, values);
+    std::copy(std::begin(bytes), std::end(bytes), value_ptr);
 }
 
 } // namespace fdeep

@@ -190,5 +190,3 @@ is batchnormalization correct? https://groups.google.com/forum/#!topic/keras-use
 flatten/dense use depth dimension? would make batchnorm easier
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
-
-decrease test epsilon again

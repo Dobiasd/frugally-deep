@@ -14,8 +14,8 @@ namespace fdeep { namespace internal
 class input_layer : public layer
 {
 public:
-    explicit input_layer(const std::string& name, const shape3& input_size)
-        : layer(name), input_shape_(input_size), output_()
+    explicit input_layer(const std::string& name, const shape3& input_shape)
+        : layer(name), input_shape_(input_shape), output_()
     {
     }
 protected:

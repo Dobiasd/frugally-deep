@@ -112,9 +112,9 @@ tensor3 transform_tensor3(F f, const tensor3& m)
     return tensor3(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
-inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_size)
+inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_shape)
 {
-    return tensor3(out_size, in_vol.as_vector());
+    return tensor3(out_shape, in_vol.as_vector());
 }
 
 inline tensor2 depth_slice(std::size_t z, const tensor3& m)
@@ -477,7 +477,7 @@ inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
         return static_cast<float_t>(b) / 255;
     }, bytes);
     return internal::depth_last_to_depth_first(
-        tensor3(shape3(3, height, width), values));
+        tensor3(shape3(height, width, 3), values));
 }
 
 // converts a tensor to a 8-bit BGR image, data stored row-wise

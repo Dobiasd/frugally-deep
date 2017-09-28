@@ -98,9 +98,9 @@ tensor2 transform_tensor2(F f, const tensor2& m)
     return tensor2(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
-inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_size)
+inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_shape)
 {
-    return tensor2(out_size, m.as_vector());
+    return tensor2(out_shape, m.as_vector());
 }
 
 inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)

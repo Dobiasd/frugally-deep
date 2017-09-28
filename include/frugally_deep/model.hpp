@@ -12,9 +12,6 @@
 namespace fdeep
 {
 
-using tensor3 = internal::tensor3;
-using tensor3s = internal::tensor3s;
-
 class model
 {
 public:

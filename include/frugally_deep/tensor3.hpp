@@ -421,4 +421,37 @@ inline tensor3 pad_tensor3(std::size_t top_pad, std::size_t bottom_pad,
     return result;
 }
 
-} } // namespace fdeep, namespace internal
+} // namespace internal
+
+using tensor3 = internal::tensor3;
+using tensor3s = internal::tensor3s;
+
+// (height, width, depth) -> (depth, height, width)
+inline tensor3 depth_last_to_depth_first(const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().width_,
+        in.shape().depth_,
+        in.shape().height_));
+    for (std::size_t x = 0; x < in.shape().width_; ++x)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            {
+                result.set(x, z, y, in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
+// assumes pixels in 8-bit BGR format, data stored row-wise
+inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
+    std::size_t height, std::size_t width)
+{
+    internal::float_vec values(value_ptr, value_ptr + height * width * 3);
+    return depth_last_to_depth_first(tensor3(shape3(3, height, width), values));
+}
+
+} // namespace fdeep

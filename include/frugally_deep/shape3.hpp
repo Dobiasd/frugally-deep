@@ -66,4 +66,8 @@ inline std::string show_shape3(const shape3& size)
         ")");
 }
 
-} } // namespace fdeep, namespace internal
+} // namespace internal
+
+using shape3 = internal::shape3;
+
+} // namespace fdeep

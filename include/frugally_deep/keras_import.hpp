@@ -58,9 +58,8 @@ inline shape2 create_shape2(const nlohmann::json& data)
     return shape2(0, 0);
 }
 
-using BYTE = std::uint8_t;
 // source: https://stackoverflow.com/a/31322410/1866775
-static const BYTE from_base64[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+static const std::uint8_t from_base64[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,  62, 255,  62, 255,  63,
      52,  53,  54,  55,  56,  57,  58,  59,  60,  61, 255, 255, 255, 255, 255, 255,
@@ -72,28 +71,28 @@ static const char to_base64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
-std::vector<BYTE> Base64_decode(std::string encoded_string)
+inline std::vector<std::uint8_t> Base64_decode(std::string encoded_string)
 {
     // Make sure string length is a multiple of 4
     while ((encoded_string.size() % 4) != 0)
         encoded_string.push_back('=');
     size_t encoded_size = encoded_string.size();
-    std::vector<BYTE> ret;
+    std::vector<std::uint8_t> ret;
     ret.reserve(3*encoded_size/4);
 
     for (size_t i=0; i<encoded_size; i += 4)
     {
         // Get values for each group of four base 64 characters
-        BYTE b4[4];
+        std::uint8_t b4[4];
         b4[0] = (encoded_string[i+0] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+0])] : 0xff;
         b4[1] = (encoded_string[i+1] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+1])] : 0xff;
         b4[2] = (encoded_string[i+2] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+2])] : 0xff;
         b4[3] = (encoded_string[i+3] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+3])] : 0xff;
         // Transform into a group of three bytes
-        BYTE b3[3];
-        b3[0] = static_cast<BYTE>(((b4[0] & 0x3f) << 2) + ((b4[1] & 0x30) >> 4));
-        b3[1] = static_cast<BYTE>(((b4[1] & 0x0f) << 4) + ((b4[2] & 0x3c) >> 2));
-        b3[2] = static_cast<BYTE>(((b4[2] & 0x03) << 6) + ((b4[3] & 0x3f) >> 0));
+        std::uint8_t b3[3];
+        b3[0] = static_cast<std::uint8_t>(((b4[0] & 0x3f) << 2) + ((b4[1] & 0x30) >> 4));
+        b3[1] = static_cast<std::uint8_t>(((b4[1] & 0x0f) << 4) + ((b4[2] & 0x3c) >> 2));
+        b3[2] = static_cast<std::uint8_t>(((b4[2] & 0x03) << 6) + ((b4[3] & 0x3f) >> 0));
         // Add the byte to the return value if it isn't part of an '=' character (indicated by 0xff)
         if (b4[1] != 0xff) ret.push_back(b3[0]);
         if (b4[2] != 0xff) ret.push_back(b3[1]);
@@ -206,8 +205,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
         { std::string("same"), padding::same },
     }, padding_str));
 
-    const shape2 strides = swap_shape2_dims(
-        create_shape2(data["config"]["strides"]));
+    const shape2 strides = create_shape2(data["config"]["strides"]);
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -217,8 +215,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     assertion(bias.size() == filter_count, "size of bias does not match");
 
     const float_vec weights = decode_floats(get_param(name, "weights"));
-    const shape2 kernel_size = swap_shape2_dims(
-        create_shape2(data["config"]["kernel_size"]));
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t filter_depths =
@@ -243,15 +240,16 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
 
+    const std::size_t depth_multiplier = data["config"]["depth_multiplier"];
+    assertion(depth_multiplier == 1, "invalid depth_multiplier");
+
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = fplus::throw_on_nothing(error("no padding"),
         fplus::choose<std::string, padding>({
         { std::string("valid"), padding::valid },
         { std::string("same"), padding::same },
     }, padding_str));
-    const std::size_t depth_multiplier = data["config"]["depth_multiplier"];
-    const shape2 strides = swap_shape2_dims(
-        create_shape2(data["config"]["strides"]));
+    const shape2 strides = create_shape2(data["config"]["strides"]);
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -262,20 +260,18 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
 
     const float_vec slice_weights = decode_floats(get_param(name, "slice_weights"));
     const float_vec stack_weights = decode_floats(get_param(name, "stack_weights"));
-    const shape2 kernel_size = swap_shape2_dims(
-        create_shape2(data["config"]["kernel_size"]));
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     assertion(stack_weights.size() % filter_count == 0,
         "invalid number of weights");
-    const std::size_t input_depth = slice_weights.size() /
-        (depth_multiplier * kernel_size.area());
+    const std::size_t input_depth = slice_weights.size() / kernel_size.area();
     const std::size_t stack_output_depths_1 =
-        stack_weights.size() / (depth_multiplier * input_depth);
+        stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
     const shape3 filter_size(1,
         kernel_size.height_, kernel_size.width_);
-    float_vec bias_0(depth_multiplier * input_depth, 0);
+    float_vec bias_0(input_depth, 0);
     const bool padding_valid_uses_offset =
         get_global_param("separable_conv2d_padding_valid_uses_offset");
     const bool padding_same_uses_offset =
@@ -283,7 +279,6 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
         filter_size, filter_count, strides, pad_type,
         padding_valid_uses_offset, padding_same_uses_offset,
-        depth_multiplier,
         slice_weights, stack_weights, bias_0, bias);
 }
 
@@ -301,7 +296,9 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
     const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    float_t epsilon = data["config"]["epsilon"];
+    const float_vec moving_mean = decode_floats(get_param(name, "moving_mean"));
+    const float_vec moving_variance =
+        decode_floats(get_param(name, "moving_variance"));
     const bool center = data["config"]["center"];
     const bool scale = data["config"]["scale"];
     float_vec gamma;
@@ -309,7 +306,7 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
     if (scale) gamma = decode_floats(get_param(name, "gamma"));
     if (center) beta = decode_floats(get_param(name, "beta"));
     return std::make_shared<batch_normalization_layer>(
-        name, epsilon, beta, gamma);
+        name, moving_mean, moving_variance, beta, gamma);
 }
 
 inline layer_ptr create_dropout_layer(
@@ -429,10 +426,10 @@ inline layer_ptr create_zero_padding2d_layer(
     assertion(padding.size() == 2 &&
         padding[0].size() == 2 && padding[1].size() == 2,
         "invalid padding format");
-    const std::size_t top_pad = padding[1][0];
-    const std::size_t bottom_pad = padding[1][1];
-    const std::size_t left_pad = padding[0][0];
-    const std::size_t right_pad = padding[0][1];
+    const std::size_t top_pad = padding[0][0];
+    const std::size_t bottom_pad = padding[0][1];
+    const std::size_t left_pad = padding[1][0];
+    const std::size_t right_pad = padding[1][1];
     return std::make_shared<zero_padding2d_layer>(name,
         top_pad, bottom_pad, left_pad, right_pad);
 }
@@ -606,7 +603,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_t>(0.01),
+                    static_cast<float_t>(0.1),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
                     return false;

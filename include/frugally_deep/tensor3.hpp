@@ -383,33 +383,6 @@ inline tensor3& operator += (tensor3& lhs, const tensor3& rhs)
     return lhs;
 }
 
-inline tensor3 transpose_tensor3(const tensor3& m)
-{
-    return
-        tensor3_from_depth_slices(
-            fplus::transform(
-                transpose_tensor2,
-                tensor3_to_depth_slices(m)));
-}
-
-inline tensor3 flip_tensor3_horizontally(const tensor3& m)
-{
-    return
-        tensor3_from_depth_slices(
-            fplus::transform(
-                flip_tensor2_horizontally,
-                tensor3_to_depth_slices(m)));
-}
-
-inline tensor3 rotate_tensor3_ccw(int step_cnt_90_deg, const tensor3& m)
-{
-    return
-        tensor3_from_depth_slices(
-            fplus::transform(
-                fplus::bind_1st_of_2(rotate_tensor2_ccw, step_cnt_90_deg),
-                tensor3_to_depth_slices(m)));
-}
-
 inline tensor3 flatten_tensor3(const tensor3& vol)
 {
     float_vec values;

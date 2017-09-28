@@ -53,9 +53,4 @@ inline std::string show_shape2(const shape2& size)
         ")");
 }
 
-inline shape2 swap_shape2_dims(const shape2& size)
-{
-    return shape2(size.width_, size.height_);
-}
-
 } } // namespace fdeep, namespace internal

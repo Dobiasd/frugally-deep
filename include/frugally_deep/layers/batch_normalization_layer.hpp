@@ -12,61 +12,74 @@ namespace fdeep { namespace internal
 {
 
 // https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
-// Since "batch size" is always 1 it simply scales and shifts the input tensor.
+// https://stackoverflow.com/a/46444452/1866775
 class batch_normalization_layer : public layer
 {
 public:
-    explicit batch_normalization_layer(const std::string& name, float_t epsilon,
-        const float_vec& beta, const float_vec& gamma)
+    explicit batch_normalization_layer(const std::string& name,
+        const float_vec& moving_mean,
+        const float_vec& moving_variance,
+        const float_vec& beta,
+        const float_vec& gamma)
         : layer(name),
-        epsilon_(epsilon),
+        moving_mean_(moving_mean),
+        moving_variance_(moving_variance),
         beta_(beta),
         gamma_(gamma)
     {
     }
 protected:
-    float_t epsilon_;
+    float_vec moving_mean_;
+    float_vec moving_variance_;
     float_vec beta_;
     float_vec gamma_;
-    tensor3s apply_impl(const tensor3s& inputs) const override
+
+    tensor3 apply_to_slices(const tensor3& input) const
     {
-        assertion(inputs.size() == 1, "invalid number of tensors");
-        const auto& input = inputs.front();
-
-        const auto transform_slice = [this]
-            (const tensor2& slice, const std::size_t idx) -> tensor2
-        {
-            const auto mu = tensor2_mean_value(slice);
-            const auto xmu = sub_from_tensor2_elems(slice, mu);
-            const auto sq = transform_tensor2(fplus::square<float_t>, xmu);
-            const auto var = tensor2_mean_value(sq);
-            const auto sqrtvar = std::sqrt(var + epsilon_);
-            auto ivar = static_cast<float_t>(1) / sqrtvar;
-            if (!gamma_.empty())
-                ivar *= gamma_[idx];
-            auto out = multiply_tensor2_elems(xmu, ivar);
-            if (!beta_.empty())
-                out = add_to_tensor2_elems(out, beta_[idx]);
-            return out;
-        };
-
         const auto slices = tensor3_to_depth_slices(input);
+
+        assertion(moving_mean_.size() == slices.size(), "invalid beta");
+        assertion(moving_variance_.size() == slices.size(), "invalid beta");
+
         if (!gamma_.empty())
         {
-            assertion(slices.size() == gamma_.size(), "invalid gamma");
+            assertion(gamma_.size() == slices.size(), "invalid gamma");
         }
         if (!beta_.empty())
         {
-            assertion(slices.size() == beta_.size(), "invalid beta");
+            assertion(beta_.size() == slices.size(), "invalid beta");
         }
 
         std::vector<tensor2> result;
         result.reserve(slices.size());
-        for (std::size_t idx = 0; idx < slices.size(); ++idx)
+        for (std::size_t z = 0; z < slices.size(); ++z)
         {
-            result.push_back(transform_slice(slices[idx], idx));
+            tensor2 slice = slices[z];
+            slice = sub_from_tensor2_elems(slice, moving_mean_[z]);
+            if (!gamma_.empty())
+                slice = multiply_tensor2_elems(slice, gamma_[z]);
+            slice = divide_tensor2_elems(slice,
+                std::sqrt(moving_variance_[z]));
+            if (!beta_.empty())
+                slice = add_to_tensor2_elems(slice, beta_[z]);
+            result.push_back(slice);
         }
-        return {tensor3_from_depth_slices(result)};
+        return tensor3_from_depth_slices(result);
+    }
+
+    tensor3s apply_impl(const tensor3s& inputs) const override
+    {
+        assertion(inputs.size() == 1, "invalid number of tensors");
+        const auto& input = inputs.front();
+        if (input.shape().depth_ == 1 && input.shape().height_ == 1)
+        {
+            const auto stack =
+                reshape_tensor3(input, shape3(input.shape().width_, 1, 1));
+            const auto output = apply_to_slices(stack);
+            return
+                {reshape_tensor3(output, shape3(1, 1, input.shape().width_))};
+        }
+        return {apply_to_slices(input)};
     }
 };
 

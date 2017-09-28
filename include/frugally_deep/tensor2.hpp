@@ -197,19 +197,6 @@ inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
     return fplus::fold_left_1(add_tensor2s, ms);
 }
 
-inline tensor2 transpose_tensor2(const tensor2& m)
-{
-    tensor2 result(shape2(m.shape().width_, m.shape().height_));
-    for (std::size_t x = 0; x < m.shape().width_; ++x)
-    {
-        for (std::size_t y = 0; y < m.shape().height_; ++y)
-        {
-            result.set(x, y, m.get(y, x));
-        }
-    }
-    return result;
-}
-
 inline tensor2 flip_tensor2_horizontally(const tensor2& m)
 {
     tensor2 result(m.shape());
@@ -221,36 +208,6 @@ inline tensor2 flip_tensor2_horizontally(const tensor2& m)
         }
     }
     return result;
-}
-
-inline tensor2 rotate_tensor2_ccw(int step_cnt_90_deg, const tensor2& m)
-{
-    if (step_cnt_90_deg < 0)
-    {
-        step_cnt_90_deg = 4 - ((-step_cnt_90_deg) % 4);
-    }
-    step_cnt_90_deg = step_cnt_90_deg % 4;
-    if (step_cnt_90_deg == 0)
-    {
-        return m;
-    }
-    else if (step_cnt_90_deg == 1)
-    {
-        return transpose_tensor2(flip_tensor2_horizontally(m));
-    }
-    else if (step_cnt_90_deg == 2)
-    {
-        return rotate_tensor2_ccw(1, rotate_tensor2_ccw(1, m));
-    }
-    else if (step_cnt_90_deg == 3)
-    {
-        return flip_tensor2_horizontally(transpose_tensor2(m));
-    }
-    else
-    {
-        assertion(false, "invalid rotation step count");
-        return m;
-    }
 }
 
 } } // namespace fdeep, namespace internal

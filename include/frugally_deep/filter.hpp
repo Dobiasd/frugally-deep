@@ -89,37 +89,4 @@ inline filter_vec generate_filters(
     return filters;
 }
 
-inline filter_vec flip_filters_spatially(const filter_vec& fs)
-{
-    assertion(!fs.empty(), "no filter given");
-    std::size_t k = fs.size();
-    std::size_t d = fs.front().shape().depth_;
-    shape3 new_filter_shape(
-        k,
-        fs.front().shape().height_,
-        fs.front().shape().width_);
-    filter_vec result;
-    result.reserve(d);
-    for (std::size_t i = 0; i < d; ++i)
-    {
-        tensor3 new_f_mat(new_filter_shape);
-        float_t bias = 0;
-        for (std::size_t j = 0; j < k; ++j)
-        {
-            for (std::size_t y = 0; y < new_filter_shape.height_; ++y)
-            {
-                //std::size_t y2 = new_filter_size.height_ - (y + 1);
-                for (std::size_t x = 0; x < new_filter_shape.width_; ++x)
-                {
-                    //std::size_t x2 = new_filter_size.width_ - (x + 1);
-                    new_f_mat.set(j, y, x, fs[j].get(i, y, x));
-                }
-            }
-            bias += fs[j].get_bias() / static_cast<float_t>(k);
-        }
-        result.push_back(filter(new_f_mat, bias));
-    }
-    return result;
-}
-
 } } // namespace fdeep, namespace internal

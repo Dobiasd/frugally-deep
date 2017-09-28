@@ -20,49 +20,55 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 def get_test_model_small():
-    shape = (2,1,1)
-    input = Input(shape=shape)
-    x = BatchNormalization(axis=3, center=False)(input)
-    model = Model(inputs=input, outputs=x, name='test_model_small')
+    image_format = K.image_data_format()
+    input_shapes = [
+        (6, 8, 1) if image_format == 'channels_last' else (1, 6, 8)
+        ]
 
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+    outputs.append(Conv2D(2, (3, 5), strides=(3, 3),padding='same')(inputs[0]))
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    data_in = [np.random.random(size=(10, *shape))]
-    data_out = [np.random.random(size=(10, *shape))]
-    #for fit_iter in range(0, 40):
-    model.fit(data_in, data_out, epochs=40)
+    training_data_size = 1
+    data_in = [np.random.random(size=(training_data_size, *input_shape))
+        for input_shape in input_shapes]
+    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
+        for x in outputs]
+    model.fit(data_in, data_out, epochs=1) #todo more epochs
     return model
 
 def get_test_model_full():
     image_format = K.image_data_format()
     input_shapes = [
-        (8, 6, 3) if image_format == 'channels_last' else (3, 8, 6),
+        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8),
         (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4),
         (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4),
         (4,),
-        (2,3)
+        (2, 3),
+        (7, 9, 1) if image_format == 'channels_last' else (1, 7, 9),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    for padding in ['valid', 'same']:
-        for h in range(1, 6):
-            for sy in range(1, 4):
-                outputs.append(Conv2D(2, (1, h), strides=(1, sy),
-                    padding=padding)(inputs[0]))
-                outputs.append(SeparableConv2D(2, (1, h), strides=(sy, sy),
-                    padding=padding)(inputs[0]))
-        for w in range(1, 6):
-            for sx in range(1, 4):
-                outputs.append(Conv2D(2, (w, 1), strides=(sx, 1),
-                    padding=padding)(inputs[0]))
-                outputs.append(SeparableConv2D(2, (w, 1), strides=(sx, sx),
-                    padding=padding)(inputs[0]))
-    for depth_multiplier in range(1, 3):
-        for out_depth in range(1, 3):
-            outputs.append(SeparableConv2D(out_depth, (3, 3),
-                depth_multiplier=depth_multiplier)(inputs[0]))
+    for inp in [inputs[0], inputs[5]]:
+        for padding in ['valid', 'same']:
+            for h in range(1, 6):
+                for sy in range(1, 4):
+                    outputs.append(Conv2D(2, (h, 1), strides=(1, sy),
+                        padding=padding)(inp))
+                    outputs.append(SeparableConv2D(2, (h, 1), strides=(sy, sy),
+                        padding=padding)(inp))
+            for w in range(1, 6):
+                for sx in range(1, 4):
+                    outputs.append(Conv2D(2, (1, w), strides=(sx, 1),
+                        padding=padding)(inp))
+                    outputs.append(SeparableConv2D(2, (1, w), strides=(sx, sx),
+                        padding=padding)(inp))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
     outputs.append(ZeroPadding2D(2)(inputs[0]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
@@ -108,7 +114,7 @@ def get_test_model_full():
     intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
     intermediate_model_2.add(Dense(5, activation='tanh'))
     intermediate_model_2.compile(optimizer='rmsprop',
-        loss='categorical_crossentropy', metrics=['accuracy'])
+        loss='categorical_crossentropy')
 
     x = intermediate_model_2(x) #(1, 1, 5)
 
@@ -132,7 +138,7 @@ def get_test_model_full():
     # fit to dummy data
     training_data_size = 1
     batch_size = 1
-    epochs = 1
+    epochs = 1  #todo more epochs
     data_in = [np.random.random(size=(training_data_size, *input_shape))
         for input_shape in input_shapes]
     data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
@@ -146,8 +152,8 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        model = get_test_model_small()
-        #model = get_test_model_full()
+        #model = get_test_model_small()
+        model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

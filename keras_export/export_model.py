@@ -28,7 +28,7 @@ def arr3_to_channels_first_format(arr):
     assert len(arr.shape) == 3
     image_format = K.image_data_format()
     if image_format == 'channels_last':
-        return np.swapaxes(arr, 0, 2)
+        return np.swapaxes(np.swapaxes(arr, 2, 1), 1, 0)
     else:
         return arr
 
@@ -49,7 +49,7 @@ def show_tensor3(tens):
     values = tens.flatten().tolist()
     return {
         'shape': tens.shape,
-        'values': decode_float_list(values)
+        'values': decode_floats(values)
     }
 
 def show_test_data_as_3tensor(arr):
@@ -64,39 +64,44 @@ def gen_test_data(model):
         'outputs': list(map(show_test_data_as_3tensor, data_out))
     }
 
-def decode_float_list(xs):
+def decode_floats(xs):
     if store_floats_human_redable:
         return xs
     return base64.b64encode(struct.pack('%sf' % len(xs), *xs)).decode('ascii')
+
+def prepare_filter_weights(weights):
+    return np.swapaxes(np.swapaxes(np.swapaxes(
+        weights, 0, 2), 1, 3), 0, 1).flatten().tolist()
 
 def show_conv2d_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
-    weights_flat = np.swapaxes(
-        np.swapaxes(weights[0], 0, 3), 1, 2).flatten().tolist()
+    weights_flat = prepare_filter_weights(weights[0])
     assert len(weights_flat) > 0
     assert layer.dilation_rate == (1,1)
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     result = {
-        'weights': decode_float_list(weights_flat)
+        'weights': decode_floats(weights_flat)
     }
     if len(weights) == 2:
         bias = weights[1].tolist()
-        result['bias'] = decode_float_list(bias)
+        result['bias'] = decode_floats(bias)
     return result
 
 def show_separable_conv_2D_layer(layer):
     weights = layer.get_weights()
+    assert layer.depth_multiplier == 1
     assert len(weights) == 2 or len(weights) == 3
     assert len(weights[0].shape) == 4
     assert len(weights[1].shape) == 4
-    slice_weights = np.swapaxes(np.swapaxes(
-        np.swapaxes(weights[0], 0, 3), 1, 2), 0, 1).flatten().tolist()
-    stack_weights = np.swapaxes(
-        np.swapaxes(weights[1], 0, 3), 1, 2).flatten().tolist()
+
+    # probably incorrect for depth_multiplier > 1?
+    slice_weights = prepare_filter_weights(weights[0])
+    stack_weights = prepare_filter_weights(weights[1])
+
     assert len(slice_weights) > 0
     assert len(stack_weights) > 0
     assert layer.dilation_rate == (1,1)
@@ -104,24 +109,27 @@ def show_separable_conv_2D_layer(layer):
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] == None
     result = {
-        'slice_weights': decode_float_list(slice_weights),
-        'stack_weights': decode_float_list(stack_weights),
+        'slice_weights': decode_floats(slice_weights),
+        'stack_weights': decode_floats(stack_weights),
     }
     if len(weights) == 3:
         bias =weights[2].tolist()
-        result['bias'] = decode_float_list(bias)
+        result['bias'] = decode_floats(bias)
     return result
 
 def show_batch_normalization_layer(layer):
-    print('layer.axis', layer.axis)
     assert layer.axis == -1 or layer.axis == 3
+    moving_mean = K.get_value(layer.moving_mean).tolist()
+    moving_variance = K.get_value(layer.moving_variance).tolist()
     result = {}
+    result['moving_mean'] = decode_floats(moving_mean)
+    result['moving_variance'] = decode_floats(moving_variance)
     if layer.center:
         beta = K.get_value(layer.beta).tolist()
-        result['beta'] = decode_float_list(beta)
+        result['beta'] = decode_floats(beta)
     if layer.scale:
         gamma = K.get_value(layer.gamma).tolist()
-        result['gamma'] = decode_float_list(gamma)
+        result['gamma'] = decode_floats(gamma)
     return result
 
 def show_dense_layer(layer):
@@ -132,11 +140,11 @@ def show_dense_layer(layer):
     assert len(weights[0].shape) == 2
     weights_flat = weights[0].flatten().tolist()
     result = {
-        'weights': decode_float_list(weights_flat)
+        'weights': decode_floats(weights_flat)
     }
     if len(weights) == 2:
         bias = weights[1].tolist()
-        result['bias'] = decode_float_list(bias)
+        result['bias'] = decode_floats(bias)
     return result
 
 def get_dict_keys(d):

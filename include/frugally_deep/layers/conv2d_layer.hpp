@@ -7,7 +7,6 @@
 #pragma once
 
 #include "frugally_deep/convolution.hpp"
-#include "frugally_deep/convolution_transpose.hpp"
 #include "frugally_deep/filter.hpp"
 #include "frugally_deep/shape2.hpp"
 #include "frugally_deep/shape3.hpp"

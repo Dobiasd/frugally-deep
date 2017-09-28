@@ -20,12 +20,14 @@ public:
         const float_vec& moving_mean,
         const float_vec& moving_variance,
         const float_vec& beta,
-        const float_vec& gamma)
+        const float_vec& gamma,
+        float_t epsilon)
         : layer(name),
         moving_mean_(moving_mean),
         moving_variance_(moving_variance),
         beta_(beta),
-        gamma_(gamma)
+        gamma_(gamma),
+        epsilon_(epsilon)
     {
     }
 protected:
@@ -33,6 +35,7 @@ protected:
     float_vec moving_variance_;
     float_vec beta_;
     float_vec gamma_;
+    float_t epsilon_;
 
     tensor3 apply_to_slices(const tensor3& input) const
     {
@@ -59,7 +62,7 @@ protected:
             if (!gamma_.empty())
                 slice = multiply_tensor2_elems(slice, gamma_[z]);
             slice = divide_tensor2_elems(slice,
-                std::sqrt(moving_variance_[z]));
+                std::sqrt(moving_variance_[z] + epsilon_));
             if (!beta_.empty())
                 slice = add_to_tensor2_elems(slice, beta_[z]);
             result.push_back(slice);

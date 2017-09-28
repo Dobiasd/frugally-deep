@@ -152,8 +152,8 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        #model = get_test_model_small()
-        model = get_test_model_full()
+        model = get_test_model_small()
+        #model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

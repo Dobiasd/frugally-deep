@@ -301,12 +301,13 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
         decode_floats(get_param(name, "moving_variance"));
     const bool center = data["config"]["center"];
     const bool scale = data["config"]["scale"];
+    const float_t epsilon = data["config"]["epsilon"];
     float_vec gamma;
     float_vec beta;
     if (scale) gamma = decode_floats(get_param(name, "gamma"));
     if (center) beta = decode_floats(get_param(name, "beta"));
     return std::make_shared<batch_normalization_layer>(
-        name, moving_mean, moving_variance, beta, gamma);
+        name, moving_mean, moving_variance, beta, gamma, epsilon);
 }
 
 inline layer_ptr create_dropout_layer(

@@ -9,8 +9,7 @@
 int main()
 {
     std::vector<std::string> model_paths = {
-        //"keras_export/test_model_small.json",
-        "keras_export/win_test_model_full.json",
+        "keras_export/test_model_small.json",
         "keras_export/test_model_full.json",
         //"keras_export/xception.json", // todo: pool with pool_size != strides
         //"keras_export/vgg16.json",

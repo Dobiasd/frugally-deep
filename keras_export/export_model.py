@@ -19,7 +19,7 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-store_floats_human_redable = True
+store_floats_human_redable = False
 
 def write_text_file(path, text):
     with open(path, "w") as text_file:

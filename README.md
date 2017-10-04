@@ -163,13 +163,9 @@ add github project tags
 
 remove vscode directory
 
-alle klassiker aus keras als examples
-
 write something about contributing to the project
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
-
-test pooling with non-fitting data
 
 test upsampling2d with non-even factors
 
@@ -180,8 +176,6 @@ float_t als template-parameter
 travis wie fplus, auch mit warnings und so
 
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
-
-performance improvements, conv, use pad_tensor3, no slicing
 
 support filters without bias
 

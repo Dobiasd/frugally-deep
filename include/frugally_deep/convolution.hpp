@@ -108,6 +108,9 @@ inline tensor3 convolve(
 
     // todo: convolve_matrix_mult instead of convolve with loops?
     //     (i.e. use im_to_col and matrix multiplication for performance)
+    // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
+    // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
+    // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
 }
 
 enum class padding { valid, same };

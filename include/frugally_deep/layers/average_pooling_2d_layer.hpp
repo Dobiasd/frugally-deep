@@ -48,9 +48,9 @@ protected:
                     {
                         for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)
                         {
-                            val += std::max(val, in.get(z,
-                                    offset_y + strides_y * y + yf,
-                                    offset_x + strides_x * x + xf));
+                            val += in.get(z,
+                                offset_y + strides_y * y + yf,
+                                offset_x + strides_x * x + xf);
                         }
                     }
                     out.set(z, y, x,

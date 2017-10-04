@@ -2,6 +2,7 @@
 """Generate a test model for frugally-deep.
 """
 
+import os
 import sys
 
 import numpy as np
@@ -152,17 +153,30 @@ def get_test_model_full():
 
 def main():
     if len(sys.argv) != 2:
-        print('usage: [output path]')
+        print('usage: [output directory]')
         sys.exit(1)
     else:
         np.random.seed(0)
-        # model = get_test_model_small()
-        model = get_test_model_full()
-        model.save(sys.argv[1])
-        # Make sure model can be loaded again,
+        dest_dir = sys.argv[1]
+
+        test_model_small_path = os.path.join(dest_dir, "test_model_small.h5")
+        test_model_full_path = os.path.join(dest_dir, "test_model_full.h5")
+
+        # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
-        model = load_model(sys.argv[1])
-        print(model.summary())
+
+        test_model_small = get_test_model_small()
+        test_model_small.save(test_model_small_path)
+        test_model_small = load_model(test_model_small_path)
+        print(test_model_small.summary())
+
+        test_model_full = get_test_model_full()
+        test_model_full.save(test_model_full_path)
+        test_model_full = load_model(test_model_full_path)
+        print(test_model_full.summary())
+
+        #keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+        #keras_export/export_model.py keras_export/test_model_full.h5 keras_export/test_model_full.json
 
 if __name__ == "__main__":
     main()

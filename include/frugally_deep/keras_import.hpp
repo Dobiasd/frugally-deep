@@ -191,6 +191,15 @@ inline void fill_with_zeros(float_vec& xs)
     std::fill(std::begin(xs), std::end(xs), static_cast<float_t>(0));
 }
 
+inline padding create_padding(const std::string& padding_str)
+{
+    return fplus::throw_on_nothing(error("no padding"),
+        fplus::choose<std::string, padding>({
+        { std::string("valid"), padding::valid },
+        { std::string("same"), padding::same },
+    }, padding_str));
+}
+
 inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
@@ -199,11 +208,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
         "only channels_last data format supported");
 
     const std::string padding_str = data["config"]["padding"];
-    const auto pad_type = fplus::throw_on_nothing(error("no padding"),
-        fplus::choose<std::string, padding>({
-        { std::string("valid"), padding::valid },
-        { std::string("same"), padding::same },
-    }, padding_str));
+    const auto pad_type = create_padding(padding_str);
 
     const shape2 strides = create_shape2(data["config"]["strides"]);
 
@@ -335,35 +340,45 @@ inline layer_ptr create_elu_layer(
 }
 
 inline layer_ptr create_max_pooling2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f& get_global_param,
+    const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
-    // todo: support pool_size != strides
-    assertion(pool_size == strides, "pool_size and strides not equal");
-    // todo: support non-proportional sizes
-    assertion(pool_size.width_ == pool_size.height_,
-        "pooling not proportional");
-    return std::make_shared<max_pooling_2d_layer>(name, pool_size.width_);
+    const std::string padding_str = data["config"]["padding"];
+    const auto pad_type = create_padding(padding_str);
+    const bool padding_valid_uses_offset =
+        get_global_param("max_pooling_2d_padding_valid_uses_offset");
+    const bool padding_same_uses_offset =
+        get_global_param("max_pooling_2d_padding_same_uses_offset");
+    return std::make_shared<max_pooling_2d_layer>(name,
+        pool_size, strides, pad_type,
+        padding_valid_uses_offset,
+        padding_same_uses_offset);
 }
 
 inline layer_ptr create_average_pooling2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+    const get_param_f&, const get_global_param_f& get_global_param,
+    const nlohmann::json& data)
 {
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
-    // todo: support pool_size != strides
-    assertion(pool_size == strides, "pool_size and strides not equal");
-    // todo: support non-proportional sizes
-    assertion(pool_size.width_ == pool_size.height_,
-        "pooling not proportional");
-    return std::make_shared<average_pooling_2d_layer>(name, pool_size.width_);
+    const std::string padding_str = data["config"]["padding"];
+    const auto pad_type = create_padding(padding_str);
+    const bool padding_valid_uses_offset =
+        get_global_param("average_pooling_2d_padding_valid_uses_offset");
+    const bool padding_same_uses_offset =
+        get_global_param("average_pooling_2d_padding_same_uses_offset");
+    return std::make_shared<average_pooling_2d_layer>(name,
+        pool_size, strides, pad_type,
+        padding_valid_uses_offset,
+        padding_same_uses_offset);
 }
 
 inline layer_ptr create_upsampling2d_layer(

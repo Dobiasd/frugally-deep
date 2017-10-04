@@ -212,17 +212,23 @@ def convert_sequential_to_model(model):
             model.layers[i] = convert_sequential_to_model(model.layers[i])
     return model
 
-def conv2d_offset_normal_eval(padding, x):
+def conv2d_offset_conv2d_eval(padding, x):
     kernel = K.variable(value=np.array([[[[1]]]]), dtype='float32')
     return K.conv2d(x, kernel, strides=(3,3), padding=padding)
 
-def conv2d_offset_separable_eval(padding, x):
+def conv2d_offset_separable_conv2d_eval(padding, x):
     depthwise_kernel = K.variable(value=np.array([[[[1]]]]),
         dtype='float32')
     pointwise_kernel = K.variable(value=np.array([[[[1]]]]),
         dtype='float32')
     return K.separable_conv2d(x, depthwise_kernel,
         pointwise_kernel, strides=(3,3), padding=padding)
+
+def conv2d_offset_max_pool_eval(padding, x):
+    return K.pool2d(x, (1,1), strides=(3,3), padding=padding, pool_mode='max')
+
+def conv2d_offset_average_pool_eval(padding, x):
+    return K.pool2d(x, (1,1), strides=(3,3), padding=padding, pool_mode='avg')
 
 def check_conv2d_offset(eval_f, padding):
     image_format = K.image_data_format()
@@ -246,7 +252,8 @@ def main():
         test_count = 1
         if len(sys.argv) == 4:
             test_count = int(sys.argv[3])
-        model = load_model(in_path)
+        print('loading {}'.format(in_path))
+        model = load_model(in_path, compile=False)
         model = convert_sequential_to_model(model)
 
         json_output = {}
@@ -255,14 +262,23 @@ def main():
         json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
         json_output['image_data_format'] = K.image_data_format()
         json_output['conv2d_padding_valid_uses_offset'] =\
-            check_conv2d_offset(conv2d_offset_normal_eval, 'valid')
+            check_conv2d_offset(conv2d_offset_conv2d_eval, 'valid')
         json_output['conv2d_padding_same_uses_offset'] =\
-            check_conv2d_offset(conv2d_offset_normal_eval, 'same')
+            check_conv2d_offset(conv2d_offset_conv2d_eval, 'same')
         json_output['separable_conv2d_padding_valid_uses_offset'] =\
-            check_conv2d_offset(conv2d_offset_separable_eval, 'valid')
+            check_conv2d_offset(conv2d_offset_separable_conv2d_eval, 'valid')
         json_output['separable_conv2d_padding_same_uses_offset'] =\
-            check_conv2d_offset(conv2d_offset_separable_eval, 'same')
+            check_conv2d_offset(conv2d_offset_separable_conv2d_eval, 'same')
+        json_output['max_pooling_2d_padding_valid_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_max_pool_eval, 'valid')
+        json_output['max_pooling_2d_padding_same_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_max_pool_eval, 'same')
+        json_output['average_pooling_2d_padding_valid_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_average_pool_eval, 'valid')
+        json_output['average_pooling_2d_padding_same_uses_offset'] =\
+            check_conv2d_offset(conv2d_offset_average_pool_eval, 'same')
 
+        print('writing {}'.format(out_path))
         write_text_file(out_path, json.dumps(
             json_output, allow_nan=False, indent=2, sort_keys=True))
 

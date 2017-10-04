@@ -16,31 +16,50 @@ namespace fdeep { namespace internal
 class max_pooling_2d_layer : public pooling_layer
 {
 public:
-    explicit max_pooling_2d_layer(const std::string& name, std::size_t scale_factor) :
-        pooling_layer(name, scale_factor)
+    explicit max_pooling_2d_layer(const std::string& name,
+        const shape2& pool_size, const shape2& strides, padding p,
+        bool padding_valid_uses_offset, bool padding_same_uses_offset) :
+        pooling_layer(name, pool_size, strides, p,
+            padding_valid_uses_offset, padding_same_uses_offset)
     {
     }
 protected:
-    tensor3 pool(const tensor3& in_vol) const override
+    tensor3 pool(const tensor3& in_unpadded) const override
     {
-        float_t pool_helper_acc_init = std::numeric_limits<float>::lowest();
-        auto pool_helper_max = [](float_t acc, float_t val) -> float_t
+        const auto input_data = preprocess_convolution(
+            pool_size_, strides_, padding_, use_offset(), in_unpadded);
+
+        const std::size_t strides_y = strides_.height_;
+        const std::size_t strides_x = strides_.width_;
+        const std::size_t offset_y = input_data.offset_y_;
+        const std::size_t offset_x = input_data.offset_x_;
+        const std::size_t out_height = input_data.out_height_;
+        const std::size_t out_width = input_data.out_width_;
+        const tensor3& in = input_data.in_padded_;
+
+        tensor3 out(shape3(in_unpadded.shape().depth_, out_height, out_width));
+
+        for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
-            return std::max(acc, val);
-        };
-        auto pool_helper_dummy = [](float_t, float_t) -> float_t { return 0; };
-        auto pool_helper_identity = [this](float_t acc, float_t) -> float_t
-        {
-            return acc;
-        };
-        return pool_helper(
-            scale_factor_,
-            pool_helper_acc_init,
-            0,
-            pool_helper_max,
-            pool_helper_dummy,
-            pool_helper_identity,
-            in_vol);
+            for (std::size_t y = 0; y < out.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < out.shape().width_; ++x)
+                {
+                    float_t val = std::numeric_limits<float>::lowest();
+                    for (std::size_t yf = 0; yf < pool_size_.height_; ++yf)
+                    {
+                        for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)
+                        {
+                            val = std::max(val, in.get(z,
+                                    offset_y + strides_y * y + yf,
+                                    offset_x + strides_x * x + xf));
+                        }
+                    }
+                    out.set(z, y, x, val);
+                }
+            }
+        }
+        return out;
     }
 };
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "frugally_deep/layers/layer.hpp"
+#include "frugally_deep/convolution.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -21,9 +22,15 @@ namespace fdeep { namespace internal
 class pooling_layer : public layer
 {
 public:
-    explicit pooling_layer(const std::string& name, std::size_t scale_factor) :
+    explicit pooling_layer(const std::string& name,
+        const shape2& pool_size, const shape2& strides, padding p,
+        bool padding_valid_uses_offset, bool padding_same_uses_offset) :
         layer(name),
-        scale_factor_(scale_factor)
+        pool_size_(pool_size),
+        strides_(strides),
+        padding_(p),
+        padding_valid_uses_offset_(padding_valid_uses_offset),
+        padding_same_uses_offset_(padding_same_uses_offset)
     {
     }
 protected:
@@ -34,55 +41,20 @@ protected:
         return {pool(input)};
     }
 
-    const std::size_t scale_factor_;
+    bool use_offset() const
+    {
+        return
+            (padding_ == padding::valid && padding_valid_uses_offset_) ||
+            (padding_ == padding::same && padding_same_uses_offset_);
+    }
+
     virtual tensor3 pool(const tensor3& input) const = 0;
 
-    template <typename AccPixelFunc, typename AccPixelFunc2,
-            typename FinalizePixelFunc>
-    static tensor3 pool_helper(
-            std::size_t scale_factor,
-            float_t acc_init,
-            float_t acc2_init,
-            AccPixelFunc acc_pixel_func,
-            AccPixelFunc2 acc2_pixel_func,
-            FinalizePixelFunc finalize_pixel_func,
-            const tensor3& in_vol)
-    {
-        assertion(in_vol.shape().height_ % scale_factor == 0,
-            "invalid data height");
-        assertion(in_vol.shape().width_ % scale_factor == 0,
-            "invalid data width");
-        tensor3 out_vol(
-            shape3(
-                in_vol.shape().depth_,
-                in_vol.shape().height_ / scale_factor,
-                in_vol.shape().width_ / scale_factor));
-        for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
-        {
-            for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
-            {
-                std::size_t y_in = y * scale_factor;
-                for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
-                {
-                    std::size_t x_in = x * scale_factor;
-                    float_t acc = acc_init;
-                    float_t acc2 = acc2_init;
-                    for (std::size_t yf = 0; yf < scale_factor; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < scale_factor; ++xf)
-                        {
-                            const float_t val =
-                                in_vol.get(z, y_in + yf, x_in + xf);
-                            acc = acc_pixel_func(acc, val);
-                            acc2 = acc2_pixel_func(acc2, val);
-                        }
-                    }
-                    out_vol.set(z, y, x, finalize_pixel_func(acc, acc2));
-                }
-            }
-        }
-        return out_vol;
-    }
+    const shape2 pool_size_;
+    const shape2 strides_;
+    const padding padding_;
+    const bool padding_valid_uses_offset_;
+    const bool padding_same_uses_offset_;
 };
 
 } } // namespace fdeep, namespace internal

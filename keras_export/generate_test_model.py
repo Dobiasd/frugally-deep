@@ -63,11 +63,15 @@ def get_test_model_full():
                         padding=padding)(inp))
                     outputs.append(SeparableConv2D(2, (h, 1), strides=(sy, sy),
                         padding=padding)(inp))
+                    outputs.append(MaxPooling2D((h, 1), strides=(1, sy),
+                        padding=padding)(inp))
             for w in range(1, 6):
                 for sx in range(1, 4):
                     outputs.append(Conv2D(2, (1, w), strides=(sx, 1),
                         padding=padding)(inp))
                     outputs.append(SeparableConv2D(2, (1, w), strides=(sx, sx),
+                        padding=padding)(inp))
+                    outputs.append(MaxPooling2D((1, w), strides=(sx, 1),
                         padding=padding)(inp))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
     outputs.append(ZeroPadding2D(2)(inputs[0]))
@@ -152,8 +156,8 @@ def main():
         sys.exit(1)
     else:
         np.random.seed(0)
-        model = get_test_model_small()
-        #model = get_test_model_full()
+        # model = get_test_model_small()
+        model = get_test_model_full()
         model.save(sys.argv[1])
         # Make sure model can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

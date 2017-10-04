@@ -31,7 +31,12 @@ def get_test_model_small():
     outputs = []
     outputs.append(Conv2D(2, (3, 5), strides=(3, 3), padding='same')(inputs[0]))
 
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
+    #model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
+
+    model = Sequential()
+    model.add(Dense(4, input_shape=(4,), activation='relu'))
+    model.add(Dense(2, activation='softmax'))
+
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data

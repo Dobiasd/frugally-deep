@@ -408,11 +408,11 @@ inline tensor3 pad_tensor3(std::size_t top_pad, std::size_t bottom_pad,
         in.shape().depth_,
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad));
-    for (std::size_t x = 0; x < in.shape().width_; ++x)
+    for (std::size_t z = 0; z < in.shape().depth_; ++z)
     {
         for (std::size_t y = 0; y < in.shape().height_; ++y)
         {
-            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
                 result.set(z, y + top_pad, x + left_pad, in.get(z, y, x));
             }
@@ -485,10 +485,12 @@ inline void tensor3_to_bgr_image(const tensor3& t, std::uint8_t* value_ptr,
     std::size_t bytes_available)
 {
     const auto values = depth_first_to_depth_last(t).as_vector();
-    internal::assertion(bytes_available == values.size(), "invalid buffer size");
+    internal::assertion(bytes_available == values.size(),
+    "invalid buffer size");
     const auto bytes = fplus::transform([](float_t v) -> std::uint8_t
     {
-        return static_cast<std::uint8_t>(v * 255);
+        return static_cast<std::uint8_t>(
+            fplus::clamp<float_t>(0, 255, v * 255));
     }, values);
     std::copy(std::begin(bytes), std::end(bytes), value_ptr);
 }

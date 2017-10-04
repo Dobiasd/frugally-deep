@@ -3,6 +3,7 @@
 """
 
 import base64
+import datetime
 import json
 import struct
 import sys
@@ -58,7 +59,13 @@ def show_test_data_as_3tensor(arr):
 def gen_test_data(model):
     data_in = list(map(lambda l: np.random.random((1, *l.input_shape[1:])),
         model.input_layers))
+
+    start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
+    end_time = datetime.datetime.now()
+    duration = end_time - start_time
+    print('Forward pass took {} us.'.format(duration.microseconds))
+
     return {
         'inputs': list(map(show_test_data_as_3tensor, data_in)),
         'outputs': list(map(show_test_data_as_3tensor, data_out))

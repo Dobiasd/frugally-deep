@@ -19,6 +19,7 @@
 #include "frugally_deep/shape2.hpp"
 #include "frugally_deep/shape3.hpp"
 
+#include "frugally_deep/layers/add_layer.hpp"
 #include "frugally_deep/layers/average_pooling_2d_layer.hpp"
 #include "frugally_deep/layers/batch_normalization_layer.hpp"
 #include "frugally_deep/layers/concatenate_layer.hpp"

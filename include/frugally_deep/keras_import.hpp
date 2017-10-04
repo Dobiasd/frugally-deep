@@ -416,6 +416,13 @@ inline layer_ptr create_concatename_layer(
     return std::make_shared<concatenate_layer>(name);
 }
 
+inline layer_ptr create_add_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    return std::make_shared<add_layer>(name);
+}
+
 inline layer_ptr create_flatten_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
@@ -562,6 +569,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"AveragePooling2D", create_average_pooling2d_layer},
             {"UpSampling2D", create_upsampling2d_layer},
             {"Dense", create_dense_layer},
+            {"Add", create_add_layer},
             {"Concatenate", create_concatename_layer},
             {"Flatten", create_flatten_layer},
             {"ZeroPadding2D", create_zero_padding2d_layer},

@@ -18,6 +18,7 @@ Table of contents
 -----------------
   * [Introduction](#introduction)
   * [Usage](#usage)
+  * [Performance](#performance)
   * [Requirements and Installation](#requirements-and-installation)
   * [Internals](#internals)
 
@@ -39,6 +40,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 
 ### Supported layer types
 
+* Add
 * AveragePooling2D
 * BatchNormalization
 * Concatenate
@@ -69,6 +71,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 
 ### Layer types not supported yet
 
+* Conv2DTranspose
 * Conv3D
 * Custom layers
 * Cropping*D
@@ -78,7 +81,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * Layer wrappers (TimeDistributed etc.)
 * LocallyConnected*D
 * Masking
-* Merge layers (add etc.)
+* Merge layers (sub etc.)
 * Noise layers (GaussianNoise etc.)
 * Permute
 * PReLU
@@ -91,8 +94,6 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 Usage
 -----
 
-todo
-
 Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend. Models created with other backends are not officially supported or tested.
 
 Now convert it to the frugally-deep file format with `keras_export/export_model.py`
@@ -103,24 +104,41 @@ The following minimal example shows the full workflow:
 
 ```python
 # create_model.py
-import keras
-todo example
+import numpy as np
+from keras.layers import Input, Dense
+from keras.models import Model
+inputs = Input(shape=(4,))
+x = Dense(5, activation='relu')(inputs)
+predictions = Dense(3, activation='softmax')(x)
+model = Model(inputs=inputs, outputs=predictions)
+model.compile(loss='categorical_crossentropy', optimizer='nadam')
+model.fit(
+  np.asarray([[1,2,3,4],[2,3,4,5]]),
+  np.asarray([[1,0,0], [0,0,1]]), epochs=10)
+model.save('keras_model.h5')
 ```
 
 ```
-python keras_export/export_model.py keras_model.h5 fdeep_model.json
+python3 keras_export/export_model.py keras_model.h5 fdeep_model.json
 ```
 
 ```cpp
 // main.cpp
 #include <fdeep/fdeep.hpp>
 const auto model = fdeep::load_model("fdeep_model.json");
-const auto result = model.predict({{{1,2,3}}});
+const auto result = model.predict(
+    {fdeep::tensor3(fdeep::shape3(1, 1, 4), {1,2,3,4})});
 ```
 
 When using `export_model.py` some test cases are generated automatically and saved along with your model. `fdeep::load_model` runs these tests to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
 
 todo image example
+
+
+Performance
+-----------
+
+todo add comparison with tensorflow on forwardpass for vgg16, vgg19 and resnet
 
 
 Requirements and Installation
@@ -146,8 +164,6 @@ todo
 ----
 
 add travis
-
-ist upconv (conv transpose) fertig?
 
 use cmake with doctests (see fplus)
 
@@ -184,3 +200,5 @@ flatten/dense use depth dimension? would make batchnorm easier
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
 
 ask the model what inputs it accepts, also what outputs it produces?
+
+test export on single sequential model

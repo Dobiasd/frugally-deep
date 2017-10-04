@@ -96,7 +96,6 @@ inline model load_model(const std::string& path, bool verify = true,
         else
         {
             log_sol("Loading tests");
-            log_duration();
             const auto tests = internal::load_test_cases(json_data["tests"]);
             log_duration();
             json_data = {}; // free RAM

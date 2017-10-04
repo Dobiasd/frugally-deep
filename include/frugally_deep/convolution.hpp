@@ -113,6 +113,75 @@ inline tensor3 convolve(
     // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
 }
 
+inline tensor3 convolve_im2col(
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
+    std::size_t offset_y,
+    std::size_t offset_x,
+    std::size_t fy,
+    std::size_t fx,
+    const std::vector<filter>& filters,
+    const tensor3& in)
+{
+    const std::size_t fz = filters.front().shape().depth_;
+    shape2 a_shape(fz * fy * fx, out_height * out_width);
+    float_vec a_values;
+    a_values.reserve(a_shape.area());
+
+    shape2 b_shape(filters.size(), fz * fy * fx);
+    float_vec b_values;
+    b_values.reserve(b_shape.area());
+
+    // todo: handle padding also here
+    for (std::size_t zf = 0; zf < fz; ++zf)
+    {
+        for (std::size_t yf = 0; yf < fy; ++yf)
+        {
+            for (std::size_t xf = 0; xf < fx; ++xf)
+            {
+                for (std::size_t y = 0; y < out_height; ++y)
+                //for (std::size_t yi = out_height; yi > 0; --yi)
+                {
+                    //std::size_t y = yi - 1;
+                    for (std::size_t x = 0; x < out_width; ++x)
+                    {
+                        a_values.push_back(in.get(zf,
+                                offset_y + strides_y * y + yf,
+                                offset_x + strides_x * x + xf));
+                    }
+                }
+            }
+        }
+    }
+
+    for (std::size_t f = 0; f < filters.size(); ++f)
+    {
+        const filter& filter = filters[f];
+        for (std::size_t zf = 0; zf < fz; ++zf)
+        {
+            for (std::size_t yf = 0; yf < fy; ++yf)
+            {
+                for (std::size_t xf = 0; xf < fx; ++xf)
+                {
+                    b_values.push_back(filter.get(zf, yf, xf));
+                }
+            }
+        }
+    }
+
+    tensor2 a(a_shape, a_values); // todo move_ctor
+    tensor2 b(b_shape, b_values); // todo move_ctor
+
+    tensor2 result = multiply(b, a);
+
+    tensor3 out(shape3(filters.size(), out_height, out_width),
+        result.as_vector());  // todo move_ctor
+
+    return out;
+}
+
 enum class padding { valid, same };
 
 struct convolution_input_data
@@ -221,7 +290,7 @@ inline tensor3 convolve(
     const std::size_t out_width = input_data.out_width_;
     const tensor3& in_padded = input_data.in_padded_;
 
-
+    /*
     // Allow the compiler to optimize common convolution cases.
     if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 1 && filter_shape.width_ == 1)
         return convolve_opt<1, 1, 1, 1>(out_height, out_width, offset_y, offset_x, filters, in_padded);
@@ -235,8 +304,10 @@ inline tensor3 convolve(
         return convolve_opt<2, 2, 3, 3>(out_height, out_width, offset_y, offset_x, filters, in_padded);
     if (strides_y == 2 && strides_x == 2 && filter_shape.height_ == 5 && filter_shape.width_ == 5)
         return convolve_opt<2, 2, 5, 5>(out_height, out_width, offset_y, offset_x, filters, in_padded);
+    */
 
-    return convolve(
+    return convolve_im2col(
+    //return convolve(
         out_height,
         out_width,
         strides_y,

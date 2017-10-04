@@ -28,7 +28,7 @@ def get_test_model_small():
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    outputs.append(Conv2D(2, (3, 5), strides=(3, 3),padding='same')(inputs[0]))
+    outputs.append(Conv2D(2, (3, 5), strides=(3, 3), padding='same')(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -39,7 +39,7 @@ def get_test_model_small():
         for input_shape in input_shapes]
     data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
         for x in outputs]
-    model.fit(data_in, data_out, epochs=1) #todo more epochs
+    model.fit(data_in, data_out, epochs=10)
     return model
 
 def get_test_model_full():
@@ -138,7 +138,7 @@ def get_test_model_full():
     # fit to dummy data
     training_data_size = 1
     batch_size = 1
-    epochs = 1  #todo more epochs
+    epochs = 10
     data_in = [np.random.random(size=(training_data_size, *input_shape))
         for input_shape in input_shapes]
     data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))

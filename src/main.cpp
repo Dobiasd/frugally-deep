@@ -10,6 +10,7 @@ int main()
 {
     std::vector<std::string> model_paths = {
         "keras_export/test_model_small.json",
+        "keras_export/test_model_sequential.json",
         "keras_export/test_model_full.json",
         //"keras_export/xception.json",
         "keras_export/vgg16.json",

@@ -4,6 +4,7 @@
 
 import base64
 import datetime
+import itertools
 import json
 import struct
 import sys
@@ -71,10 +72,14 @@ def gen_test_data(model):
         'outputs': list(map(show_test_data_as_3tensor, data_out))
     }
 
+def split_every(size, seq):
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+
 def decode_floats(xs):
     if store_floats_human_redable:
         return xs
-    return base64.b64encode(struct.pack('%sf' % len(xs), *xs)).decode('ascii')
+    return list(split_every(1024,
+        base64.b64encode(struct.pack('%sf' % len(xs), *xs)).decode('ascii')))
 
 def prepare_filter_weights(weights):
     return np.swapaxes(np.swapaxes(np.swapaxes(

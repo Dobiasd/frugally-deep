@@ -106,14 +106,14 @@ inline float_vec decode_floats(const nlohmann::json& data)
     assertion(data.is_array() || data.is_string(),
         "invalid float array format");
 
-    if (data.is_array() )
+    if (data.is_array() && data[0].is_number())
     {
         const float_vec result = data;
         return result;
     }
 
-    const std::string str = data;
-    const auto res = Base64_decode(str);
+    const std::vector<std::string> strs = data;
+    const auto res = Base64_decode(fplus::concat(strs));
     float_vec out;
     assertion(res.size() % 4 == 0, "invalid float vector data");
     out.reserve(res.size() / 4);

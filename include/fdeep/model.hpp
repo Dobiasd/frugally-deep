@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
-#include "frugally_deep/keras_import.hpp"
+#include "fdeep/common.hpp"
+#include "fdeep/keras_import.hpp"
 
 namespace fdeep
 {

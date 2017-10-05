@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
-#include "frugally_deep/tensor3.hpp"
+#include "fdeep/tensor3.hpp"
 
-#include "frugally_deep/node.hpp"
+#include "fdeep/node.hpp"
 
 #include <cstddef>
 #include <memory>

@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "frugally_deep/convolution.hpp"
-#include "frugally_deep/filter.hpp"
-#include "frugally_deep/shape2.hpp"
-#include "frugally_deep/shape3.hpp"
-#include "frugally_deep/layers/layer.hpp"
+#include "fdeep/convolution.hpp"
+#include "fdeep/filter.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/shape3.hpp"
+#include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
 

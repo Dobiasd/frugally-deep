@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/layers/layer.hpp"
+#include "fdeep/layers/layer.hpp"
 
 namespace fdeep { namespace internal
 {

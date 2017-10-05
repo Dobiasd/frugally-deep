@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/frugally_deep.hpp"
+#include "fdeep/fdeep.hpp"
 
 #if defined(__GNUC__) || defined(__GNUG__)
 #pragma GCC diagnostic push
@@ -17,7 +17,7 @@
 #pragma warning( disable : 4706)
 #endif
 // source: https://github.com/nlohmann/json
-#include "frugally_deep/json.hpp"
+#include "fdeep/json.hpp"
 #if defined _MSC_VER
 #pragma warning( pop )
 #endif

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
 #include <cstddef>
 #include <cstdlib>

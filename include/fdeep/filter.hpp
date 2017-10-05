@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
-#include "frugally_deep/tensor3.hpp"
-#include "frugally_deep/shape3.hpp"
+#include "fdeep/tensor3.hpp"
+#include "fdeep/shape3.hpp"
 
 #include <cassert>
 #include <cstddef>

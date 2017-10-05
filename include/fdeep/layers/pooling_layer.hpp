@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "frugally_deep/layers/layer.hpp"
-#include "frugally_deep/convolution.hpp"
+#include "fdeep/layers/layer.hpp"
+#include "fdeep/convolution.hpp"
 
 #include <fplus/fplus.hpp>
 

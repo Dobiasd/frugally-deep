@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
-#include "frugally_deep/shape2.hpp"
-#include "frugally_deep/tensor2_pos.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/tensor2_pos.hpp"
 
 #include <fplus/fplus.hpp>
 

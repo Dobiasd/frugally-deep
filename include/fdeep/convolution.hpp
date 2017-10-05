@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
-#include "frugally_deep/filter.hpp"
+#include "fdeep/filter.hpp"
 
 #include <cassert>
 #include <cstddef>

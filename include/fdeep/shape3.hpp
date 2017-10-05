@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "frugally_deep/common.hpp"
+#include "fdeep/common.hpp"
 
-#include "frugally_deep/shape2.hpp"
+#include "fdeep/shape2.hpp"
 
 #include <cstddef>
 #include <cstdlib>

@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "frugally_deep/layers/layer.hpp"
+#include "fdeep/layers/layer.hpp"
 
-#include "frugally_deep/tensor2.hpp"
+#include "fdeep/tensor2.hpp"
 
 #include <fplus/fplus.hpp>
 

@@ -38,19 +38,29 @@ public:
     }
     tensor2(const shape2& shape, const float_t& value) :
         shape_(shape),
-        values_(fplus::replicate(shape.area(), value))
+        values_(shape.area(), value)
     {
     }
-    explicit tensor2(const shape2& shape) :
+    tensor2(const shape2& shape) :
         shape_(shape),
-        values_(shape.area(), static_cast<float_t>(0))
+        values_()
     {
+        values_.resize(shape.area());
     }
-    float_t get(const tensor2_pos& pos) const
+
+    const float_t& get(const tensor2_pos& pos) const
     {
         return values_[idx(pos)];
     }
-    float_t get(std::size_t y, std::size_t x) const
+    const float_t& get(std::size_t y, std::size_t x) const
+    {
+        return get(tensor2_pos(y, x));
+    }
+    float_t& get(const tensor2_pos& pos)
+    {
+        return values_[idx(pos)];
+    }
+    float_t& get(std::size_t y, std::size_t x)
     {
         return get(tensor2_pos(y, x));
     }
@@ -108,15 +118,17 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
     assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
 
-    tensor2 m(shape2(a.shape().height_, b.shape().width_));
+    tensor2 m(shape2(a.shape().height_, b.shape().width_),
+        static_cast<float_t>(0.0f));
 
     for (std::size_t i = 0; i < a.shape().height_; ++i)
     {
         for (std::size_t k = 0; k < a.shape().width_; ++k)
         {
+            float_t a_i_k = a.get(i, k);
             for (std::size_t j = 0; j < b.shape().width_; ++j)
             {
-                m.set(i, j, m.get(i, j) + a.get(i, k) * b.get(k, j));
+                m.get(i, j) += a_i_k * b.get(k, j);
             }
         }
     }
@@ -178,19 +190,6 @@ inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
 {
     assertion(!ms.empty(), "no tensors given");
     return fplus::fold_left_1(add_tensor2s, ms);
-}
-
-inline tensor2 flip_tensor2_horizontally(const tensor2& m)
-{
-    tensor2 result(m.shape());
-    for (std::size_t y = 0; y < m.shape().height_; ++y)
-    {
-        for (std::size_t x = 0; x < m.shape().width_; ++x)
-        {
-            result.set(y, m.shape().width_ - (x + 1), m.get(y, x));
-        }
-    }
-    return result;
 }
 
 } } // namespace fdeep, namespace internal

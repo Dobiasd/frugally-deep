@@ -202,3 +202,5 @@ optional lowmem modus (no im2col)
 support filters without bias or remove filter class completely?
 
 handle padding in im2col?
+
+use faster GEMM to make im2col worthwhile

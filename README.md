@@ -94,11 +94,11 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 Usage
 -----
 
-Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend. Models created with other backends are not officially supported or tested.
+1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend. Models created with a different `image_data_format` and other backends are not officially supported nor tested.
 
-Now convert it to the frugally-deep file format with `keras_export/export_model.py`
+2) Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
-Finally load it in C++ (`fdeep::load_model`) and use `model.predict()` to invoke a forward pass with your data.
+3) Finally load it in C++ (`fdeep::load_model`) and use `model.predict()` to invoke a forward pass with your data.
 
 The following minimal example shows the full workflow:
 
@@ -137,9 +137,9 @@ int main()
 }
 ```
 
-When using `export_model.py` some test cases are generated automatically and saved along with your model. `fdeep::load_model` runs these tests to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
+When using `export_model.py` a test case (input and corresponding output values) are generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
 
-Images can easily be converted to `fdeep::tensor3` by using `tensor3_from_bgr_image` / `tensor3_from_gray_image`.
+In order to convert images to `fdeep::tensor3` the convenience functions `tensor3_from_bgr_image` and `tensor3_from_gray_image` are provided.
 
 
 Performance
@@ -155,7 +155,8 @@ Duration* of a single forward pass
 | VGG19    |             0.71 s |        8.13 s |
 | ResNet50 |             0.12 s |        1.79 s |
 
-*measured using GCC -O3 and a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
+*measured using GCC -O3
+ and run on a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
 ```
 
 

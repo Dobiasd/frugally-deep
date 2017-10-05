@@ -263,8 +263,6 @@ def main():
 
         json_output = {}
         json_output['architecture'] = json.loads(model.to_json())
-        json_output['trainable_params'] = get_all_weights(model)
-        json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
         json_output['image_data_format'] = K.image_data_format()
         json_output['conv2d_padding_valid_uses_offset'] =\
             check_conv2d_offset(conv2d_offset_conv2d_eval, 'valid')
@@ -282,6 +280,8 @@ def main():
             check_conv2d_offset(conv2d_offset_average_pool_eval, 'valid')
         json_output['average_pooling_2d_padding_same_uses_offset'] =\
             check_conv2d_offset(conv2d_offset_average_pool_eval, 'same')
+        json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
+        json_output['trainable_params'] = get_all_weights(model)
 
         print('writing {}'.format(out_path))
         write_text_file(out_path, json.dumps(

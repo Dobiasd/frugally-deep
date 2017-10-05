@@ -20,7 +20,6 @@
 namespace fdeep { namespace internal
 {
 
-// todo: variable padding, variable strides
 // Convolve depth slices separately first.
 // Then convolve normally with kernel_size = (1, 1)
 class separable_conv2d_layer : public layer

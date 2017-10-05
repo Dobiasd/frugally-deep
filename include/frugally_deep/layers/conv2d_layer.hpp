@@ -20,7 +20,6 @@
 namespace fdeep { namespace internal
 {
 
-// todo: variable padding, variable strides
 class conv2d_layer : public layer
 {
 public:

@@ -57,9 +57,6 @@ tensor3 convolve_opt(
     }
 
     return out;
-
-    // todo: convolve_matrix_mult instead of convolve with loops?
-    //     (i.e. use im_to_col and matrix multiplication for performance)
 }
 
 inline tensor3 convolve(
@@ -105,14 +102,12 @@ inline tensor3 convolve(
     }
 
     return out;
-
-    // todo: convolve_matrix_mult instead of convolve with loops?
-    //     (i.e. use im_to_col and matrix multiplication for performance)
-    // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
-    // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
-    // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
 }
 
+// GEMM convolution, faster but uses more RAM
+// https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
+// https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
+// http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
 inline tensor3 convolve_im2col(
     std::size_t out_height,
     std::size_t out_width,
@@ -134,7 +129,6 @@ inline tensor3 convolve_im2col(
     float_vec b_values;
     b_values.reserve(b_shape.area());
 
-    // todo: handle padding also here
     for (std::size_t zf = 0; zf < fz; ++zf)
     {
         for (std::size_t yf = 0; yf < fy; ++yf)
@@ -142,9 +136,7 @@ inline tensor3 convolve_im2col(
             for (std::size_t xf = 0; xf < fx; ++xf)
             {
                 for (std::size_t y = 0; y < out_height; ++y)
-                //for (std::size_t yi = out_height; yi > 0; --yi)
                 {
-                    //std::size_t y = yi - 1;
                     for (std::size_t x = 0; x < out_width; ++x)
                     {
                         a_values.push_back(in.get(zf,

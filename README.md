@@ -197,8 +197,8 @@ make sure binary float format is portable: https://stackoverflow.com/questions/4
 
 ask the model what inputs it accepts, also what outputs it produces?
 
-base64 newlinescstring array
-
 optional lowmem modus (no im2col)
 
 support filters without bias or remove filter class completely?
+
+handle padding in im2col?

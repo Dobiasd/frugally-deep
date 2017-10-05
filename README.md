@@ -125,20 +125,35 @@ python3 keras_export/export_model.py keras_model.h5 fdeep_model.json
 ```cpp
 // main.cpp
 #include <fdeep/fdeep.hpp>
-const auto model = fdeep::load_model("fdeep_model.json");
-const auto result = model.predict(
-    {fdeep::tensor3(fdeep::shape3(1, 1, 4), {1,2,3,4})});
+int main()
+{
+    const auto model = fdeep::load_model("fdeep_model.json");
+    const auto result = model.predict(
+        {fdeep::tensor3(fdeep::shape3(1, 1, 4), {1,2,3,4})});
+    std::cout << fdeep::show_tensor3(result) << std::endl;
+}
 ```
 
 When using `export_model.py` some test cases are generated automatically and saved along with your model. `fdeep::load_model` runs these tests to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
 
-todo image example
+Images can easily be converted to `fdeep::tensor3` by using `tensor3_from_bgr_image` / `tensor3_from_gray_image`.
 
 
 Performance
 -----------
 
-todo add comparison with tensorflow on forwardpass for vgg16, vgg19 and resnet
+```
+Duration* of a single forward pass
+----------------------------------
+
+| Model    | Keras + Tensorflow | frugally-deep |
+|----------|--------------------|---------------|
+| VGG16    |             0.38 s |        7.48 s |
+| VGG19    |             0.71 s |        8.13 s |
+| ResNet50 |             0.12 s |        1.79 s |
+
+*measured using `GCC -O3` and a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
+```
 
 
 Requirements and Installation

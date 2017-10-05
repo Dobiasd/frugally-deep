@@ -155,7 +155,7 @@ Duration* of a single forward pass
 | VGG19    |             0.71 s |        8.13 s |
 | ResNet50 |             0.12 s |        1.79 s |
 
-*measured using `GCC -O3` and a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
+*measured using GCC -O3 and a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
 ```
 
 

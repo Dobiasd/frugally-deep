@@ -387,9 +387,8 @@ inline layer_ptr create_upsampling2d_layer(
     const std::string name = data["name"];
     assertion(data["config"]["data_format"] == "channels_last",
         "only channels_last data format supported");
-    const auto size = create_shape2(data["config"]["size"]);
-    assertion(size.width_ == size.height_, "invalid scale factor");
-    return std::make_shared<upsampling2d_layer>(name, size.width_);
+    const auto scale_factor = create_shape2(data["config"]["size"]);
+    return std::make_shared<upsampling2d_layer>(name, scale_factor);
 }
 
 inline layer_ptr create_dense_layer(const get_param_f& get_param,

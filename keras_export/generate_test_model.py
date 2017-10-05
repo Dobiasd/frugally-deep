@@ -93,6 +93,9 @@ def get_test_model_full():
     outputs.append(ZeroPadding2D(2)(inputs[0]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
     outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[0]))
+    for y in range(1, 3):
+        for x in range(1, 3):
+            outputs.append(UpSampling2D(size=(y, x))(inputs[0]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')

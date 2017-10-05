@@ -186,8 +186,6 @@ support dilated convolution (Specifying any stride value != 1 is incompatible wi
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 
-test upsampling2d with non-even factors
-
 travis wie fplus, auch mit warnings und so
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992

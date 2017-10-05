@@ -200,5 +200,3 @@ flatten/dense use depth dimension? would make batchnorm easier
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
 
 ask the model what inputs it accepts, also what outputs it produces?
-
-test export on single sequential model

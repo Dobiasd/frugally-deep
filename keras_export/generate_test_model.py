@@ -31,12 +31,7 @@ def get_test_model_small():
     outputs = []
     outputs.append(Conv2D(2, (3, 5), strides=(3, 3), padding='same')(inputs[0]))
 
-    #model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
-
-    model = Sequential()
-    model.add(Dense(4, input_shape=(4,), activation='relu'))
-    model.add(Dense(2, activation='softmax'))
-
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -45,6 +40,19 @@ def get_test_model_small():
         for input_shape in input_shapes]
     data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
         for x in outputs]
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+def get_test_model_sequential():
+    model = Sequential()
+    model.add(Dense(4, input_shape=(4,), activation='relu'))
+    model.add(Dense(2, activation='softmax'))
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = [np.random.random(size=(training_data_size, 4))]
+    data_out = [np.random.random(size=(training_data_size, 2))]
     model.fit(data_in, data_out, epochs=10)
     return model
 
@@ -65,18 +73,20 @@ def get_test_model_full():
         for padding in ['valid', 'same']:
             for h in range(1, 6):
                 for sy in range(1, 4):
-                    outputs.append(Conv2D(2, (h, 1), strides=(1, sy),
-                        padding=padding)(inp))
-                    outputs.append(SeparableConv2D(2, (h, 1), strides=(sy, sy),
-                        padding=padding)(inp))
+                    for out_channels in [1, 2]:
+                        outputs.append(Conv2D(out_channels, (h, 1),
+                            strides=(1, sy), padding=padding)(inp))
+                        outputs.append(SeparableConv2D(out_channels, (h, 1),
+                            strides=(sy, sy), padding=padding)(inp))
                     outputs.append(MaxPooling2D((h, 1), strides=(1, sy),
                         padding=padding)(inp))
             for w in range(1, 6):
                 for sx in range(1, 4):
-                    outputs.append(Conv2D(2, (1, w), strides=(sx, 1),
-                        padding=padding)(inp))
-                    outputs.append(SeparableConv2D(2, (1, w), strides=(sx, sx),
-                        padding=padding)(inp))
+                    for out_channels in [1, 2]:
+                        outputs.append(Conv2D(out_channels, (1, w),
+                            strides=(sx, 1), padding=padding)(inp))
+                        outputs.append(SeparableConv2D(out_channels, (1, w),
+                            strides=(sx, sx), padding=padding)(inp))
                     outputs.append(MaxPooling2D((1, w), strides=(sx, 1),
                         padding=padding)(inp))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
@@ -165,6 +175,7 @@ def main():
         dest_dir = sys.argv[1]
 
         test_model_small_path = os.path.join(dest_dir, "test_model_small.h5")
+        test_model_sequential_path = os.path.join(dest_dir, "test_model_sequential.h5")
         test_model_full_path = os.path.join(dest_dir, "test_model_full.h5")
 
         # Make sure models can be loaded again,
@@ -175,12 +186,18 @@ def main():
         test_model_small = load_model(test_model_small_path)
         print(test_model_small.summary())
 
+        test_model_sequential = get_test_model_sequential()
+        test_model_sequential.save(test_model_sequential_path)
+        test_model_sequential = load_model(test_model_sequential_path)
+        print(test_model_sequential.summary())
+
         test_model_full = get_test_model_full()
         test_model_full.save(test_model_full_path)
         test_model_full = load_model(test_model_full_path)
         print(test_model_full.summary())
 
         #keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+        #keras_export/export_model.py keras_export/test_model_sequential.h5 keras_export/test_model_sequential.json
         #keras_export/export_model.py keras_export/test_model_full.h5 keras_export/test_model_full.json
 
 if __name__ == "__main__":

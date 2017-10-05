@@ -253,7 +253,7 @@ def main():
         if len(sys.argv) == 4:
             test_count = int(sys.argv[3])
         print('loading {}'.format(in_path))
-        model = load_model(in_path, compile=False)
+        model = load_model(in_path)
         model = convert_sequential_to_model(model)
 
         json_output = {}

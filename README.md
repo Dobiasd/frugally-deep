@@ -177,8 +177,6 @@ github project description: Use Keras models in C++ with this small header-only 
 
 add github project tags
 
-remove vscode directory
-
 write something about contributing to the project
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
@@ -188,10 +186,6 @@ test upsampling2d with non-even factors
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
 
 travis wie fplus, auch mit warnings und so
-
-json: CBOR fuer weights und biases? oder in base64 oder sowas?
-
-flatten/dense use depth dimension? would make batchnorm easier
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
 

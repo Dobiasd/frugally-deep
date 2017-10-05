@@ -122,19 +122,17 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
     assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
 
-    std::size_t inner = a.shape().width_;
     tensor2 m(shape2(a.shape().height_, b.shape().width_));
 
-    for (std::size_t y = 0; y < a.shape().height_; ++y)
+    for (std::size_t i = 0; i < a.shape().height_; ++i)
     {
-        for (std::size_t x = 0; x < b.shape().width_; ++x)
+        for (std::size_t k = 0; k < a.shape().width_; ++k)
         {
-            float_t sum = 0;
-            for (std::size_t i = 0; i < inner; ++i)
+            for (std::size_t j = 0; j < b.shape().width_; ++j)
             {
-                sum += a.get(y, i) * b.get(i, x);
+                m.set(i, j, m.get(i, j) + a.get(i, k) * b.get(k, j));
             }
-            m.set(y, x, sum);
+
         }
     }
     return m;

@@ -34,7 +34,7 @@ public:
         shape_(shape),
         values_(std::move(values))
     {
-        assertion(shape.area() == values.size(), "invalid number of values");
+        assertion(shape.area() == values_.size(), "invalid number of values");
     }
     tensor2(const shape2& shape, const float_t& value) :
         shape_(shape),
@@ -43,7 +43,7 @@ public:
     }
     explicit tensor2(const shape2& shape) :
         shape_(shape),
-        values_(shape.area(), 0.0f)
+        values_(shape.area(), static_cast<float_t>(0))
     {
     }
     float_t get(const tensor2_pos& pos) const
@@ -104,26 +104,6 @@ tensor2 transform_tensor2(F f, const tensor2& m)
     return tensor2(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
-inline tensor2 reshape_tensor2(const tensor2& m, const shape2& out_shape)
-{
-    return tensor2(out_shape, m.as_vector());
-}
-
-inline tensor2 sparse_tensor2(std::size_t step, const tensor2& in)
-{
-    tensor2 out(shape2(
-        in.shape().height_ * step - (step - 1),
-        in.shape().width_ * step - (step - 1)));
-    for (std::size_t y = 0; y < in.shape().height_; ++y)
-    {
-        for (std::size_t x = 0; x < in.shape().width_; ++x)
-        {
-            out.set(y * step, x * step, in.get(y, x));
-        }
-    }
-    return out;
-}
-
 inline tensor2 multiply(const tensor2& a, const tensor2& b)
 {
     assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
@@ -138,7 +118,6 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
             {
                 m.set(i, j, m.get(i, j) + a.get(i, k) * b.get(k, j));
             }
-
         }
     }
     return m;

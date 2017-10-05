@@ -34,7 +34,7 @@ public:
     }
     explicit tensor3(const shape3& shape) :
         shape_(shape),
-        values_(shape.volume(), 0.0f)
+        values_(shape.volume(), static_cast<float_t>(0))
     {
     }
     float_t get(const tensor3_pos& pos) const
@@ -168,14 +168,6 @@ inline std::vector<tensor2> tensor3_to_depth_slices(const tensor3& m)
         }
     }
     return ms;
-}
-
-inline tensor3 sparse_tensor3(std::size_t step, const tensor3& in)
-{
-    return tensor3_from_depth_slices(
-        fplus::transform(
-            fplus::bind_1st_of_2(sparse_tensor2, step),
-            tensor3_to_depth_slices(in)));
 }
 
 inline tensor3 tensor2_to_tensor3(const tensor2& m)

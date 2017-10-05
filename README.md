@@ -163,6 +163,17 @@ From then on everything is handled as a float32 tensor with rank 3. Dense layers
 todo
 ----
 
+release:
+- re-enable logo
+- github project description: Use Keras models in C++ with this small header-only library.
+- add github project tags
+- post on
+ - https://www.reddit.com/r/deeplearning/
+ - https://www.reddit.com/r/cpp/
+ - https://www.reddit.com/r/programming/
+ - https://www.reddit.com/r/KerasML/
+ - https://www.reddit.com/r/MachineLearning/
+
 add travis
 
 use cmake with doctests (see fplus)
@@ -173,21 +184,15 @@ add merge layers (https://keras.io/layers/merge/)
 
 support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
 
-github project description: Use Keras models in C++ with this small header-only library.
-
-add github project tags
-
-write something about contributing to the project
-
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 
 test upsampling2d with non-even factors
 
-local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
-
 travis wie fplus, auch mit warnings und so
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
+
+make tensorflow-only example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
 ask the model what inputs it accepts, also what outputs it produces?
 

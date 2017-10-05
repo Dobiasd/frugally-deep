@@ -50,11 +50,11 @@ protected:
 
     virtual tensor3 pool(const tensor3& input) const = 0;
 
-    const shape2 pool_size_;
-    const shape2 strides_;
-    const padding padding_;
-    const bool padding_valid_uses_offset_;
-    const bool padding_same_uses_offset_;
+    shape2 pool_size_;
+    shape2 strides_;
+    padding padding_;
+    bool padding_valid_uses_offset_;
+    bool padding_same_uses_offset_;
 };
 
 } } // namespace fdeep, namespace internal

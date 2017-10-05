@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    const float_t alpha_;
+    float_t alpha_;
     tensor3 transform_input(const tensor3& in_vol) const override
     {
         auto activation_function = [this](float_t x) -> float_t

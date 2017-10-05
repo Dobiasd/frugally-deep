@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    const float_t alpha_;
+    float_t alpha_;
     static float_t activation_function(float_t alpha, float_t x)
     {
         return x >= 0 ? x : alpha * (std::exp(x) - 1);

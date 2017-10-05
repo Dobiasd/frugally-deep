@@ -33,7 +33,7 @@ protected:
         const auto& input = inputs.front();
         return {upsampling2d(input)};
     }
-    const shape2 scale_factor_;
+    shape2 scale_factor_;
     tensor3 upsampling2d(const tensor3& in_vol) const
     {
         tensor3 out_vol(

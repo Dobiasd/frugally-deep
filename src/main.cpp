@@ -4,7 +4,7 @@
 // (See accompanying LICENSE file or at
 //  https://opensource.org/licenses/MIT)
 
-#include "frugally_deep/frugally_deep.hpp"
+#include "fdeep/fdeep.hpp"
 
 int main()
 {

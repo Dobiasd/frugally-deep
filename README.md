@@ -203,8 +203,6 @@ add merge layers (https://keras.io/layers/merge/)
 
 support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
 
-wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
-
 travis wie fplus, auch mit warnings und so
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
@@ -215,7 +213,7 @@ ask the model what inputs it accepts, also what outputs it produces?
 
 optional lowmem modus (no im2col)
 
-support filters without bias or remove filter class completely?
+wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 
 handle padding in im2col?
 

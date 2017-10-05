@@ -126,11 +126,11 @@ inline tensor3 convolve_im2col(
     const tensor3& in)
 {
     const std::size_t fz = filters.front().shape().depth_;
-    shape2 a_shape(fz * fy * fx, out_height * out_width);
+    shape2 a_shape(fz * fy * fx + 1, out_height * out_width);
     float_vec a_values;
     a_values.reserve(a_shape.area());
 
-    shape2 b_shape(filters.size(), fz * fy * fx);
+    shape2 b_shape(filters.size(), fz * fy * fx + 1);
     float_vec b_values;
     b_values.reserve(b_shape.area());
 
@@ -155,6 +155,13 @@ inline tensor3 convolve_im2col(
             }
         }
     }
+    for (std::size_t y = 0; y < out_height; ++y)
+    {
+        for (std::size_t x = 0; x < out_width; ++x)
+        {
+            a_values.push_back(static_cast<float_t>(1));
+        }
+    }
 
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
@@ -169,6 +176,7 @@ inline tensor3 convolve_im2col(
                 }
             }
         }
+        b_values.push_back(filter.get_bias());
     }
 
     tensor2 a(a_shape, a_values); // todo move_ctor

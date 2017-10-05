@@ -24,7 +24,6 @@
 #include "frugally_deep/layers/batch_normalization_layer.hpp"
 #include "frugally_deep/layers/concatenate_layer.hpp"
 #include "frugally_deep/layers/conv2d_layer.hpp"
-#include "frugally_deep/layers/conv2d_transpose_layer.hpp"
 #include "frugally_deep/layers/elu_layer.hpp"
 #include "frugally_deep/layers/flatten_layer.hpp"
 #include "frugally_deep/layers/dense_layer.hpp"

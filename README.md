@@ -154,7 +154,7 @@ Internals
 ---------
 
 frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `image_data_format` internally. `export_model.py` takes care of all necessary conversions.
-From then on everything is handled as a tensor with rank 3. Dense layers for example take its input flattened to a shape of `(1, 1, n)`. This is also the shape you will receive as the output of a `softmax` layer for example.
+From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(1, 1, n)`. This is also the shape you will receive as the output of a `softmax` layer for example.
 
 
 
@@ -187,16 +187,18 @@ test upsampling2d with non-even factors
 
 local response normalization layer https://prateekvjoshi.com/2016/04/05/what-is-local-response-normalization-in-convolutional-neural-networks/
 
-float_t als template-parameter
-
 travis wie fplus, auch mit warnings und so
 
 json: CBOR fuer weights und biases? oder in base64 oder sowas?
-
-support filters without bias
 
 flatten/dense use depth dimension? would make batchnorm easier
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
 
 ask the model what inputs it accepts, also what outputs it produces?
+
+base64 newlinescstring array
+
+optional lowmem modus (no im2col)
+
+support filters without bias or remove filter class completely?

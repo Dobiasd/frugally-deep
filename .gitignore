@@ -1,9 +1,4 @@
-build
 release
-videos
-stuff
-src/applications
-*sublime*
-.sconsign.dblite
+.vscode
 keras_export/*.h5
 keras_export/*.json

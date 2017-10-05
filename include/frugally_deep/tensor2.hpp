@@ -30,6 +30,12 @@ public:
     {
         assertion(shape.area() == values.size(), "invalid number of values");
     }
+    tensor2(const shape2& shape, float_vec&& values) :
+        shape_(shape),
+        values_(std::move(values))
+    {
+        assertion(shape.area() == values.size(), "invalid number of values");
+    }
     tensor2(const shape2& shape, const float_t& value) :
         shape_(shape),
         values_(fplus::replicate(shape.area(), value))

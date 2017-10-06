@@ -171,13 +171,13 @@ inline tensor3 convolve_im2col(
         b_values.push_back(filter.get_bias());
     }
 
-    tensor2 a(a_shape, std::move(a_values));
-    tensor2 b(b_shape, std::move(b_values));
+    tensor2 a(a_shape, a_values);
+    tensor2 b(b_shape, b_values);
 
     tensor2 result = multiply(b, a);
 
     tensor3 out(shape3(filters.size(), out_height, out_width),
-        std::move(result.as_vector()));
+        result.as_vector());
 
     return out;
 }

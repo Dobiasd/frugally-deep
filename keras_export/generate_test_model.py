@@ -23,13 +23,14 @@ __email__ = "editgym@gmail.com"
 def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
-        (6, 8, 1) if image_format == 'channels_last' else (1, 6, 8)
+        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8)
         ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    outputs.append(Conv2D(2, (3, 5), strides=(3, 3), padding='same')(inputs[0]))
+    outputs.append(SeparableConv2D(1, (1, 1),
+        strides=(1, 1), padding='valid')(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')

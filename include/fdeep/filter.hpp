@@ -48,7 +48,7 @@ public:
     {
         assertion(weights.size() == m_.shape().volume(),
             "invalid parameter count");
-        m_ = tensor3(m_.shape(), weights);
+        m_ = tensor3(m_.shape(), float_vec(weights));
         bias_ = bias;
     }
 private:
@@ -63,7 +63,7 @@ inline filter_vec generate_filters(
     const float_vec& weights, const float_vec& bias)
 {
     filter_vec filters(k, filter(tensor3(
-        shape3(filter_shape)), 0));
+        shape3(filter_shape), 0), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(
@@ -73,7 +73,7 @@ inline filter_vec generate_filters(
         "invalid weight size");
     const auto filter_param_cnt = filters.front().shape().volume();
 
-    const auto filter_weights =
+    auto filter_weights =
         fplus::split_every(filter_param_cnt, weights);
     assertion(filter_weights.size() == filters.size(),
         "invalid size of filter weights");

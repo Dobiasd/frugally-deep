@@ -128,8 +128,7 @@ inline float_vec decode_floats(const nlohmann::json& data)
 inline tensor3 create_tensor3(const nlohmann::json& data)
 {
     const shape3 shape = create_shape3(data["shape"]);
-    const float_vec values = decode_floats(data["values"]);
-    return tensor3(shape, values);
+    return tensor3(shape, decode_floats(data["values"]));
 }
 
 template <typename T, typename F>
@@ -137,13 +136,6 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
 {
     assertion(data.is_array(), "data needs to be an array");
     return fplus::transform_convert<std::vector<T>>(f, data);
-}
-
-inline float_t create_singleton_vec(const nlohmann::json& data)
-{
-    float_vec values = data;
-    assertion(values.size() == 1, "need exactly one value");
-    return values.front();
 }
 
 inline node_connection create_node_connection(const nlohmann::json& data)
@@ -629,6 +621,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
                     static_cast<float_t>(0.01),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
+                    std::cerr << target.get(z, y, x) << " " << output.get(z, y, x) << std::endl;
                     return false;
                 }
             }

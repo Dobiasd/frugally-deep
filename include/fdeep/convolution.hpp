@@ -26,7 +26,7 @@ tensor3 convolve_opt(
     const std::vector<filter>& filters,
     const tensor3& in)
 {
-    tensor3 out(shape3(filters.size(), out_height, out_width));
+    tensor3 out(shape3(filters.size(), out_height, out_width), 0);
 
     const std::size_t fz = filters.front().shape().depth_;
 
@@ -71,7 +71,7 @@ inline tensor3 convolve(
     const std::vector<filter>& filters,
     const tensor3& in)
 {
-    tensor3 out(shape3(filters.size(), out_height, out_width));
+    tensor3 out(shape3(filters.size(), out_height, out_width), 0);
 
     const std::size_t fz = filters.front().shape().depth_;
 
@@ -171,8 +171,8 @@ inline tensor3 convolve_im2col(
         b_values.push_back(filter.get_bias());
     }
 
-    tensor2 a(a_shape, a_values);
-    tensor2 b(b_shape, b_values);
+    tensor2 a(a_shape, std::move(a_values));
+    tensor2 b(b_shape, std::move(b_values));
 
     tensor2 result = multiply(b, a);
 

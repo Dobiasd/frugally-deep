@@ -28,7 +28,7 @@ protected:
 
         const auto unnormalized = transform_tensor3(ex, input);
 
-        const auto unnormalized_sum = fplus::sum(unnormalized.as_vector());
+        const auto unnormalized_sum = fplus::sum(*unnormalized.as_vector());
         const auto div_by_unnormalized_sum =
             [unnormalized_sum](float_t x) -> float_t
         {

@@ -37,7 +37,8 @@ protected:
         const std::size_t out_width = input_data.out_width_;
         const tensor3& in = input_data.in_padded_;
 
-        tensor3 out(shape3(in_unpadded.shape().depth_, out_height, out_width));
+        tensor3 out(
+            shape3(in_unpadded.shape().depth_, out_height, out_width), 0);
 
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {

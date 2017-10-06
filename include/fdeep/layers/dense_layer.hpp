@@ -51,7 +51,7 @@ protected:
     {
         return tensor2(
             shape2(1, input.shape().width_ + 1),
-            fplus::append(input.as_vector(), {1}));
+            fplus::append(*input.as_vector(), {1}));
     }
     std::size_t n_in_;
     std::size_t n_out_;

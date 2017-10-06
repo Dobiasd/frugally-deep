@@ -24,26 +24,27 @@ namespace fdeep { namespace internal
 class tensor2
 {
 public:
-    tensor2(const shape2& shape, const float_vec& values) :
+    tensor2(const shape2& shape, const shared_float_vec& values) :
         shape_(shape),
         values_(values)
     {
-        assertion(shape.area() == values.size(), "invalid number of values");
+        assertion(shape.area() == values->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, const float_t& value) :
+    tensor2(const shape2& shape, float_vec&& values) :
         shape_(shape),
-        values_(shape.area(), value)
+        values_(fplus::make_shared_ref<float_vec>(std::move(values)))
     {
+        assertion(shape.area() == values_->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape) :
+    tensor2(const shape2& shape, float_t value) :
         shape_(shape),
-        values_(shape.area(), 0)
+        values_(fplus::make_shared_ref<float_vec>(shape.area(), value))
     {
     }
 
     const float_t& get(const tensor2_pos& pos) const
     {
-        return values_[idx(pos)];
+        return (*values_)[idx(pos)];
     }
     const float_t& get(std::size_t y, std::size_t x) const
     {
@@ -51,7 +52,7 @@ public:
     }
     float_t& get(const tensor2_pos& pos)
     {
-        return values_[idx(pos)];
+        return (*values_)[idx(pos)];
     }
     float_t& get(std::size_t y, std::size_t x)
     {
@@ -59,7 +60,7 @@ public:
     }
     void set(const tensor2_pos& pos, float_t value)
     {
-        values_[idx(pos)] = value;
+        (*values_)[idx(pos)] = value;
     }
     void set(std::size_t y, std::size_t x, float_t value)
     {
@@ -69,7 +70,7 @@ public:
     {
         return shape_;
     }
-    const float_vec& as_vector() const
+    const shared_float_vec& as_vector() const
     {
         return values_;
     }
@@ -82,7 +83,7 @@ private:
             pos.x_;
     };
     shape2 shape_;
-    float_vec values_;
+    shared_float_vec values_;
 };
 
 inline std::string show_tensor2(const tensor2& m)
@@ -130,7 +131,7 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
 
 inline float_t tensor2_sum_all_values(const tensor2& m)
 {
-    return fplus::sum(m.as_vector());
+    return fplus::sum(*m.as_vector());
 }
 
 inline float_t tensor2_mean_value(const tensor2& m)
@@ -145,7 +146,7 @@ inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
     return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x + e;
-    }, m.as_vector()));
+    }, *m.as_vector()));
 }
 
 inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
@@ -153,7 +154,7 @@ inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
     return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return e - x;
-    }, m.as_vector()));
+    }, *m.as_vector()));
 }
 
 inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
@@ -161,7 +162,7 @@ inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
     return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return x * e;
-    }, m.as_vector()));
+    }, *m.as_vector()));
 }
 
 inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
@@ -169,7 +170,7 @@ inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
     return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
     {
         return e / x;
-    }, m.as_vector()));
+    }, *m.as_vector()));
 }
 
 } } // namespace fdeep, namespace internal

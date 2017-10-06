@@ -37,9 +37,8 @@ public:
     }
     tensor2(const shape2& shape) :
         shape_(shape),
-        values_()
+        values_(shape.area(), 0)
     {
-        values_.resize(shape.area());
     }
 
     const float_t& get(const tensor2_pos& pos) const
@@ -141,13 +140,6 @@ inline float_t tensor2_mean_value(const tensor2& m)
         static_cast<float_t>(m.shape().area());
 }
 
-inline tensor2 add_tensor2s(const tensor2& m1, const tensor2& m2)
-{
-    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
-    return tensor2(m1.shape(), fplus::zip_with(std::plus<float_t>(),
-        m1.as_vector(), m2.as_vector()));
-}
-
 inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
 {
     return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
@@ -178,12 +170,6 @@ inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
     {
         return e / x;
     }, m.as_vector()));
-}
-
-inline tensor2 sum_tensor2s(const std::vector<tensor2>& ms)
-{
-    assertion(!ms.empty(), "no tensors given");
-    return fplus::fold_left_1(add_tensor2s, ms);
 }
 
 } } // namespace fdeep, namespace internal

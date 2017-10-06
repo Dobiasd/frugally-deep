@@ -240,13 +240,6 @@ inline float_t tensor3_min_value(const tensor3& m)
     return m.get(tensor3_min_pos(m));
 }
 
-inline tensor3 add_tensor3s(const tensor3& m1, const tensor3& m2)
-{
-    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
-    return tensor3(m1.shape(), fplus::zip_with(std::plus<float_t>(),
-        m1.as_vector(), m2.as_vector()));
-}
-
 inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 {
     assertion(fplus::all_the_same_on(
@@ -279,12 +272,6 @@ inline tensor3 multiply_tensor3_elems(const tensor3& m, float_t x)
     }, m.as_vector()));
 }
 
-inline tensor3 sum_tensor3s(const std::vector<tensor3>& ms)
-{
-    assertion(!ms.empty(), "no tensors given");
-    return fplus::fold_left_1(add_tensor3s, ms);
-}
-
 inline tensor3 multiply_tensor3s_elementwise(
     const tensor3& m1, const tensor3& m2)
 {
@@ -307,72 +294,9 @@ inline tensor3 divide_tensor3(const tensor3& m, float_t divisor)
     return multiply_tensor3(m, 1 / divisor);
 }
 
-inline tensor3 mean_tensor3(const std::vector<tensor3>& ms)
-{
-    return divide_tensor3(sum_tensor3s(ms), static_cast<float_t>(ms.size()));
-}
-
-inline tensor3 sub_tensor3(const tensor3& m1, const tensor3& m2)
-{
-    return add_tensor3s(m1, multiply_tensor3(m2, -1));
-}
-
 inline tensor3 abs_tensor3_values(const tensor3& m)
 {
     return transform_tensor3(fplus::abs<float_t>, m);
-}
-
-inline tensor3 abs_diff_tensor3s(const tensor3& m1, const tensor3& m2)
-{
-    return abs_tensor3_values(sub_tensor3(m1, m2));
-}
-
-inline float_t tensor3_sum_all_values(const tensor3& m)
-{
-    return fplus::sum(m.as_vector());
-}
-
-inline float_t tensor3_mean_value(const tensor3& m)
-{
-    return
-        tensor3_sum_all_values(m) /
-        static_cast<float_t>(m.shape().volume());
-}
-
-inline tensor3 operator + (const tensor3& lhs, const tensor3& rhs)
-{
-    return add_tensor3s(lhs, rhs);
-}
-
-inline tensor3 operator - (const tensor3& lhs, const tensor3& rhs)
-{
-    return sub_tensor3(lhs, rhs);
-}
-
-inline tensor3 operator * (const tensor3& m, float_t factor)
-{
-    return multiply_tensor3(m, factor);
-}
-
-inline tensor3 operator / (const tensor3& m, float_t divisor)
-{
-    return divide_tensor3(m, divisor);
-}
-
-inline bool operator == (const tensor3& a, const tensor3& b)
-{
-    return a.shape() == b.shape() && a.as_vector() == b.as_vector();
-}
-
-inline bool operator != (const tensor3& a, const tensor3& b)
-{
-    return !(a == b);
-}
-
-inline tensor3& operator += (tensor3& lhs, const tensor3& rhs)
-{
-    lhs = lhs + rhs;
-    return lhs;
 }
 
 inline tensor3 flatten_tensor3(const tensor3& vol)
@@ -451,6 +375,28 @@ inline tensor3 depth_first_to_depth_last(const tensor3& in)
         }
     }
     return result;
+}
+
+inline tensor3 sum_tensor3s(const tensor3s& ts)
+{
+    assertion(!ts.empty(), "no tensor3s given");
+    assertion(
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor3, shape, shape3), ts),
+        "all tensor3s must have the same size");
+    const auto ts_values = fplus::transform(
+        fplus_c_mem_fn_t(tensor3, as_vector, float_vec), ts);
+    float_vec result_values;
+    result_values.reserve(ts_values.front().size());
+    for (std::size_t i = 0; i < ts_values.front().size(); ++i)
+    {
+        float_t sum_val = static_cast<float_t>(0);
+        for (const auto& t_vals : ts_values)
+        {
+            sum_val += t_vals[i];
+        }
+        result_values.push_back(sum_val);
+    }
+    return tensor3(ts.front().shape(), result_values);
 }
 
 } // namespace internal

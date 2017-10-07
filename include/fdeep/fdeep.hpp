@@ -42,7 +42,6 @@
 #include "fdeep/layers/sigmoid_layer.hpp"
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
-#include "fdeep/layers/step_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling2d_layer.hpp"

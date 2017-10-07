@@ -373,6 +373,24 @@ inline layer_ptr create_average_pooling2d_layer(
         padding_same_uses_offset);
 }
 
+inline layer_ptr create_global_max_pooling2d_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
+    return std::make_shared<global_max_pooling_2d_layer>(name);
+}
+
+inline layer_ptr create_global_average_pooling2d_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    assertion(data["config"]["data_format"] == "channels_last",
+        "only channels_last data format supported");
+    return std::make_shared<global_average_pooling_2d_layer>(name);
+}
+
 inline layer_ptr create_upsampling2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
@@ -558,6 +576,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"ELU", create_elu_layer},
             {"MaxPooling2D", create_max_pooling2d_layer},
             {"AveragePooling2D", create_average_pooling2d_layer},
+            {"GlobalMaxPooling2D", create_global_max_pooling2d_layer},
+            {"GlobalAveragePooling2D", create_global_average_pooling2d_layer},
             {"UpSampling2D", create_upsampling2d_layer},
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
@@ -617,11 +637,16 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
         {
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
+                std::cout << z << "," << y << "," << x << " " <<
+                    target.get(z, y, x) << " "
+                    << output.get(z, y, x) << std::endl;
                 if (!fplus::is_in_closed_interval_around(
                     static_cast<float_t>(0.01),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
-                    std::cerr << target.get(z, y, x) << " " << output.get(z, y, x) << std::endl;
+                    std::cerr << "err: " << z << "," << y << "," << x << " " <<
+                        target.get(z, y, x) << " "
+                        << output.get(z, y, x) << std::endl;
                     return false;
                 }
             }

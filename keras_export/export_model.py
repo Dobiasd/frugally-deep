@@ -65,7 +65,7 @@ def gen_test_data(model):
     data_out = model.predict(data_in)
     end_time = datetime.datetime.now()
     duration = end_time - start_time
-    print('Forward pass took {} us.'.format(duration.microseconds))
+    print('Forward pass took {} s.'.format(duration.total_seconds()))
 
     return {
         'inputs': list(map(show_test_data_as_3tensor, data_in)),

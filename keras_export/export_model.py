@@ -248,7 +248,7 @@ def check_conv2d_offset(eval_f, padding):
 
 def main():
     usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 1]'
-    if len(sys.argv) != 3 and len(sys.argv) != 4:
+    if not len(sys.argv) in [3, 4]:
         print(usage)
         sys.exit(1)
     else:

@@ -9,7 +9,7 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
-from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D, ZeroPadding2D, Conv2DTranspose
+from keras.layers import Dense, Dropout, Flatten, Activation, Conv2D, MaxPooling2D, AveragePooling2D, Input, UpSampling2D, Flatten, SeparableConv2D, ZeroPadding2D, Conv2DTranspose, GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -66,6 +66,9 @@ def get_test_model_full():
         (4,),
         (2, 3),
         (7, 9, 1) if image_format == 'channels_last' else (1, 7, 9),
+        (10, 1, 1),
+        (1, 10, 1),
+        (1, 1, 10)
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -97,6 +100,11 @@ def get_test_model_full():
     for y in range(1, 3):
         for x in range(1, 3):
             outputs.append(UpSampling2D(size=(y, x))(inputs[0]))
+    outputs.append(GlobalAveragePooling2D()(inputs[0]))
+    outputs.append(GlobalMaxPooling2D()(inputs[0]))
+    outputs.append(Dense(3)(inputs[6]))
+    outputs.append(Dense(3)(inputs[7]))
+    outputs.append(Dense(3)(inputs[8]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')

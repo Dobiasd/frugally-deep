@@ -41,9 +41,14 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        assertion(input.shape().height_ == 1, "input needs to be flattened");
-        assertion(input.shape().depth_ == 1, "input needs to be flattened");
-        const auto bias_padded_input = bias_pad_input(input);
+        assertion(
+            (input.shape().depth_ == 1 && input.shape().height_ == 1) ||
+            (input.shape().height_ == 1 && input.shape().width_ == 1) ||
+            (input.shape().depth_ == 1 && input.shape().width_ == 1),
+            "input needs to be flattened");
+        const tensor3 input_reshaped(
+            shape3(1, 1, input.shape().volume()), input.as_vector());
+        const auto bias_padded_input = bias_pad_input(input_reshaped);
         return {tensor3(shape3(1, 1, n_out_),
             multiply(bias_padded_input, params_).as_vector())};
     }

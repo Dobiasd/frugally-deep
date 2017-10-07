@@ -119,7 +119,8 @@ inline float_vec decode_floats(const nlohmann::json& data)
     out.reserve(res.size() / 4);
     for (std::size_t i = 0; i < res.size(); i+=4)
     {
-        float val = *(reinterpret_cast<const float*>(&(res[i])));
+        float_t val = static_cast<float_t>(
+            *(reinterpret_cast<const float*>(&(res[i]))));
         out.push_back(val);
     }
     return out;
@@ -637,9 +638,6 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
         {
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
-                std::cout << z << "," << y << "," << x << " " <<
-                    target.get(z, y, x) << " "
-                    << output.get(z, y, x) << std::endl;
                 if (!fplus::is_in_closed_interval_around(
                     static_cast<float_t>(0.01),
                     target.get(z, y, x), output.get(z, y, x)))

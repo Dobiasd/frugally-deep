@@ -416,9 +416,9 @@ inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
 {
     const std::vector<std::uint8_t> bytes(
         value_ptr, value_ptr + height * width * 3);
-    auto values = fplus::transform([](std::uint8_t b) -> float_t
+    auto values = fplus::transform([](std::uint8_t b) -> internal::float_t
     {
-        return static_cast<float_t>(b) / 255;
+        return static_cast<internal::float_t>(b) / 255;
     }, bytes);
     return internal::depth_last_to_depth_first(
         tensor3(shape3(height, width, 3), std::move(values)));
@@ -431,10 +431,10 @@ inline void tensor3_to_bgr_image(const tensor3& t, std::uint8_t* value_ptr,
     const auto values = depth_first_to_depth_last(t).as_vector();
     internal::assertion(bytes_available == values->size(),
     "invalid buffer size");
-    const auto bytes = fplus::transform([](float_t v) -> std::uint8_t
+    const auto bytes = fplus::transform([](internal::float_t v) -> std::uint8_t
     {
         return static_cast<std::uint8_t>(
-            fplus::clamp<float_t>(0, 255, v * 255));
+            fplus::clamp<internal::float_t>(0, 255, v * 255));
     }, *values);
     std::copy(std::begin(bytes), std::end(bytes), value_ptr);
 }

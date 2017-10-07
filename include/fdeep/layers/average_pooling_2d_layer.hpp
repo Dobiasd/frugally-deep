@@ -44,7 +44,7 @@ protected:
             {
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
-                    float_t val = 0;
+                    float_type val = 0;
                     for (std::size_t yf = 0; yf < pool_size_.height_; ++yf)
                     {
                         for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)
@@ -55,7 +55,7 @@ protected:
                         }
                     }
                     out.set(z, y, x,
-                        val / static_cast<float_t>(pool_size_.area()));
+                        val / static_cast<float_type>(pool_size_.area()));
                 }
             }
         }

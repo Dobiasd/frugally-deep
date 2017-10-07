@@ -24,7 +24,7 @@ protected:
         tensor3 out(shape3(1, 1, in.shape().depth_), 0);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
-            float_t val = 0;
+            float_type val = 0;
             for (std::size_t y = 0; y < out.shape().height_; ++y)
             {
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
@@ -32,8 +32,8 @@ protected:
                     val += in.get(z, y, x);
                 }
             }
-            out.set(0, 0, z,
-                val / static_cast<float_t>(in.shape().without_depth().area()));
+            out.set(0, 0, z, val /
+                static_cast<float_type>(in.shape().without_depth().area()));
         }
         return out;
     }

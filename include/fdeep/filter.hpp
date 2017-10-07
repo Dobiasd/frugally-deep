@@ -21,7 +21,7 @@ namespace fdeep { namespace internal
 class filter
 {
 public:
-    filter(const tensor3& m, float_t bias) : m_(m), bias_(bias)
+    filter(const tensor3& m, float_type bias) : m_(m), bias_(bias)
     {
     }
     const shape3& shape() const
@@ -36,15 +36,15 @@ public:
     {
         return m_;
     }
-    float_t get(std::size_t z, std::size_t y, size_t x) const
+    float_type get(std::size_t z, std::size_t y, size_t x) const
     {
         return m_.get(z, y, x);
     }
-    float_t get_bias() const
+    float_type get_bias() const
     {
         return bias_;
     }
-    void set_params(const float_vec& weights, float_t bias)
+    void set_params(const float_vec& weights, float_type bias)
     {
         assertion(weights.size() == m_.shape().volume(),
             "invalid parameter count");
@@ -53,7 +53,7 @@ public:
     }
 private:
     tensor3 m_;
-    float_t bias_;
+    float_type bias_;
 };
 
 typedef std::vector<filter> filter_vec;

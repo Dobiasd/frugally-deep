@@ -21,7 +21,7 @@ public:
 protected:
     tensor3 transform_input(const tensor3& input) const override
     {
-        const auto ex = [this](float_t x) -> float_t
+        const auto ex = [this](float_type x) -> float_type
         {
             return std::exp(x);
         };
@@ -30,7 +30,7 @@ protected:
 
         const auto unnormalized_sum = fplus::sum(*unnormalized.as_vector());
         const auto div_by_unnormalized_sum =
-            [unnormalized_sum](float_t x) -> float_t
+            [unnormalized_sum](float_type x) -> float_type
         {
             return x / unnormalized_sum;
         };

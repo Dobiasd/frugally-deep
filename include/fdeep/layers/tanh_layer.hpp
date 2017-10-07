@@ -21,7 +21,7 @@ public:
 protected:
     tensor3 transform_input(const tensor3& in_vol) const override
     {
-        const auto activation_function = [](float_t x) -> float_t
+        const auto activation_function = [](float_type x) -> float_type
         {
             return std::tanh(x);
         };

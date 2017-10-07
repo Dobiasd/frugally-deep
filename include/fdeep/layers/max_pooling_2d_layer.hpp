@@ -46,7 +46,7 @@ protected:
             {
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
-                    float_t val = std::numeric_limits<float_t>::lowest();
+                    float_type val = std::numeric_limits<float_type>::lowest();
                     for (std::size_t yf = 0; yf < pool_size_.height_; ++yf)
                     {
                         for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)

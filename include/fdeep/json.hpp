@@ -498,7 +498,7 @@ distinguish the stored values, and the functions @ref basic_json::is_null(),
 number_float), because the library distinguishes these three types for numbers:
 @ref basic_json::number_unsigned_t is used for unsigned integers,
 @ref basic_json::number_integer_t is used for signed integers, and
-@ref basic_json::number_float_t is used for floating-point numbers or to
+@ref basic_json::number_float_type is used for floating-point numbers or to
 approximate integers which do not fit in the limits of their respective type.
 
 @sa @ref basic_json::basic_json(const value_t value_type) -- create a JSON
@@ -664,7 +664,7 @@ template<>
 struct external_constructor<value_t::number_float>
 {
     template<typename BasicJsonType>
-    static void construct(BasicJsonType& j, typename BasicJsonType::number_float_t val) noexcept
+    static void construct(BasicJsonType& j, typename BasicJsonType::number_float_type val) noexcept
     {
         j.m_type = value_t::number_float;
         j.m_value = val;
@@ -971,7 +971,7 @@ template<typename BasicJsonType, typename FloatType,
          enable_if_t<std::is_floating_point<FloatType>::value, int> = 0>
 void to_json(BasicJsonType& j, FloatType val) noexcept
 {
-    external_constructor<value_t::number_float>::construct(j, static_cast<typename BasicJsonType::number_float_t>(val));
+    external_constructor<value_t::number_float>::construct(j, static_cast<typename BasicJsonType::number_float_type>(val));
 }
 
 template <
@@ -1098,7 +1098,7 @@ void get_arithmetic_value(const BasicJsonType& j, ArithmeticType& val)
         }
         case value_t::number_float:
         {
-            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_t*>());
+            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_type*>());
             break;
         }
 
@@ -1128,7 +1128,7 @@ void from_json(const BasicJsonType& j, typename BasicJsonType::string_t& s)
 }
 
 template<typename BasicJsonType>
-void from_json(const BasicJsonType& j, typename BasicJsonType::number_float_t& val)
+void from_json(const BasicJsonType& j, typename BasicJsonType::number_float_type& val)
 {
     get_arithmetic_value(j, val);
 }
@@ -1280,7 +1280,7 @@ template<typename BasicJsonType, typename ArithmeticType,
              std::is_arithmetic<ArithmeticType>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::number_unsigned_t>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::number_integer_t>::value and
-             not std::is_same<ArithmeticType, typename BasicJsonType::number_float_t>::value and
+             not std::is_same<ArithmeticType, typename BasicJsonType::number_float_type>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::boolean_t>::value,
              int> = 0>
 void from_json(const BasicJsonType& j, ArithmeticType& val)
@@ -1299,7 +1299,7 @@ void from_json(const BasicJsonType& j, ArithmeticType& val)
         }
         case value_t::number_float:
         {
-            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_t*>());
+            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_type*>());
             break;
         }
         case value_t::boolean:
@@ -1675,7 +1675,7 @@ class lexer
 {
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
-    using number_float_t = typename BasicJsonType::number_float_t;
+    using number_float_type = typename BasicJsonType::number_float_type;
 
   public:
     /// token types for the parser
@@ -2752,7 +2752,7 @@ scan_number_done:
     }
 
     /// return floating-point value
-    constexpr number_float_t get_number_float() const noexcept
+    constexpr number_float_type get_number_float() const noexcept
     {
         return value_float;
     }
@@ -2908,7 +2908,7 @@ scan_number_done:
     // number values
     number_integer_t value_integer = 0;
     number_unsigned_t value_unsigned = 0;
-    number_float_t value_float = 0;
+    number_float_type value_float = 0;
 
     /// the decimal point
     const char decimal_point_char = '.';
@@ -2924,7 +2924,7 @@ class parser
 {
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
-    using number_float_t = typename BasicJsonType::number_float_t;
+    using number_float_type = typename BasicJsonType::number_float_type;
     using lexer_t = lexer<BasicJsonType>;
     using token_type = typename lexer_t::token_type;
 
@@ -6084,7 +6084,7 @@ template<typename BasicJsonType>
 class serializer
 {
     using string_t = typename BasicJsonType::string_t;
-    using number_float_t = typename BasicJsonType::number_float_t;
+    using number_float_type = typename BasicJsonType::number_float_type;
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
   public:
@@ -6693,7 +6693,7 @@ class serializer
 
     @param[in] x  floating-point number to dump
     */
-    void dump_float(number_float_t x)
+    void dump_float(number_float_type x)
     {
         // NaN / inf
         if (not std::isfinite(x) or std::isnan(x))
@@ -6717,7 +6717,7 @@ class serializer
         }
 
         // get number of digits for a text -> float -> text round-trip
-        static constexpr auto d = std::numeric_limits<number_float_t>::digits10;
+        static constexpr auto d = std::numeric_limits<number_float_type>::digits10;
 
         // the actual conversion
         std::ptrdiff_t len = snprintf(number_buffer.data(), number_buffer.size(), "%.*g", d, x);
@@ -7234,7 +7234,7 @@ default; will be used in @ref number_integer_t)
 @tparam NumberUnsignedType type for JSON unsigned integer numbers (@c
 `uint64_t` by default; will be used in @ref number_unsigned_t)
 @tparam NumberFloatType type for JSON floating-point numbers (`double` by
-default; will be used in @ref number_float_t)
+default; will be used in @ref number_float_type)
 @tparam AllocatorType type of the allocator to use (`std::allocator` by
 default)
 @tparam JSONSerializer the serializer to resolve internal calls to `to_json()`
@@ -7739,7 +7739,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_t are used.
+    number_unsigned_t and @ref number_float_type are used.
 
     To store integer numbers in C++, a type is defined by the template
     parameter @a NumberIntegerType which chooses the type to use.
@@ -7773,7 +7773,7 @@ class basic_json
     that are out of range will yield over/underflow when used in a
     constructor. During deserialization, too large or small integer numbers
     will be automatically be stored as @ref number_unsigned_t or @ref
-    number_float_t.
+    number_float_type.
 
     [RFC 7159](http://rfc7159.net/rfc7159) further states:
     > Note that when such software is used, numbers that are integers and are
@@ -7787,7 +7787,7 @@ class basic_json
 
     Integer number values are stored directly inside a @ref basic_json type.
 
-    @sa @ref number_float_t -- type for number values (floating-point)
+    @sa @ref number_float_type -- type for number values (floating-point)
 
     @sa @ref number_unsigned_t -- type for number values (unsigned integer)
 
@@ -7811,7 +7811,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_t are used.
+    number_unsigned_t and @ref number_float_type are used.
 
     To store unsigned integer numbers in C++, a type is defined by the
     template parameter @a NumberUnsignedType which chooses the type to use.
@@ -7844,7 +7844,7 @@ class basic_json
     number that can be stored is `0`. Integer numbers that are out of range
     will yield over/underflow when used in a constructor. During
     deserialization, too large or small integer numbers will be automatically
-    be stored as @ref number_integer_t or @ref number_float_t.
+    be stored as @ref number_integer_t or @ref number_float_type.
 
     [RFC 7159](http://rfc7159.net/rfc7159) further states:
     > Note that when such software is used, numbers that are integers and are
@@ -7859,7 +7859,7 @@ class basic_json
 
     Integer number values are stored directly inside a @ref basic_json type.
 
-    @sa @ref number_float_t -- type for number values (floating-point)
+    @sa @ref number_float_type -- type for number values (floating-point)
     @sa @ref number_integer_t -- type for number values (integer)
 
     @since version 2.0.0
@@ -7882,7 +7882,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_t are used.
+    number_unsigned_t and @ref number_float_type are used.
 
     To store floating-point numbers in C++, a type is defined by the template
     parameter @a NumberFloatType which chooses the type to use.
@@ -7890,7 +7890,7 @@ class basic_json
     #### Default type
 
     With the default values for @a NumberFloatType (`double`), the default
-    value for @a number_float_t is:
+    value for @a number_float_type is:
 
     @code {.cpp}
     double
@@ -7932,7 +7932,7 @@ class basic_json
 
     @since version 1.0.0
     */
-    using number_float_t = NumberFloatType;
+    using number_float_type = NumberFloatType;
 
     /// @}
 
@@ -7972,7 +7972,7 @@ class basic_json
     boolean   | boolean         | @ref boolean_t
     number    | number_integer  | @ref number_integer_t
     number    | number_unsigned | @ref number_unsigned_t
-    number    | number_float    | @ref number_float_t
+    number    | number_float    | @ref number_float_type
     null      | null            | *no value is stored*
 
     @note Variable-length types (objects, arrays, and strings) are stored as
@@ -7996,7 +7996,7 @@ class basic_json
         /// number (unsigned integer)
         number_unsigned_t number_unsigned;
         /// number (floating-point)
-        number_float_t number_float;
+        number_float_type number_float;
 
         /// default constructor (for null values)
         json_value() = default;
@@ -8007,7 +8007,7 @@ class basic_json
         /// constructor for numbers (unsigned)
         json_value(number_unsigned_t v) noexcept : number_unsigned(v) {}
         /// constructor for numbers (floating-point)
-        json_value(number_float_t v) noexcept : number_float(v) {}
+        json_value(number_float_type v) noexcept : number_float(v) {}
         /// constructor for empty values of a given type
         json_value(value_t t)
         {
@@ -8051,7 +8051,7 @@ class basic_json
 
                 case value_t::number_float:
                 {
-                    number_float = number_float_t(0.0);
+                    number_float = number_float_type(0.0);
                     break;
                 }
 
@@ -8312,7 +8312,7 @@ class basic_json
     - **strings**: @ref string_t, string literals, and all compatible string
       containers can be used.
     - **numbers**: @ref number_integer_t, @ref number_unsigned_t,
-      @ref number_float_t, and all convertible number types such as `int`,
+      @ref number_float_type, and all convertible number types such as `int`,
       `size_t`, `int64_t`, `float` or `double` can be used.
     - **boolean**: @ref boolean_t / `bool` can be used.
 
@@ -9465,13 +9465,13 @@ class basic_json
     }
 
     /// get a pointer to the value (floating-point number)
-    number_float_t* get_impl_ptr(number_float_t* /*unused*/) noexcept
+    number_float_type* get_impl_ptr(number_float_type* /*unused*/) noexcept
     {
         return is_number_float() ? &m_value.number_float : nullptr;
     }
 
     /// get a pointer to the value (floating-point number)
-    constexpr const number_float_t* get_impl_ptr(const number_float_t* /*unused*/) const noexcept
+    constexpr const number_float_type* get_impl_ptr(const number_float_type* /*unused*/) const noexcept
     {
         return is_number_float() ? &m_value.number_float : nullptr;
     }
@@ -9649,7 +9649,7 @@ class basic_json
 
     @tparam PointerType pointer type; must be a pointer to @ref array_t, @ref
     object_t, @ref string_t, @ref boolean_t, @ref number_integer_t,
-    @ref number_unsigned_t, or @ref number_float_t.
+    @ref number_unsigned_t, or @ref number_float_type.
 
     @return pointer to the internally stored JSON value if the requested
     pointer type @a PointerType fits to the JSON value; `nullptr` otherwise
@@ -9696,7 +9696,7 @@ class basic_json
 
     @tparam PointerType pointer type; must be a pointer to @ref array_t, @ref
     object_t, @ref string_t, @ref boolean_t, @ref number_integer_t,
-    @ref number_unsigned_t, or @ref number_float_t. Enforced by a static
+    @ref number_unsigned_t, or @ref number_float_type. Enforced by a static
     assertion.
 
     @return pointer to the internally stored JSON value if the requested
@@ -9727,7 +9727,7 @@ class basic_json
             or std::is_same<boolean_t, pointee_t>::value
             or std::is_same<number_integer_t, pointee_t>::value
             or std::is_same<number_unsigned_t, pointee_t>::value
-            or std::is_same<number_float_t, pointee_t>::value
+            or std::is_same<number_float_type, pointee_t>::value
             , "incompatible pointer type");
 
         // delegate the call to get_impl_ptr<>()
@@ -9755,7 +9755,7 @@ class basic_json
             or std::is_same<boolean_t, pointee_t>::value
             or std::is_same<number_integer_t, pointee_t>::value
             or std::is_same<number_unsigned_t, pointee_t>::value
-            or std::is_same<number_float_t, pointee_t>::value
+            or std::is_same<number_float_type, pointee_t>::value
             , "incompatible pointer type");
 
         // delegate the call to get_impl_ptr<>() const
@@ -9773,7 +9773,7 @@ class basic_json
 
     @tparam ReferenceType reference type; must be a reference to @ref array_t,
     @ref object_t, @ref string_t, @ref boolean_t, @ref number_integer_t, or
-    @ref number_float_t. Enforced by static assertion.
+    @ref number_float_type. Enforced by static assertion.
 
     @return reference to the internally stored JSON value if the requested
     reference type @a ReferenceType fits to the JSON value; throws
@@ -12347,7 +12347,7 @@ class basic_json
     - Two JSON null values are equal.
 
     @note Floating-point inside JSON values numbers are compared with
-    `json::number_float_t::operator==` which is `double::operator==` by
+    `json::number_float_type::operator==` which is `double::operator==` by
     default. To compare floating-point while respecting an epsilon, an alternative
     [comparison function](https://github.com/mariokonrad/marnav/blob/master/src/marnav/math/floatingpoint.hpp#L34-#L39)
     could be used, for instance
@@ -12413,19 +12413,19 @@ class basic_json
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_float)
         {
-            return (static_cast<number_float_t>(lhs.m_value.number_integer) == rhs.m_value.number_float);
+            return (static_cast<number_float_type>(lhs.m_value.number_integer) == rhs.m_value.number_float);
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_integer)
         {
-            return (lhs.m_value.number_float == static_cast<number_float_t>(rhs.m_value.number_integer));
+            return (lhs.m_value.number_float == static_cast<number_float_type>(rhs.m_value.number_integer));
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_float)
         {
-            return (static_cast<number_float_t>(lhs.m_value.number_unsigned) == rhs.m_value.number_float);
+            return (static_cast<number_float_type>(lhs.m_value.number_unsigned) == rhs.m_value.number_float);
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_unsigned)
         {
-            return (lhs.m_value.number_float == static_cast<number_float_t>(rhs.m_value.number_unsigned));
+            return (lhs.m_value.number_float == static_cast<number_float_type>(rhs.m_value.number_unsigned));
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_integer)
         {
@@ -12571,19 +12571,19 @@ class basic_json
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_float)
         {
-            return static_cast<number_float_t>(lhs.m_value.number_integer) < rhs.m_value.number_float;
+            return static_cast<number_float_type>(lhs.m_value.number_integer) < rhs.m_value.number_float;
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_integer)
         {
-            return lhs.m_value.number_float < static_cast<number_float_t>(rhs.m_value.number_integer);
+            return lhs.m_value.number_float < static_cast<number_float_type>(rhs.m_value.number_integer);
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_float)
         {
-            return static_cast<number_float_t>(lhs.m_value.number_unsigned) < rhs.m_value.number_float;
+            return static_cast<number_float_type>(lhs.m_value.number_unsigned) < rhs.m_value.number_float;
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_unsigned)
         {
-            return lhs.m_value.number_float < static_cast<number_float_t>(rhs.m_value.number_unsigned);
+            return lhs.m_value.number_float < static_cast<number_float_type>(rhs.m_value.number_unsigned);
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_unsigned)
         {

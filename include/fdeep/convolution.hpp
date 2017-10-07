@@ -37,7 +37,7 @@ tensor3 convolve_opt(
         {
             for (std::size_t x = 0; x < out.shape().width_; ++x)
             {
-                float_t sum = 0;
+                float_type sum = 0;
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
                     for (std::size_t yf = 0; yf < fy; ++yf)
@@ -82,7 +82,7 @@ inline tensor3 convolve(
         {
             for (std::size_t x = 0; x < out.shape().width_; ++x)
             {
-                float_t sum = 0;
+                float_type sum = 0;
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
                     for (std::size_t yf = 0; yf < fy; ++yf)
@@ -151,7 +151,7 @@ inline tensor3 convolve_im2col(
     {
         for (std::size_t x = 0; x < out_width; ++x)
         {
-            a_values.push_back(static_cast<float_t>(1));
+            a_values.push_back(static_cast<float_type>(1));
         }
     }
 

@@ -21,9 +21,10 @@ public:
 protected:
     tensor3 transform_input(const tensor3& in_vol) const override
     {
-        const auto activation_function = [this](float_t x) -> float_t
+        const auto activation_function = [this](float_type x) -> float_type
         {
-            return x > 0 ? static_cast<float_t>(1) : static_cast<float_t>(0);
+            return x > 0 ? static_cast<float_type>(1) :
+                static_cast<float_type>(0);
         };
         return transform_tensor3(activation_function, in_vol);
     }

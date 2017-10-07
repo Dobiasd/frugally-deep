@@ -24,7 +24,7 @@ protected:
         tensor3 out(shape3(1, 1, in.shape().depth_), 0);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
-            float_t val = 0;
+            float_type val = 0;
             for (std::size_t y = 0; y < out.shape().height_; ++y)
             {
                 for (std::size_t x = 0; x < out.shape().width_; ++x)

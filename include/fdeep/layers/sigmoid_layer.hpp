@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    static float_t activation_function(float_t x)
+    static float_type activation_function(float_type x)
     {
         return 1 / (1 + std::exp(-x));
     };

@@ -14,15 +14,15 @@ namespace fdeep { namespace internal
 class leaky_relu_layer : public activation_layer
 {
 public:
-    explicit leaky_relu_layer(const std::string& name, float_t alpha) :
+    explicit leaky_relu_layer(const std::string& name, float_type alpha) :
         activation_layer(name), alpha_(alpha)
     {
     }
 protected:
-    float_t alpha_;
+    float_type alpha_;
     tensor3 transform_input(const tensor3& in_vol) const override
     {
-        auto activation_function = [this](float_t x) -> float_t
+        auto activation_function = [this](float_type x) -> float_type
         {
             return x > 0 ? x : alpha_ * x;
         };

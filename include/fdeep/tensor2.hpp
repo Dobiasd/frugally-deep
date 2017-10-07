@@ -36,33 +36,33 @@ public:
     {
         assertion(shape.area() == values_->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, float_t value) :
+    tensor2(const shape2& shape, float_type value) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(shape.area(), value))
     {
     }
 
-    const float_t& get(const tensor2_pos& pos) const
+    const float_type& get(const tensor2_pos& pos) const
     {
         return (*values_)[idx(pos)];
     }
-    const float_t& get(std::size_t y, std::size_t x) const
+    const float_type& get(std::size_t y, std::size_t x) const
     {
         return get(tensor2_pos(y, x));
     }
-    float_t& get(const tensor2_pos& pos)
+    float_type& get(const tensor2_pos& pos)
     {
         return (*values_)[idx(pos)];
     }
-    float_t& get(std::size_t y, std::size_t x)
+    float_type& get(std::size_t y, std::size_t x)
     {
         return get(tensor2_pos(y, x));
     }
-    void set(const tensor2_pos& pos, float_t value)
+    void set(const tensor2_pos& pos, float_type value)
     {
         (*values_)[idx(pos)] = value;
     }
-    void set(std::size_t y, std::size_t x, float_t value)
+    void set(std::size_t y, std::size_t x, float_type value)
     {
         set(tensor2_pos(y, x), value);
     }
@@ -113,13 +113,13 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
     assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
 
     tensor2 m(shape2(a.shape().height_, b.shape().width_),
-        static_cast<float_t>(0.0f));
+        static_cast<float_type>(0.0f));
 
     for (std::size_t i = 0; i < a.shape().height_; ++i)
     {
         for (std::size_t k = 0; k < a.shape().width_; ++k)
         {
-            float_t a_i_k = a.get(i, k);
+            float_type a_i_k = a.get(i, k);
             for (std::size_t j = 0; j < b.shape().width_; ++j)
             {
                 m.get(i, j) += a_i_k * b.get(k, j);
@@ -129,45 +129,45 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
     return m;
 }
 
-inline float_t tensor2_sum_all_values(const tensor2& m)
+inline float_type tensor2_sum_all_values(const tensor2& m)
 {
     return fplus::sum(*m.as_vector());
 }
 
-inline float_t tensor2_mean_value(const tensor2& m)
+inline float_type tensor2_mean_value(const tensor2& m)
 {
     return
         tensor2_sum_all_values(m) /
-        static_cast<float_t>(m.shape().area());
+        static_cast<float_type>(m.shape().area());
 }
 
-inline tensor2 add_to_tensor2_elems(const tensor2& m, float_t x)
+inline tensor2 add_to_tensor2_elems(const tensor2& m, float_type x)
 {
-    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return x + e;
     }, *m.as_vector()));
 }
 
-inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_t x)
+inline tensor2 sub_from_tensor2_elems(const tensor2& m, float_type x)
 {
-    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return e - x;
     }, *m.as_vector()));
 }
 
-inline tensor2 multiply_tensor2_elems(const tensor2& m, float_t x)
+inline tensor2 multiply_tensor2_elems(const tensor2& m, float_type x)
 {
-    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return x * e;
     }, *m.as_vector()));
 }
 
-inline tensor2 divide_tensor2_elems(const tensor2& m, float_t x)
+inline tensor2 divide_tensor2_elems(const tensor2& m, float_type x)
 {
-    return tensor2(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return e / x;
     }, *m.as_vector()));

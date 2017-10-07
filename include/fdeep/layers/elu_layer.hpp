@@ -14,13 +14,13 @@ namespace fdeep { namespace internal
 class elu_layer : public activation_layer
 {
 public:
-    explicit elu_layer(const std::string& name, float_t alpha)
+    explicit elu_layer(const std::string& name, float_type alpha)
         : activation_layer(name), alpha_(alpha)
     {
     }
 protected:
-    float_t alpha_;
-    static float_t activation_function(float_t alpha, float_t x)
+    float_type alpha_;
+    static float_type activation_function(float_type alpha, float_type x)
     {
         return x >= 0 ? x : alpha * (std::exp(x) - 1);
     }

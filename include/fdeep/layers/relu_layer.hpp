@@ -21,9 +21,9 @@ public:
 protected:
     tensor3 transform_input(const tensor3& in_vol) const override
     {
-        auto activation_function = [](float_t x) -> float_t
+        auto activation_function = [](float_type x) -> float_type
         {
-            return std::max<float_t>(x, 0);
+            return std::max<float_type>(x, 0);
         };
         return transform_tensor3(activation_function, in_vol);
     }

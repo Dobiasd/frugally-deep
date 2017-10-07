@@ -35,8 +35,8 @@ inline void assertion(bool cond, const std::string& error)
     }
 }
 
-typedef float float_t;
-typedef std::vector<float_t> float_vec;
+typedef float float_type;
+typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 } } // namespace fdeep, namespace internal

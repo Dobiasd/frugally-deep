@@ -119,7 +119,7 @@ inline float_vec decode_floats(const nlohmann::json& data)
     out.reserve(res.size() / 4);
     for (std::size_t i = 0; i < res.size(); i+=4)
     {
-        float_t val = static_cast<float_t>(
+        float_type val = static_cast<float_type>(
             *(reinterpret_cast<const float*>(&(res[i]))));
         out.push_back(val);
     }
@@ -181,7 +181,7 @@ inline layer_ptr create_model_layer(const get_param_f& get_param,
 
 inline void fill_with_zeros(float_vec& xs)
 {
-    std::fill(std::begin(xs), std::end(xs), static_cast<float_t>(0));
+    std::fill(std::begin(xs), std::end(xs), static_cast<float_type>(0));
 }
 
 inline padding create_padding(const std::string& padding_str)
@@ -256,8 +256,10 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
         bias = decode_floats(get_param(name, "bias"));
     assertion(bias.size() == filter_count, "size of bias does not match");
 
-    const float_vec slice_weights = decode_floats(get_param(name, "slice_weights"));
-    const float_vec stack_weights = decode_floats(get_param(name, "stack_weights"));
+    const float_vec slice_weights = decode_floats(
+        get_param(name, "slice_weights"));
+    const float_vec stack_weights = decode_floats(
+        get_param(name, "stack_weights"));
     const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
@@ -299,7 +301,7 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
         decode_floats(get_param(name, "moving_variance"));
     const bool center = data["config"]["center"];
     const bool scale = data["config"]["scale"];
-    const float_t epsilon = data["config"]["epsilon"];
+    const float_type epsilon = data["config"]["epsilon"];
     float_vec gamma;
     float_vec beta;
     if (scale) gamma = decode_floats(get_param(name, "gamma"));
@@ -320,7 +322,7 @@ inline layer_ptr create_leaky_relu_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    float_t alpha = data["config"]["alpha"];
+    float_type alpha = data["config"]["alpha"];
     return std::make_shared<leaky_relu_layer>(name, alpha);
 }
 
@@ -328,7 +330,7 @@ inline layer_ptr create_elu_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    float_t alpha = data["config"]["alpha"];
+    float_type alpha = data["config"]["alpha"];
     return std::make_shared<elu_layer>(name, alpha);
 }
 
@@ -639,7 +641,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_t>(0.01),
+                    static_cast<float_type>(0.01),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
                     std::cerr << "err: " << z << "," << y << "," << x << " " <<

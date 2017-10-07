@@ -21,7 +21,7 @@ public:
         const float_vec& moving_variance,
         const float_vec& beta,
         const float_vec& gamma,
-        float_t epsilon)
+        float_type epsilon)
         : layer(name),
         moving_mean_(moving_mean),
         moving_variance_(moving_variance),
@@ -35,7 +35,7 @@ protected:
     float_vec moving_variance_;
     float_vec beta_;
     float_vec gamma_;
-    float_t epsilon_;
+    float_type epsilon_;
 
     tensor3 apply_to_slices(const tensor3& input) const
     {

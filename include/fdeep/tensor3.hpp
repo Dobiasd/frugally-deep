@@ -36,26 +36,27 @@ public:
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(std::move(values)))
     {
-        assertion(shape.volume() == values_->size(), "invalid number of values");
+        assertion(shape.volume() == values_->size(),
+            "invalid number of values");
     }
-    tensor3(const shape3& shape, float_t value) :
+    tensor3(const shape3& shape, float_type value) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(shape.volume(), value))
     {
     }
-    float_t get(const tensor3_pos& pos) const
+    float_type get(const tensor3_pos& pos) const
     {
         return (*values_)[idx(pos)];
     }
-    float_t get(std::size_t z, std::size_t y, std::size_t x) const
+    float_type get(std::size_t z, std::size_t y, std::size_t x) const
     {
         return get(tensor3_pos(z, y, x));
     }
-    void set(const tensor3_pos& pos, float_t value)
+    void set(const tensor3_pos& pos, float_type value)
     {
         (*values_)[idx(pos)] = value;
     }
-    void set(std::size_t z, std::size_t y, std::size_t x, float_t value)
+    void set(std::size_t z, std::size_t y, std::size_t x, float_type value)
     {
         set(tensor3_pos(z, y, x), value);
     }
@@ -101,7 +102,7 @@ inline std::string show_tensor3(const tensor3& m)
         {
             for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
-                str += fplus::show_float_fill_left<float_t>(' ', 8, 4,
+                str += fplus::show_float_fill_left<float_type>(' ', 8, 4,
                     m.get(z, y, x)) + ",";
             }
             str += "]\n";
@@ -191,8 +192,8 @@ inline std::pair<tensor3_pos, tensor3_pos> tensor3_min_max_pos(
 {
     tensor3_pos result_min(0, 0, 0);
     tensor3_pos result_max(0, 0, 0);
-    float_t value_max = std::numeric_limits<float_t>::lowest();
-    float_t value_min = std::numeric_limits<float_t>::max();
+    float_type value_max = std::numeric_limits<float_type>::lowest();
+    float_type value_min = std::numeric_limits<float_type>::max();
     for (std::size_t z = 0; z < vol.shape().depth_; ++z)
     {
         for (std::size_t y = 0; y < vol.shape().height_; ++y)
@@ -226,19 +227,12 @@ inline tensor3_pos tensor3_min_pos(const tensor3& vol)
     return tensor3_min_max_pos(vol).second;
 }
 
-inline std::pair<float_t, float_t> tensor3_min_max_value(const tensor3& vol)
-{
-    auto min_max_positions = tensor3_min_max_pos(vol);
-    return std::make_pair(
-        vol.get(min_max_positions.first), vol.get(min_max_positions.second));
-}
-
-inline float_t tensor3_max_value(const tensor3& m)
+inline float_type tensor3_max_value(const tensor3& m)
 {
     return m.get(tensor3_max_pos(m));
 }
 
-inline float_t tensor3_min_value(const tensor3& m)
+inline float_type tensor3_min_value(const tensor3& m)
 {
     return m.get(tensor3_min_pos(m));
 }
@@ -255,24 +249,25 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
         fplus_c_mem_fn_t(tensor3, depth, std::size_t), ts));
 
     return tensor3(
-        shape3(depth_sum, ts.front().shape().height_, ts.front().shape().width_),
+        shape3(depth_sum,
+            ts.front().shape().height_, ts.front().shape().width_),
         fplus::transform_and_concat([](const tensor3& t) -> float_vec
         {
             return *t.as_vector();
         }, ts));
 }
 
-inline tensor3 add_to_tensor3_elems(const tensor3& m, float_t x)
+inline tensor3 add_to_tensor3_elems(const tensor3& m, float_type x)
 {
-    return tensor3(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return x + e;
     }, *m.as_vector()));
 }
 
-inline tensor3 multiply_tensor3_elems(const tensor3& m, float_t x)
+inline tensor3 multiply_tensor3_elems(const tensor3& m, float_type x)
 {
-    return tensor3(m.shape(), fplus::transform([x](float_t e) -> float_t
+    return tensor3(m.shape(), fplus::transform([x](float_type e) -> float_type
     {
         return x * e;
     }, *m.as_vector()));
@@ -282,27 +277,27 @@ inline tensor3 multiply_tensor3s_elementwise(
     const tensor3& m1, const tensor3& m2)
 {
     assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
-    return tensor3(m1.shape(), fplus::zip_with(std::multiplies<float_t>(),
+    return tensor3(m1.shape(), fplus::zip_with(std::multiplies<float_type>(),
         *m1.as_vector(), *m2.as_vector()));
 }
 
-inline tensor3 multiply_tensor3(const tensor3& m, float_t factor)
+inline tensor3 multiply_tensor3(const tensor3& m, float_type factor)
 {
-    auto multiply_value_by_factor = [factor](const float_t x) -> float_t
+    auto multiply_value_by_factor = [factor](const float_type x) -> float_type
     {
         return factor * x;
     };
     return transform_tensor3(multiply_value_by_factor, m);
 }
 
-inline tensor3 divide_tensor3(const tensor3& m, float_t divisor)
+inline tensor3 divide_tensor3(const tensor3& m, float_type divisor)
 {
     return multiply_tensor3(m, 1 / divisor);
 }
 
 inline tensor3 abs_tensor3_values(const tensor3& m)
 {
-    return transform_tensor3(fplus::abs<float_t>, m);
+    return transform_tensor3(fplus::abs<float_type>, m);
 }
 
 inline tensor3 flatten_tensor3(const tensor3& vol)
@@ -395,7 +390,7 @@ inline tensor3 sum_tensor3s(const tensor3s& ts)
     result_values.reserve(ts_values.front()->size());
     for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
     {
-        float_t sum_val = static_cast<float_t>(0);
+        float_type sum_val = static_cast<float_type>(0);
         for (const auto& t_vals : ts_values)
         {
             sum_val += (*t_vals)[i];
@@ -416,9 +411,9 @@ inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
 {
     const std::vector<std::uint8_t> bytes(
         value_ptr, value_ptr + height * width * 3);
-    auto values = fplus::transform([](std::uint8_t b) -> internal::float_t
+    auto values = fplus::transform([](std::uint8_t b) -> internal::float_type
     {
-        return static_cast<internal::float_t>(b) / 255;
+        return static_cast<internal::float_type>(b) / 255;
     }, bytes);
     return internal::depth_last_to_depth_first(
         tensor3(shape3(height, width, 3), std::move(values)));
@@ -431,10 +426,11 @@ inline void tensor3_to_bgr_image(const tensor3& t, std::uint8_t* value_ptr,
     const auto values = depth_first_to_depth_last(t).as_vector();
     internal::assertion(bytes_available == values->size(),
     "invalid buffer size");
-    const auto bytes = fplus::transform([](internal::float_t v) -> std::uint8_t
+    const auto bytes = fplus::transform(
+        [](internal::float_type v) -> std::uint8_t
     {
         return static_cast<std::uint8_t>(
-            fplus::clamp<internal::float_t>(0, 255, v * 255));
+            fplus::clamp<internal::float_type>(0, 255, v * 255));
     }, *values);
     std::copy(std::begin(bytes), std::end(bytes), value_ptr);
 }

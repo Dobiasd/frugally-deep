@@ -119,11 +119,6 @@ tensor3 transform_tensor3(F f, const tensor3& m)
     return tensor3(m.shape(), fplus::transform(f, *m.as_vector()));
 }
 
-inline tensor3 reshape_tensor3(const tensor3& in_vol, const shape3& out_shape)
-{
-    return tensor3(out_shape, in_vol.as_vector());
-}
-
 inline tensor2 depth_slice(std::size_t z, const tensor3& m)
 {
     tensor2 result(shape2(m.shape().height_, m.shape().width_), 0);

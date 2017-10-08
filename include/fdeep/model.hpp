@@ -15,12 +15,27 @@ namespace fdeep
 class model
 {
 public:
-    model(const internal::layer_ptr& model_layer) : model_layer_(model_layer) {}
+    model(const internal::layer_ptr& model_layer,
+    const std::vector<shape3>& input_shapes,
+    const std::vector<shape3>& output_shapes) :
+        input_shapes_(input_shapes),
+        output_shapes_(output_shapes),
+        model_layer_(model_layer) {}
     tensor3s predict(const tensor3s& inputs) const
     {
         return model_layer_->apply(inputs);
     }
+    const std::vector<shape3>& get_input_shapes() const
+    {
+        return input_shapes_;
+    }
+    const std::vector<shape3>& get_output_shapes() const
+    {
+        return output_shapes_;
+    }
 private:
+    std::vector<shape3> input_shapes_;
+    std::vector<shape3> output_shapes_;
     internal::layer_ptr model_layer_;
 };
 
@@ -84,7 +99,9 @@ inline model load_model(const std::string& path, bool verify = true,
 
     log_sol("Building model");
     const model full_model(internal::create_model_layer(
-        get_param, get_global_param, json_data["architecture"]));
+        get_param, get_global_param, json_data["architecture"]),
+        internal::create_shape3s(json_data["input_shapes"]),
+        internal::create_shape3s(json_data["output_shapes"]));
     log_duration();
 
     if (verify)

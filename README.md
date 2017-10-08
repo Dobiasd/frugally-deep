@@ -193,25 +193,19 @@ release:
  - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
-add travis
-
 use cmake with doctests (see fplus)
-
-add 1D layers: Conv, MaxPool, AvgPool, Upsampling
 
 add merge layers (https://keras.io/layers/merge/)
 
 support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
 
-travis wie fplus, auch mit warnings und so
+travis wie fplus, auch mit allen compiler warnings und so
 
 make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
 
 make tensorflow-only example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
-ask the model what inputs it accepts, also what outputs it produces?
-
-optional lowmem modus (no im2col)
+optional low-memory modus (no im2col)
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
 

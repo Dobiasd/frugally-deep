@@ -139,6 +139,11 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
     return fplus::transform_convert<std::vector<T>>(f, data);
 }
 
+std::vector<shape3> create_shape3s(const nlohmann::json& data)
+{
+    return create_vector<shape3>(create_shape3, data);
+}
+
 inline node_connection create_node_connection(const nlohmann::json& data)
 {
     assertion(data.is_array(), "invalid format for inbound node");

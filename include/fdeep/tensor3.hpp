@@ -299,9 +299,9 @@ inline tensor3 flatten_tensor3(const tensor3& vol)
 {
     float_vec values;
     values.reserve(vol.shape().volume());
-    for (std::size_t x = 0; x < vol.shape().width_; ++x)
+    for (std::size_t y = 0; y < vol.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < vol.shape().height_; ++y)
+        for (std::size_t x = 0; x < vol.shape().width_; ++x)
         {
             for (std::size_t z = 0; z < vol.shape().depth_; ++z)
             {

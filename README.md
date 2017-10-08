@@ -149,16 +149,17 @@ Performance
 Duration* of a single forward pass
 ----------------------------------
 
-| Model    | Keras + Tensorflow | frugally-deep |
-|----------|--------------------|---------------|
-| VGG16    |             0.38 s |        7.48 s |
-| VGG19    |             0.71 s |        8.13 s |
-| ResNet50 |             0.12 s |        1.79 s |
+| Model       | Keras + Tensorflow | frugally-deep |
+|-------------|--------------------|---------------|
+| InceptionV3 |             1.10 s |        1.67 s |
+| ResNet50    |             0.98 s |        1.18 s |
+| VGG16       |             1.32 s |        4.43 s |
+| VGG19       |             1.47 s |        5.68 s |
+| Xception    |             1.83 s |        2.65 s |
 
 *measured using GCC -O3
- and run on a single core of an Intel Xeon E3-1245 V2 @ 3.40 GHz
+ and run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz
 ```
-
 
 Requirements and Installation
 -----------------------------

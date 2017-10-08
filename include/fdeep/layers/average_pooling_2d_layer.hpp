@@ -24,8 +24,10 @@ public:
 protected:
     tensor3 pool(const tensor3& in_unpadded) const override
     {
+        const float_type invalid = std::numeric_limits<float_type>::lowest();
         const auto input_data = preprocess_convolution(
-            pool_size_, strides_, padding_, use_offset(), in_unpadded, 0);
+            pool_size_, strides_, padding_, use_offset(), in_unpadded,
+            invalid);
 
         const std::size_t strides_y = strides_.height_;
         const std::size_t strides_x = strides_.width_;
@@ -45,17 +47,22 @@ protected:
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
                     float_type val = 0;
+                    std::size_t divisor = 0;
                     for (std::size_t yf = 0; yf < pool_size_.height_; ++yf)
                     {
                         for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)
                         {
-                            val += in.get(z,
+                            const auto current = in.get(z,
                                 offset_y + strides_y * y + yf,
                                 offset_x + strides_x * x + xf);
+                            if (current != invalid)
+                            {
+                                val += current;
+                                divisor += 1;
+                            }
                         }
                     }
-                    out.set(z, y, x,
-                        val / static_cast<float_type>(pool_size_.area()));
+                    out.set(z, y, x, val / static_cast<float_type>(divisor));
                 }
             }
         }

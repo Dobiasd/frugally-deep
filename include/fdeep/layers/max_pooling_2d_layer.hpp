@@ -27,7 +27,8 @@ protected:
     tensor3 pool(const tensor3& in_unpadded) const override
     {
         const auto input_data = preprocess_convolution(
-            pool_size_, strides_, padding_, use_offset(), in_unpadded);
+            pool_size_, strides_, padding_, use_offset(), in_unpadded,
+            std::numeric_limits<float_type>::lowest());
 
         const std::size_t strides_y = strides_.height_;
         const std::size_t strides_x = strides_.width_;

@@ -198,7 +198,8 @@ inline convolution_input_data preprocess_convolution(
     const shape2& strides,
     padding pad_type,
     bool use_offset,
-    const tensor3& input)
+    const tensor3& input,
+    float_type padding_value)
 {
     // https://www.tensorflow.org/api_guides/python/nn#Convolution
     const int filter_height = static_cast<int>(filter_shape.height_);
@@ -253,7 +254,7 @@ inline convolution_input_data preprocess_convolution(
     std::size_t pad_left_size_t = static_cast<std::size_t>(pad_left);
     std::size_t pad_right_size_t = static_cast<std::size_t>(pad_right);
 
-    const auto in_padded = pad_tensor3(
+    const auto in_padded = pad_tensor3(padding_value,
         pad_top_size_t, pad_bottom_size_t, pad_left_size_t, pad_right_size_t,
         input);
 
@@ -280,7 +281,7 @@ inline tensor3 convolve(
         "invalid filter depth");
 
     const auto input_data = preprocess_convolution(
-        filter_shape.without_depth(), strides, pad_type, use_offset, input);
+        filter_shape.without_depth(), strides, pad_type, use_offset, input, 0);
 
     const std::size_t strides_y = strides.height_;
     const std::size_t strides_x = strides.width_;

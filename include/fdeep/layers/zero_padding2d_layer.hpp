@@ -32,7 +32,7 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        return {pad_tensor3(top_pad_, bottom_pad_, left_pad_, right_pad_,
+        return {pad_tensor3(0, top_pad_, bottom_pad_, left_pad_, right_pad_,
             input)};
     }
     std::size_t top_pad_;

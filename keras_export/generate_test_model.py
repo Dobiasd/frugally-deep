@@ -2,6 +2,7 @@
 """Generate a test model for frugally-deep.
 """
 
+import numbers
 import os
 import sys
 
@@ -20,6 +21,14 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
+def remove_sample_axis_from_shape(shape):
+    if len(shape) == 4:
+        assert not isinstance(shape[0], numbers.Number)
+        return shape[1:]
+    if not isinstance(shape[0], numbers.Number):
+        return shape[1:]
+    return shape
+
 def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
@@ -37,9 +46,11 @@ def get_test_model_small():
 
     # fit to dummy data
     training_data_size = 1
-    data_in = [np.random.random(size=(training_data_size, *input_shape))
+    data_in = [np.random.random(size=(training_data_size,
+        *remove_sample_axis_from_shape(input_shape)))
         for input_shape in input_shapes]
-    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
+    data_out = [np.random.random(size=(training_data_size,
+        *remove_sample_axis_from_shape(x.shape)))
         for x in outputs]
     model.fit(data_in, data_out, epochs=10)
     return model
@@ -66,13 +77,11 @@ def get_test_model_full():
         (4,),
         (2, 3),
         (7, 9, 1) if image_format == 'channels_last' else (1, 7, 9),
-        (10, 1, 1),
-        (1, 10, 1),
-        (1, 1, 10)
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
     for inp in [inputs[0], inputs[5]]:
         for padding in ['valid', 'same']:
             for h in range(1, 6):
@@ -102,9 +111,6 @@ def get_test_model_full():
             outputs.append(UpSampling2D(size=(y, x))(inputs[0]))
     outputs.append(GlobalAveragePooling2D()(inputs[0]))
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
-    outputs.append(Dense(3)(inputs[6]))
-    outputs.append(Dense(3)(inputs[7]))
-    outputs.append(Dense(3)(inputs[8]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')
@@ -163,7 +169,7 @@ def get_test_model_full():
         inputs[4],
         inputs[1]
     ]
-
+    print(len(outputs))
     model = Model(inputs=inputs, outputs=outputs, name='test_model_full')
     model.compile(loss='mse', optimizer='nadam')
 
@@ -171,9 +177,11 @@ def get_test_model_full():
     training_data_size = 1
     batch_size = 1
     epochs = 10
-    data_in = [np.random.random(size=(training_data_size, *input_shape))
+    data_in = [np.random.random(size=(training_data_size,
+        *remove_sample_axis_from_shape(input_shape)))
         for input_shape in input_shapes]
-    data_out = [np.random.random(size=(training_data_size, *x.shape[1:]))
+    data_out = [np.random.random(size=(training_data_size,
+        *remove_sample_axis_from_shape(x.shape)))
         for x in outputs]
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model

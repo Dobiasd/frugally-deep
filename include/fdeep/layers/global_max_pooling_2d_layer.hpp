@@ -21,18 +21,18 @@ public:
 protected:
     tensor3 pool(const tensor3& in) const override
     {
-        tensor3 out(shape3(1, 1, in.shape().depth_), 0);
+        tensor3 out(shape3(in.shape().depth_, 1, 1), 0);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
             float_type val = 0;
-            for (std::size_t y = 0; y < out.shape().height_; ++y)
+            for (std::size_t y = 0; y < in.shape().height_; ++y)
             {
-                for (std::size_t x = 0; x < out.shape().width_; ++x)
+                for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
                     val = std::max(val, in.get(z, y, x));
                 }
             }
-            out.set(0, 0, z, val);
+            out.set(z, 0, 0, val);
         }
         return out;
     }

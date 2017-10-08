@@ -74,14 +74,6 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();
-        if (input.shape().depth_ == 1 && input.shape().height_ == 1)
-        {
-            const auto stack =
-                reshape_tensor3(input, shape3(input.shape().width_, 1, 1));
-            const auto output = apply_to_slices(stack);
-            return
-                {reshape_tensor3(output, shape3(1, 1, input.shape().width_))};
-        }
         return {apply_to_slices(input)};
     }
 };

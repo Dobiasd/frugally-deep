@@ -314,7 +314,7 @@ inline tensor3 flatten_tensor3(const tensor3& vol)
             }
         }
     }
-    return tensor3(shape3(1, 1, values.size()), std::move(values));
+    return tensor3(shape3(values.size(), 1, 1), std::move(values));
 }
 
 inline tensor3 pad_tensor3(std::size_t top_pad, std::size_t bottom_pad,

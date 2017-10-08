@@ -40,22 +40,17 @@ protected:
     tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
-        assertion(
-            (input.shape().depth_ == 1 && input.shape().height_ == 1) ||
-            (input.shape().height_ == 1 && input.shape().width_ == 1) ||
-            (input.shape().depth_ == 1 && input.shape().width_ == 1),
-            "input needs to be flattened");
-        const tensor3 input_reshaped(
-            shape3(1, 1, input.shape().volume()), input.as_vector());
-        const auto bias_padded_input = bias_pad_input(input_reshaped);
-        return {tensor3(shape3(1, 1, n_out_),
+        auto input = inputs.front();
+        assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
+            "input not flattened");
+        const auto bias_padded_input = bias_pad_input(input);
+        return {tensor3(shape3(n_out_, 1, 1),
             multiply(bias_padded_input, params_).as_vector())};
     }
     static tensor2 bias_pad_input(const tensor3& input)
     {
         return tensor2(
-            shape2(1, input.shape().width_ + 1),
+            shape2(1, input.shape().depth_ + 1),
             fplus::append(*input.as_vector(), {1}));
     }
     std::size_t n_in_;

@@ -37,12 +37,13 @@ def arr3_to_channels_first_format(arr):
 def arr_as_arr3(arr):
     depth = len(arr.shape)
     if depth == 1:
-        return arr.reshape(1, 1, *arr.shape)
+        return arr.reshape(*arr.shape, 1, 1)
     if depth == 2:
-        return arr.reshape(1, *arr.shape)
+        assert arr.shape[0] == 1
+        return arr.reshape(arr.shape[1], 1, 1)
     if depth == 3:
         return arr3_to_channels_first_format(arr)
-    if depth == 4 and arr.shape[0] == 1:
+    if depth == 4 and arr.shape[0] in [None, 1]:
         return arr3_to_channels_first_format(arr.reshape(arr.shape[1:]))
     else:
         raise ValueError('invalid number of dimensions')
@@ -144,9 +145,17 @@ def show_batch_normalization_layer(layer):
         result['gamma'] = decode_floats(gamma)
     return result
 
+def is_flat_shape(shape):
+    if shape[0] != None:
+        return False
+    if len(shape) == 2:
+        return True
+    if len(shape) == 3:
+        return False
+    return shape[1] == 1 and shape[2] == 1
+
 def show_dense_layer(layer):
-    assert len(layer.input_shape) == 2, "Please flatten for dense layer."
-    assert layer.input_shape[0] == None, "Please flatten for dense layer."
+    assert is_flat_shape(layer.input_shape)
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 2
@@ -246,20 +255,21 @@ def check_conv2d_offset(eval_f, padding):
     assert result in [[0, 3], [1, 4]]
     return result == [1, 4]
 
+def get_shapes(tensor3s):
+    return [t['shape'] for t in tensor3s]
+
 def main():
-    usage = 'usage: [Keras model in HDF5 format] [output path] [test count = 1]'
-    if not len(sys.argv) in [3, 4]:
+    usage = 'usage: [Keras model in HDF5 format] [output path]'
+    if len(sys.argv) != 3:
         print(usage)
         sys.exit(1)
     else:
         in_path = sys.argv[1]
         out_path = sys.argv[2]
-        test_count = 1
-        if len(sys.argv) == 4:
-            test_count = int(sys.argv[3])
         print('loading {}'.format(in_path))
         model = load_model(in_path)
         model = convert_sequential_to_model(model)
+        test_data = gen_test_data(model)
 
         json_output = {}
         json_output['architecture'] = json.loads(model.to_json())
@@ -280,7 +290,9 @@ def main():
             check_conv2d_offset(conv2d_offset_average_pool_eval, 'valid')
         json_output['average_pooling_2d_padding_same_uses_offset'] =\
             check_conv2d_offset(conv2d_offset_average_pool_eval, 'same')
-        json_output['tests'] = [gen_test_data(model) for _ in range(test_count)]
+        json_output['input_shapes'] = get_shapes(test_data['inputs'])
+        json_output['output_shapes'] = get_shapes(test_data['outputs'])
+        json_output['tests'] = [test_data]
         json_output['trainable_params'] = get_all_weights(model)
 
         print('writing {}'.format(out_path))

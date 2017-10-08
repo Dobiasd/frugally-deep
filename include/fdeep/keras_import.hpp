@@ -636,11 +636,10 @@ inline test_cases load_test_cases(const nlohmann::json& data)
     return create_vector<test_case>(load_test_case, data);
 }
 
-inline bool are_test_outputs_ok(float_type epsilon,
+inline void check_test_outputs(float_type epsilon,
     const tensor3s& outputs, const tensor3s& targets)
 {
     assertion(outputs.size() == targets.size(), "invalid output count");
-
     for (std::size_t i = 0; i < outputs.size(); ++i)
     {
         const auto& output = outputs[i];
@@ -659,13 +658,12 @@ inline bool are_test_outputs_ok(float_type epsilon,
                             z << "," << y << "," << x << " " <<
                             target.get(z, y, x) << " "
                             << output.get(z, y, x) << std::endl;
-                        return false;
+                        internal::assertion(false, "test failed");
                     }
                 }
             }
         }
     }
-    return true;
 }
 
 class timer

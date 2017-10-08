@@ -43,7 +43,7 @@ private:
 inline model load_model(const std::string& path,
     bool verify = true,
     bool verbose = true,
-    float_type test_epsilon = static_cast<float_type>(0.01))
+    float_type test_epsilon = static_cast<float_type>(0.00001))
 {
     const auto log = [verbose](const std::string& msg)
     {
@@ -124,8 +124,9 @@ inline model load_model(const std::string& path,
                     " of " + fplus::show(tests.size()));
                 const auto output = full_model.predict(tests[i].input_);
                 log_duration();
-                internal::assertion(are_test_outputs_ok(test_epsilon,
-                    output, tests[i].output_), "test failed");
+                log_sol("Checking test output");
+                check_test_outputs(test_epsilon, output, tests[i].output_);
+                log_duration();
             }
             log("All tests OK");
         }

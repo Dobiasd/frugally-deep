@@ -32,7 +32,8 @@ def remove_sample_axis_from_shape(shape):
 def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
-        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8)
+        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8),
+        (1, 1, 96) if image_format == 'channels_last' else (96, 1, 1)
         ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -40,6 +41,7 @@ def get_test_model_small():
     outputs = []
     outputs.append(SeparableConv2D(1, (1, 1),
         strides=(1, 1), padding='valid')(inputs[0]))
+    outputs.append(Dense(4, use_bias=False)(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -102,7 +104,6 @@ def get_test_model_full():
                             strides=(sx, sx), padding=padding)(inp))
                     outputs.append(MaxPooling2D((1, w), strides=(sx, 1),
                         padding=padding)(inp))
-    outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
     outputs.append(ZeroPadding2D(2)(inputs[0]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
     outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[0]))
@@ -111,35 +112,53 @@ def get_test_model_full():
             outputs.append(UpSampling2D(size=(y, x))(inputs[0]))
     outputs.append(GlobalAveragePooling2D()(inputs[0]))
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
+    outputs.append(AveragePooling2D((2,2))(inputs[0]))
+    outputs.append(MaxPooling2D((2,2))(inputs[0]))
+    outputs.append(UpSampling2D((2,2))(inputs[0]))
+    outputs.append(keras.layers.concatenate([inputs[0], inputs[0]]))
+    outputs.append(Dropout(0.5)(inputs[0]))
+
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization(center=False)(inputs[0]))
+    outputs.append(BatchNormalization(scale=False)(inputs[0]))
+
+    outputs.append(Conv2D(2, (3,3), use_bias=True)(inputs[0]))
+    outputs.append(Conv2D(2, (3,3), use_bias=False)(inputs[0]))
+    outputs.append(SeparableConv2D(2, (3,3), use_bias=True)(inputs[0]))
+    outputs.append(SeparableConv2D(2, (3,3), use_bias=False)(inputs[0]))
+
+    outputs.append(Dense(2, use_bias=True)(inputs[3]))
+    outputs.append(Dense(2, use_bias=False)(inputs[3]))
 
     shared_conv = Conv2D(1, (1, 1),
         padding='valid', name='shared_conv', activation='relu')
 
     up_scale_2 = UpSampling2D((2, 2))
     x1 = shared_conv(up_scale_2(inputs[1])) #(1, 8, 8)
-    x1 = LeakyReLU()(x1)
     x2 = shared_conv(up_scale_2(inputs[2])) #(1, 8, 8)
-    x2 = ELU()(x2)
     x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(inputs[2])) #(1, 8, 8)
     x = keras.layers.concatenate([x1, x2, x3]) #(3, 8, 8)
+    outputs.append(x)
 
     x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x) #(3, 8, 8)
-    x = BatchNormalization(center=False)(x)
+    outputs.append(x)
     x = Dropout(0.5)(x)
-
+    outputs.append(x)
     x = keras.layers.concatenate([
         MaxPooling2D((2,2))(x),
         AveragePooling2D((2,2))(x)]) #(6, 4, 4)
+    outputs.append(x)
 
     x = Flatten()(x) #(1, 1, 96)
-    x = Dense(4, activation='hard_sigmoid', use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = Dense(3, activation='selu')(x) #(1, 1, 3)
+    x = Dense(4, use_bias=False)(x)
+    outputs.append(x)
+    x = Dense(3)(x) #(1, 1, 3)
+    outputs.append(x)
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)
     intermediate_x = intermediate_in
-    intermediate_x = Dense(4)(intermediate_x)
+    intermediate_x = Dense(8)(intermediate_x)
     intermediate_x = Dense(5)(intermediate_x)
     intermediate_model = Model(
         inputs=[intermediate_in], outputs=[intermediate_x],
@@ -149,27 +168,36 @@ def get_test_model_full():
     x = intermediate_model(x) #(1, 1, 5)
 
     intermediate_model_2 = Sequential()
-    intermediate_model_2.add(Dense(7, activation='sigmoid', input_shape=(5,)))
-    intermediate_model_2.add(Dense(5, activation='tanh'))
+    intermediate_model_2.add(Dense(7, input_shape=(5,)))
+    intermediate_model_2.add(Dense(5))
     intermediate_model_2.compile(optimizer='rmsprop',
         loss='categorical_crossentropy')
 
     x = intermediate_model_2(x) #(1, 1, 5)
 
-    x = Activation('sigmoid')(x)
     x = Dense(3)(x) #(1, 1, 3)
 
     shared_activation = Activation('tanh')
 
     outputs = outputs + [
-        Activation('softplus')(x),
-        Activation('softmax')(x),
-        shared_activation(x),
+        Activation('tanh')(inputs[3]),
+        Activation('hard_sigmoid')(inputs[3]),
+        Activation('selu')(inputs[3]),
+        Activation('sigmoid')(inputs[3]),
+        Activation('softplus')(inputs[3]),
+        Activation('softmax')(inputs[3]),
+        Activation('relu')(inputs[3]),
+        LeakyReLU()(inputs[3]),
+        ELU()(inputs[3]),
         shared_activation(inputs[3]),
         inputs[4],
-        inputs[1]
+        inputs[1],
+        x,
+        shared_activation(x),
     ]
-    print(len(outputs))
+
+    print('Model has {} outputs.'.format(len(outputs)))
+
     model = Model(inputs=inputs, outputs=outputs, name='test_model_full')
     model.compile(loss='mse', optimizer='nadam')
 

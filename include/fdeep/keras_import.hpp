@@ -638,6 +638,7 @@ inline test_cases load_test_cases(const nlohmann::json& data)
 
 inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
 {
+    const float_type epsilon = static_cast<float_type>(0.001);
     assertion(output.shape() == target.shape(), "wrong output size");
     for (std::size_t z = 0; z < output.shape().depth_; ++z)
     {
@@ -646,7 +647,7 @@ inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
             for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
                 if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_type>(0.01),
+                    static_cast<float_type>(epsilon),
                     target.get(z, y, x), output.get(z, y, x)))
                 {
                     std::cerr << "err: " << z << "," << y << "," << x << " " <<

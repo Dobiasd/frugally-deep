@@ -398,6 +398,7 @@ inline tensor3 sum_tensor3s(const tensor3s& ts)
 
 } // namespace internal
 
+using float_type = internal::float_type;
 using tensor3 = internal::tensor3;
 using tensor3s = internal::tensor3s;
 

@@ -636,36 +636,36 @@ inline test_cases load_test_cases(const nlohmann::json& data)
     return create_vector<test_case>(load_test_case, data);
 }
 
-inline bool is_test_output_ok(const tensor3& output, const tensor3& target)
+inline bool are_test_outputs_ok(float_type epsilon,
+    const tensor3s& outputs, const tensor3s& targets)
 {
-    const float_type epsilon = static_cast<float_type>(0.001);
-    assertion(output.shape() == target.shape(), "wrong output size");
-    for (std::size_t z = 0; z < output.shape().depth_; ++z)
+    assertion(outputs.size() == targets.size(), "invalid output count");
+
+    for (std::size_t i = 0; i < outputs.size(); ++i)
     {
-        for (std::size_t y = 0; y < output.shape().height_; ++y)
+        const auto& output = outputs[i];
+        const auto& target = targets[i];
+        assertion(output.shape() == target.shape(), "wrong output size");
+        for (std::size_t z = 0; z < output.shape().depth_; ++z)
         {
-            for (std::size_t x = 0; x < output.shape().width_; ++x)
+            for (std::size_t y = 0; y < output.shape().height_; ++y)
             {
-                if (!fplus::is_in_closed_interval_around(
-                    static_cast<float_type>(epsilon),
-                    target.get(z, y, x), output.get(z, y, x)))
+                for (std::size_t x = 0; x < output.shape().width_; ++x)
                 {
-                    std::cerr << "err: " << z << "," << y << "," << x << " " <<
-                        target.get(z, y, x) << " "
-                        << output.get(z, y, x) << std::endl;
-                    return false;
+                    if (!fplus::is_in_closed_interval_around(epsilon,
+                        target.get(z, y, x), output.get(z, y, x)))
+                    {
+                        std::cerr << "Test error value: " <<
+                            z << "," << y << "," << x << " " <<
+                            target.get(z, y, x) << " "
+                            << output.get(z, y, x) << std::endl;
+                        return false;
+                    }
                 }
             }
         }
     }
     return true;
-}
-
-inline bool are_test_outputs_ok(const tensor3s& output,
-    const tensor3s& target)
-{
-    assertion(output.size() == target.size(), "invalid output count");
-    return fplus::all(fplus::zip_with(is_test_output_ok, output, target));
 }
 
 class timer

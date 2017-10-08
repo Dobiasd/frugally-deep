@@ -402,22 +402,28 @@ using float_type = internal::float_type;
 using tensor3 = internal::tensor3;
 using tensor3s = internal::tensor3s;
 
-// assumes pixels in 8-bit BGR format, data stored row-wise
-inline tensor3 tensor3_from_bgr_image(const std::uint8_t* value_ptr,
-    std::size_t height, std::size_t width)
+// Converts a memory block holding 8-bit values into a tensor3.
+// Data must be stored row-wise (and channels_last).
+// Scales the values from range [0, 255] into [0.0, 1.0].
+// May be used to convert an image (bgr, rgba, gray, etc.) to a tensor3.
+inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
+    std::size_t height, std::size_t width, std::size_t channels)
 {
     const std::vector<std::uint8_t> bytes(
-        value_ptr, value_ptr + height * width * 3);
+        value_ptr, value_ptr + height * width * channels);
     auto values = fplus::transform([](std::uint8_t b) -> internal::float_type
     {
         return static_cast<internal::float_type>(b) / 255;
     }, bytes);
     return internal::depth_last_to_depth_first(
-        tensor3(shape3(height, width, 3), std::move(values)));
+        tensor3(shape3(height, width, channels), std::move(values)));
 }
 
-// converts a tensor to a 8-bit BGR image, data stored row-wise
-inline void tensor3_to_bgr_image(const tensor3& t, std::uint8_t* value_ptr,
+// Converts a tensor3 into a memory block holding 8-bit values.
+// Data will be stored row-wise (and channels_last).
+// Scales the values from range [0.0, 1.0] into [0, 255].
+// May be used to convert a tensor3 to an image.
+inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
     std::size_t bytes_available)
 {
     const auto values = depth_first_to_depth_last(t).as_vector();

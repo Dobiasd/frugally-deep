@@ -139,7 +139,7 @@ int main()
 
 When using `export_model.py` a test case (input and corresponding output values) are generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
 
-In order to convert images to `fdeep::tensor3` the convenience functions `tensor3_from_bgr_image` and `tensor3_from_gray_image` are provided.
+In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided.
 
 
 Performance

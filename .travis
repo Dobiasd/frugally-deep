@@ -1,0 +1,36 @@
+language: generic
+
+dist: trusty
+sudo: required
+
+matrix:
+    include:
+    - os: linux
+      compiler: gcc
+      env: GCC_VERSION=7
+        - CC=gcc-7
+        - CXX=g++-7
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'deadsnakes']
+          packages: ['g++-7', 'python3.5']
+          addons:
+
+before_install:
+  - wget https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
+  - sudo mv ./doctest.h /usr/local/include/doctest.h
+    export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"
+
+install:
+  - sudo apt-get install python3-pip python3-dev
+  - sudo pip3 install tensorflow
+  - sudo pip3 install keras
+  - ./keras_export/generate_test_model.py keras_export
+  - keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+  - mkdir -p build && cd build
+  - cmake .. -DUNITTEST=ON
+
+script:
+  - which $CXX
+  - $CXX --version
+  - cmake --build . --target unittest --config Release -- -j4

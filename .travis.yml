@@ -24,6 +24,8 @@ before_install:
 install:
   - sudo apt-get install python3-pip python3-dev
   #- sudo pip3 install tensorflow
+  - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
+  - sudo pip3 install scipy
   - sudo pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp34-cp34m-linux_x86_64.whl
   - sudo pip3 install keras
   - ./keras_export/generate_test_models.py keras_export

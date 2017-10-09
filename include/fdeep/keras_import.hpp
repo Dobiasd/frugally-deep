@@ -106,11 +106,14 @@ inline float_vec decode_floats(const nlohmann::json& data)
     assertion(data.is_array() || data.is_string(),
         "invalid float array format");
 
-    if (data.is_array() && data[0].is_number())
+    if (data.is_array() && !data.empty() && data[0].is_number())
     {
         const float_vec result = data;
         return result;
     }
+
+    assertion(std::numeric_limits<float>::is_iec559,
+        "The floating-point format of your system is not supported.");
 
     const std::vector<std::string> strs = data;
     const auto res = Base64_decode(fplus::concat(strs));

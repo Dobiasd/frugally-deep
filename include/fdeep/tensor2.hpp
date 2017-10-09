@@ -129,18 +129,6 @@ inline tensor2 multiply(const tensor2& a, const tensor2& b)
     return m;
 }
 
-inline float_type tensor2_sum_all_values(const tensor2& m)
-{
-    return fplus::sum(*m.as_vector());
-}
-
-inline float_type tensor2_mean_value(const tensor2& m)
-{
-    return
-        tensor2_sum_all_values(m) /
-        static_cast<float_type>(m.shape().area());
-}
-
 inline tensor2 add_to_tensor2_elems(const tensor2& m, float_type x)
 {
     return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type

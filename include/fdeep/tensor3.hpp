@@ -119,19 +119,6 @@ tensor3 transform_tensor3(F f, const tensor3& m)
     return tensor3(m.shape(), fplus::transform(f, *m.as_vector()));
 }
 
-inline tensor2 depth_slice(std::size_t z, const tensor3& m)
-{
-    tensor2 result(shape2(m.shape().height_, m.shape().width_), 0);
-    for (std::size_t y = 0; y < m.shape().height_; ++y)
-    {
-        for (std::size_t x = 0; x < m.shape().width_; ++x)
-        {
-            result.set(y, x, m.get(z, y, x));
-        }
-    }
-    return result;
-}
-
 inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
 {
     assertion(!ms.empty(), "no tensor2s");
@@ -217,21 +204,6 @@ inline tensor3_pos tensor3_max_pos(const tensor3& vol)
     return tensor3_min_max_pos(vol).second;
 }
 
-inline tensor3_pos tensor3_min_pos(const tensor3& vol)
-{
-    return tensor3_min_max_pos(vol).second;
-}
-
-inline float_type tensor3_max_value(const tensor3& m)
-{
-    return m.get(tensor3_max_pos(m));
-}
-
-inline float_type tensor3_min_value(const tensor3& m)
-{
-    return m.get(tensor3_min_pos(m));
-}
-
 inline tensor3 concatenate_tensor3s(const tensor3s& ts)
 {
     assertion(fplus::all_the_same_on(
@@ -250,49 +222,6 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
         {
             return *t.as_vector();
         }, ts));
-}
-
-inline tensor3 add_to_tensor3_elems(const tensor3& m, float_type x)
-{
-    return tensor3(m.shape(), fplus::transform([x](float_type e) -> float_type
-    {
-        return x + e;
-    }, *m.as_vector()));
-}
-
-inline tensor3 multiply_tensor3_elems(const tensor3& m, float_type x)
-{
-    return tensor3(m.shape(), fplus::transform([x](float_type e) -> float_type
-    {
-        return x * e;
-    }, *m.as_vector()));
-}
-
-inline tensor3 multiply_tensor3s_elementwise(
-    const tensor3& m1, const tensor3& m2)
-{
-    assertion(m1.shape() == m2.shape(), "unequal tensor shapes");
-    return tensor3(m1.shape(), fplus::zip_with(std::multiplies<float_type>(),
-        *m1.as_vector(), *m2.as_vector()));
-}
-
-inline tensor3 multiply_tensor3(const tensor3& m, float_type factor)
-{
-    auto multiply_value_by_factor = [factor](const float_type x) -> float_type
-    {
-        return factor * x;
-    };
-    return transform_tensor3(multiply_value_by_factor, m);
-}
-
-inline tensor3 divide_tensor3(const tensor3& m, float_type divisor)
-{
-    return multiply_tensor3(m, 1 / divisor);
-}
-
-inline tensor3 abs_tensor3_values(const tensor3& m)
-{
-    return transform_tensor3(fplus::abs<float_type>, m);
 }
 
 inline tensor3 flatten_tensor3(const tensor3& vol)

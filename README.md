@@ -61,7 +61,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * ZeroPadding2D
 
 
-### Also supports
+### Also supported
 
 * multiple inputs and outputs
 * nested models
@@ -69,7 +69,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * shared layers
 
 
-### Layer types not supported yet
+### Layer types currently not supported
 
 * Conv2DTranspose
 * Conv3D

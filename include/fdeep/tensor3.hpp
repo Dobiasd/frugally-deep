@@ -364,7 +364,10 @@ inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
         return static_cast<std::uint8_t>(
             fplus::clamp<internal::float_type>(0, 255, v * 255));
     }, *values);
-    std::copy(std::begin(bytes), std::end(bytes), value_ptr);
+    for (std::size_t i = 0; i < values->size(); ++i)
+    {
+        *(value_ptr++) = bytes[i];
+    }
 }
 
 } // namespace fdeep

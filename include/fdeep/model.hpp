@@ -43,7 +43,7 @@ private:
 inline model load_model(const std::string& path,
     bool verify = true,
     bool verbose = true,
-    float_type test_epsilon = static_cast<float_type>(0.000001))
+    float_type test_epsilon = static_cast<float_type>(0.00001))
 {
     const auto log = [verbose](const std::string& msg)
     {

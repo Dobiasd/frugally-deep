@@ -202,8 +202,6 @@ support dilated convolution (Specifying any stride value != 1 is incompatible wi
 
 travis wie fplus, auch mit allen compiler warnings und so
 
-make sure binary float format is portable: https://stackoverflow.com/questions/46422692/serializing-float32-values-in-python-and-deserializing-them-in-c/46424992?noredirect=1#comment79809031_46424992
-
 make tensorflow-only example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
 optional low-memory modus (no im2col)

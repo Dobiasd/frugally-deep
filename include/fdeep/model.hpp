@@ -25,6 +25,16 @@ public:
     {
         return model_layer_->apply(inputs);
     }
+    std::size_t predict_class(const tensor3s& inputs) const
+    {
+        const tensor3s outputs = model_layer_->apply(inputs);
+        internal::assertion(outputs.size() == 1, "invalid number of outputs");
+        const tensor3 output = outputs.front();
+        internal::assertion(output.shape().without_depth().area() == 1,
+            "invalid output shape");
+        return internal::tensor3_max_pos(output).z_;
+
+    }
     const std::vector<shape3>& get_input_shapes() const
     {
         return input_shapes_;

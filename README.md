@@ -146,8 +146,8 @@ Performance
 -----------
 
 ```
-Duration* of a single forward pass
-----------------------------------
+Duration of a single forward pass
+---------------------------------
 
 | Model       | Keras + Tensorflow | frugally-deep |
 |-------------|--------------------|---------------|
@@ -159,6 +159,7 @@ Duration* of a single forward pass
 
 *measured using GCC -O3
  and run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz
+ Keras Version 2.0.8, Tensorflow 1.3.0
 ```
 
 Requirements and Installation
@@ -207,7 +208,5 @@ make tensorflow-only example for offset in conv, and sepConv depeding on input_d
 optional low-memory modus (no im2col)
 
 wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
-
-handle padding in im2col?
 
 use faster GEMM to make im2col worthwhile

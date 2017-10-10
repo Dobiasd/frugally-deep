@@ -50,10 +50,10 @@ def get_test_model_small():
     training_data_size = 1
     data_in = [np.random.random(size=(training_data_size,
         *remove_sample_axis_from_shape(input_shape)))
-        for input_shape in input_shapes]
+            for input_shape in input_shapes]
     data_out = [np.random.random(size=(training_data_size,
         *remove_sample_axis_from_shape(x.shape)))
-        for x in outputs]
+            for x in outputs]
     model.fit(data_in, data_out, epochs=10)
     return model
 

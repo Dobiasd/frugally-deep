@@ -248,6 +248,8 @@ def main():
         test_model_small = load_model(test_model_small_path)
         print(test_model_small.summary())
 
+        return
+
         test_model_sequential = get_test_model_sequential()
         test_model_sequential.save(test_model_sequential_path)
         test_model_sequential = load_model(test_model_sequential_path)

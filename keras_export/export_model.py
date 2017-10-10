@@ -3,6 +3,7 @@
 """
 
 import base64
+import copy
 import datetime
 import itertools
 import json
@@ -37,7 +38,7 @@ def arr3_to_channels_first_format(arr):
 def arr_as_arr3(arr):
     depth = len(arr.shape)
     if depth == 1:
-        return arr.reshape(*arr.shape, 1, 1)
+        return arr.reshape(arr.shape[0], 1, 1)
     if depth == 2:
         assert arr.shape[0] == 1
         return arr.reshape(arr.shape[1], 1, 1)
@@ -59,8 +60,15 @@ def show_test_data_as_3tensor(arr):
     return show_tensor3(arr_as_arr3(arr))
 
 def gen_test_data(model):
-    data_in = list(map(lambda l: np.random.random((1, *l.input_shape[1:])),
-        model.input_layers))
+
+    def set_shape_idx_0_to_1(shape):
+        shape_lst = list(shape)
+        shape_lst[0] = 1
+        shape = tuple(shape_lst)
+        return shape
+
+    data_in = list(map(lambda l: np.random.random(
+        set_shape_idx_0_to_1(l.input_shape)), model.input_layers))
 
     start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
@@ -79,8 +87,10 @@ def split_every(size, seq):
 def decode_floats(xs):
     if store_floats_human_redable:
         return xs
+    b = bytes()
+    bs = b.join((struct.pack('f', val) for val in xs))
     return list(split_every(1024,
-        base64.b64encode(struct.pack('%sf' % len(xs), *xs)).decode('ascii')))
+        base64.b64encode(bs).decode('ascii')))
 
 def prepare_filter_weights(weights):
     return np.swapaxes(np.swapaxes(np.swapaxes(

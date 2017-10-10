@@ -76,10 +76,24 @@ def get_test_model_small():
     return model
 
 def get_test_model_sequential():
+
     model = Sequential()
-    model.add(Dense(4, input_shape=(4,), activation='relu'))
-    model.add(Dense(2, activation='softmax'))
-    model.compile(loss='mse', optimizer='nadam')
+    model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
+    model.add(Conv2D(8, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+    model.add(Dense(64, activation='sigmoid'))
+    model.add(Dropout(0.5))
+    model.add(Dense(10, activation='softmax'))
+
+    model.compile(loss='categorical_crossentropy', optimizer='sgd')
 
     # fit to dummy data
     training_data_size = 1
@@ -248,12 +262,12 @@ def main():
         test_model_small = load_model(test_model_small_path)
         print(test_model_small.summary())
 
-        return
-
         test_model_sequential = get_test_model_sequential()
         test_model_sequential.save(test_model_sequential_path)
         test_model_sequential = load_model(test_model_sequential_path)
         print(test_model_sequential.summary())
+
+        return
 
         test_model_full = get_test_model_full()
         test_model_full.save(test_model_full_path, include_optimizer=False)

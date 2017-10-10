@@ -29,11 +29,27 @@ def remove_sample_axis_from_shape(shape):
         return shape[1:]
     return shape
 
+def get_shape_for_random_data(data_size, shape):
+    if len(shape) == 3:
+        return (data_size, shape[0], shape[1], shape[2])
+    if len(shape) == 2:
+        return (data_size, shape[0], shape[1])
+    if len(shape) == 1:
+        return (data_size, shape[0])
+    assert False
+
+def generate_random_data(data_size, shape):
+    return np.random.random(
+        size=get_shape_for_random_data(data_size,
+            remove_sample_axis_from_shape(shape)))
+
 def generate_input_data(data_size, input_shapes):
-    data_in = []
-    for input_shape in input_shapes:
-        data_in.append(np.random.random(size=(data_size,
-            *remove_sample_axis_from_shape(input_shape))))
+    return [generate_random_data(data_size, input_shape)\
+        for input_shape in input_shapes]
+
+def generate_output_data(data_size, outputs):
+    return [generate_random_data(data_size, output.shape)\
+        for output in outputs]
 
 def get_test_model_small():
     image_format = K.image_data_format()
@@ -55,9 +71,7 @@ def get_test_model_small():
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
-    data_out = [np.random.random(size=(training_data_size,
-        *remove_sample_axis_from_shape(x.shape)))
-            for x in outputs]
+    data_out = generate_output_data(training_data_size, outputs)
     model.fit(data_in, data_out, epochs=10)
     return model
 
@@ -210,9 +224,7 @@ def get_test_model_full():
     batch_size = 1
     epochs = 10
     data_in = generate_input_data(training_data_size, input_shapes)
-    data_out = [np.random.random(size=(training_data_size,
-        *remove_sample_axis_from_shape(x.shape)))
-        for x in outputs]
+    data_out = generate_output_data(training_data_size, outputs)
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 

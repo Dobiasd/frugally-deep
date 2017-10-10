@@ -2,7 +2,7 @@
 
 ![logo](logo/fdeep.png.hidden)
 
-[![Build Status](https://travis-ci.org/Dobiasd/frugally-deel.svg?branch=master)][travis]
+[![Build Status](https://travis-ci.org/Dobiasd/frugally-deep.svg?branch=master)][travis]
 [![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]
 
 [travis]: https://travis-ci.org/Dobiasd/frugally-deep

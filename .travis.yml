@@ -30,8 +30,8 @@ install:
   - sudo pip3 install scipy
   - sudo pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp34-cp34m-linux_x86_64.whl
   - sudo pip3 install keras
-  - ./keras_export/generate_test_models.py keras_export
-  - keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+  - python3 keras_export/generate_test_models.py keras_export
+  - python3 keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
   - mkdir -p build && cd build
   - cmake .. -DUNITTEST=ON
 

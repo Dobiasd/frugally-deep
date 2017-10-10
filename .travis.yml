@@ -13,7 +13,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'deadsnakes']
-          packages: ['g++-7', 'python3.5']
+          packages: ['g++-7', 'python3.6']
           addons:
 
 before_install:
@@ -28,7 +28,9 @@ install:
   #- sudo apt-get install python-numpy
   - sudo pip3 install numpy
   - sudo pip3 install scipy
-  - sudo pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp35-cp35m-linux_x86_64.whl
+  - sudo pip3 install --upgrade pip
+  - sudo pip3 install tensorflow
+  #- sudo pip3 install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp35-cp35m-linux_x86_64.whl
   - sudo pip3 install keras
   - python3 keras_export/generate_test_models.py keras_export
   - python3 keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json

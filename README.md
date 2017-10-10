@@ -94,7 +94,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 Usage
 -----
 
-1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model shoud be `channels_last`, which is the default when using the Tensorflow backend. Models created with a different `image_data_format` and other backends are not officially supported nor tested.
+1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not officially supported nor tested.
 
 2) Now convert it to the frugally-deep file format with `keras_export/export_model.py`
 
@@ -149,7 +149,7 @@ Performance
 Duration of a single forward pass
 ---------------------------------
 
-| Model       | Keras + Tensorflow | frugally-deep |
+| Model       | Keras + TensorFlow | frugally-deep |
 |-------------|--------------------|---------------|
 | InceptionV3 |             1.10 s |        1.67 s |
 | ResNet50    |             0.98 s |        1.18 s |
@@ -159,7 +159,7 @@ Duration of a single forward pass
 
 *measured using GCC -O3
  and run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz
- Keras Version 2.0.8, Tensorflow 1.3.0
+ Keras Version 2.0.8, TensorFlow 1.3.0
 ```
 
 Requirements and Installation

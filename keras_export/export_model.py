@@ -29,11 +29,8 @@ def write_text_file(path, text):
 
 def arr3_to_channels_first_format(arr):
     assert len(arr.shape) == 3
-    image_format = K.image_data_format()
-    if image_format == 'channels_last':
-        return np.swapaxes(np.swapaxes(arr, 2, 1), 1, 0)
-    else:
-        return arr
+    assert K.image_data_format() == 'channels_last'
+    return np.swapaxes(np.swapaxes(arr, 2, 1), 1, 0)
 
 def arr_as_arr3(arr):
     depth = len(arr.shape)
@@ -255,10 +252,8 @@ def conv2d_offset_average_pool_eval(padding, x):
     return K.pool2d(x, (1,1), strides=(3,3), padding=padding, pool_mode='avg')
 
 def check_conv2d_offset(eval_f, padding):
-    image_format = K.image_data_format()
     in_arr = np.array([[[[0, 1, 2, 3, 4, 5]]]])
-    if image_format == 'channels_last':
-        in_arr = np.swapaxes(in_arr, 1, 3)
+    in_arr = np.swapaxes(in_arr, 1, 3) # channels_last
     input = K.variable(value=in_arr, dtype='float32')
     output = eval_f(padding, input)
     result = K.eval(output).flatten().tolist()
@@ -283,6 +278,7 @@ def main():
 
         json_output = {}
         json_output['architecture'] = json.loads(model.to_json())
+        assert K.image_data_format() == 'channels_last'
         json_output['image_data_format'] = K.image_data_format()
         json_output['conv2d_padding_valid_uses_offset'] =\
             check_conv2d_offset(conv2d_offset_conv2d_eval, 'valid')

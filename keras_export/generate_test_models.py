@@ -52,10 +52,9 @@ def generate_output_data(data_size, outputs):
         for output in outputs]
 
 def get_test_model_small():
-    image_format = K.image_data_format()
     input_shapes = [
-        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8),
-        (1, 1, 96) if image_format == 'channels_last' else (96, 1, 1)
+        (6, 8, 3),
+        (1, 1, 96)
         ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -76,7 +75,6 @@ def get_test_model_small():
     return model
 
 def get_test_model_sequential():
-
     model = Sequential()
     model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
     model.add(Conv2D(8, (3, 3), activation='relu'))
@@ -97,20 +95,19 @@ def get_test_model_sequential():
 
     # fit to dummy data
     training_data_size = 1
-    data_in = [np.random.random(size=(training_data_size, 4))]
-    data_out = [np.random.random(size=(training_data_size, 2))]
+    data_in = [np.random.random(size=(training_data_size, 32, 32, 3))]
+    data_out = [np.random.random(size=(training_data_size, 10))]
     model.fit(data_in, data_out, epochs=10)
     return model
 
 def get_test_model_full():
-    image_format = K.image_data_format()
     input_shapes = [
-        (6, 8, 3) if image_format == 'channels_last' else (3, 6, 8),
-        (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4),
-        (4, 4, 3) if image_format == 'channels_last' else (3, 4, 4),
+        (6, 8, 3),
+        (4, 4, 3),
+        (4, 4, 3),
         (4,),
         (2, 3),
-        (7, 9, 1) if image_format == 'channels_last' else (1, 7, 9),
+        (7, 9, 1),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -247,7 +244,9 @@ def main():
         print('usage: [output directory]')
         sys.exit(1)
     else:
+        assert K.image_data_format() == 'channels_last'
         np.random.seed(0)
+
         dest_dir = sys.argv[1]
 
         test_model_small_path = os.path.join(dest_dir, "test_model_small.h5")

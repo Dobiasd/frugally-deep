@@ -48,7 +48,9 @@ def main():
         print('usage: [output dir]')
         sys.exit(1)
     else:
+        assert K.image_data_format() == 'channels_last'
         dir_path = sys.argv[1]
+
         save_xception(dir_path, 'xception')
         save_vgg16(dir_path,'vgg16')
         save_vgg19(dir_path, 'vgg19')

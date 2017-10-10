@@ -205,8 +205,6 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
 
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
@@ -243,8 +241,6 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
 
     const std::size_t depth_multiplier = data["config"]["depth_multiplier"];
     assertion(depth_multiplier == 1, "invalid depth_multiplier");
@@ -347,8 +343,6 @@ inline layer_ptr create_max_pooling2d_layer(
     const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
     const std::string padding_str = data["config"]["padding"];
@@ -368,8 +362,6 @@ inline layer_ptr create_average_pooling2d_layer(
     const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
     const std::string padding_str = data["config"]["padding"];
@@ -388,8 +380,6 @@ inline layer_ptr create_global_max_pooling2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     return std::make_shared<global_max_pooling_2d_layer>(name);
 }
 
@@ -397,8 +387,6 @@ inline layer_ptr create_global_average_pooling2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     return std::make_shared<global_average_pooling_2d_layer>(name);
 }
 
@@ -406,8 +394,6 @@ inline layer_ptr create_upsampling2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     const auto scale_factor = create_shape2(data["config"]["size"]);
     return std::make_shared<upsampling2d_layer>(name, scale_factor);
 }
@@ -454,8 +440,6 @@ inline layer_ptr create_zero_padding2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    assertion(data["config"]["data_format"] == "channels_last",
-        "only channels_last data format supported");
     const auto create_size_t = [](const nlohmann::json& int_data) -> std::size_t
     {
         const int val = int_data;

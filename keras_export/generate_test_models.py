@@ -29,6 +29,12 @@ def remove_sample_axis_from_shape(shape):
         return shape[1:]
     return shape
 
+def generate_input_data(data_size, input_shapes):
+    data_in = []
+    for input_shape in input_shapes:
+        data_in.append(np.random.random(size=(data_size,
+            *remove_sample_axis_from_shape(input_shape))))
+
 def get_test_model_small():
     image_format = K.image_data_format()
     input_shapes = [
@@ -48,9 +54,7 @@ def get_test_model_small():
 
     # fit to dummy data
     training_data_size = 1
-    data_in = [np.random.random(size=(training_data_size,
-        *remove_sample_axis_from_shape(input_shape)))
-            for input_shape in input_shapes]
+    data_in = generate_input_data(training_data_size, input_shapes)
     data_out = [np.random.random(size=(training_data_size,
         *remove_sample_axis_from_shape(x.shape)))
             for x in outputs]
@@ -205,9 +209,7 @@ def get_test_model_full():
     training_data_size = 1
     batch_size = 1
     epochs = 10
-    data_in = [np.random.random(size=(training_data_size,
-        *remove_sample_axis_from_shape(input_shape)))
-        for input_shape in input_shapes]
+    data_in = generate_input_data(training_data_size, input_shapes)
     data_out = [np.random.random(size=(training_data_size,
         *remove_sample_axis_from_shape(x.shape)))
         for x in outputs]

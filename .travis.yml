@@ -13,7 +13,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'deadsnakes']
-          packages: ['g++-7', 'python3.6']
+          packages: ['g++-7', 'python3.5']
           addons:
 
 before_install:

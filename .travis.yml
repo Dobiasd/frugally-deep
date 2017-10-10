@@ -13,7 +13,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'deadsnakes']
-          packages: ['g++-7', 'python3.5.2']
+          packages: ['g++-7', 'python3.5']
           addons:
 
 before_install:
@@ -22,6 +22,10 @@ before_install:
   - export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"
 
 install:
+  - pyenv install 3.5.2
+  - pyenv global 3.5.2
+  - sudo pyenv install 3.5.2
+  - sudo pyenv global 3.5.2
   - sudo apt-get install python3-pip python3-dev
   #- sudo pip3 install tensorflow
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran

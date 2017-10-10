@@ -35,6 +35,15 @@ install:
   - sudo pip3 install keras
   - python3 keras_export/generate_test_models.py keras_export
   - python3 keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+  - git clone https://github.com/Dobiasd/FunctionalPlus
+  - cd FunctionalPlus
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - sudo make install
+  - cd ..
+  - cd ..
   - mkdir -p build && cd build
   - cmake .. -DUNITTEST=ON
 

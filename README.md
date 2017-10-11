@@ -35,7 +35,7 @@ Would you like to use your already-trained Keras models in C++? And do you want 
 * depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) - also a small header-only library
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
-* does not make use of a GPU and is quite slow. ;-)
+* utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
 
 
 ### Supported layer types
@@ -145,6 +145,8 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
+Currently frugally-deep is not able to keep up with the speed of TensorFlow and its highly optimized code, i.e. alignment, SIMD, kernel fusion and the matrix multiplication of the [Eigen](http://eigen.tuxfamily.org/) library.
+
 ```
 Duration of a single forward pass
 ---------------------------------
@@ -162,19 +164,25 @@ Duration of a single forward pass
  Keras Version 2.0.8, TensorFlow 1.3.0
 ```
 
-Requirements and Installation
------------------------------
+However frugally-deeps offers other beneficial properties like low RAM usage, small library size and ease of use regarding Keras import and integration. GPU usage is not supported.
+
 
 Requirements and Installation
 -----------------------------
 
-A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
+A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015.
 
-You can install frugally-deep in **one of the following 4 ways**:
-
-### way 1: using [cmake](https://cmake.org/)
+You can install frugally-deep using cmake as shown below, or (if you prefer) download the [code](https://github.com/Dobiasd/frugally-deep/archive/master.zip) (and the [code](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip) of [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus)), extract it and tell your compiler to use the `include` directories.
 
 ```
+git clone https://github.com/Dobiasd/FunctionalPlus
+cd FunctionalPlus
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+cd ..
 git clone https://github.com/Dobiasd/frugally-deep
 cd frugally-deep
 mkdir build
@@ -182,6 +190,7 @@ cd build
 cmake ..
 make
 sudo make install
+cd..
 ```
 
 Building the tests (optional) requires [doctest](https://github.com/onqtam/doctest). Unit Tests are disabled by default – they are enabled and executed by:
@@ -190,61 +199,6 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 cmake -DUNITTEST=ON ..
 make unittest
 ```
-
-
-### way 2: using [cmake's ExternalProject](https://cmake.org/cmake/help/v3.0/module/ExternalProject.html)
-
-You can also add `frugally-deep` as an `ExternalProject` to your CMakeLists.
-
-The benefits of this:
-
-- No installation
-- Better version control with the `GIT_TAG`
-  - Always get the latest version when `GIT_TAG master`
-  - When you build your project, it will automatically update the headers if there is a change
-  - Or get the specific version by setting it to a specific commit point
-
-
-```cmake
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(FdeepMinimalExternalExample)
-set(CMAKE_CXX_STANDARD 14)
-
-include(ExternalProject)
-ExternalProject_Add(frugally_deep
-  GIT_REPOSITORY https://github.com/Dobiasd/frugally-deep.git
-  GIT_TAG master
-
-  SOURCE_DIR "${CMAKE_BINARY_DIR}/thirdparty/fdeep"
-
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-
-  LOG_DOWNLOAD ON
-  LOG_BUILD ON
-)
-set(FDEEP_INCLUDE_DIR ${CMAKE_BINARY_DIR}/thirdparty/fdeep/include)
-include_directories(${FDEEP_INCLUDE_DIR})
-
-add_executable(main src/main.cpp)
-add_dependencies(main frugally_deep)
-```
-
-
-### way 3: using [cget](https://github.com/pfultz2/cget/)
-
-```
-# Setup up toolchain to use c++14
-cget init --std=c++14
-# Test and install
-cget install Dobiasd/frugally-deep
-```
-
-
-### way 4: download manually
-
-Just [download](https://github.com/Dobiasd/frugally-deep/archive/master.zip)/extract frugally-deep and tell your compiler to use the `include` directory.
 
 
 Internals

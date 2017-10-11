@@ -165,10 +165,86 @@ Duration of a single forward pass
 Requirements and Installation
 -----------------------------
 
+Requirements and Installation
+-----------------------------
+
 A **C++14**-compatible compiler is needed. Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 
-todo add installation like in fplus
+You can install frugally-deep in **one of the following 4 ways**:
 
+### way 1: using [cmake](https://cmake.org/)
+
+```
+git clone https://github.com/Dobiasd/FunctionalPlus
+cd FunctionalPlus
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
+Building the tests (optional) requires [doctest](https://github.com/onqtam/doctest). Unit Tests are disabled by default – they are enabled and executed by:
+
+```
+cmake -DUNITTEST=ON ..
+make unittest
+```
+
+
+### way 2: using [cmake's ExternalProject](https://cmake.org/cmake/help/v3.0/module/ExternalProject.html)
+
+You can also add `FunctionalPlus` as an `ExternalProject` to your CMakeLists.
+
+The benefits of this:
+
+- No installation
+- Better version control with the `GIT_TAG`
+  - Always get the latest version when `GIT_TAG master`
+  - When you build your project, it will automatically update the headers if there is a change
+  - Or get the specific version by setting it to a specific commit point
+
+
+```cmake
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+project(FplusMinimalExternalExample)
+set(CMAKE_CXX_STANDARD 14)
+
+include(ExternalProject)
+ExternalProject_Add(frugally_deep
+  GIT_REPOSITORY https://github.com/Dobiasd/frugally-deep.git
+  GIT_TAG master
+
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/thirdparty/fplus"
+
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+
+  LOG_DOWNLOAD ON
+  LOG_BUILD ON
+)
+set(FPLUS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/thirdparty/fplus/include)
+include_directories(${FPLUS_INCLUDE_DIR})
+
+add_executable(main src/main.cpp)
+add_dependencies(main frugally_deep)
+```
+
+
+### way 3: using [cget](https://github.com/pfultz2/cget/)
+
+```
+# Setup up toolchain to use c++14
+cget init --std=c++14
+# Test and install
+cget install Dobiasd/FunctionalPlus
+```
+
+
+### way 4: download manually
+
+Just [download](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip)/extract FunctionalPlus and tell your compiler to use the `include` directory.
 
 
 Internals
@@ -176,8 +252,6 @@ Internals
 
 frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `image_data_format` internally. `export_model.py` takes care of all necessary conversions.
 From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
-
-
 
 
 
@@ -195,18 +269,14 @@ release:
  - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
-use cmake with doctests (see fplus)
-
 add merge layers (https://keras.io/layers/merge/)
 
 support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
 
-travis wie fplus, auch mit allen compiler warnings und so
+make pure tensorflow example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
-make tensorflow-only example for offset in conv, and sepConv depeding on input_depth and ask on SO
+optional low-memory mode (no im2col)
 
-optional low-memory modus (no im2col)
-
-wie kann man den cache vorzeitig bischen leer machen um RAM zu sparen?
+empty cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile

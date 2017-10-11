@@ -34,9 +34,9 @@ install:
   - sudo pip3 install h5py
   - sudo pip3 install keras
   - python3 keras_export/generate_test_models.py keras_export
-  - python3 keras_export/export_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
-  - python3 keras_export/export_model.py keras_export/test_model_sequential.h5 keras_export/test_model_sequential.json
-  - python3 keras_export/export_model.py keras_export/test_model_full.h5 keras_export/test_model_full.json
+  - python3 keras_export/convert_model.py keras_export/test_model_small.h5 keras_export/test_model_small.json
+  - python3 keras_export/convert_model.py keras_export/test_model_sequential.h5 keras_export/test_model_sequential.json
+  - python3 keras_export/convert_model.py keras_export/test_model_full.h5 keras_export/test_model_full.json
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
   - mkdir build

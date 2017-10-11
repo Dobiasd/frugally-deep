@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export a keras model to frugally-deep.
+"""Convert a Keras model to frugally-deep format.
 """
 
 import base64

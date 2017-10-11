@@ -96,7 +96,7 @@ Usage
 
 1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save(...)`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not officially supported nor tested.
 
-2) Now convert it to the frugally-deep file format with `keras_export/export_model.py`
+2) Now convert it to the frugally-deep file format with `keras_export/convert_model.py`
 
 3) Finally load it in C++ (`fdeep::load_model`) and use `model.predict()` to invoke a forward pass with your data.
 
@@ -122,7 +122,7 @@ model.save('keras_model.h5')
 ```
 
 ```
-python3 keras_export/export_model.py keras_model.h5 fdeep_model.json
+python3 keras_export/convert_model.py keras_model.h5 fdeep_model.json
 ```
 
 ```cpp
@@ -137,7 +137,7 @@ int main()
 }
 ```
 
-When using `export_model.py` a test case (input and corresponding output values) are generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
+When using `convert_model.py` a test case (input and corresponding output values) are generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as if run in Keras.
 
 In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided.
 
@@ -204,7 +204,7 @@ make unittest
 Internals
 ---------
 
-frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `image_data_format` internally. `export_model.py` takes care of all necessary conversions.
+frugally-deep uses `channels_first` (`(depth/channels, height, width`) as its `image_data_format` internally. `convert_model.py` takes care of all necessary conversions.
 From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
 
 

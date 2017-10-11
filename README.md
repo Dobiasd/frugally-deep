@@ -175,8 +175,8 @@ You can install frugally-deep in **one of the following 4 ways**:
 ### way 1: using [cmake](https://cmake.org/)
 
 ```
-git clone https://github.com/Dobiasd/FunctionalPlus
-cd FunctionalPlus
+git clone https://github.com/Dobiasd/frugally-deep
+cd frugally-deep
 mkdir build
 cd build
 cmake ..
@@ -194,7 +194,7 @@ make unittest
 
 ### way 2: using [cmake's ExternalProject](https://cmake.org/cmake/help/v3.0/module/ExternalProject.html)
 
-You can also add `FunctionalPlus` as an `ExternalProject` to your CMakeLists.
+You can also add `frugally-deep` as an `ExternalProject` to your CMakeLists.
 
 The benefits of this:
 
@@ -207,7 +207,7 @@ The benefits of this:
 
 ```cmake
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(FplusMinimalExternalExample)
+project(FdeepMinimalExternalExample)
 set(CMAKE_CXX_STANDARD 14)
 
 include(ExternalProject)
@@ -215,7 +215,7 @@ ExternalProject_Add(frugally_deep
   GIT_REPOSITORY https://github.com/Dobiasd/frugally-deep.git
   GIT_TAG master
 
-  SOURCE_DIR "${CMAKE_BINARY_DIR}/thirdparty/fplus"
+  SOURCE_DIR "${CMAKE_BINARY_DIR}/thirdparty/fdeep"
 
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
@@ -224,8 +224,8 @@ ExternalProject_Add(frugally_deep
   LOG_DOWNLOAD ON
   LOG_BUILD ON
 )
-set(FPLUS_INCLUDE_DIR ${CMAKE_BINARY_DIR}/thirdparty/fplus/include)
-include_directories(${FPLUS_INCLUDE_DIR})
+set(FDEEP_INCLUDE_DIR ${CMAKE_BINARY_DIR}/thirdparty/fdeep/include)
+include_directories(${FDEEP_INCLUDE_DIR})
 
 add_executable(main src/main.cpp)
 add_dependencies(main frugally_deep)
@@ -238,13 +238,13 @@ add_dependencies(main frugally_deep)
 # Setup up toolchain to use c++14
 cget init --std=c++14
 # Test and install
-cget install Dobiasd/FunctionalPlus
+cget install Dobiasd/frugally-deep
 ```
 
 
 ### way 4: download manually
 
-Just [download](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip)/extract FunctionalPlus and tell your compiler to use the `include` directory.
+Just [download](https://github.com/Dobiasd/frugally-deep/archive/master.zip)/extract frugally-deep and tell your compiler to use the `include` directory.
 
 
 Internals

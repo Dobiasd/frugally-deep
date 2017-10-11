@@ -10,9 +10,13 @@ macro(_add_test _NAME)
     target_link_libraries(${_NAME} ${CMAKE_THREAD_LIBS_INIT})
 endmacro()
 
+_add_test(test_model_small_test)
+_add_test(test_model_sequential_test)
 _add_test(test_model_full_test)
 
-add_custom_target(unittest test_model_full_test
+add_custom_target(unittest test_model_small_test
+                        COMMAND test_model_sequential_test
+                        COMMAND test_model_full_test
                         COMMENT "Running unittests\n\n"
                         VERBATIM
                         )

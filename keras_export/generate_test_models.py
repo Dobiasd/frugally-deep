@@ -266,8 +266,6 @@ def main():
         test_model_sequential = load_model(test_model_sequential_path)
         print(test_model_sequential.summary())
 
-        return
-
         test_model_full = get_test_model_full()
         test_model_full.save(test_model_full_path, include_optimizer=False)
         test_model_full = load_model(test_model_full_path)

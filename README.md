@@ -26,13 +26,13 @@ Table of contents
 Introduction
 ------------
 
-Would you like to use your already-trained Keras models in C++? And do you want to avoid linking against a huge library like TensorFlow? Then frugally-deep is exactly for you.
+Would you like to use/deploy your already-trained Keras models in C++? And would like to avoid linking your application against TensorFlow? Then frugally-deep is exactly for you.
 
 **frugally-deep**
 
-* **is a small header-only library.**
+* **is a small header-only library** written in modern and pure C++.
 * is very easy to integrate and use.
-* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) - also a small header-only library
+* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) - also a small header-only library.
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
@@ -214,7 +214,7 @@ todo
 
 release:
 - re-enable logo
-- github project description: Use Keras models in C++ with this small header-only library.
+- github project description: Header-only library to use Keras models in C++.
 - add github project tags
 - post on
  - https://www.reddit.com/r/deeplearning/

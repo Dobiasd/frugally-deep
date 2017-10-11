@@ -70,7 +70,7 @@ protected:
         return tensor3_from_depth_slices(result);
     }
 
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();

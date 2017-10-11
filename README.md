@@ -229,8 +229,6 @@ support dilated convolution (Specifying any stride value != 1 is incompatible wi
 
 make pure tensorflow example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
-optional low-memory mode (no im2col)
-
 empty cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile

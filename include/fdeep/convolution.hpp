@@ -267,7 +267,8 @@ inline tensor3 convolve(
     padding pad_type,
     bool use_offset,
     const std::vector<filter>& filters,
-    const tensor3& input)
+    const tensor3& input,
+    bool use_im2col)
 {
     assertion(filters.size() > 0, "no filters");
 
@@ -291,19 +292,20 @@ inline tensor3 convolve(
     const std::size_t out_width = input_data.out_width_;
     const tensor3& in_padded = input_data.in_padded_;
 
-    return convolve_im2col(
-        out_height,
-        out_width,
-        strides_y,
-        strides_x,
-        offset_y,
-        offset_x,
-        filter_shape.height_,
-        filter_shape.width_,
-        filters, in_padded);
+    if (use_im2col)
+    {
+        return convolve_im2col(
+            out_height,
+            out_width,
+            strides_y,
+            strides_x,
+            offset_y,
+            offset_x,
+            filter_shape.height_,
+            filter_shape.width_,
+            filters, in_padded);
+    }
 
-    // todo remove
-/*
     // Allow the compiler to optimize common convolution cases.
     if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 1 && filter_shape.width_ == 1)
         return convolve_opt<1, 1, 1, 1>(out_height, out_width, offset_y, offset_x, filters, in_padded);
@@ -328,7 +330,6 @@ inline tensor3 convolve(
         filter_shape.height_,
         filter_shape.width_,
         filters, in_padded);
-*/
 }
 
 } } // namespace fdeep, namespace internal

@@ -26,7 +26,7 @@ public:
         layer(name)
     {
     }
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool, const tensor3s& inputs) const override
     {
         const auto f = [this](const tensor3& t) -> tensor3
         {
@@ -39,10 +39,11 @@ protected:
     virtual tensor3 transform_input(const tensor3& input) const = 0;
 };
 
-inline tensor3s apply_activation_layer(const activation_layer_ptr& ptr,
+inline tensor3s apply_activation_layer(bool use_im2col,
+    const activation_layer_ptr& ptr,
     const tensor3s& input)
 {
-    return ptr == nullptr ? input : ptr->apply(input);
+    return ptr == nullptr ? input : ptr->apply(use_im2col, input);
 }
 
 } } // namespace fdeep, namespace internal

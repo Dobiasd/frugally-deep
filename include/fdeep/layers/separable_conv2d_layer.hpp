@@ -51,7 +51,7 @@ public:
             "invalid number of filters");
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool use_im2col, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
 
@@ -70,7 +70,8 @@ protected:
         {
             assertion(f.shape().depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_,
-                use_offset, filter_vec(1, f), tensor2_to_tensor3(slice));
+                use_offset, filter_vec(1, f), tensor2_to_tensor3(slice),
+                use_im2col);
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
         };
@@ -81,8 +82,9 @@ protected:
             convolve_slice, input_slices, filters_depthwise_));
 
         return {convolve(shape2(1, 1), padding::valid, false,
-            filters_pointwise_, temp)};
+            filters_pointwise_, temp, use_im2col)};
     }
+
     filter_vec filters_depthwise_;
     filter_vec filters_pointwise_;
     shape2 strides_;

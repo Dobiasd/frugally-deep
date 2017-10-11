@@ -21,13 +21,16 @@ public:
         input_shapes_(input_shapes),
         output_shapes_(output_shapes),
         model_layer_(model_layer) {}
-    tensor3s predict(const tensor3s& inputs) const
+
+    // im2col is faster on most architectures but uses more RAM.
+    tensor3s predict(const tensor3s& inputs, bool use_im2col = true) const
     {
-        return model_layer_->apply(inputs);
+        return model_layer_->apply(use_im2col, inputs);
     }
-    std::size_t predict_class(const tensor3s& inputs) const
+    std::size_t predict_class(const tensor3s& inputs,
+        bool use_im2col = true) const
     {
-        const tensor3s outputs = model_layer_->apply(inputs);
+        const tensor3s outputs = model_layer_->apply(use_im2col, inputs);
         internal::assertion(outputs.size() == 1, "invalid number of outputs");
         const tensor3 output = outputs.front();
         internal::assertion(output.shape().without_depth().area() == 1,
@@ -74,7 +77,14 @@ inline model load_model(const std::string& path,
             std::cout << " done. elapsed time: " <<
                 fplus::show_float(0, 6, stopwatch.elapsed()) << " s" <<
                 std::endl;
-                stopwatch.reset();
+        stopwatch.reset();
+    };
+
+    const auto log_ok = [&stopwatch, verbose]()
+    {
+        if (verbose)
+            std::cout << " ok" << std::endl;
+        stopwatch.reset();
     };
 
     log_sol("Reading " + path);
@@ -130,13 +140,25 @@ inline model load_model(const std::string& path,
             json_data = {}; // free RAM
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
-                log_sol("Running test " + fplus::show(i + 1) +
+                log_sol("Running test (im2col)    " + fplus::show(i + 1) +
                     " of " + fplus::show(tests.size()));
-                const auto output = full_model.predict(tests[i].input_);
+                const auto output_im2col =
+                    full_model.predict(tests[i].input_, true);
                 log_duration();
-                log_sol("Checking test output");
-                check_test_outputs(test_epsilon, output, tests[i].output_);
+                log_sol("Checking test output (im2col)   ");
+                check_test_outputs(test_epsilon,
+                    output_im2col, tests[i].output_);
+                log_ok();
+
+                log_sol("Running test (no im2col) " + fplus::show(i + 1) +
+                    " of " + fplus::show(tests.size()));
+                const auto output_no_im2col =
+                full_model.predict(tests[i].input_, false);
                 log_duration();
+                log_sol("Checking test output (no im2col)");
+                check_test_outputs(test_epsilon,
+                    output_no_im2col, tests[i].output_);
+                log_ok();
             }
             log("All tests OK");
         }

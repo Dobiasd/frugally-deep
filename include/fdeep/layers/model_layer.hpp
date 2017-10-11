@@ -35,18 +35,20 @@ public:
             "layer names must be unique");
     }
 
-    tensor3 get_output(const layer_ptrs& layers,
+    tensor3 get_output(bool use_im2col, const layer_ptrs& layers,
         output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const override
     {
         // https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
         node_idx = node_idx - 1;
         assertion(node_idx < nodes_.size(), "invalid node index");
-        return layer::get_output(layers, output_cache, node_idx, tensor_idx);
+        return layer::get_output(use_im2col, layers,
+            output_cache, node_idx, tensor_idx);
     }
 
 protected:
-    virtual tensor3s apply_impl(const tensor3s& inputs) const override
+    virtual tensor3s apply_impl(bool use_im2col,
+        const tensor3s& inputs) const override
     {
         output_dict output_cache;
 
@@ -61,10 +63,10 @@ protected:
                 {inputs[i]};
         }
 
-        const auto get_output = [this, &output_cache]
+        const auto get_output = [this, &output_cache, use_im2col]
             (const node_connection& conn) -> tensor3
         {
-            return get_layer(layers_, conn.layer_id_)->get_output(
+            return get_layer(layers_, conn.layer_id_)->get_output(use_im2col,
                 layers_, output_cache, conn.node_idx_, conn.tensor_idx_);
         };
         return fplus::transform(get_output, output_connections_);

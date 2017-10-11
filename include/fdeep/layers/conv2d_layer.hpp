@@ -40,14 +40,14 @@ public:
         assertion(strides.area() > 0, "invalid strides");
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool use_im2col, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
         bool use_offset =
             (padding_ == padding::valid && padding_valid_uses_offset_) ||
             (padding_ == padding::same && padding_same_uses_offset_);
         return {convolve(strides_, padding_, use_offset,
-            filters_, inputs.front())};
+            filters_, inputs.front(), use_im2col)};
     }
     filter_vec filters_;
     shape2 strides_;

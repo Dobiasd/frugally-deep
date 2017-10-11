@@ -35,9 +35,11 @@ class layer;
 typedef std::shared_ptr<layer> layer_ptr;
 typedef std::vector<layer_ptr> layer_ptrs;
 layer_ptr get_layer(const layer_ptrs& layers, const std::string& layer_id);
-tensor3 get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+tensor3 get_layer_output(bool use_im2col,
+    const layer_ptrs& layers, output_dict& output_cache,
     const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx);
-tensor3s apply_layer(const layer& layer, const tensor3s& inputs);
+tensor3s apply_layer(bool use_im2col,
+    const layer& layer, const tensor3s& inputs);
 
 class node
 {
@@ -46,17 +48,18 @@ public:
             inbound_connections_(inbound_nodes)
     {
     }
-    tensor3s get_output(const layer_ptrs& layers, output_dict& output_cache,
+    tensor3s get_output(bool use_im2col,
+        const layer_ptrs& layers, output_dict& output_cache,
         const layer& layer) const
     {
-        const auto get_input = [this, &output_cache, &layers]
+        const auto get_input = [this, &output_cache, &layers, use_im2col]
             (const node_connection& conn) -> tensor3
         {
-            return get_layer_output(layers, output_cache,
+            return get_layer_output(use_im2col, layers, output_cache,
                 get_layer(layers, conn.layer_id_),
                 conn.node_idx_, conn.tensor_idx_);
         };
-        return apply_layer(layer,
+        return apply_layer(use_im2col, layer,
             fplus::transform(get_input, inbound_connections_));
     }
 private:

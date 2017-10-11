@@ -37,7 +37,7 @@ public:
         assertion(weights.size() % units == 0, "invalid weight count");
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         auto input = inputs.front();

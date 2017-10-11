@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(bool, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "need exactly one input");
         assertion(inputs.front().shape() == input_shape_, "invalid input size");

@@ -8,7 +8,7 @@
 #include "doctest.h"
 #include <fdeep/fdeep.hpp>
 
-TEST_CASE("test_model_full_test, load_model")
+TEST_CASE("test_model_small_test, load_model")
 {
     const auto model = fdeep::load_model("../test_model_small.json");
 }

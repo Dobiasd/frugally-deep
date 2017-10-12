@@ -279,9 +279,9 @@ def main():
         dest_path = sys.argv[2]
 
         get_model_functions = {
-            'small': get_test_model_small,
-            'sequential': get_test_model_sequential,
-            'full': get_test_model_full
+            'small': (get_test_model_small, False),
+            'sequential': (get_test_model_sequential, True),
+            'full': (get_test_model_full, False)
         }
 
         if not model_name in get_model_functions:
@@ -294,8 +294,9 @@ def main():
 
         np.random.seed(0)
 
-        model = get_model_functions[model_name]()
-        model.save(dest_path, include_optimizer=False)
+        model_func, include_optimizer = get_model_functions[model_name]
+        model = model_func()
+        model.save(dest_path, include_optimizer=include_optimizer)
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

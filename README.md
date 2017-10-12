@@ -233,3 +233,5 @@ make pure tensorflow example for offset in conv, and sepConv depeding on input_d
 empty cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile
+
+reduce memory usage during model loading

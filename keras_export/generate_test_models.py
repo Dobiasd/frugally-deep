@@ -271,41 +271,36 @@ def get_test_model_full():
 
 def main():
     """Generate different test models and save them to the given directory."""
-    if len(sys.argv) != 2:
-        print('usage: [output directory]')
+    if len(sys.argv) != 3:
+        print('usage: [model name] [destination file path]')
         sys.exit(1)
     else:
+        model_name = sys.argv[1]
+        dest_path = sys.argv[2]
+
+        get_model_functions = {
+            'small': get_test_model_small,
+            'sequential': get_test_model_sequential,
+            'full': get_test_model_full
+        }
+
+        if not model_name in get_model_functions:
+            print('unknoen model name: ', model_name)
+            sys.exit(2)
+
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
 
         np.random.seed(0)
 
-        dest_dir = sys.argv[1]
-
-        test_model_small_path = os.path.join(dest_dir, "test_model_small.h5")
-        test_model_sequential_path = os.path.join(
-            dest_dir, "test_model_sequential.h5")
-        test_model_full_path = os.path.join(dest_dir, "test_model_full.h5")
+        model = get_model_functions[model_name]()
+        model.save(dest_path, include_optimizer=False)
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
-
-        test_model_small = get_test_model_small()
-        test_model_small.save(test_model_small_path)
-        test_model_small = load_model(test_model_small_path)
-        print(test_model_small.summary())
-
-        test_model_sequential = get_test_model_sequential()
-        test_model_sequential.save(test_model_sequential_path)
-        test_model_sequential = load_model(test_model_sequential_path)
-        print(test_model_sequential.summary())
-
-        test_model_full = get_test_model_full()
-        test_model_full.save(test_model_full_path, include_optimizer=False)
-        test_model_full = load_model(test_model_full_path)
-        print(test_model_full.summary())
-
+        model = load_model(dest_path)
+        print(model.summary())
 
 if __name__ == "__main__":
     main()

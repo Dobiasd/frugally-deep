@@ -10,5 +10,5 @@
 
 TEST_CASE("test_model_full_test, load_model")
 {
-    const auto model = fdeep::load_model("../../keras_export/test_model_sequential.json");
+    const auto model = fdeep::load_model("test_model_sequential.json");
 }

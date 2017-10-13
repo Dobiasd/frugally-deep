@@ -278,6 +278,8 @@ def main():
         model_name = sys.argv[1]
         dest_path = sys.argv[2]
 
+        # Save sequential model with optimizer, see:
+        # https://github.com/fchollet/keras/issues/8136
         get_model_functions = {
             'small': (get_test_model_small, False),
             'sequential': (get_test_model_sequential, True),

@@ -40,14 +40,20 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 
 ### Supported layer types
 
+Many of the most used layer types used in image processing are supported, making many popular model architectures possible (see [Performance section](#performance)).
+
+* Activation
 * Add
 * AveragePooling2D
 * BatchNormalization
 * Concatenate
 * Conv2D
 * Dense
+* Dropout (is passive during prediction anyway)
 * ELU
 * Flatten
+* GlobalAveragePooling2D
+* GlobalMaxPooling2D
 * LeakyReLU
 * MaxPooling2D
 * ReLU
@@ -67,28 +73,64 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 * nested models
 * residual connections
 * shared layers
+* arbitrary complex model architectures / computational graphs
 
 
 ### Layer types currently not supported
 
+* ActivityRegularization
+* AlphaDropout
+* Average
+* AveragePooling1D
+* AveragePooling3D
+* Bidirectional
+* Conv1D
 * Conv2DTranspose
 * Conv3D
+* ConvLSTM2D
+* CuDNNGRU
+* CuDNNLSTM
 * Custom layers
-* Cropping*D
-* Embedding layers
-* Global*Pooling
+* Cropping1D
+* Cropping2D
+* Cropping3D
+* DepthwiseConv2D
+* Dot
+* Embedding
+* GaussianDropout
+* GaussianNoise
+* GlobalAveragePooling1D
+* GlobalMaxPooling1D
+* GRU
+* GRUCell
 * Lambda
-* Layer wrappers (TimeDistributed etc.)
-* LocallyConnected*D
+* LocallyConnected1D
+* LocallyConnected2D
+* LSTM
+* LSTMCell
 * Masking
+* Maximum
+* MaxPooling1D
+* MaxPooling3D
 * Merge layers (sub etc.)
+* Multiply
 * Noise layers (GaussianNoise etc.)
 * Permute
 * PReLU
 * Recurrent layers (LSTM etc.)
+* RepeatVector
 * Reshape
+* RNN
+* SimpleRNN
+* SimpleRNNCell
+* StackedRNNCells
+* Subtract
 * ThresholdedReLU
-* DepthwiseConv2D
+* TimeDistributed
+* Upsampling1D
+* Upsampling3D
+* ZeroPadding1D
+* ZeroPadding3D
 
 
 Usage

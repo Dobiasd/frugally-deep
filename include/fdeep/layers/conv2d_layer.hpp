@@ -50,7 +50,7 @@ protected:
         assertion(inputs.size() == 1, "only one input tensor allowed");
         const bool use_offset = inputs.front().shape().depth_ == 1 ?
             ((padding_ == padding::valid && padding_valid_offset_depth_1_) ||
-            (padding_ == padding::same && padding_same_offset_depth_2_)) :
+            (padding_ == padding::same && padding_same_offset_depth_1_)) :
             ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
             (padding_ == padding::same && padding_same_offset_depth_2_));
         return {convolve(strides_, padding_, use_offset,

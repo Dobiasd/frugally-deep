@@ -67,7 +67,7 @@ protected:
 
         const bool use_offset = input_slices.size() == 1 ?
             ((padding_ == padding::valid && padding_valid_offset_depth_1_) ||
-            (padding_ == padding::same && padding_same_offset_depth_2_)) :
+            (padding_ == padding::same && padding_same_offset_depth_1_)) :
             ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
             (padding_ == padding::same && padding_same_offset_depth_2_));
 

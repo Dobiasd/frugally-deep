@@ -269,42 +269,42 @@ def convert_sequential_to_model(model):
     return model
 
 
-def offset_conv2d_eval(padding, x):
+def offset_conv2d_eval(depth, padding, x):
     """Perform a conv2d on x with a given padding"""
-    kernel = K.variable(value=np.array([[[[1]]]]), dtype='float32')
+    kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
+        dtype='float32')
     return K.conv2d(x, kernel, strides=(3, 3), padding=padding)
 
 
-def offset_separable_conv2d_eval(padding, x):
+def offset_sep_conv2d_eval(depth, padding, x):
     """Perform a separable conv2d on x with a given padding"""
-    depthwise_kernel = K.variable(value=np.array([[[[1]]]]),
+    depthwise_kernel = K.variable(value=np.array([[[[1]] * depth]]),
                                   dtype='float32')
-    pointwise_kernel = K.variable(value=np.array([[[[1]]]]),
-                                  dtype='float32')
+    pointwise_kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
+        dtype='float32')
     return K.separable_conv2d(x, depthwise_kernel,
                               pointwise_kernel, strides=(3, 3), padding=padding)
 
 
-def conv2d_offset_max_pool_eval(padding, x):
+def conv2d_offset_max_pool_eval(_, padding, x):
     """Perform a max pooling operation on x"""
     return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='max')
 
 
-def conv2d_offset_average_pool_eval(padding, x):
+def conv2d_offset_average_pool_eval(_, padding, x):
     """Perform an average pooling operation on x"""
     return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='avg')
 
 
-def check_operation_offset(eval_f, padding):
+def check_operation_offset(depth, eval_f, padding):
     """Check if backend used an offset while placing the filter
     e.g. during a convolution.
     TensorFlow is inconsistent in doing so depending
-    on the type of operation and on the used device (CPU/GPU).
+    on the type of operation, the used device (CPU/GPU) and the input depth.
     """
-    in_arr = np.array([[[[0, 1, 2, 3, 4, 5]]]])
-    in_arr = np.swapaxes(in_arr, 1, 3)  # channels_last
+    in_arr = np.array([[[[i] * depth for i in range(6)]]])
     input_data = K.variable(value=in_arr, dtype='float32')
-    output = eval_f(padding, input_data)
+    output = eval_f(depth, padding, input_data)
     result = K.eval(output).flatten().tolist()
     assert result in [[0, 3], [1, 4]]
     return result == [1, 4]
@@ -338,22 +338,23 @@ def main():
         json_output['architecture'] = json.loads(model.to_json())
 
         json_output['image_data_format'] = K.image_data_format()
-        json_output['conv2d_padding_valid_uses_offset'] =\
-            check_operation_offset(offset_conv2d_eval, 'valid')
-        json_output['conv2d_padding_same_uses_offset'] =\
-            check_operation_offset(offset_conv2d_eval, 'same')
-        json_output['separable_conv2d_padding_valid_uses_offset'] =\
-            check_operation_offset(offset_separable_conv2d_eval, 'valid')
-        json_output['separable_conv2d_padding_same_uses_offset'] =\
-            check_operation_offset(offset_separable_conv2d_eval, 'same')
-        json_output['max_pooling_2d_padding_valid_uses_offset'] =\
-            check_operation_offset(conv2d_offset_max_pool_eval, 'valid')
-        json_output['max_pooling_2d_padding_same_uses_offset'] =\
-            check_operation_offset(conv2d_offset_max_pool_eval, 'same')
-        json_output['average_pooling_2d_padding_valid_uses_offset'] =\
-            check_operation_offset(conv2d_offset_average_pool_eval, 'valid')
-        json_output['average_pooling_2d_padding_same_uses_offset'] =\
-            check_operation_offset(conv2d_offset_average_pool_eval, 'same')
+        for depth in range(1, 3, 1):
+            json_output['conv2d_valid_offset_depth_' + str(depth)] =\
+                check_operation_offset(depth, offset_conv2d_eval, 'valid')
+            json_output['conv2d_same_offset_depth_' + str(depth)] =\
+                check_operation_offset(depth, offset_conv2d_eval, 'same')
+            json_output['separable_conv2d_valid_offset_depth_' + str(depth)] =\
+                check_operation_offset(depth, offset_sep_conv2d_eval, 'valid')
+            json_output['separable_conv2d_same_offset_depth_' + str(depth)] =\
+                check_operation_offset(depth, offset_sep_conv2d_eval, 'same')
+        json_output['max_pooling_2d_valid_offset'] =\
+            check_operation_offset(1, conv2d_offset_max_pool_eval, 'valid')
+        json_output['max_pooling_2d_same_offset'] =\
+            check_operation_offset(1, conv2d_offset_max_pool_eval, 'same')
+        json_output['average_pooling_2d_valid_offset'] =\
+            check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
+        json_output['average_pooling_2d_same_offset'] =\
+            check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
         json_output['input_shapes'] = get_shapes(test_data['inputs'])
         json_output['output_shapes'] = get_shapes(test_data['outputs'])
         json_output['tests'] = [test_data]

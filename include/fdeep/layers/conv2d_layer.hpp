@@ -26,14 +26,19 @@ public:
     explicit conv2d_layer(
             const std::string& name, const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
-            bool padding_valid_uses_offset, bool padding_same_uses_offset,
+            bool padding_valid_offset_depth_1,
+            bool padding_same_offset_depth_1,
+            bool padding_valid_offset_depth_2,
+            bool padding_same_offset_depth_2,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_filters(filter_shape, k, weights, bias)),
         strides_(strides),
         padding_(p),
-        padding_valid_uses_offset_(padding_valid_uses_offset),
-        padding_same_uses_offset_(padding_same_uses_offset)
+        padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
+        padding_same_offset_depth_1_(padding_same_offset_depth_1),
+        padding_valid_offset_depth_2_(padding_valid_offset_depth_2),
+        padding_same_offset_depth_2_(padding_same_offset_depth_2)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -43,17 +48,21 @@ protected:
     tensor3s apply_impl(bool use_im2col, const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        bool use_offset =
-            (padding_ == padding::valid && padding_valid_uses_offset_) ||
-            (padding_ == padding::same && padding_same_uses_offset_);
+        const bool use_offset = inputs.front().shape().depth_ == 1 ?
+            ((padding_ == padding::valid && padding_valid_offset_depth_1_) ||
+            (padding_ == padding::same && padding_same_offset_depth_2_)) :
+            ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
+            (padding_ == padding::same && padding_same_offset_depth_2_));
         return {convolve(strides_, padding_, use_offset,
             filters_, inputs.front(), use_im2col)};
     }
     filter_vec filters_;
     shape2 strides_;
     padding padding_;
-    bool padding_valid_uses_offset_;
-    bool padding_same_uses_offset_;
+    bool padding_valid_offset_depth_1_;
+    bool padding_same_offset_depth_1_;
+    bool padding_valid_offset_depth_2_;
+    bool padding_same_offset_depth_2_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -29,7 +29,10 @@ public:
             const std::string& name, std::size_t input_depth,
             const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
-            bool padding_valid_uses_offset, bool padding_same_uses_offset,
+            bool padding_valid_offset_depth_1,
+            bool padding_same_offset_depth_1,
+            bool padding_valid_offset_depth_2,
+            bool padding_same_offset_depth_2,
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
             const float_vec& bias_0,
@@ -41,8 +44,10 @@ public:
             k, pointwise_weights, bias)),
         strides_(strides),
         padding_(p),
-        padding_valid_uses_offset_(padding_valid_uses_offset),
-        padding_same_uses_offset_(padding_same_uses_offset)
+        padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
+        padding_same_offset_depth_1_(padding_same_offset_depth_1),
+        padding_valid_offset_depth_2_(padding_valid_offset_depth_2),
+        padding_same_offset_depth_2_(padding_same_offset_depth_2)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -60,10 +65,11 @@ protected:
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");
 
-        const bool use_offset =
-            input_slices.size() == 1 && // todo: verify this in export script
-            ((padding_ == padding::valid && padding_valid_uses_offset_) ||
-            (padding_ == padding::same && padding_same_uses_offset_));
+        const bool use_offset = input_slices.size() == 1 ?
+            ((padding_ == padding::valid && padding_valid_offset_depth_1_) ||
+            (padding_ == padding::same && padding_same_offset_depth_2_)) :
+            ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
+            (padding_ == padding::same && padding_same_offset_depth_2_));
 
         const auto convolve_slice =
             [&](const tensor2& slice, const filter& f) -> tensor3
@@ -89,8 +95,10 @@ protected:
     filter_vec filters_pointwise_;
     shape2 strides_;
     padding padding_;
-    bool padding_valid_uses_offset_;
-    bool padding_same_uses_offset_;
+    bool padding_valid_offset_depth_1_;
+    bool padding_same_offset_depth_1_;
+    bool padding_valid_offset_depth_2_;
+    bool padding_same_offset_depth_2_;
 };
 
 } } // namespace fdeep, namespace internal

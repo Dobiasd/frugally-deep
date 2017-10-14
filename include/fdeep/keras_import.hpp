@@ -227,13 +227,18 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const shape3 filter_shape(
         filter_depths, kernel_size.height_, kernel_size.width_);
 
-    const bool padding_valid_uses_offset =
-        get_global_param("conv2d_padding_valid_uses_offset");
-    const bool padding_same_uses_offset =
-        get_global_param("conv2d_padding_same_uses_offset");
+    const bool padding_valid_uses_offset_depth_1 =
+        get_global_param("conv2d_valid_offset_depth_1");
+    const bool padding_same_uses_offset_depth_1 =
+        get_global_param("conv2d_same_offset_depth_1");
+    const bool padding_valid_uses_offset_depth_2 =
+        get_global_param("conv2d_valid_offset_depth_2");
+    const bool padding_same_uses_offset_depth_2 =
+        get_global_param("conv2d_same_offset_depth_2");
     return std::make_shared<conv2d_layer>(name,
         filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset, padding_same_uses_offset,
+        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
+        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         weights, bias);
 }
 
@@ -276,13 +281,18 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     const shape3 filter_shape(1,
         kernel_size.height_, kernel_size.width_);
     float_vec bias_0(input_depth, 0);
-    const bool padding_valid_uses_offset =
-        get_global_param("separable_conv2d_padding_valid_uses_offset");
-    const bool padding_same_uses_offset =
-        get_global_param("separable_conv2d_padding_same_uses_offset");
+    const bool padding_valid_uses_offset_depth_1 =
+        get_global_param("separable_conv2d_valid_offset_depth_1");
+    const bool padding_same_uses_offset_depth_1 =
+        get_global_param("separable_conv2d_same_offset_depth_1");
+        const bool padding_valid_uses_offset_depth_2 =
+        get_global_param("separable_conv2d_valid_offset_depth_2");
+    const bool padding_same_uses_offset_depth_2 =
+        get_global_param("separable_conv2d_same_offset_depth_2");
     return std::make_shared<separable_conv2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset, padding_same_uses_offset,
+        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
+        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         slice_weights, stack_weights, bias_0, bias);
 }
 
@@ -348,9 +358,9 @@ inline layer_ptr create_max_pooling2d_layer(
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
-        get_global_param("max_pooling_2d_padding_valid_uses_offset");
+        get_global_param("max_pooling_2d_valid_offset");
     const bool padding_same_uses_offset =
-        get_global_param("max_pooling_2d_padding_same_uses_offset");
+        get_global_param("max_pooling_2d_same_offset");
     return std::make_shared<max_pooling_2d_layer>(name,
         pool_size, strides, pad_type,
         padding_valid_uses_offset,
@@ -367,9 +377,9 @@ inline layer_ptr create_average_pooling2d_layer(
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
-        get_global_param("average_pooling_2d_padding_valid_uses_offset");
+        get_global_param("average_pooling_2d_valid_offset");
     const bool padding_same_uses_offset =
-        get_global_param("average_pooling_2d_padding_same_uses_offset");
+        get_global_param("average_pooling_2d_same_offset");
     return std::make_shared<average_pooling_2d_layer>(name,
         pool_size, strides, pad_type,
         padding_valid_uses_offset,

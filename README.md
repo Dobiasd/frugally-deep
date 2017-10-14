@@ -266,11 +266,7 @@ release:
  - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
-add merge layers (https://keras.io/layers/merge/)
-
 support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
-
-make pure tensorflow example for offset in conv, and sepConv depeding on input_depth and ask on SO
 
 empty cache when possible to save RAM?
 

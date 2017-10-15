@@ -89,7 +89,6 @@ Currently not supported are the following layer types:
 `ConvLSTM2D`,
 `CuDNNGRU`,
 `CuDNNLSTM`,
-`Custom layers`,
 `Cropping1D`,
 `Cropping2D`,
 `Cropping3D`,
@@ -111,12 +110,9 @@ Currently not supported are the following layer types:
 `Maximum`,
 `MaxPooling1D`,
 `MaxPooling3D`,
-`Merge layers (sub etc.)`,
 `Multiply`,
-`Noise layers (GaussianNoise etc.)`,
 `Permute`,
 `PReLU`,
-`Recurrent layers (LSTM etc.)`,
 `RepeatVector`,
 `Reshape`,
 `RNN`,
@@ -129,7 +125,8 @@ Currently not supported are the following layer types:
 `Upsampling1D`,
 `Upsampling3D`,
 `ZeroPadding1D`,
-`ZeroPadding3D`
+`ZeroPadding3D`,
+`any custom layers`
 
 
 Usage

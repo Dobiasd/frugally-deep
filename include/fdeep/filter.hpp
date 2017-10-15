@@ -58,7 +58,14 @@ private:
 
 typedef std::vector<filter> filter_vec;
 
+inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
+{
+    return filter(dilate_tensor3(dilation_rate, undilated.get_tensor3()),
+        undilated.get_bias());
+}
+
 inline filter_vec generate_filters(
+    const shape2& dilation_rate,
     const shape3& filter_shape, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
@@ -83,16 +90,12 @@ inline filter_vec generate_filters(
     for (auto& filt : filters)
     {
         filt.set_params(*it_filter_val, *it_filter_bias);
+        filt = dilate_filter(dilation_rate, filt);
         ++it_filter_val;
         ++it_filter_bias;
     }
-    return filters;
-}
 
-inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
-{
-    return filter(dilate_tensor3(dilation_rate, undilated.get_tensor3()),
-        undilated.get_bias());
+    return filters;
 }
 
 } } // namespace fdeep, namespace internal

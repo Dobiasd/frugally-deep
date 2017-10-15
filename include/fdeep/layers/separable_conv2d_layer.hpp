@@ -39,17 +39,16 @@ public:
             const float_vec& bias_0,
             const float_vec& bias)
         : layer(name),
-        filters_depthwise_(generate_filters(filter_shape,
+        filters_depthwise_(generate_filters(dilation_rate, filter_shape,
             input_depth, depthwise_weights, bias_0)),
-        filters_pointwise_(generate_filters(shape3(input_depth, 1, 1),
-            k, pointwise_weights, bias)),
+        filters_pointwise_(generate_filters(shape2(1, 1),
+            shape3(input_depth, 1, 1), k, pointwise_weights, bias)),
         strides_(strides),
         padding_(p),
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
         padding_same_offset_depth_1_(padding_same_offset_depth_1),
         padding_valid_offset_depth_2_(padding_valid_offset_depth_2),
-        padding_same_offset_depth_2_(padding_same_offset_depth_2),
-        dilation_rate_(dilation_rate)
+        padding_same_offset_depth_2_(padding_same_offset_depth_2)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -77,7 +76,7 @@ protected:
             [&](const tensor2& slice, const filter& f) -> tensor3
         {
             assertion(f.shape().depth_ == 1, "invalid filter depth");
-            const auto result = convolve(strides_, padding_, dilation_rate_,
+            const auto result = convolve(strides_, padding_,
                 use_offset, filter_vec(1, f), tensor2_to_tensor3(slice),
                 use_im2col);
             assertion(result.shape().depth_ == 1, "invalid conv output");
@@ -89,7 +88,7 @@ protected:
         const auto temp = concatenate_tensor3s(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        return {convolve(shape2(1, 1), padding::valid, shape2(1, 1), false,
+        return {convolve(shape2(1, 1), padding::valid, false,
             filters_pointwise_, temp, use_im2col)};
     }
 
@@ -101,7 +100,6 @@ protected:
     bool padding_same_offset_depth_1_;
     bool padding_valid_offset_depth_2_;
     bool padding_same_offset_depth_2_;
-    shape2 dilation_rate_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -86,22 +86,6 @@ private:
     shared_float_vec values_;
 };
 
-inline std::string show_tensor2(const tensor2& m)
-{
-    std::string str;
-    str += "[";
-    for (std::size_t y = 0; y < m.shape().height_; ++y)
-    {
-        for (std::size_t x = 0; x < m.shape().width_; ++x)
-        {
-            str += std::to_string(m.get(y, x)) + ",";
-        }
-        str += "]\n";
-    }
-    str += "]";
-    return str;
-}
-
 template <typename F>
 tensor2 transform_tensor2(F f, const tensor2& m)
 {

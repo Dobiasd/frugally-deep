@@ -61,29 +61,37 @@ inline model load_model(const std::string& path,
     const auto log = [verbose](const std::string& msg)
     {
         if (verbose)
+        {
             std::cout << msg << std::endl;
+        }
     };
 
     const auto log_sol = [verbose](const std::string& msg)
     {
         if (verbose)
+        {
             std::cout << msg << " ... " << std::flush;
+        }
     };
 
     internal::timer stopwatch;
     const auto log_duration = [&stopwatch, verbose]()
     {
         if (verbose)
+        {
             std::cout << " done. elapsed time: " <<
                 fplus::show_float(0, 6, stopwatch.elapsed()) << " s" <<
                 std::endl;
+        }
         stopwatch.reset();
     };
 
     const auto log_ok = [&stopwatch, verbose]()
     {
         if (verbose)
+        {
             std::cout << " ok" << std::endl;
+        }
         stopwatch.reset();
     };
 

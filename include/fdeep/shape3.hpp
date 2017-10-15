@@ -52,20 +52,6 @@ inline bool operator == (const shape3& lhs, const shape3& rhs)
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const shape3& lhs, const shape3& rhs)
-{
-    return !(lhs == rhs);
-}
-
-inline std::string show_shape3(const shape3& size)
-{
-    return std::string(
-        "(" + std::to_string(size.depth_) +
-        "," + std::to_string(size.height_) +
-        "," + std::to_string(size.width_) +
-        ")");
-}
-
 } // namespace internal
 
 using shape3 = internal::shape3;

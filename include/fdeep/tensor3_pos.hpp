@@ -41,13 +41,4 @@ inline bool operator == (const tensor3_pos& lhs, const tensor3_pos& rhs)
         lhs.x_ == rhs.x_;
 }
 
-inline std::string show_tensor3_pos(const tensor3_pos& pos)
-{
-    return std::string(
-        "(" + std::to_string(pos.z_) +
-        "," + std::to_string(pos.y_) +
-        "," + std::to_string(pos.x_) +
-        ")");
-}
-
 } } // namespace fdeep, namespace internal

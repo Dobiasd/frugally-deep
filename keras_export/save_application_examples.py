@@ -77,14 +77,14 @@ def main():
         # save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # wait for pip
         # save_mobilenet(dir_path, 'mobilenet') #relu6
 
-        # keras_export/convert_model.py keras_export/inceptionv3.h5 keras_export/inceptionv3.json
-        # keras_export/convert_model.py keras_export/resnet50.h5 keras_export/resnet50.json
-        # keras_export/convert_model.py keras_export/vgg16.h5 keras_export/vgg16.json
-        # keras_export/convert_model.py keras_export/vgg19.h5 keras_export/vgg19.json
-        # keras_export/convert_model.py keras_export/xception.h5 keras_export/xception.json
+        # ../keras_export/convert_model.py inceptionv3.h5 inceptionv3.json
+        # ../keras_export/convert_model.py resnet50.h5 resnet50.json
+        # ../keras_export/convert_model.py vgg16.h5 vgg16.json
+        # ../keras_export/convert_model.py vgg19.h5 vgg19.json
+        # ../keras_export/convert_model.py xception.h5 xception.json
 
-        # keras_export/convert_model.py keras_export/inceptionvresnetv2.h5 keras_export/inceptionvresnetv2.json
-        # keras_export/convert_model.py keras_export/mobilenet.h5 keras_export/mobilenet.json
+        # ../keras_export/convert_model.py inceptionvresnetv2.h5 inceptionvresnetv2.json
+        # ../keras_export/convert_model.py mobilenet.h5 mobilenet.json
 
 
 if __name__ == "__main__":

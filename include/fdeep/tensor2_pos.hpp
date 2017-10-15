@@ -30,19 +30,4 @@ public:
     std::size_t x_;
 };
 
-inline bool operator == (const tensor2_pos& lhs, const tensor2_pos& rhs)
-{
-    return
-        lhs.y_ == rhs.y_ &&
-        lhs.x_ == rhs.x_;
-}
-
-inline std::string show_tensor2_pos(const tensor2_pos& pos)
-{
-    return std::string(
-        "(" + std::to_string(pos.y_) +
-        "," + std::to_string(pos.x_) +
-        ")");
-}
-
 } } // namespace fdeep, namespace internal

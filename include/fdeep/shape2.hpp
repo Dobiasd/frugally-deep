@@ -41,16 +41,4 @@ inline bool operator == (const shape2& lhs, const shape2& rhs)
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const shape2& lhs, const shape2& rhs)
-{
-    return !(lhs == rhs);
-}
-inline std::string show_shape2(const shape2& size)
-{
-    return std::string(
-        "(" + std::to_string(size.height_) +
-        "," + std::to_string(size.width_) +
-        ")");
-}
-
 } } // namespace fdeep, namespace internal

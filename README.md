@@ -257,14 +257,12 @@ release:
  - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
-support dilated convolution (Specifying any stride value != 1 is incompatible with specifying any dilation_rate value != 1)
-
 empty cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile
 
 reduce memory usage during model loading
 
-conv transpose
-
 use more fplus where possible
+
+implement Conv2DTranspose as soon as output shape bug is fixed: https://github.com/fchollet/keras/issues/6777

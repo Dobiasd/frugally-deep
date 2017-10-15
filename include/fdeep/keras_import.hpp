@@ -210,6 +210,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const auto pad_type = create_padding(padding_str);
 
     const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -239,7 +240,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
         filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
         padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
-        weights, bias);
+        dilation_rate, weights, bias);
 }
 
 inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
@@ -251,12 +252,10 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     assertion(depth_multiplier == 1, "invalid depth_multiplier");
 
     const std::string padding_str = data["config"]["padding"];
-    const auto pad_type = fplus::throw_on_nothing(error("no padding"),
-        fplus::choose<std::string, padding>({
-        { std::string("valid"), padding::valid },
-        { std::string("same"), padding::same },
-    }, padding_str));
+    const auto pad_type = create_padding(padding_str);
+
     const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
     const std::size_t filter_count = data["config"]["filters"];
     float_vec bias(filter_count, 0);
@@ -293,7 +292,7 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
         filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
         padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
-        slice_weights, stack_weights, bias_0, bias);
+        dilation_rate, slice_weights, stack_weights, bias_0, bias);
 }
 
 inline layer_ptr create_input_layer(

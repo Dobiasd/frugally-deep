@@ -118,7 +118,6 @@ def show_conv2d_layer(layer):
     assert len(weights[0].shape) == 4
     weights_flat = prepare_filter_weights(weights[0])
     assert weights_flat
-    assert layer.dilation_rate == (1, 1)
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] is None
@@ -145,7 +144,6 @@ def show_separable_conv_2D_layer(layer):
 
     assert slice_weights
     assert stack_weights
-    assert layer.dilation_rate == (1, 1)
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] is None

@@ -89,4 +89,10 @@ inline filter_vec generate_filters(
     return filters;
 }
 
+inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
+{
+    return filter(dilate_tensor3(dilation_rate, undilated.get_tensor3()),
+        undilated.get_bias());
+}
+
 } } // namespace fdeep, namespace internal

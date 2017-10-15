@@ -3,7 +3,6 @@
 """
 
 import numbers
-import os
 import sys
 
 import numpy as np
@@ -68,15 +67,24 @@ def generate_output_data(data_size, outputs):
 def get_test_model_small():
     """Returns a minimalistic test model."""
     input_shapes = [
-        (6, 8, 3),
+        (26, 28, 3),
         (1, 1, 96)
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    outputs.append(SeparableConv2D(1, (1, 1),
-                                   strides=(1, 1), padding='valid')(inputs[0]))
+
+    for inp in [inputs[0]]:
+        for padding in ['valid', 'same']:
+            for h in range(1, 6):
+                for out_channels in [1, 2]:
+                    for d in range(1, 4):
+                        outputs.append(
+                            Conv2D(out_channels, (h, 1), padding=padding,
+                                   dilation_rate=(d, 1))(inp))
+
+    outputs.append(Conv2D(1, (3, 3), dilation_rate=(2, 2))(inputs[0]))
     outputs.append(Dense(4, use_bias=False)(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
@@ -123,12 +131,12 @@ def get_test_model_full():
     using all supported layer types with different parameter combination.
     """
     input_shapes = [
-        (6, 8, 3),
+        (26, 28, 3),
         (4, 4, 3),
         (4, 4, 3),
         (4,),
         (2, 3),
-        (7, 9, 1),
+        (27, 29, 1),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -137,30 +145,40 @@ def get_test_model_full():
     for inp in [inputs[0], inputs[5]]:
         for padding in ['valid', 'same']:
             for h in range(1, 6):
-                for sy in range(1, 4):
-                    for out_channels in [1, 2]:
+                for out_channels in [1, 2]:
+                    for d in range(1, 4):
                         outputs.append(
-                            Conv2D(out_channels, (h, 1),
-                                   strides=(1, sy), padding=padding)(inp))
+                            Conv2D(out_channels, (h, 1), padding=padding,
+                                   dilation_rate=(d, 1))(inp))
+                    for sy in range(1, 4):
+                        outputs.append(
+                            Conv2D(out_channels, (h, 1), strides=(1, sy),
+                                   padding=padding)(inp))
                         outputs.append(
                             SeparableConv2D(out_channels, (h, 1),
                                             strides=(sy, sy),
                                             padding=padding)(inp))
+                for sy in range(1, 4):
                     outputs.append(
                         MaxPooling2D((h, 1), strides=(1, sy),
                                      padding=padding)(inp))
             for w in range(1, 6):
-                for sx in range(1, 4):
-                    for out_channels in [1, 2]:
+                for out_channels in [1, 2]:
+                    for d in range(1, 4) if sy == 1 else [1]:
                         outputs.append(
-                            Conv2D(out_channels, (1, w),
-                                   strides=(sx, 1), padding=padding)(inp))
+                            Conv2D(out_channels, (1, w), padding=padding,
+                                   dilation_rate=(1, d))(inp))
+                    for sx in range(1, 4):
+                        outputs.append(
+                            Conv2D(out_channels, (1, w), strides=(sx, 1),
+                                   padding=padding)(inp))
                         outputs.append(
                             SeparableConv2D(out_channels, (1, w),
                                             strides=(sx, sx),
                                             padding=padding)(inp))
+                for sx in range(1, 4):
                     outputs.append(
-                        MaxPooling2D((1, w), strides=(sx, 1),
+                        MaxPooling2D((1, w), strides=(1, sx),
                                      padding=padding)(inp))
     outputs.append(ZeroPadding2D(2)(inputs[0]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[0]))

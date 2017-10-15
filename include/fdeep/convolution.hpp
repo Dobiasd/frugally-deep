@@ -263,13 +263,18 @@ inline convolution_input_data preprocess_convolution(
 }
 
 inline tensor3 convolve(
-    shape2 strides,
-    padding pad_type,
+    const shape2& strides,
+    const padding& pad_type,
+    const shape2& dilation_rate,
     bool use_offset,
-    const std::vector<filter>& filters,
+    const std::vector<filter>& filters_undilated,
     const tensor3& input,
     bool use_im2col)
 {
+    const auto filters = fplus::transform(
+        fplus::bind_1st_of_2(dilate_filter, dilation_rate),
+        filters_undilated);
+
     assertion(filters.size() > 0, "no filters");
 
     assertion(fplus::all_the_same_on(

@@ -30,6 +30,7 @@ public:
             bool padding_same_offset_depth_1,
             bool padding_valid_offset_depth_2,
             bool padding_same_offset_depth_2,
+            const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_filters(filter_shape, k, weights, bias)),
@@ -38,7 +39,8 @@ public:
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
         padding_same_offset_depth_1_(padding_same_offset_depth_1),
         padding_valid_offset_depth_2_(padding_valid_offset_depth_2),
-        padding_same_offset_depth_2_(padding_same_offset_depth_2)
+        padding_same_offset_depth_2_(padding_same_offset_depth_2),
+        dilation_rate_(dilation_rate)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -53,7 +55,7 @@ protected:
             (padding_ == padding::same && padding_same_offset_depth_1_)) :
             ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
             (padding_ == padding::same && padding_same_offset_depth_2_));
-        return {convolve(strides_, padding_, use_offset,
+        return {convolve(strides_, padding_, dilation_rate_, use_offset,
             filters_, inputs.front(), use_im2col)};
     }
     filter_vec filters_;
@@ -63,6 +65,7 @@ protected:
     bool padding_same_offset_depth_1_;
     bool padding_valid_offset_depth_2_;
     bool padding_same_offset_depth_2_;
+    shape2 dilation_rate_;
 };
 
 } } // namespace fdeep, namespace internal

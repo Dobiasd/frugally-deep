@@ -241,6 +241,37 @@ inline tensor3 pad_tensor3(float_type val,
     return result;
 }
 
+inline tensor3 dilate_tensor3(const shape2& dilation_rate, const tensor3& in)
+{
+    if (dilation_rate == shape2(1, 1))
+    {
+        return in;
+    }
+    assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
+    assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
+
+    const std::size_t height = in.shape().height_ +
+        (in.shape().height_ - 1) * (dilation_rate.height_ - 1);
+    const std::size_t width = in.shape().width_ +
+        (in.shape().width_ - 1) * (dilation_rate.width_ - 1);
+
+    tensor3 result(shape3(in.shape().depth_, height, width), 0);
+    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            {
+                result.set(z,
+                    y * dilation_rate.height_,
+                    x * dilation_rate.width_,
+                    in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
 // (height, width, depth) -> (depth, height, width)
 inline tensor3 depth_last_to_depth_first(const tensor3& in)
 {

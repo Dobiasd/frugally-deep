@@ -91,28 +91,6 @@ private:
 
 typedef std::vector<tensor3> tensor3s;
 
-inline std::string show_tensor3(const tensor3& m)
-{
-    std::string str;
-    str += "[";
-    for (std::size_t z = 0; z < m.shape().depth_; ++z)
-    {
-        str += "[";
-        for (std::size_t y = 0; y < m.shape().height_; ++y)
-        {
-            for (std::size_t x = 0; x < m.shape().width_; ++x)
-            {
-                str += fplus::show_float_fill_left<float_type>(' ', 8, 4,
-                    m.get(z, y, x)) + ",";
-            }
-            str += "]\n";
-        }
-        str += "]\n";
-    }
-    str += "]";
-    return str;
-}
-
 template <typename F>
 tensor3 transform_tensor3(F f, const tensor3& m)
 {
@@ -330,6 +308,25 @@ inline tensor3 sum_tensor3s(const tensor3s& ts)
 using float_type = internal::float_type;
 using tensor3 = internal::tensor3;
 using tensor3s = internal::tensor3s;
+
+inline std::string show_tensor3(const tensor3& t)
+{
+    const auto xs = *t.as_vector();
+    const auto test_strs = fplus::transform(
+        fplus::fwd::show_float_fill_left<float_type>(' ', 0, 4), xs);
+    const auto max_length = fplus::size_of_cont(fplus::maximum_on(
+        fplus::size_of_cont<std::string>, test_strs));
+    const auto strs = fplus::transform(
+        fplus::fwd::show_float_fill_left<float_type>(' ', max_length, 4), xs);
+    return fplus::show_cont(
+        fplus::split_every(t.shape().height_,
+            fplus::split_every(t.shape().width_, strs)));
+}
+
+inline std::string show_tensor3s(const tensor3s& ts)
+{
+    return fplus::show_cont(fplus::transform(show_tensor3, ts));
+}
 
 // Converts a memory block holding 8-bit values into a tensor3.
 // Data must be stored row-wise (and channels_last).

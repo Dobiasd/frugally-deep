@@ -215,20 +215,15 @@ You can install frugally-deep using cmake as shown below, or (if you prefer) dow
 ```
 git clone https://github.com/Dobiasd/FunctionalPlus
 cd FunctionalPlus
-mkdir build
-cd build
+mkdir -p build && cd build
 cmake ..
-make
-sudo make install
+make && sudo make install
 cd ..
 git clone https://github.com/Dobiasd/frugally-deep
 cd frugally-deep
-mkdir build
-cd build
+mkdir -p build && cd build
 cmake ..
-make
-sudo make install
-cd..
+make && sudo make install
 ```
 
 Building the tests (optional) requires [doctest](https://github.com/onqtam/doctest). Unit Tests are disabled by default – they are enabled and executed by:

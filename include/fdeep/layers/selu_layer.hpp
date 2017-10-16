@@ -28,7 +28,7 @@ protected:
     {
         auto activation_function = [this](float_type x) -> float_type
         {
-            return scale_ * (x >= 0.0 ? x : alpha_ * std::exp(x) - alpha_);
+            return scale_ * (x >= 0.0 ? x : alpha_ * (std::exp(x) - 1));
         };
         return transform_tensor3(activation_function, in_vol);
     }

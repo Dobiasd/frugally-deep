@@ -344,11 +344,11 @@ inline std::string show_tensor3(const tensor3& t)
 {
     const auto xs = *t.as_vector();
     const auto test_strs = fplus::transform(
-        fplus::fwd::show_float_fill_left<float_type>(' ', 0, 4), xs);
+        fplus::fwd::show_float_fill_left(' ', 0, 4), xs);
     const auto max_length = fplus::size_of_cont(fplus::maximum_on(
         fplus::size_of_cont<std::string>, test_strs));
     const auto strs = fplus::transform(
-        fplus::fwd::show_float_fill_left<float_type>(' ', max_length, 4), xs);
+        fplus::fwd::show_float_fill_left(' ', max_length, 4), xs);
     return fplus::show_cont(
         fplus::split_every(t.shape().height_,
             fplus::split_every(t.shape().width_, strs)));

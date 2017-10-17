@@ -66,15 +66,17 @@ inline model load_model(const std::string& path,
         }
     };
 
-    const auto log_sol = [verbose](const std::string& msg)
+    internal::timer stopwatch;
+
+    const auto log_sol = [&stopwatch, verbose](const std::string& msg)
     {
+        stopwatch.reset();
         if (verbose)
         {
             std::cout << msg << " ... " << std::flush;
         }
     };
 
-    internal::timer stopwatch;
     const auto log_duration = [&stopwatch, verbose]()
     {
         if (verbose)
@@ -86,22 +88,10 @@ inline model load_model(const std::string& path,
         stopwatch.reset();
     };
 
-    const auto log_ok = [&stopwatch, verbose]()
-    {
-        if (verbose)
-        {
-            std::cout << " ok" << std::endl;
-        }
-        stopwatch.reset();
-    };
-
-    log_sol("Reading " + path);
+    log_sol("Loading " + path);
     auto maybe_json_str = fplus::read_text_file_maybe(path)();
     internal::assertion(fplus::is_just(maybe_json_str),
         "Unable to load: " + path);
-    log_duration();
-
-    log_sol("Parsing JSON");
     auto json_data =
         nlohmann::json::parse(maybe_json_str.unsafe_get_just());
     maybe_json_str = fplus::nothing<std::string>(); // free RAM
@@ -127,24 +117,20 @@ inline model load_model(const std::string& path,
         return json_data[param_name];
     };
 
-    log_sol("Building model");
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"]),
         internal::create_shape3s(json_data["input_shapes"]),
         internal::create_shape3s(json_data["output_shapes"]));
-    log_duration();
 
     if (verify)
     {
         if (!json_data["tests"].is_array())
         {
-            log_sol("No test cases available");
+            log("No test cases available");
         }
         else
         {
-            log_sol("Loading tests");
             const auto tests = internal::load_test_cases(json_data["tests"]);
-            log_duration();
             json_data = {}; // free RAM
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
@@ -153,22 +139,17 @@ inline model load_model(const std::string& path,
                 const auto output_im2col =
                     full_model.predict(tests[i].input_, true);
                 log_duration();
-                log_sol("Checking test output (im2col)   ");
                 check_test_outputs(test_epsilon,
                     output_im2col, tests[i].output_);
-                log_ok();
 
                 log_sol("Running test (no im2col) " + fplus::show(i + 1) +
                     " of " + fplus::show(tests.size()));
                 const auto output_no_im2col =
                 full_model.predict(tests[i].input_, false);
                 log_duration();
-                log_sol("Checking test output (no im2col)");
                 check_test_outputs(test_epsilon,
                     output_no_im2col, tests[i].output_);
-                log_ok();
             }
-            log("All tests OK");
         }
     }
 

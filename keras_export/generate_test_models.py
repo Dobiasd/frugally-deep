@@ -75,15 +75,6 @@ def get_test_model_small():
 
     outputs = []
 
-    for inp in [inputs[0]]:
-        for padding in ['valid', 'same']:
-            for h in range(1, 6):
-                for out_channels in [1, 2]:
-                    for d in range(1, 4):
-                        outputs.append(
-                            Conv2D(out_channels, (h, 1), padding=padding,
-                                   dilation_rate=(d, 1))(inp))
-
     outputs.append(Conv2D(1, (3, 3), dilation_rate=(2, 2))(inputs[0]))
     outputs.append(Dense(4, use_bias=False)(inputs[1]))
 

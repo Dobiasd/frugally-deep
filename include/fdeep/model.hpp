@@ -7,7 +7,7 @@
 #pragma once
 
 #include "fdeep/common.hpp"
-#include "fdeep/keras_import.hpp"
+#include "fdeep/import_model.hpp"
 
 namespace fdeep
 {

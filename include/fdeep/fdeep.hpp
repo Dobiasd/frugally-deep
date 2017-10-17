@@ -47,6 +47,6 @@
 #include "fdeep/layers/upsampling2d_layer.hpp"
 #include "fdeep/layers/zero_padding2d_layer.hpp"
 
-#include "fdeep/keras_import.hpp"
+#include "fdeep/import_model.hpp"
 
 #include "fdeep/model.hpp"

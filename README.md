@@ -261,6 +261,8 @@ empty cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile
 
+reduce memory usage during model conversion (decode floats)
+
 reduce memory usage during model loading
 
 use more fplus where possible

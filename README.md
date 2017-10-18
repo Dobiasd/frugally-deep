@@ -257,7 +257,7 @@ release:
  - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
-empty cache when possible to save RAM?
+empty node-result cache when possible to save RAM?
 
 use faster GEMM to make im2col worthwhile
 
@@ -265,8 +265,8 @@ reduce memory usage during model conversion (decode floats)
 
 reduce memory usage during model loading
 
-use more fplus where possible
-
 implement Conv2DTranspose as soon as output shape bug is fixed: https://github.com/fchollet/keras/issues/6777
+
+add tests for Conv2DTranspose with dilation when it actually supports it: https://github.com/fchollet/keras/issues/8159
 
 add tests for SeparableConv2D with dilation when it actually supports it: https://github.com/fchollet/keras/issues/8146

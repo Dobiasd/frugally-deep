@@ -99,10 +99,8 @@ def decode_floats(values):
     """Serialize a sequence of floats."""
     if STORE_FLOATS_HUMAN_READABLE:
         return values
-    b = bytes()
-    bs = b.join((struct.pack('f', val) for val in values))
-    return list(split_every(1024,
-                            base64.b64encode(bs).decode('ascii')))
+    bs = struct.pack('%sf' % len(values), *values)
+    return list(split_every(1024, base64.b64encode(bs).decode('ascii')))
 
 
 def prepare_filter_weights(weights):

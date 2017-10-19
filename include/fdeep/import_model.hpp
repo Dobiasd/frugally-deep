@@ -72,8 +72,9 @@ inline float_vec decode_floats(const nlohmann::json& data)
     assertion(std::numeric_limits<float>::is_iec559,
         "The floating-point format of your system is not supported.");
 
-    const std::vector<std::string> strs = data;
-    const auto res = Base64_decode(fplus::concat(strs));
+    std::vector<std::string> strs = data;
+    const auto res = Base64_decode(fplus::concat(std::move(strs)));
+    strs.clear(); // free RAM
     float_vec out;
     assertion(res.size() % 4 == 0, "invalid float vector data");
     out.reserve(res.size() / 4);

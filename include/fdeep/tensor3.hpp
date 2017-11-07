@@ -361,16 +361,18 @@ inline std::string show_tensor3s(const tensor3s& ts)
 
 // Converts a memory block holding 8-bit values into a tensor3.
 // Data must be stored row-wise (and channels_last).
-// Scales the values from range [0, 255] into [0.0, 1.0].
+// Scales the values from range [0, 255] into [low, high].
 // May be used to convert an image (bgr, rgba, gray, etc.) to a tensor3.
 inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
-    std::size_t height, std::size_t width, std::size_t channels)
+    std::size_t height, std::size_t width, std::size_t channels,
+    internal::float_type low = 0.0f, internal::float_type high = 1.0f)
 {
     const std::vector<std::uint8_t> bytes(
         value_ptr, value_ptr + height * width * channels);
-    auto values = fplus::transform([](std::uint8_t b) -> internal::float_type
+    auto values = fplus::transform([low, high](std::uint8_t b) -> internal::float_type
     {
-        return static_cast<internal::float_type>(b) / 255;
+        return fplus::into_interval(low, high, 0.0f, 255.0f,
+            static_cast<internal::float_type>(b));
     }, bytes);
     return internal::depth_last_to_depth_first(
         tensor3(shape3(height, width, channels), std::move(values)));
@@ -378,19 +380,21 @@ inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
 
 // Converts a tensor3 into a memory block holding 8-bit values.
 // Data will be stored row-wise (and channels_last).
-// Scales the values from range [0.0, 1.0] into [0, 255].
+// Scales the values from range [low, high] into [0, 255].
 // May be used to convert a tensor3 to an image.
 inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
-    std::size_t bytes_available)
+    std::size_t bytes_available,
+    internal::float_type low = 0.0f, internal::float_type high = 1.0f)
 {
     const auto values = depth_first_to_depth_last(t).as_vector();
     internal::assertion(bytes_available == values->size(),
     "invalid buffer size");
     const auto bytes = fplus::transform(
-        [](internal::float_type v) -> std::uint8_t
+        [low, high](internal::float_type v) -> std::uint8_t
     {
         return static_cast<std::uint8_t>(
-            fplus::clamp<internal::float_type>(0, 255, v * 255));
+            fplus::clamp<internal::float_type>(0, 255,
+                fplus::into_interval(0.0f, 255.0f, low, high, v)));
     }, *values);
     for (std::size_t i = 0; i < values->size(); ++i)
     {

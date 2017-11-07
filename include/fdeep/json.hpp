@@ -62,7 +62,7 @@ SOFTWARE.
     #if (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__) < 30400
         #error "unsupported Clang version - see https://github.com/nlohmann/json#supported-compilers"
     #endif
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !(defined(__ICC) || defined(__INTEL_COMPILER))
     #if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 40900
         #error "unsupported GCC version - see https://github.com/nlohmann/json#supported-compilers"
     #endif
@@ -107,6 +107,14 @@ SOFTWARE.
 #else
     #define JSON_LIKELY(x)      x
     #define JSON_UNLIKELY(x)    x
+#endif
+
+// cpp language standard detection
+#if (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_HAS_CXX17) && _HAS_CXX17 == 1) // fix for issue #464
+    #define JSON_HAS_CPP_17
+    #define JSON_HAS_CPP_14
+#elif (defined(__cplusplus) && __cplusplus >= 201402L) || (defined(_HAS_CXX14) && _HAS_CXX14 == 1)
+    #define JSON_HAS_CPP_14
 #endif
 
 /*!
@@ -206,9 +214,9 @@ class exception : public std::exception
   protected:
     exception(int id_, const char* what_arg) : id(id_), m(what_arg) {}
 
-    static std::string name(const std::string& ename, int id)
+    static std::string name(const std::string& ename, int id_)
     {
-        return "[json.exception." + ename + "." + std::to_string(id) + "] ";
+        return "[json.exception." + ename + "." + std::to_string(id_) + "] ";
     }
 
   private:
@@ -264,18 +272,18 @@ class parse_error : public exception
   public:
     /*!
     @brief create a parse error exception
-    @param[in] id        the id of the exception
+    @param[in] id_       the id of the exception
     @param[in] byte_     the byte index where the error occurred (or 0 if the
                          position cannot be determined)
     @param[in] what_arg  the explanatory string
     @return parse_error object
     */
-    static parse_error create(int id, std::size_t byte_, const std::string& what_arg)
+    static parse_error create(int id_, std::size_t byte_, const std::string& what_arg)
     {
-        std::string w = exception::name("parse_error", id) + "parse error" +
+        std::string w = exception::name("parse_error", id_) + "parse error" +
                         (byte_ != 0 ? (" at " + std::to_string(byte_)) : "") +
                         ": " + what_arg;
-        return parse_error(id, byte_, w.c_str());
+        return parse_error(id_, byte_, w.c_str());
     }
 
     /*!
@@ -334,10 +342,10 @@ caught.,invalid_iterator}
 class invalid_iterator : public exception
 {
   public:
-    static invalid_iterator create(int id, const std::string& what_arg)
+    static invalid_iterator create(int id_, const std::string& what_arg)
     {
-        std::string w = exception::name("invalid_iterator", id) + what_arg;
-        return invalid_iterator(id, w.c_str());
+        std::string w = exception::name("invalid_iterator", id_) + what_arg;
+        return invalid_iterator(id_, w.c_str());
     }
 
   private:
@@ -385,10 +393,10 @@ caught.,type_error}
 class type_error : public exception
 {
   public:
-    static type_error create(int id, const std::string& what_arg)
+    static type_error create(int id_, const std::string& what_arg)
     {
-        std::string w = exception::name("type_error", id) + what_arg;
-        return type_error(id, w.c_str());
+        std::string w = exception::name("type_error", id_) + what_arg;
+        return type_error(id_, w.c_str());
     }
 
   private:
@@ -428,10 +436,10 @@ caught.,out_of_range}
 class out_of_range : public exception
 {
   public:
-    static out_of_range create(int id, const std::string& what_arg)
+    static out_of_range create(int id_, const std::string& what_arg)
     {
-        std::string w = exception::name("out_of_range", id) + what_arg;
-        return out_of_range(id, w.c_str());
+        std::string w = exception::name("out_of_range", id_) + what_arg;
+        return out_of_range(id_, w.c_str());
     }
 
   private:
@@ -466,10 +474,10 @@ caught.,other_error}
 class other_error : public exception
 {
   public:
-    static other_error create(int id, const std::string& what_arg)
+    static other_error create(int id_, const std::string& what_arg)
     {
-        std::string w = exception::name("other_error", id) + what_arg;
-        return other_error(id, w.c_str());
+        std::string w = exception::name("other_error", id_) + what_arg;
+        return other_error(id_, w.c_str());
     }
 
   private:
@@ -498,7 +506,7 @@ distinguish the stored values, and the functions @ref basic_json::is_null(),
 number_float), because the library distinguishes these three types for numbers:
 @ref basic_json::number_unsigned_t is used for unsigned integers,
 @ref basic_json::number_integer_t is used for signed integers, and
-@ref basic_json::number_float_type is used for floating-point numbers or to
+@ref basic_json::number_float_t is used for floating-point numbers or to
 approximate integers which do not fit in the limits of their respective type.
 
 @sa @ref basic_json::basic_json(const value_t value_type) -- create a JSON
@@ -664,7 +672,7 @@ template<>
 struct external_constructor<value_t::number_float>
 {
     template<typename BasicJsonType>
-    static void construct(BasicJsonType& j, typename BasicJsonType::number_float_type val) noexcept
+    static void construct(BasicJsonType& j, typename BasicJsonType::number_float_t val) noexcept
     {
         j.m_type = value_t::number_float;
         j.m_value = val;
@@ -745,11 +753,10 @@ struct external_constructor<value_t::array>
              enable_if_t<std::is_convertible<T, BasicJsonType>::value, int> = 0>
     static void construct(BasicJsonType& j, const std::valarray<T>& arr)
     {
-        using std::begin;
-        using std::end;
         j.m_type = value_t::array;
         j.m_value = value_t::array;
-        j.m_value.array = j.template create<typename BasicJsonType::array_t>(begin(arr), end(arr));
+        j.m_value.array->resize(arr.size());
+        std::copy(std::begin(arr), std::end(arr), j.m_value.array->begin());
         j.assert_invariant();
     }
 };
@@ -971,7 +978,7 @@ template<typename BasicJsonType, typename FloatType,
          enable_if_t<std::is_floating_point<FloatType>::value, int> = 0>
 void to_json(BasicJsonType& j, FloatType val) noexcept
 {
-    external_constructor<value_t::number_float>::construct(j, static_cast<typename BasicJsonType::number_float_type>(val));
+    external_constructor<value_t::number_float>::construct(j, static_cast<typename BasicJsonType::number_float_t>(val));
 }
 
 template <
@@ -1098,7 +1105,7 @@ void get_arithmetic_value(const BasicJsonType& j, ArithmeticType& val)
         }
         case value_t::number_float:
         {
-            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_type*>());
+            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_t*>());
             break;
         }
 
@@ -1128,7 +1135,7 @@ void from_json(const BasicJsonType& j, typename BasicJsonType::string_t& s)
 }
 
 template<typename BasicJsonType>
-void from_json(const BasicJsonType& j, typename BasicJsonType::number_float_type& val)
+void from_json(const BasicJsonType& j, typename BasicJsonType::number_float_t& val)
 {
     get_arithmetic_value(j, val);
 }
@@ -1190,10 +1197,7 @@ void from_json(const BasicJsonType& j, std::valarray<T>& l)
         JSON_THROW(type_error::create(302, "type must be array, but is " + std::string(j.type_name())));
     }
     l.resize(j.size());
-    for (size_t i = 0; i < j.size(); ++i)
-    {
-        l[i] = j[i];
-    }
+    std::copy(j.m_value.array->begin(), j.m_value.array->end(), std::begin(l));
 }
 
 template<typename BasicJsonType, typename CompatibleArrayType>
@@ -1280,7 +1284,7 @@ template<typename BasicJsonType, typename ArithmeticType,
              std::is_arithmetic<ArithmeticType>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::number_unsigned_t>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::number_integer_t>::value and
-             not std::is_same<ArithmeticType, typename BasicJsonType::number_float_type>::value and
+             not std::is_same<ArithmeticType, typename BasicJsonType::number_float_t>::value and
              not std::is_same<ArithmeticType, typename BasicJsonType::boolean_t>::value,
              int> = 0>
 void from_json(const BasicJsonType& j, ArithmeticType& val)
@@ -1299,7 +1303,7 @@ void from_json(const BasicJsonType& j, ArithmeticType& val)
         }
         case value_t::number_float:
         {
-            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_type*>());
+            val = static_cast<ArithmeticType>(*j.template get_ptr<const typename BasicJsonType::number_float_t*>());
             break;
         }
         case value_t::boolean:
@@ -1398,123 +1402,100 @@ constexpr T static_const<T>::value;
 // input adapters //
 ////////////////////
 
-/// abstract input adapter interface
+/*!
+@brief abstract input adapter interface
+
+Produces a stream of std::char_traits<char>::int_type characters from a
+std::istream, a buffer, or some other input type.  Accepts the return of exactly
+one non-EOF character for future input.  The int_type characters returned
+consist of all valid char values as positive values (typically unsigned char),
+plus an EOF value outside that range, specified by the value of the function
+std::char_traits<char>::eof().  This value is typically -1, but could be any
+arbitrary value which is not a valid char value.
+*/
 struct input_adapter_protocol
 {
-    virtual int get_character() = 0;
-    virtual std::string read(std::size_t offset, std::size_t length) = 0;
+    /// get a character [0,255] or std::char_traits<char>::eof().
+    virtual std::char_traits<char>::int_type get_character() = 0;
+    /// restore the last non-eof() character to input
+    virtual void unget_character() = 0;
     virtual ~input_adapter_protocol() = default;
 };
 
 /// a type to simplify interfaces
 using input_adapter_t = std::shared_ptr<input_adapter_protocol>;
 
-/// input adapter for cached stream input
-template<std::size_t BufferSize>
-class cached_input_stream_adapter : public input_adapter_protocol
+/*!
+Input adapter for a (caching) istream. Ignores a UFT Byte Order Mark at
+beginning of input. Does not support changing the underlying std::streambuf
+in mid-input. Maintains underlying std::istream and std::streambuf to support
+subsequent use of standard std::istream operations to process any input
+characters following those used in parsing the JSON input.  Clears the
+std::istream flags; any input errors (e.g., EOF) will be detected by the first
+subsequent call for input from the std::istream.
+*/
+class input_stream_adapter : public input_adapter_protocol
 {
   public:
-    explicit cached_input_stream_adapter(std::istream& i)
-        : is(i), start_position(is.tellg())
+    ~input_stream_adapter() override
     {
-        fill_buffer();
-
-        // skip byte order mark
-        if (fill_size >= 3 and buffer[0] == '\xEF' and buffer[1] == '\xBB' and buffer[2] == '\xBF')
-        {
-            buffer_pos += 3;
-            processed_chars += 3;
-        }
-    }
-
-    ~cached_input_stream_adapter() override
-    {
-        // clear stream flags
-        is.clear();
-        // We initially read a lot of characters into the buffer, and we may
-        // not have processed all of them. Therefore, we need to "rewind" the
-        // stream after the last processed char.
-        is.seekg(start_position);
-        is.ignore(static_cast<std::streamsize>(processed_chars));
-        // clear stream flags
+        // clear stream flags; we use underlying streambuf I/O, do not
+        // maintain ifstream flags
         is.clear();
     }
 
-    int get_character() override
+    explicit input_stream_adapter(std::istream& i)
+        : is(i), sb(*i.rdbuf())
     {
-        // check if refilling is necessary and possible
-        if (buffer_pos == fill_size and not eof)
+        // ignore Byte Order Mark at start of input
+        std::char_traits<char>::int_type c;
+        if ((c = get_character()) == 0xEF)
         {
-            fill_buffer();
-
-            // check and remember that filling did not yield new input
-            if (fill_size == 0)
+            if ((c = get_character()) == 0xBB)
             {
-                eof = true;
-                return std::char_traits<char>::eof();
+                if ((c = get_character()) == 0xBF)
+                {
+                    return; // Ignore BOM
+                }
+                else if (c != std::char_traits<char>::eof())
+                {
+                    is.unget();
+                }
+                is.putback('\xBB');
             }
-
-            // the buffer is ready
-            buffer_pos = 0;
+            else if (c != std::char_traits<char>::eof())
+            {
+                is.unget();
+            }
+            is.putback('\xEF');
         }
-
-        ++processed_chars;
-        assert(buffer_pos < buffer.size());
-        return buffer[buffer_pos++] & 0xFF;
+        else if (c != std::char_traits<char>::eof())
+        {
+            is.unget(); // Not BOM. Process as usual.
+        }
     }
 
-    std::string read(std::size_t offset, std::size_t length) override
+    // delete because of pointer members
+    input_stream_adapter(const input_stream_adapter&) = delete;
+    input_stream_adapter& operator=(input_stream_adapter&) = delete;
+
+    // std::istream/std::streambuf use std::char_traits<char>::to_int_type, to
+    // ensure that std::char_traits<char>::eof() and the character 0xff do not
+    // end up as the same value, eg. 0xffffffff.
+    std::char_traits<char>::int_type get_character() override
     {
-        // create buffer
-        std::string result(length, '\0');
+        return sb.sbumpc();
+    }
 
-        // save stream position
-        const auto current_pos = is.tellg();
-        // save stream flags
-        const auto flags = is.rdstate();
-
-        // clear stream flags
-        is.clear();
-        // set stream position
-        is.seekg(static_cast<std::streamoff>(offset));
-        // read bytes
-        is.read(&result[0], static_cast<std::streamsize>(length));
-
-        // reset stream position
-        is.seekg(current_pos);
-        // reset stream flags
-        is.setstate(flags);
-
-        return result;
+    void unget_character() override
+    {
+        sb.sungetc();  // is.unget() avoided for performance
     }
 
   private:
-    void fill_buffer()
-    {
-        // fill
-        is.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-        // store number of bytes in the buffer
-        fill_size = static_cast<size_t>(is.gcount());
-    }
-
     /// the associated input stream
     std::istream& is;
-
-    /// chars returned via get_character()
-    std::size_t processed_chars = 0;
-    /// chars processed in the current buffer
-    std::size_t buffer_pos = 0;
-
-    /// whether stream reached eof
-    bool eof = false;
-    /// how many chars have been copied to the buffer by last (re)fill
-    std::size_t fill_size = 0;
-
-    /// position of the stream when we started
-    const std::streampos start_position;
-
-    /// internal buffer
-    std::array<char, BufferSize> buffer{{}};
+    std::streambuf& sb;
 };
 
 /// input adapter for buffer input
@@ -1535,21 +1516,22 @@ class input_buffer_adapter : public input_adapter_protocol
     input_buffer_adapter(const input_buffer_adapter&) = delete;
     input_buffer_adapter& operator=(input_buffer_adapter&) = delete;
 
-    int get_character() noexcept override
+    std::char_traits<char>::int_type get_character() noexcept override
     {
         if (JSON_LIKELY(cursor < limit))
         {
-            return *(cursor++) & 0xFF;
+            return std::char_traits<char>::to_int_type(*(cursor++));
         }
 
         return std::char_traits<char>::eof();
     }
 
-    std::string read(std::size_t offset, std::size_t length) override
+    void unget_character() noexcept override
     {
-        // avoid reading too many characters
-        const auto max_length = static_cast<size_t>(limit - start);
-        return std::string(start + offset, (std::min)(length, max_length - offset));
+        if (JSON_LIKELY(cursor > start))
+        {
+            --cursor;
+        }
     }
 
   private:
@@ -1568,11 +1550,11 @@ class input_adapter
 
     /// input adapter for input stream
     input_adapter(std::istream& i)
-        : ia(std::make_shared<cached_input_stream_adapter<16384>>(i)) {}
+        : ia(std::make_shared<input_stream_adapter>(i)) {}
 
     /// input adapter for input stream
     input_adapter(std::istream&& i)
-        : ia(std::make_shared<cached_input_stream_adapter<16384>>(i)) {}
+        : ia(std::make_shared<input_stream_adapter>(i)) {}
 
     /// input adapter for buffer
     template<typename CharT,
@@ -1675,7 +1657,7 @@ class lexer
 {
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
-    using number_float_type = typename BasicJsonType::number_float_type;
+    using number_float_t = typename BasicJsonType::number_float_t;
 
   public:
     /// token types for the parser
@@ -1849,9 +1831,9 @@ class lexer
     @brief scan a string literal
 
     This function scans a string according to Sect. 7 of RFC 7159. While
-    scanning, bytes are escaped and copied into buffer yytext. Then the
-    function returns successfully, yytext is null-terminated and yylen
-    contains the number of bytes in the string.
+    scanning, bytes are escaped and copied into buffer yytext. Then the function
+    returns successfully, yytext is *not* null-terminated (as it may contain \0
+    bytes), and yytext.size() is the number of bytes in the string.
 
     @return token_type::value_string if string could be successfully scanned,
             token_type::parse_error otherwise
@@ -1882,9 +1864,6 @@ class lexer
                 // closing quote
                 case '\"':
                 {
-                    // terminate yytext
-                    add('\0');
-                    --yylen;
                     return token_type::value_string;
                 }
 
@@ -2628,12 +2607,7 @@ scan_number_any2:
 scan_number_done:
         // unget the character after the number (we only read it to know that
         // we are done scanning a number)
-        --chars_read;
-        next_unget = true;
-
-        // terminate token
-        add('\0');
-        --yylen;
+        unget();
 
         char* endptr = nullptr;
         errno = 0;
@@ -2644,7 +2618,7 @@ scan_number_done:
             const auto x = std::strtoull(yytext.data(), &endptr, 10);
 
             // we checked the number format before
-            assert(endptr == yytext.data() + yylen);
+            assert(endptr == yytext.data() + yytext.size());
 
             if (errno == 0)
             {
@@ -2660,7 +2634,7 @@ scan_number_done:
             const auto x = std::strtoll(yytext.data(), &endptr, 10);
 
             // we checked the number format before
-            assert(endptr == yytext.data() + yylen);
+            assert(endptr == yytext.data() + yytext.size());
 
             if (errno == 0)
             {
@@ -2677,7 +2651,7 @@ scan_number_done:
         strtof(value_float, yytext.data(), &endptr);
 
         // we checked the number format before
-        assert(endptr == yytext.data() + yylen);
+        assert(endptr == yytext.data() + yytext.size());
 
         return token_type::value_float;
     }
@@ -2706,32 +2680,51 @@ scan_number_done:
     // input management
     /////////////////////
 
-    /// reset yytext
+    /// reset yytext; current character is beginning of token
     void reset() noexcept
     {
-        yylen = 0;
-        start_pos = chars_read - 1;
+        yytext.clear();
+        token_string.clear();
+        token_string.push_back(std::char_traits<char>::to_char_type(current));
     }
 
-    /// get a character from the input
-    int get()
+    /*
+    @brief get next character from the input
+
+    This function provides the interface to the used input adapter. It does
+    not throw in case the input reached EOF, but returns a
+    `std::char_traits<char>::eof()` in that case.  Stores the scanned characters
+    for use in error messages.
+
+    @return character read from the input
+    */
+    std::char_traits<char>::int_type get()
     {
         ++chars_read;
-        return next_unget ? (next_unget = false, current)
-               : (current = ia->get_character());
+        current = ia->get_character();
+        if (JSON_LIKELY(current != std::char_traits<char>::eof()))
+        {
+            token_string.push_back(std::char_traits<char>::to_char_type(current));
+        }
+        return current;
+    }
+
+    /// unget current character (return it again on next get)
+    void unget()
+    {
+        --chars_read;
+        if (JSON_LIKELY(current != std::char_traits<char>::eof()))
+        {
+            ia->unget_character();
+            assert(token_string.size() != 0);
+            token_string.pop_back();
+        }
     }
 
     /// add a character to yytext
     void add(int c)
     {
-        // resize yytext if necessary; this condition is deemed unlikely,
-        // because we start with a 1024-byte buffer
-        if (JSON_UNLIKELY((yylen + 1 > yytext.capacity())))
-        {
-            yytext.resize(2 * yytext.capacity(), '\0');
-        }
-        assert(yylen < yytext.size());
-        yytext[yylen++] = static_cast<char>(c);
+        yytext.push_back(std::char_traits<char>::to_char_type(c));
     }
 
   public:
@@ -2752,17 +2745,15 @@ scan_number_done:
     }
 
     /// return floating-point value
-    constexpr number_float_type get_number_float() const noexcept
+    constexpr number_float_t get_number_float() const noexcept
     {
         return value_float;
     }
 
-    /// return string value
-    const std::string get_string()
+    /// return current string value (implicitly resets the token; useful only once)
+    std::string move_string()
     {
-        // yytext cannot be returned as char*, because it may contain a null
-        // byte (parsed as "\u0000")
-        return std::string(yytext.data(), yylen);
+        return std::move(yytext);
     }
 
     /////////////////////
@@ -2775,22 +2766,16 @@ scan_number_done:
         return chars_read;
     }
 
-    /// return the last read token (for errors only)
+    /// return the last read token (for errors only).  Will never contain EOF
+    /// (an arbitrary value that is not a valid char value, often -1), because
+    /// 255 may legitimately occur.  May contain NUL, which should be escaped.
     std::string get_token_string() const
     {
-        // get the raw byte sequence of the last token
-        std::string s = ia->read(start_pos, chars_read - start_pos);
-
         // escape control characters
         std::string result;
-        for (auto c : s)
+        for (auto c : token_string)
         {
-            if (c == '\0' or c == std::char_traits<char>::eof())
-            {
-                // ignore EOF
-                continue;
-            }
-            else if ('\x00' <= c and c <= '\x1f')
+            if ('\x00' <= c and c <= '\x1f')
             {
                 // escape control characters
                 std::stringstream ss;
@@ -2887,20 +2872,16 @@ scan_number_done:
     detail::input_adapter_t ia = nullptr;
 
     /// the current character
-    int current = std::char_traits<char>::eof();
-
-    /// whether get() should return the last character again
-    bool next_unget = false;
+    std::char_traits<char>::int_type current = std::char_traits<char>::eof();
 
     /// the number of characters read
     std::size_t chars_read = 0;
-    /// the start position of the current token
-    std::size_t start_pos = 0;
+
+    /// raw input token string (for error messages)
+    std::vector<char> token_string { };
 
     /// buffer for variable-length tokens (numbers, strings)
-    std::vector<char> yytext = std::vector<char>(1024, '\0');
-    /// current index in yytext
-    std::size_t yylen = 0;
+    std::string yytext { };
 
     /// a description of occurred lexer errors
     const char* error_message = "";
@@ -2908,7 +2889,7 @@ scan_number_done:
     // number values
     number_integer_t value_integer = 0;
     number_unsigned_t value_unsigned = 0;
-    number_float_type value_float = 0;
+    number_float_t value_float = 0;
 
     /// the decimal point
     const char decimal_point_char = '.';
@@ -2924,7 +2905,7 @@ class parser
 {
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
-    using number_float_type = typename BasicJsonType::number_float_type;
+    using number_float_t = typename BasicJsonType::number_float_t;
     using lexer_t = lexer<BasicJsonType>;
     using token_type = typename lexer_t::token_type;
 
@@ -3038,11 +3019,19 @@ class parser
         {
             case token_type::begin_object:
             {
-                if (keep and (not callback or ((keep = callback(depth++, parse_event_t::object_start, result)))))
+                if (keep)
                 {
-                    // explicitly set result to object to cope with {}
-                    result.m_type = value_t::object;
-                    result.m_value = value_t::object;
+                    if (callback)
+                    {
+                        keep = callback(depth++, parse_event_t::object_start, result);
+                    }
+
+                    if (not callback or keep)
+                    {
+                        // explicitly set result to object to cope with {}
+                        result.m_type = value_t::object;
+                        result.m_value = value_t::object;
+                    }
                 }
 
                 // read next token
@@ -3069,7 +3058,7 @@ class parser
                     {
                         return;
                     }
-                    key = m_lexer.get_string();
+                    key = m_lexer.move_string();
 
                     bool keep_tag = false;
                     if (keep)
@@ -3134,11 +3123,19 @@ class parser
 
             case token_type::begin_array:
             {
-                if (keep and (not callback or ((keep = callback(depth++, parse_event_t::array_start, result)))))
+                if (keep)
                 {
-                    // explicitly set result to object to cope with []
-                    result.m_type = value_t::array;
-                    result.m_value = value_t::array;
+                    if (callback)
+                    {
+                        keep = callback(depth++, parse_event_t::array_start, result);
+                    }
+
+                    if (not callback or keep)
+                    {
+                        // explicitly set result to array to cope with []
+                        result.m_type = value_t::array;
+                        result.m_value = value_t::array;
+                    }
                 }
 
                 // read next token
@@ -3207,7 +3204,7 @@ class parser
             case token_type::value_string:
             {
                 result.m_type = value_t::string;
-                result.m_value = m_lexer.get_string();
+                result.m_value = m_lexer.move_string();
                 break;
             }
 
@@ -3580,7 +3577,7 @@ class primitive_iterator_t
     static constexpr difference_type end_value = begin_value + 1;
 
     /// iterator as signed integer type
-    difference_type m_it = std::numeric_limits<std::ptrdiff_t>::min();
+    difference_type m_it = (std::numeric_limits<std::ptrdiff_t>::min)();
 };
 
 /*!
@@ -3602,7 +3599,7 @@ template<typename BasicJsonType> struct internal_iterator
 template<typename IteratorType> class iteration_proxy;
 
 /*!
-@brief a template for a random access iterator for the @ref basic_json class
+@brief a template for a bidirectional iterator for the @ref basic_json class
 
 This class implements a both iterators (iterator and const_iterator) for the
 @ref basic_json class.
@@ -3614,14 +3611,15 @@ This class implements a both iterators (iterator and const_iterator) for the
 
 @requirement The class satisfies the following concept requirements:
 -
-[RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
-  The iterator that can be moved to point (forward and backward) to any
-  element in constant time.
+[BidirectionalIterator](http://en.cppreference.com/w/cpp/concept/BidirectionalIterator):
+  The iterator that can be moved can be moved in both directions (i.e.
+  incremented and decremented).
 
-@since version 1.0.0, simplified in version 2.0.9
+@since version 1.0.0, simplified in version 2.0.9, change to bidirectional
+       iterators in version 3.0.0 (see https://github.com/nlohmann/json/issues/593)
 */
 template<typename BasicJsonType>
-class iter_impl : public std::iterator<std::random_access_iterator_tag, BasicJsonType>
+class iter_impl : public std::iterator<std::bidirectional_iterator_tag, BasicJsonType>
 {
     /// allow basic_json to access private members
     friend iter_impl<typename std::conditional<std::is_const<BasicJsonType>::value, typename std::remove_const<BasicJsonType>::type, const BasicJsonType>::type>;
@@ -3648,8 +3646,6 @@ class iter_impl : public std::iterator<std::random_access_iterator_tag, BasicJso
         typename std::conditional<std::is_const<BasicJsonType>::value,
         typename BasicJsonType::const_reference,
         typename BasicJsonType::reference>::type;
-    /// the category of the iterator
-    using iterator_category = std::bidirectional_iterator_tag;
 
     /// default constructor
     iter_impl() = default;
@@ -4282,9 +4278,9 @@ create @ref const_reverse_iterator).
 
 @requirement The class satisfies the following concept requirements:
 -
-[RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator):
-  The iterator that can be moved to point (forward and backward) to any
-  element in constant time.
+[BidirectionalIterator](http://en.cppreference.com/w/cpp/concept/BidirectionalIterator):
+  The iterator that can be moved can be moved in both directions (i.e.
+  incremented and decremented).
 - [OutputIterator](http://en.cppreference.com/w/cpp/concept/OutputIterator):
   It is possible to write to the pointed-to element (only if @a Base is
   @ref iterator).
@@ -5209,7 +5205,7 @@ class binary_reader
     @brief get next character from the input
 
     This function provides the interface to the used input adapter. It does
-    not throw in case the input reached EOF, but returns
+    not throw in case the input reached EOF, but returns a -'ve valued
     `std::char_traits<char>::eof()` in that case.
 
     @return character read from the input
@@ -5280,7 +5276,7 @@ class binary_reader
         {
             get();
             check_eof();
-            return current;
+            return static_cast<char>(current);
         });
         return result;
     }
@@ -6084,7 +6080,7 @@ template<typename BasicJsonType>
 class serializer
 {
     using string_t = typename BasicJsonType::string_t;
-    using number_float_type = typename BasicJsonType::number_float_type;
+    using number_float_t = typename BasicJsonType::number_float_t;
     using number_integer_t = typename BasicJsonType::number_integer_t;
     using number_unsigned_t = typename BasicJsonType::number_unsigned_t;
   public:
@@ -6320,7 +6316,7 @@ class serializer
     */
     static constexpr std::size_t bytes_following(const uint8_t u)
     {
-        return ((0 <= u and u <= 127) ? 0
+        return ((u <= 127) ? 0
                 : ((192 <= u and u <= 223) ? 1
                    : ((224 <= u and u <= 239) ? 2
                       : ((240 <= u and u <= 247) ? 3 : std::string::npos))));
@@ -6660,19 +6656,18 @@ class serializer
             return;
         }
 
-        const bool is_negative = x < 0;
+        const bool is_negative = (x <= 0) and (x != 0);  // see issue #755
         std::size_t i = 0;
 
-        // spare 1 byte for '\0'
-        while (x != 0 and i < number_buffer.size() - 1)
+        while (x != 0)
         {
+            // spare 1 byte for '\0'
+            assert(i < number_buffer.size() - 1);
+
             const auto digit = std::labs(static_cast<long>(x % 10));
             number_buffer[i++] = static_cast<char>('0' + digit);
             x /= 10;
         }
-
-        // make sure the number has been processed completely
-        assert(x == 0);
 
         if (is_negative)
         {
@@ -6693,7 +6688,7 @@ class serializer
 
     @param[in] x  floating-point number to dump
     */
-    void dump_float(number_float_type x)
+    void dump_float(number_float_t x)
     {
         // NaN / inf
         if (not std::isfinite(x) or std::isnan(x))
@@ -6702,22 +6697,8 @@ class serializer
             return;
         }
 
-        // special case for 0.0 and -0.0
-        if (x == 0)
-        {
-            if (std::signbit(x))
-            {
-                o->write_characters("-0.0", 4);
-            }
-            else
-            {
-                o->write_characters("0.0", 3);
-            }
-            return;
-        }
-
         // get number of digits for a text -> float -> text round-trip
-        static constexpr auto d = std::numeric_limits<number_float_type>::digits10;
+        static constexpr auto d = std::numeric_limits<number_float_t>::digits10;
 
         // the actual conversion
         std::ptrdiff_t len = snprintf(number_buffer.data(), number_buffer.size(), "%.*g", d, x);
@@ -6808,7 +6789,7 @@ class json_ref
     {}
 
     template <class... Args>
-    json_ref(Args... args)
+    json_ref(Args&& ... args)
         : owned_value(std::forward<Args>(args)...),
           value_ref(&owned_value),
           is_rvalue(true)
@@ -7234,7 +7215,7 @@ default; will be used in @ref number_integer_t)
 @tparam NumberUnsignedType type for JSON unsigned integer numbers (@c
 `uint64_t` by default; will be used in @ref number_unsigned_t)
 @tparam NumberFloatType type for JSON floating-point numbers (`double` by
-default; will be used in @ref number_float_type)
+default; will be used in @ref number_float_t)
 @tparam AllocatorType type of the allocator to use (`std::allocator` by
 default)
 @tparam JSONSerializer the serializer to resolve internal calls to `to_json()`
@@ -7592,9 +7573,17 @@ class basic_json
     7159](http://rfc7159.net/rfc7159), because any order implements the
     specified "unordered" nature of JSON objects.
     */
+
+#if defined(JSON_HAS_CPP_14)
+    // Use transparent comparator if possible, combined with perfect forwarding
+    // on find() and count() calls prevents unnecessary string construction.
+    using object_comparator_t = std::less<>;
+#else
+    using object_comparator_t = std::less<StringType>;
+#endif
     using object_t = ObjectType<StringType,
           basic_json,
-          std::less<StringType>,
+          object_comparator_t,
           AllocatorType<std::pair<const StringType,
           basic_json>>>;
 
@@ -7739,7 +7728,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_type are used.
+    number_unsigned_t and @ref number_float_t are used.
 
     To store integer numbers in C++, a type is defined by the template
     parameter @a NumberIntegerType which chooses the type to use.
@@ -7773,7 +7762,7 @@ class basic_json
     that are out of range will yield over/underflow when used in a
     constructor. During deserialization, too large or small integer numbers
     will be automatically be stored as @ref number_unsigned_t or @ref
-    number_float_type.
+    number_float_t.
 
     [RFC 7159](http://rfc7159.net/rfc7159) further states:
     > Note that when such software is used, numbers that are integers and are
@@ -7787,7 +7776,7 @@ class basic_json
 
     Integer number values are stored directly inside a @ref basic_json type.
 
-    @sa @ref number_float_type -- type for number values (floating-point)
+    @sa @ref number_float_t -- type for number values (floating-point)
 
     @sa @ref number_unsigned_t -- type for number values (unsigned integer)
 
@@ -7811,7 +7800,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_type are used.
+    number_unsigned_t and @ref number_float_t are used.
 
     To store unsigned integer numbers in C++, a type is defined by the
     template parameter @a NumberUnsignedType which chooses the type to use.
@@ -7844,7 +7833,7 @@ class basic_json
     number that can be stored is `0`. Integer numbers that are out of range
     will yield over/underflow when used in a constructor. During
     deserialization, too large or small integer numbers will be automatically
-    be stored as @ref number_integer_t or @ref number_float_type.
+    be stored as @ref number_integer_t or @ref number_float_t.
 
     [RFC 7159](http://rfc7159.net/rfc7159) further states:
     > Note that when such software is used, numbers that are integers and are
@@ -7859,7 +7848,7 @@ class basic_json
 
     Integer number values are stored directly inside a @ref basic_json type.
 
-    @sa @ref number_float_type -- type for number values (floating-point)
+    @sa @ref number_float_t -- type for number values (floating-point)
     @sa @ref number_integer_t -- type for number values (integer)
 
     @since version 2.0.0
@@ -7882,7 +7871,7 @@ class basic_json
     However, C++ allows more precise storage if it is known whether the number
     is a signed integer, an unsigned integer or a floating-point number.
     Therefore, three different types, @ref number_integer_t, @ref
-    number_unsigned_t and @ref number_float_type are used.
+    number_unsigned_t and @ref number_float_t are used.
 
     To store floating-point numbers in C++, a type is defined by the template
     parameter @a NumberFloatType which chooses the type to use.
@@ -7890,7 +7879,7 @@ class basic_json
     #### Default type
 
     With the default values for @a NumberFloatType (`double`), the default
-    value for @a number_float_type is:
+    value for @a number_float_t is:
 
     @code {.cpp}
     double
@@ -7932,7 +7921,7 @@ class basic_json
 
     @since version 1.0.0
     */
-    using number_float_type = NumberFloatType;
+    using number_float_t = NumberFloatType;
 
     /// @}
 
@@ -7972,7 +7961,7 @@ class basic_json
     boolean   | boolean         | @ref boolean_t
     number    | number_integer  | @ref number_integer_t
     number    | number_unsigned | @ref number_unsigned_t
-    number    | number_float    | @ref number_float_type
+    number    | number_float    | @ref number_float_t
     null      | null            | *no value is stored*
 
     @note Variable-length types (objects, arrays, and strings) are stored as
@@ -7996,7 +7985,7 @@ class basic_json
         /// number (unsigned integer)
         number_unsigned_t number_unsigned;
         /// number (floating-point)
-        number_float_type number_float;
+        number_float_t number_float;
 
         /// default constructor (for null values)
         json_value() = default;
@@ -8007,7 +7996,7 @@ class basic_json
         /// constructor for numbers (unsigned)
         json_value(number_unsigned_t v) noexcept : number_unsigned(v) {}
         /// constructor for numbers (floating-point)
-        json_value(number_float_type v) noexcept : number_float(v) {}
+        json_value(number_float_t v) noexcept : number_float(v) {}
         /// constructor for empty values of a given type
         json_value(value_t t)
         {
@@ -8051,7 +8040,7 @@ class basic_json
 
                 case value_t::number_float:
                 {
-                    number_float = number_float_type(0.0);
+                    number_float = number_float_t(0.0);
                     break;
                 }
 
@@ -8170,13 +8159,11 @@ class basic_json
     @brief per-element parser callback type
 
     With a parser callback function, the result of parsing a JSON text can be
-    influenced. When passed to @ref parse(std::istream&, const
-    parser_callback_t) or @ref parse(const CharT, const parser_callback_t),
-    it is called on certain events (passed as @ref parse_event_t via parameter
-    @a event) with a set recursion depth @a depth and context JSON value
-    @a parsed. The return value of the callback function is a boolean
-    indicating whether the element that emitted the callback shall be kept or
-    not.
+    influenced. When passed to @ref parse, it is called on certain events
+    (passed as @ref parse_event_t via parameter @a event) with a set recursion
+    depth @a depth and context JSON value @a parsed. The return value of the
+    callback function is a boolean indicating whether the element that emitted
+    the callback shall be kept or not.
 
     We distinguish six scenarios (determined by the event type) in which the
     callback function can be called. The following table describes the values
@@ -8213,8 +8200,7 @@ class basic_json
     should be kept (`true`) or not (`false`). In the latter case, it is either
     skipped completely or replaced by an empty discarded object.
 
-    @sa @ref parse(std::istream&, parser_callback_t) or
-    @ref parse(const CharT, const parser_callback_t) for examples
+    @sa @ref parse for examples
 
     @since version 1.0.0
     */
@@ -8312,7 +8298,7 @@ class basic_json
     - **strings**: @ref string_t, string literals, and all compatible string
       containers can be used.
     - **numbers**: @ref number_integer_t, @ref number_unsigned_t,
-      @ref number_float_type, and all convertible number types such as `int`,
+      @ref number_float_t, and all convertible number types such as `int`,
       `size_t`, `int64_t`, `float` or `double` can be used.
     - **boolean**: @ref boolean_t / `bool` can be used.
 
@@ -9465,13 +9451,13 @@ class basic_json
     }
 
     /// get a pointer to the value (floating-point number)
-    number_float_type* get_impl_ptr(number_float_type* /*unused*/) noexcept
+    number_float_t* get_impl_ptr(number_float_t* /*unused*/) noexcept
     {
         return is_number_float() ? &m_value.number_float : nullptr;
     }
 
     /// get a pointer to the value (floating-point number)
-    constexpr const number_float_type* get_impl_ptr(const number_float_type* /*unused*/) const noexcept
+    constexpr const number_float_t* get_impl_ptr(const number_float_t* /*unused*/) const noexcept
     {
         return is_number_float() ? &m_value.number_float : nullptr;
     }
@@ -9649,7 +9635,7 @@ class basic_json
 
     @tparam PointerType pointer type; must be a pointer to @ref array_t, @ref
     object_t, @ref string_t, @ref boolean_t, @ref number_integer_t,
-    @ref number_unsigned_t, or @ref number_float_type.
+    @ref number_unsigned_t, or @ref number_float_t.
 
     @return pointer to the internally stored JSON value if the requested
     pointer type @a PointerType fits to the JSON value; `nullptr` otherwise
@@ -9696,7 +9682,7 @@ class basic_json
 
     @tparam PointerType pointer type; must be a pointer to @ref array_t, @ref
     object_t, @ref string_t, @ref boolean_t, @ref number_integer_t,
-    @ref number_unsigned_t, or @ref number_float_type. Enforced by a static
+    @ref number_unsigned_t, or @ref number_float_t. Enforced by a static
     assertion.
 
     @return pointer to the internally stored JSON value if the requested
@@ -9727,7 +9713,7 @@ class basic_json
             or std::is_same<boolean_t, pointee_t>::value
             or std::is_same<number_integer_t, pointee_t>::value
             or std::is_same<number_unsigned_t, pointee_t>::value
-            or std::is_same<number_float_type, pointee_t>::value
+            or std::is_same<number_float_t, pointee_t>::value
             , "incompatible pointer type");
 
         // delegate the call to get_impl_ptr<>()
@@ -9755,11 +9741,11 @@ class basic_json
             or std::is_same<boolean_t, pointee_t>::value
             or std::is_same<number_integer_t, pointee_t>::value
             or std::is_same<number_unsigned_t, pointee_t>::value
-            or std::is_same<number_float_type, pointee_t>::value
+            or std::is_same<number_float_t, pointee_t>::value
             , "incompatible pointer type");
 
         // delegate the call to get_impl_ptr<>() const
-        return get_impl_ptr(static_cast<const PointerType>(nullptr));
+        return get_impl_ptr(static_cast<PointerType>(nullptr));
     }
 
     /*!
@@ -9773,7 +9759,7 @@ class basic_json
 
     @tparam ReferenceType reference type; must be a reference to @ref array_t,
     @ref object_t, @ref string_t, @ref boolean_t, @ref number_integer_t, or
-    @ref number_float_type. Enforced by static assertion.
+    @ref number_float_t. Enforced by static assertion.
 
     @return reference to the internally stored JSON value if the requested
     reference type @a ReferenceType fits to the JSON value; throws
@@ -9845,7 +9831,7 @@ class basic_json
 #ifndef _MSC_VER  // fix for issue #167 operator<< ambiguity under VS2015
                    and not std::is_same<ValueType, std::initializer_list<typename string_t::value_type>>::value
 #endif
-#if (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_MSC_VER) && _MSC_VER >1900 && defined(_HAS_CXX17) && _HAS_CXX17 == 1) // fix for issue #464
+#if defined(JSON_HAS_CPP_17)
                    and not std::is_same<ValueType, typename std::string_view>::value
 #endif
                    , int >::type = 0 >
@@ -10871,7 +10857,7 @@ class basic_json
     @note This method always returns @ref end() when executed on a JSON type
           that is not an object.
 
-    @param[in] key key value of the element to search for
+    @param[in] key key value of the element to search for.
 
     @return Iterator to an element with key equivalent to @a key. If no such
     element is found or the JSON value is not an object, past-the-end (see
@@ -10883,13 +10869,14 @@ class basic_json
 
     @since version 1.0.0
     */
-    iterator find(typename object_t::key_type key)
+    template<typename KeyT>
+    iterator find(KeyT&& key)
     {
         auto result = end();
 
         if (is_object())
         {
-            result.m_it.object_iterator = m_value.object->find(key);
+            result.m_it.object_iterator = m_value.object->find(std::forward<KeyT>(key));
         }
 
         return result;
@@ -10897,15 +10884,16 @@ class basic_json
 
     /*!
     @brief find an element in a JSON object
-    @copydoc find(typename object_t::key_type)
+    @copydoc find(KeyT&&)
     */
-    const_iterator find(typename object_t::key_type key) const
+    template<typename KeyT>
+    const_iterator find(KeyT&& key) const
     {
         auto result = cend();
 
         if (is_object())
         {
-            result.m_it.object_iterator = m_value.object->find(key);
+            result.m_it.object_iterator = m_value.object->find(std::forward<KeyT>(key));
         }
 
         return result;
@@ -10932,10 +10920,11 @@ class basic_json
 
     @since version 1.0.0
     */
-    size_type count(typename object_t::key_type key) const
+    template<typename KeyT>
+    size_type count(KeyT&& key) const
     {
         // return 0 for all nonobject types
-        return is_object() ? m_value.object->count(key) : 0;
+        return is_object() ? m_value.object->count(std::forward<KeyT>(key)) : 0;
     }
 
     /// @}
@@ -11988,7 +11977,7 @@ class basic_json
             JSON_THROW(invalid_iterator::create(210, "iterators do not fit"));
         }
 
-        if (JSON_UNLIKELY(first.m_object == this or last.m_object == this))
+        if (JSON_UNLIKELY(first.m_object == this))
         {
             JSON_THROW(invalid_iterator::create(211, "passed iterators may not belong to container"));
         }
@@ -12084,8 +12073,7 @@ class basic_json
         }
 
         // passed iterators must belong to objects
-        if (JSON_UNLIKELY(not first.m_object->is_object()
-                          or not last.m_object->is_object()))
+        if (JSON_UNLIKELY(not first.m_object->is_object()))
         {
             JSON_THROW(invalid_iterator::create(202, "iterators first and last must point to objects"));
         }
@@ -12347,7 +12335,7 @@ class basic_json
     - Two JSON null values are equal.
 
     @note Floating-point inside JSON values numbers are compared with
-    `json::number_float_type::operator==` which is `double::operator==` by
+    `json::number_float_t::operator==` which is `double::operator==` by
     default. To compare floating-point while respecting an epsilon, an alternative
     [comparison function](https://github.com/mariokonrad/marnav/blob/master/src/marnav/math/floatingpoint.hpp#L34-#L39)
     could be used, for instance
@@ -12413,19 +12401,19 @@ class basic_json
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_float)
         {
-            return (static_cast<number_float_type>(lhs.m_value.number_integer) == rhs.m_value.number_float);
+            return (static_cast<number_float_t>(lhs.m_value.number_integer) == rhs.m_value.number_float);
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_integer)
         {
-            return (lhs.m_value.number_float == static_cast<number_float_type>(rhs.m_value.number_integer));
+            return (lhs.m_value.number_float == static_cast<number_float_t>(rhs.m_value.number_integer));
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_float)
         {
-            return (static_cast<number_float_type>(lhs.m_value.number_unsigned) == rhs.m_value.number_float);
+            return (static_cast<number_float_t>(lhs.m_value.number_unsigned) == rhs.m_value.number_float);
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_unsigned)
         {
-            return (lhs.m_value.number_float == static_cast<number_float_type>(rhs.m_value.number_unsigned));
+            return (lhs.m_value.number_float == static_cast<number_float_t>(rhs.m_value.number_unsigned));
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_integer)
         {
@@ -12571,19 +12559,19 @@ class basic_json
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_float)
         {
-            return static_cast<number_float_type>(lhs.m_value.number_integer) < rhs.m_value.number_float;
+            return static_cast<number_float_t>(lhs.m_value.number_integer) < rhs.m_value.number_float;
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_integer)
         {
-            return lhs.m_value.number_float < static_cast<number_float_type>(rhs.m_value.number_integer);
+            return lhs.m_value.number_float < static_cast<number_float_t>(rhs.m_value.number_integer);
         }
         else if (lhs_type == value_t::number_unsigned and rhs_type == value_t::number_float)
         {
-            return static_cast<number_float_type>(lhs.m_value.number_unsigned) < rhs.m_value.number_float;
+            return static_cast<number_float_t>(lhs.m_value.number_unsigned) < rhs.m_value.number_float;
         }
         else if (lhs_type == value_t::number_float and rhs_type == value_t::number_unsigned)
         {
-            return lhs.m_value.number_float < static_cast<number_float_type>(rhs.m_value.number_unsigned);
+            return lhs.m_value.number_float < static_cast<number_float_t>(rhs.m_value.number_unsigned);
         }
         else if (lhs_type == value_t::number_integer and rhs_type == value_t::number_unsigned)
         {
@@ -12818,6 +12806,7 @@ class basic_json
                 future version of the library. Please use
                 @ref operator<<(std::ostream&, const basic_json&)
                 instead; that is, replace calls like `j >> o;` with `o << j;`.
+    @since version 1.0.0; deprecated since version 3.0.0
     */
     JSON_DEPRECATED
     friend std::ostream& operator>>(const basic_json& j, std::ostream& o)
@@ -12955,6 +12944,8 @@ class basic_json
     @param[in] cb  a parser callback function of type @ref parser_callback_t
     which is used to control the deserialization by filtering unwanted values
     (optional)
+    @param[in] allow_exceptions  whether to throw exceptions in case of a
+    parse error (optional, true by default)
 
     @return result of the deserialization
 
@@ -13001,6 +12992,7 @@ class basic_json
                 future version of the library. Please use
                 @ref operator>>(std::istream&, basic_json&)
                 instead; that is, replace calls like `j << i;` with `i >> j;`.
+    @since version 1.0.0; deprecated since version 3.0.0
     */
     JSON_DEPRECATED
     friend std::istream& operator<<(basic_json& j, std::istream& i)

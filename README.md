@@ -252,4 +252,4 @@ License
 -------
 Distributed under the MIT License.
 (See accompanying file [`LICENSE`](https://github.com/Dobiasd/frugally-deep/blob/master/LICENSE) or at
-[https://opensource.org/licenses/MIT))
+[https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT))

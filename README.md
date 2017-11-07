@@ -243,30 +243,13 @@ From then on everything is handled as a float32 tensor with rank 3. Dense layers
 A frugally-deep model is thread-safe, i.e. you can call `model.predict` on the same model from different threads simultaneously. This way you may utilize as many CPU cores as you have predictions to make.
 
 
-todo
-----
+Disclaimer
+----------
+The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](https://github.com/Dobiasd/frugally-deep/issues). Of course, [contributions](https://github.com/Dobiasd/frugally-deep/pulls) are also very welcome.
 
-release:
-- re-enable logo
-- github project description: Header-only library to use Keras models in C++.
-- add github project tags
-- post on
- - https://www.reddit.com/r/deeplearning/
- - https://www.reddit.com/r/cpp/
- - https://www.reddit.com/r/programming/
- - https://www.reddit.com/r/KerasML/
- - https://www.reddit.com/r/MachineLearning/
 
-empty node-result cache when possible to save RAM?
-
-use faster GEMM to make im2col worthwhile
-
-reduce memory usage during model conversion (decode floats)
-
-reduce memory usage during model loading
-
-implement Conv2DTranspose as soon as output shape bug is fixed: https://github.com/fchollet/keras/issues/6777
-
-add tests for Conv2DTranspose with dilation when it actually supports it: https://github.com/fchollet/keras/issues/8159
-
-add tests for SeparableConv2D with dilation when it actually supports it: https://github.com/fchollet/keras/issues/8146
+License
+-------
+Distributed under the MIT License.
+(See accompanying file [`LICENSE`](https://github.com/Dobiasd/frugally-deep/blob/master/LICENSE) or at
+[https://opensource.org/licenses/MIT))

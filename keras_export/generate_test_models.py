@@ -141,6 +141,9 @@ def get_test_model_full():
                         outputs.append(
                             Conv2D(out_channels, (h, 1), padding=padding,
                                    dilation_rate=(d, 1))(inp))
+                        outputs.append(
+                            SeparableConv2D(out_channels, (h, 1), padding=padding,
+                                   dilation_rate=(d, 1))(inp))
                     for sy in range(1, 4):
                         outputs.append(
                             Conv2D(out_channels, (h, 1), strides=(1, sy),
@@ -158,6 +161,9 @@ def get_test_model_full():
                     for d in range(1, 4) if sy == 1 else [1]:
                         outputs.append(
                             Conv2D(out_channels, (1, w), padding=padding,
+                                   dilation_rate=(1, d))(inp))
+                        outputs.append(
+                            SeparableConv2D(out_channels, (1, w), padding=padding,
                                    dilation_rate=(1, d))(inp))
                     for sx in range(1, 4):
                         outputs.append(

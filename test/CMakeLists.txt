@@ -56,21 +56,32 @@ _add_test(test_model_full_test)
 endif()
 _add_test(readme_example_main)
 
+if(NOT DEFINED ENV{TRAVIS})
 add_custom_target(unittest
     DEPENDS test_model_small.json
     DEPENDS test_model_sequential.json
-    if(NOT DEFINED ENV{TRAVIS})
     DEPENDS test_model_full.json
-    endif()
     DEPENDS readme_example_model.json
 
     COMMAND test_model_small_test
     COMMAND test_model_sequential_test
-if(NOT DEFINED ENV{TRAVIS})
     COMMAND test_model_full_test
-endif()
     COMMAND readme_example_main
 
     COMMENT "Running unittests\n\n"
     VERBATIM
 )
+else()
+add_custom_target(unittest
+    DEPENDS test_model_small.json
+    DEPENDS test_model_sequential.json
+    DEPENDS readme_example_model.json
+
+    COMMAND test_model_small_test
+    COMMAND test_model_sequential_test
+    COMMAND readme_example_main
+
+    COMMENT "Running unittests\n\n"
+    VERBATIM
+)
+endif()

@@ -371,7 +371,7 @@ inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
         value_ptr, value_ptr + height * width * channels);
     auto values = fplus::transform([low, high](std::uint8_t b) -> internal::float_type
     {
-        return fplus::into_interval(low, high, 0.0f, 255.0f,
+        return fplus::reference_interval(low, high, 0.0f, 255.0f,
             static_cast<internal::float_type>(b));
     }, bytes);
     return internal::depth_last_to_depth_first(
@@ -394,7 +394,7 @@ inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
     {
         return static_cast<std::uint8_t>(
             fplus::clamp<internal::float_type>(0, 255,
-                fplus::into_interval(0.0f, 255.0f, low, high, v)));
+                fplus::reference_interval(0.0f, 255.0f, low, high, v)));
     }, *values);
     for (std::size_t i = 0; i < values->size(); ++i)
     {

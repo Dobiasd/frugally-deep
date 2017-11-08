@@ -199,7 +199,7 @@ Duration of a single forward pass
 
 *measured using GCC -O3
  and run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz
- Keras Version 2.0.8, TensorFlow 1.3.0 (default pip3 binaries)
+ Keras Version 2.0.9, TensorFlow 1.4.0
 ```
 
 However frugally-deeps offers other beneficial properties like low RAM usage, small library size and ease of use regarding Keras import and integration. GPU usage is not supported.

@@ -8,9 +8,11 @@ add_custom_command ( OUTPUT test_model_sequential.h5
                      COMMAND bash -c "python3 ../keras_export/generate_test_models.py sequential test_model_sequential.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+if(NOT DEFINED ENV{TRAVIS}) # Do not use full model on travis since it takes too long.
 add_custom_command ( OUTPUT test_model_full.h5
                      COMMAND bash -c "python3 ../keras_export/generate_test_models.py full test_model_full.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+endif()
 
 add_custom_command ( OUTPUT readme_example_model.h5
                      COMMAND bash -c "python3 ../test/readme_example_generate.py"
@@ -26,10 +28,12 @@ add_custom_command ( OUTPUT test_model_sequential.json
                      COMMAND bash -c "python3 ../keras_export/convert_model.py test_model_sequential.h5 test_model_sequential.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+if(NOT DEFINED ENV{TRAVIS})
 add_custom_command ( OUTPUT test_model_full.json
                      DEPENDS test_model_full.h5
                      COMMAND bash -c "python3 ../keras_export/convert_model.py test_model_full.h5 test_model_full.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+endif()
 
 add_custom_command ( OUTPUT readme_example_model.json
                      DEPENDS readme_example_model.h5
@@ -47,18 +51,24 @@ endmacro()
 
 _add_test(test_model_small_test)
 _add_test(test_model_sequential_test)
+if(NOT DEFINED ENV{TRAVIS})
 _add_test(test_model_full_test)
+endif()
 _add_test(readme_example_main)
 
 add_custom_target(unittest
     DEPENDS test_model_small.json
     DEPENDS test_model_sequential.json
+    if(NOT DEFINED ENV{TRAVIS})
     DEPENDS test_model_full.json
+    endif()
     DEPENDS readme_example_model.json
 
     COMMAND test_model_small_test
     COMMAND test_model_sequential_test
+if(NOT DEFINED ENV{TRAVIS})
     COMMAND test_model_full_test
+endif()
     COMMAND readme_example_main
 
     COMMENT "Running unittests\n\n"

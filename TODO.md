@@ -1,7 +1,6 @@
 # todo
 
 post on:
- - https://www.reddit.com/r/deeplearning/
  - https://www.reddit.com/r/cpp/
  - https://www.reddit.com/r/programming/
  - https://www.reddit.com/r/KerasML/

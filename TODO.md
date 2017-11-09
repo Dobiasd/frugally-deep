@@ -3,7 +3,6 @@
 post on:
  - https://www.reddit.com/r/cpp/
  - https://www.reddit.com/r/programming/
- - https://www.reddit.com/r/KerasML/
  - https://www.reddit.com/r/MachineLearning/
 
 empty node-result cache when possible to save RAM?

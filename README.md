@@ -1,6 +1,4 @@
-# THIS IS ALL UNFINISHED WORK IN PROGRESS. Please do not try to use it (yet). ;-)
-
-![logo](logo/fdeep.png.hidden)
+![logo](logo/fdeep.png)
 
 [![Build Status](https://travis-ci.org/Dobiasd/frugally-deep.svg?branch=master)][travis]
 [![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]

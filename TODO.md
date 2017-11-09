@@ -1,10 +1,6 @@
 # todo
 
-release:
-- re-enable logo
-- github project description: Header-only library to use Keras models in C++.
-- add github project tags
-- post on
+post on:
  - https://www.reddit.com/r/deeplearning/
  - https://www.reddit.com/r/cpp/
  - https://www.reddit.com/r/programming/

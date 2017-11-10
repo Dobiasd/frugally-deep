@@ -86,7 +86,7 @@ inline model load_model(const std::string& path,
     {
         if (logger)
         {
-            logger(" done. elapsed time: " +
+            logger("done. elapsed time: " +
                 fplus::show_float(0, 6, stopwatch.elapsed()) + " s\n");
         }
         stopwatch.reset();

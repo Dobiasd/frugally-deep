@@ -240,6 +240,8 @@ From then on everything is handled as a float32 tensor with rank 3. Dense layers
 
 A frugally-deep model is thread-safe, i.e. you can call `model.predict` on the same model from different threads simultaneously. This way you may utilize as many CPU cores as you have predictions to make.
 
+Convolution is done using im2col per default. You can disable it in the call of `model.predict` in case it is not suited for you application, e.g. due to tight memory constraints.
+
 
 Disclaimer
 ----------

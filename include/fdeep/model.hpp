@@ -52,38 +52,42 @@ private:
     internal::layer_ptr model_layer_;
 };
 
+inline void cout_logger(const std::string& str)
+{
+    std::cout << str << std::flush;
+}
+
 // Throws an exception if a problem occurs.
 inline model load_model(const std::string& path,
     bool verify = true,
-    bool verbose = true,
-    float_type test_epsilon = static_cast<float_type>(0.00001))
+    const std::function<void(std::string)>& logger = cout_logger,
+    float_type verify_epsilon = static_cast<float_type>(0.00001))
 {
-    const auto log = [verbose](const std::string& msg)
+    const auto log = [&logger](const std::string& msg)
     {
-        if (verbose)
+        if (logger)
         {
-            std::cout << msg << std::endl;
+            logger(msg + "\n");
         }
     };
 
-    internal::timer stopwatch;
+    fplus::stopwatch stopwatch;
 
-    const auto log_sol = [&stopwatch, verbose](const std::string& msg)
+    const auto log_sol = [&stopwatch, &logger](const std::string& msg)
     {
         stopwatch.reset();
-        if (verbose)
+        if (logger)
         {
-            std::cout << msg << " ... " << std::flush;
+            logger(msg + " ... ");
         }
     };
 
-    const auto log_duration = [&stopwatch, verbose]()
+    const auto log_duration = [&stopwatch, &logger]()
     {
-        if (verbose)
+        if (logger)
         {
-            std::cout << " done. elapsed time: " <<
-                fplus::show_float(0, 6, stopwatch.elapsed()) << " s" <<
-                std::endl;
+            logger("done. elapsed time: " +
+                fplus::show_float(0, 6, stopwatch.elapsed()) + " s\n");
         }
         stopwatch.reset();
     };
@@ -139,7 +143,7 @@ inline model load_model(const std::string& path,
                 const auto output_im2col =
                     full_model.predict(tests[i].input_, true);
                 log_duration();
-                check_test_outputs(test_epsilon,
+                check_test_outputs(verify_epsilon,
                     output_im2col, tests[i].output_);
 
                 log_sol("Running test (no im2col) " + fplus::show(i + 1) +
@@ -147,7 +151,7 @@ inline model load_model(const std::string& path,
                 const auto output_no_im2col =
                 full_model.predict(tests[i].input_, false);
                 log_duration();
-                check_test_outputs(test_epsilon,
+                check_test_outputs(verify_epsilon,
                     output_no_im2col, tests[i].output_);
             }
         }

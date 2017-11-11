@@ -608,31 +608,21 @@ inline void check_test_outputs(float_type epsilon,
                     if (!fplus::is_in_closed_interval_around(epsilon,
                         target.get(z, y, x), output.get(z, y, x)))
                     {
-                        std::cerr << "Test error value: " <<
-                            z << "," << y << "," << x << " " <<
-                            target.get(z, y, x) << " "
-                            << output.get(z, y, x) << std::endl;
-                        internal::assertion(false, "test failed");
+                        const std::string msg =
+                            std::string("test failed: ") +
+                            "output=" + fplus::show(i) + " " +
+                            "pos=" +
+                            fplus::show(z) + "," +
+                            fplus::show(y) + "," +
+                            fplus::show(x) + " " +
+                            "value=" + fplus::show(output.get(z, y, x)) + " "
+                            "target=" + fplus::show(target.get(z, y, x));
+                        internal::assertion(false, msg);
                     }
                 }
             }
         }
     }
 }
-
-class timer
-{
-public:
-    timer() : beg_(clock::now()) {}
-    void reset() { beg_ = clock::now(); }
-    double elapsed() const {
-        return std::chrono::duration_cast<second>
-            (clock::now() - beg_).count(); }
-private:
-    typedef std::chrono::high_resolution_clock clock;
-    typedef std::chrono::duration<double,
-        std::ratio<1>> second;
-    std::chrono::time_point<clock> beg_;
-};
 
 } } // namespace fdeep, namespace internal

@@ -9,7 +9,7 @@
 
 frugally-deep
 =============
-**Use Keras models in C++ with this small header-only library.**
+**Use Keras models in C++ with ease**
 
 
 Table of contents

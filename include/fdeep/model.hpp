@@ -15,27 +15,29 @@ namespace fdeep
 class model
 {
 public:
-    model(const internal::layer_ptr& model_layer,
-    const std::vector<shape3>& input_shapes,
-    const std::vector<shape3>& output_shapes) :
-        input_shapes_(input_shapes),
-        output_shapes_(output_shapes),
-        model_layer_(model_layer) {}
-
     // im2col is faster on most architectures but uses more RAM.
     tensor3s predict(const tensor3s& inputs, bool use_im2col = true) const
     {
-        return model_layer_->apply(use_im2col, inputs);
+        const auto outputs = model_layer_->apply(use_im2col, inputs);
+        internal::assertion(
+            fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3), outputs)
+            == get_output_shapes(), "invalid outputs shape");
+        return outputs;
     }
+
+    // Convenience wrapper around predict for models with
+    // single tensor outputs of shape (1, 1, z).
+    // Returns the index of the output neuron with the maximum actication.
     std::size_t predict_class(const tensor3s& inputs,
         bool use_im2col = true) const
     {
-        const tensor3s outputs = model_layer_->apply(use_im2col, inputs);
-        internal::assertion(outputs.size() == 1, "invalid number of outputs");
-        const tensor3 output = outputs.front();
-        internal::assertion(output.shape().without_depth().area() == 1,
+        internal::assertion(get_output_shapes().size() == 1,
+            "invalid number of outputs");
+        const auto output_shape = get_output_shapes().front();
+        internal::assertion(output_shape.without_depth().area() == 1,
             "invalid output shape");
-        return internal::tensor3_max_pos(output).z_;
+        const tensor3s outputs = predict(inputs, use_im2col);
+        return internal::tensor3_max_pos(outputs.front()).z_;
 
     }
     const std::vector<shape3>& get_input_shapes() const
@@ -46,7 +48,34 @@ public:
     {
         return output_shapes_;
     }
+
+    // Returns zero-filled tensors with the models input shapes.
+    tensor3s generate_dummy_inputs() const
+    {
+        return fplus::transform([](const shape3& shape) -> tensor3
+        {
+            return tensor3(shape, 0);
+        }, get_input_shapes());
+    }
+    double test_speed(bool use_im2col = true) const
+    {
+        const auto inputs = generate_dummy_inputs();
+        fplus::stopwatch stopwatch;
+        predict(inputs, use_im2col);
+        return stopwatch.elapsed();
+    }
+
 private:
+    model(const internal::layer_ptr& model_layer,
+        const std::vector<shape3>& input_shapes,
+        const std::vector<shape3>& output_shapes) :
+            input_shapes_(input_shapes),
+            output_shapes_(output_shapes),
+            model_layer_(model_layer) {}
+
+    friend model load_model(const std::string&, bool,
+        const std::function<void(std::string)>&, float_type);
+
     std::vector<shape3> input_shapes_;
     std::vector<shape3> output_shapes_;
     internal::layer_ptr model_layer_;

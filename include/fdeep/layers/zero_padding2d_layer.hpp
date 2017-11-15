@@ -11,7 +11,6 @@
 namespace fdeep { namespace internal
 {
 
-// Converts a volume into single column volume (shape3(n, 1, 1)).
 class zero_padding2d_layer : public layer
 {
 public:

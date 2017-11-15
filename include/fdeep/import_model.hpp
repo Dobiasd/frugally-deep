@@ -58,6 +58,13 @@ inline shape2 create_shape2(const nlohmann::json& data)
     return shape2(0, 0);
 }
 
+inline std::size_t create_size_t(const nlohmann::json& int_data)
+{
+    const int val = int_data;
+    assertion(val >= 0, "invalid size_t value");
+    return static_cast<std::size_t>(val);
+}
+
 inline float_vec decode_floats(const nlohmann::json& data)
 {
     assertion(data.is_array() || data.is_string(),
@@ -109,8 +116,8 @@ inline node_connection create_node_connection(const nlohmann::json& data)
 {
     assertion(data.is_array(), "invalid format for inbound node");
     const std::string layer_id = data.front();
-    const std::size_t node_idx = data[1];
-    const std::size_t tensor_idx = data[2];
+    const auto node_idx = create_size_t(data[1]);
+    const auto tensor_idx = create_size_t(data[2]);
     return node_connection(layer_id, node_idx, tensor_idx);
 }
 
@@ -170,7 +177,7 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
     const shape2 strides = create_shape2(data["config"]["strides"]);
     const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
-    const std::size_t filter_count = data["config"]["filters"];
+    const auto filter_count = create_size_t(data["config"]["filters"]);
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
@@ -206,7 +213,8 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
 {
     const std::string name = data["name"];
 
-    const std::size_t depth_multiplier = data["config"]["depth_multiplier"];
+    const auto depth_multiplier = create_size_t(
+        data["config"]["depth_multiplier"]);
     assertion(depth_multiplier == 1, "invalid depth_multiplier");
 
     const std::string padding_str = data["config"]["padding"];
@@ -215,7 +223,7 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
     const shape2 strides = create_shape2(data["config"]["strides"]);
     const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
-    const std::size_t filter_count = data["config"]["filters"];
+    const auto filter_count = create_size_t(data["config"]["filters"]);
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
@@ -407,12 +415,6 @@ inline layer_ptr create_zero_padding2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
-    const auto create_size_t = [](const nlohmann::json& int_data) -> std::size_t
-    {
-        const int val = int_data;
-        assertion(val >= 0, "invalid size_t value");
-        return static_cast<std::size_t>(val);
-    };
     const auto padding =
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
             create_vector<std::size_t, decltype(create_size_t)>, create_size_t),

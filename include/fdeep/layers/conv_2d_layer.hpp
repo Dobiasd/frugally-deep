@@ -20,10 +20,10 @@
 namespace fdeep { namespace internal
 {
 
-class conv2d_layer : public layer
+class conv_2d_layer : public layer
 {
 public:
-    explicit conv2d_layer(
+    explicit conv_2d_layer(
             const std::string& name, const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             bool padding_valid_offset_depth_1,

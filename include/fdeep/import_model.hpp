@@ -166,7 +166,7 @@ inline padding create_padding(const std::string& padding_str)
     }, padding_str));
 }
 
-inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
+inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
@@ -201,14 +201,14 @@ inline layer_ptr create_conv2d_layer(const get_param_f& get_param,
         get_global_param("conv2d_valid_offset_depth_2");
     const bool padding_same_uses_offset_depth_2 =
         get_global_param("conv2d_same_offset_depth_2");
-    return std::make_shared<conv2d_layer>(name,
+    return std::make_shared<conv_2d_layer>(name,
         filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
         padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         dilation_rate, weights, bias);
 }
 
-inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
+inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
@@ -254,7 +254,7 @@ inline layer_ptr create_separable_conv2D_layer(const get_param_f& get_param,
         get_global_param("separable_conv2d_valid_offset_depth_2");
     const bool padding_same_uses_offset_depth_2 =
         get_global_param("separable_conv2d_same_offset_depth_2");
-    return std::make_shared<separable_conv2d_layer>(name, input_depth,
+    return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
         padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
         padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
@@ -531,8 +531,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
                 const get_global_param_f&, const nlohmann::json&)>>
         creators = {
             {"Model", create_model_layer},
-            {"Conv2D", create_conv2d_layer},
-            {"SeparableConv2D", create_separable_conv2D_layer},
+            {"Conv2D", create_conv_2d_layer},
+            {"SeparableConv2D", create_separable_conv_2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},

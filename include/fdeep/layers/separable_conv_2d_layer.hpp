@@ -22,10 +22,10 @@ namespace fdeep { namespace internal
 
 // Convolve depth slices separately first.
 // Then convolve normally with kernel_size = (1, 1)
-class separable_conv2d_layer : public layer
+class separable_conv_2d_layer : public layer
 {
 public:
-    explicit separable_conv2d_layer(
+    explicit separable_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
             const shape3& filter_shape,
             std::size_t k, const shape2& strides, padding p,

@@ -35,7 +35,7 @@
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
-#include "fdeep/layers/pooling_layer.hpp"
+#include "fdeep/layers/pooling_2d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/selu_layer.hpp"

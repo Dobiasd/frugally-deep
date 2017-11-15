@@ -313,7 +313,7 @@ inline layer_ptr create_elu_layer(
     return std::make_shared<elu_layer>(name, alpha);
 }
 
-inline layer_ptr create_max_pooling2d_layer(
+inline layer_ptr create_max_pooling_2d_layer(
     const get_param_f&, const get_global_param_f& get_global_param,
     const nlohmann::json& data)
 {
@@ -332,7 +332,7 @@ inline layer_ptr create_max_pooling2d_layer(
         padding_same_uses_offset);
 }
 
-inline layer_ptr create_average_pooling2d_layer(
+inline layer_ptr create_average_pooling_2d_layer(
     const get_param_f&, const get_global_param_f& get_global_param,
     const nlohmann::json& data)
 {
@@ -351,26 +351,26 @@ inline layer_ptr create_average_pooling2d_layer(
         padding_same_uses_offset);
 }
 
-inline layer_ptr create_global_max_pooling2d_layer(
+inline layer_ptr create_global_max_pooling_2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<global_max_pooling_2d_layer>(name);
 }
 
-inline layer_ptr create_global_average_pooling2d_layer(
+inline layer_ptr create_global_average_pooling_2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     return std::make_shared<global_average_pooling_2d_layer>(name);
 }
 
-inline layer_ptr create_upsampling2d_layer(
+inline layer_ptr create_upsampling_2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
     const auto scale_factor = create_shape2(data["config"]["size"]);
-    return std::make_shared<upsampling2d_layer>(name, scale_factor);
+    return std::make_shared<upsampling_2d_layer>(name, scale_factor);
 }
 
 inline layer_ptr create_dense_layer(const get_param_f& get_param,
@@ -411,7 +411,7 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
-inline layer_ptr create_zero_padding2d_layer(
+inline layer_ptr create_zero_padding_2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
     const std::string name = data["name"];
@@ -426,7 +426,7 @@ inline layer_ptr create_zero_padding2d_layer(
     const std::size_t bottom_pad = padding[0][1];
     const std::size_t left_pad = padding[1][0];
     const std::size_t right_pad = padding[1][1];
-    return std::make_shared<zero_padding2d_layer>(name,
+    return std::make_shared<zero_padding_2d_layer>(name,
         top_pad, bottom_pad, left_pad, right_pad);
 }
 
@@ -538,16 +538,16 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Dropout", create_dropout_layer},
             {"LeakyReLU", create_leaky_relu_layer},
             {"ELU", create_elu_layer},
-            {"MaxPooling2D", create_max_pooling2d_layer},
-            {"AveragePooling2D", create_average_pooling2d_layer},
-            {"GlobalMaxPooling2D", create_global_max_pooling2d_layer},
-            {"GlobalAveragePooling2D", create_global_average_pooling2d_layer},
-            {"UpSampling2D", create_upsampling2d_layer},
+            {"MaxPooling2D", create_max_pooling_2d_layer},
+            {"AveragePooling2D", create_average_pooling_2d_layer},
+            {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},
+            {"GlobalAveragePooling2D", create_global_average_pooling_2d_layer},
+            {"UpSampling2D", create_upsampling_2d_layer},
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
             {"Concatenate", create_concatename_layer},
             {"Flatten", create_flatten_layer},
-            {"ZeroPadding2D", create_zero_padding2d_layer},
+            {"ZeroPadding2D", create_zero_padding_2d_layer},
             {"Activation", create_activation_layer_as_layer}
         };
 

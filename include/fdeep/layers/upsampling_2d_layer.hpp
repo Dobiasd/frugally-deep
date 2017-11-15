@@ -17,10 +17,10 @@
 namespace fdeep { namespace internal
 {
 
-class upsampling2d_layer : public layer
+class upsampling_2d_layer : public layer
 {
 public:
-    explicit upsampling2d_layer(const std::string& name,
+    explicit upsampling_2d_layer(const std::string& name,
         const shape2& scale_factor) :
     layer(name),
     scale_factor_(scale_factor)

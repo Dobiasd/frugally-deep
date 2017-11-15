@@ -6,16 +6,16 @@
 
 #pragma once
 
-#include "fdeep/layers/global_pooling_layer.hpp"
+#include "fdeep/layers/global_pooling_2d_layer.hpp"
 
 namespace fdeep { namespace internal
 {
 
-class global_max_pooling_2d_layer : public global_pooling_layer
+class global_max_pooling_2d_layer : public global_pooling_2d_layer
 {
 public:
     explicit global_max_pooling_2d_layer(const std::string& name) :
-    global_pooling_layer(name)
+    global_pooling_2d_layer(name)
     {
     }
 protected:

@@ -44,8 +44,8 @@
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
-#include "fdeep/layers/upsampling2d_layer.hpp"
-#include "fdeep/layers/zero_padding2d_layer.hpp"
+#include "fdeep/layers/upsampling_2d_layer.hpp"
+#include "fdeep/layers/zero_padding_2d_layer.hpp"
 
 #include "fdeep/import_model.hpp"
 

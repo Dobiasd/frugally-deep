@@ -6,20 +6,20 @@
 
 #pragma once
 
-#include "fdeep/layers/pooling_layer.hpp"
+#include "fdeep/layers/pooling_2d_layer.hpp"
 
 #include <limits>
 
 namespace fdeep { namespace internal
 {
 
-class max_pooling_2d_layer : public pooling_layer
+class max_pooling_2d_layer : public pooling_2d_layer
 {
 public:
     explicit max_pooling_2d_layer(const std::string& name,
         const shape2& pool_size, const shape2& strides, padding p,
         bool padding_valid_uses_offset, bool padding_same_uses_offset) :
-        pooling_layer(name, pool_size, strides, p,
+        pooling_2d_layer(name, pool_size, strides, p,
             padding_valid_uses_offset, padding_same_uses_offset)
     {
     }

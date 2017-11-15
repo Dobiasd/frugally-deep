@@ -11,10 +11,10 @@
 namespace fdeep { namespace internal
 {
 
-class zero_padding2d_layer : public layer
+class zero_padding_2d_layer : public layer
 {
 public:
-    explicit zero_padding2d_layer(const std::string& name,
+    explicit zero_padding_2d_layer(const std::string& name,
         std::size_t top_pad,
         std::size_t bottom_pad,
         std::size_t left_pad,

@@ -19,10 +19,10 @@ namespace fdeep { namespace internal
 {
 
 // Abstract base class for pooling layers
-class pooling_layer : public layer
+class pooling_2d_layer : public layer
 {
 public:
-    explicit pooling_layer(const std::string& name,
+    explicit pooling_2d_layer(const std::string& name,
         const shape2& pool_size, const shape2& strides, padding p,
         bool padding_valid_uses_offset, bool padding_same_uses_offset) :
         layer(name),

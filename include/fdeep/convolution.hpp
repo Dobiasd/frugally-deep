@@ -245,14 +245,14 @@ inline convolution_input_data preprocess_convolution(
         offset_x = ((in_width + pad_left + pad_right - filter_width) % strides_x) / 2;
     }
 
-    std::size_t out_height_size_t = static_cast<std::size_t>(out_height);
-    std::size_t out_width_size_t = static_cast<std::size_t>(out_width);
-    std::size_t offset_y_size_t = static_cast<std::size_t>(offset_y);
-    std::size_t offset_x_size_t = static_cast<std::size_t>(offset_x);
-    std::size_t pad_top_size_t = static_cast<std::size_t>(pad_top);
-    std::size_t pad_bottom_size_t = static_cast<std::size_t>(pad_bottom);
-    std::size_t pad_left_size_t = static_cast<std::size_t>(pad_left);
-    std::size_t pad_right_size_t = static_cast<std::size_t>(pad_right);
+    std::size_t out_height_size_t = fplus::integral_cast_throw<std::size_t>(out_height);
+    std::size_t out_width_size_t = fplus::integral_cast_throw<std::size_t>(out_width);
+    std::size_t offset_y_size_t = fplus::integral_cast_throw<std::size_t>(offset_y);
+    std::size_t offset_x_size_t = fplus::integral_cast_throw<std::size_t>(offset_x);
+    std::size_t pad_top_size_t = fplus::integral_cast_throw<std::size_t>(pad_top);
+    std::size_t pad_bottom_size_t = fplus::integral_cast_throw<std::size_t>(pad_bottom);
+    std::size_t pad_left_size_t = fplus::integral_cast_throw<std::size_t>(pad_left);
+    std::size_t pad_right_size_t = fplus::integral_cast_throw<std::size_t>(pad_right);
 
     const auto in_padded = pad_tensor3(padding_value,
         pad_top_size_t, pad_bottom_size_t, pad_left_size_t, pad_right_size_t,

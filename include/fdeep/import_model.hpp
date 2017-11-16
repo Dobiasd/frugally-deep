@@ -49,13 +49,20 @@ inline shape3 create_shape3(const nlohmann::json& data)
 
 inline shape2 create_shape2(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape2 needs to be an array");
-    if (data.size() == 1)
-        return shape2(0, data.front());
-    if (data.size() == 2)
-        return shape2(data.front(), data[1]);
-    raise_error("shape2 needs 1 or 2 dimensions");
-    return shape2(0, 0);
+    if (data.is_array())
+    {
+        assertion(data.size() == 1 || data.size() == 2,
+            "invalid number of dimensions in shape2");
+        if (data.size() == 1)
+            return shape2(1, data[0]);
+        else
+            return shape2(data[0], data[1]);
+    }
+    else
+    {
+        const std::size_t width = data;
+        return shape2(1, width);
+    }
 }
 
 inline std::size_t create_size_t(const nlohmann::json& int_data)
@@ -103,8 +110,10 @@ inline tensor3 create_tensor3(const nlohmann::json& data)
 template <typename T, typename F>
 std::vector<T> create_vector(F f, const nlohmann::json& data)
 {
-    assertion(data.is_array(), "data needs to be an array");
-    return fplus::transform_convert<std::vector<T>>(f, data);
+    if (data.is_array())
+        return fplus::transform_convert<std::vector<T>>(f, data);
+    else
+        return fplus::singleton_seq(f(data));
 }
 
 inline std::vector<shape3> create_shape3s(const nlohmann::json& data)
@@ -419,15 +428,28 @@ inline layer_ptr create_zero_padding_2d_layer(
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
             create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
             data["config"]["padding"]);
-    assertion(padding.size() == 2 &&
-        padding[0].size() == 2 && padding[1].size() == 2,
+
+    assertion(padding.size() == 2 && padding[0].size() == padding[1].size(),
         "invalid padding format");
-    const std::size_t top_pad = padding[0][0];
-    const std::size_t bottom_pad = padding[0][1];
-    const std::size_t left_pad = padding[1][0];
-    const std::size_t right_pad = padding[1][1];
-    return std::make_shared<zero_padding_2d_layer>(name,
-        top_pad, bottom_pad, left_pad, right_pad);
+
+    if (padding[0].size() == 1)
+    {
+        const std::size_t top_pad = 0;
+        const std::size_t bottom_pad = 0;
+        const std::size_t left_pad = padding[0][0];
+        const std::size_t right_pad = padding[1][0];
+        return std::make_shared<zero_padding_2d_layer>(name,
+            top_pad, bottom_pad, left_pad, right_pad);
+    }
+    else
+    {
+        const std::size_t top_pad = padding[0][0];
+        const std::size_t bottom_pad = padding[0][1];
+        const std::size_t left_pad = padding[1][0];
+        const std::size_t right_pad = padding[1][1];
+        return std::make_shared<zero_padding_2d_layer>(name,
+            top_pad, bottom_pad, left_pad, right_pad);
+    }
 }
 
 inline activation_layer_ptr create_linear_layer(const std::string& name)
@@ -531,22 +553,30 @@ inline layer_ptr create_layer(const get_param_f& get_param,
                 const get_global_param_f&, const nlohmann::json&)>>
         creators = {
             {"Model", create_model_layer},
+            {"Conv1D", create_conv_2d_layer},
             {"Conv2D", create_conv_2d_layer},
+            {"SeparableConv1D", create_separable_conv_2D_layer},
             {"SeparableConv2D", create_separable_conv_2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},
             {"LeakyReLU", create_leaky_relu_layer},
             {"ELU", create_elu_layer},
+            {"MaxPooling1D", create_max_pooling_2d_layer},
             {"MaxPooling2D", create_max_pooling_2d_layer},
+            {"AveragePooling1D", create_average_pooling_2d_layer},
             {"AveragePooling2D", create_average_pooling_2d_layer},
+            {"GlobalMaxPooling1D", create_global_max_pooling_2d_layer},
             {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},
+            {"GlobalAveragePooling1D", create_global_average_pooling_2d_layer},
             {"GlobalAveragePooling2D", create_global_average_pooling_2d_layer},
+            {"UpSampling1D", create_upsampling_2d_layer},
             {"UpSampling2D", create_upsampling_2d_layer},
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
             {"Concatenate", create_concatename_layer},
             {"Flatten", create_flatten_layer},
+            {"ZeroPadding1D", create_zero_padding_2d_layer},
             {"ZeroPadding2D", create_zero_padding_2d_layer},
             {"Activation", create_activation_layer_as_layer}
         };

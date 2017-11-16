@@ -9,10 +9,13 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
+from keras.layers import Conv1D, ZeroPadding1D
+from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import Input, Dense, Dropout, Flatten, Activation, Conv2D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import SeparableConv2D, ZeroPadding2D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -67,16 +70,16 @@ def generate_output_data(data_size, outputs):
 def get_test_model_small():
     """Returns a minimalistic test model."""
     input_shapes = [
-        (26, 28, 3),
-        (1, 1, 96)
+        (17, 4),
+        (16, 18, 3)
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
 
-    outputs.append(Conv2D(1, (3, 3), dilation_rate=(2, 2))(inputs[0]))
-    outputs.append(Dense(4, use_bias=False)(inputs[1]))
+    outputs.append(Conv1D(2, 3, padding='valid', dilation_rate=1)(inputs[0]))
+    outputs.append(Conv2D(2, (5, 7), padding='valid', dilation_rate=1)(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -128,10 +131,36 @@ def get_test_model_full():
         (4,),
         (2, 3),
         (27, 29, 1),
+        (17, 1),
+        (17, 4),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    for inp in inputs[6:8]:
+        for padding in ['valid', 'same']:
+            for s in range(1, 6):
+                for out_channels in [1, 2]:
+                    for d in range(1, 4):
+                        outputs.append(
+                            Conv1D(out_channels, s, padding=padding,
+                                   dilation_rate=d)(inp))
+        for padding_size in range(0, 5):
+            outputs.append(ZeroPadding1D(padding_size)(inp))
+        for upsampling_factor in range(1, 5):
+            outputs.append(UpSampling1D(upsampling_factor)(inp))
+        for padding in ['valid', 'same']:
+            for pool_factor in range(1, 6):
+                for s in range(1, 4):
+                    outputs.append(
+                        MaxPooling1D(pool_factor, strides=s,
+                                     padding=padding)(inp))
+                    outputs.append(
+                        AveragePooling1D(pool_factor, strides=s,
+                                         padding=padding)(inp))
+        outputs.append(GlobalMaxPooling1D()(inp))
+        outputs.append(GlobalAveragePooling1D()(inp))
 
     for inp in [inputs[0], inputs[5]]:
         for padding in ['valid', 'same']:

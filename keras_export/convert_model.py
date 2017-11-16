@@ -41,8 +41,7 @@ def arr_as_arr3(arr):
     if depth == 1:
         return arr.reshape(arr.shape[0], 1, 1)
     if depth == 2:
-        assert arr.shape[0] == 1
-        return arr.reshape(arr.shape[1], 1, 1)
+        return arr.reshape(arr.shape[1], 1, arr.shape[0])
     if depth == 3:
         return arr3_to_channels_first_format(arr)
     if depth == 4 and arr.shape[0] in [None, 1]:
@@ -103,18 +102,42 @@ def decode_floats(values):
     return list(split_every(1024, base64.b64encode(bs).decode('ascii')))
 
 
-def prepare_filter_weights(weights):
-    """Change dimension order of filter weights to the one used in fdeep"""
+def prepare_filter_weights_conv_2d(weights):
+    """Change dimension order of 2d filter weights to the one used in fdeep"""
     return np.swapaxes(np.swapaxes(np.swapaxes(
         weights, 0, 2), 1, 3), 0, 1).flatten().tolist()
 
 
-def show_conv2d_layer(layer):
-    """Serialize conv2d layer to dict"""
+def prepare_filter_weights_conv_1d(weights):
+    """Change dimension order of 1d filter weights to the one used in fdeep"""
+    return np.swapaxes(weights, 0, 2).flatten().tolist()
+
+
+def show_conv_1d_layer(layer):
+    """Serialize Conv1D layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 3
+    weights_flat = prepare_filter_weights_conv_1d(weights[0])
+    assert weights_flat
+    assert layer.padding in ['valid', 'same']
+    assert len(layer.input_shape) == 3
+    assert layer.input_shape[0] is None
+    result = {
+        'weights': decode_floats(weights_flat)
+    }
+    if len(weights) == 2:
+        bias = weights[1].tolist()
+        result['bias'] = decode_floats(bias)
+    return result
+
+
+def show_conv_2d_layer(layer):
+    """Serialize Conv2D layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
-    weights_flat = prepare_filter_weights(weights[0])
+    weights_flat = prepare_filter_weights_conv_2d(weights[0])
     assert weights_flat
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
@@ -128,8 +151,8 @@ def show_conv2d_layer(layer):
     return result
 
 
-def show_separable_conv_2D_layer(layer):
-    """Serialize separable onv2d layer to dict"""
+def show_separable_conv_2d_layer(layer):
+    """Serialize SeparableConv2D layer to dict"""
     weights = layer.get_weights()
     assert layer.depth_multiplier == 1
     assert len(weights) == 2 or len(weights) == 3
@@ -137,8 +160,8 @@ def show_separable_conv_2D_layer(layer):
     assert len(weights[1].shape) == 4
 
     # probably incorrect for depth_multiplier > 1?
-    slice_weights = prepare_filter_weights(weights[0])
-    stack_weights = prepare_filter_weights(weights[1])
+    slice_weights = prepare_filter_weights_conv_2d(weights[0])
+    stack_weights = prepare_filter_weights_conv_2d(weights[1])
 
     assert slice_weights
     assert stack_weights
@@ -173,7 +196,7 @@ def show_batch_normalization_layer(layer):
 
 
 def is_flat_shape(shape):
-    """Check if only one dimension of share is > 1"""
+    """Check if only one dimension of shape is > 1"""
     if shape[0] != None:
         return False
     if len(shape) == 2:
@@ -227,8 +250,9 @@ def is_ascii(some_string):
 def get_all_weights(model):
     """Serialize all weights of the models layers"""
     show_layer_functions = {
-        'Conv2D': show_conv2d_layer,
-        'SeparableConv2D': show_separable_conv_2D_layer,
+        'Conv1D': show_conv_1d_layer,
+        'Conv2D': show_conv_2d_layer,
+        'SeparableConv2D': show_separable_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer
     }

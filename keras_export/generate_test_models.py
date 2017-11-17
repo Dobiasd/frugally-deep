@@ -9,13 +9,14 @@ import numpy as np
 
 import keras
 from keras.models import Model, load_model, Sequential
-from keras.layers import Conv1D, ZeroPadding1D
+from keras.layers import Input, Dense, Dropout, Flatten, Activation
+from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
+from keras.layers import Conv2D, ZeroPadding2D, Cropping2D
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
-from keras.layers import Input, Dense, Dropout, Flatten, Activation, Conv2D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from keras.layers import SeparableConv2D, ZeroPadding2D
-from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from keras.layers import SeparableConv2D
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -148,6 +149,9 @@ def get_test_model_full():
                                    dilation_rate=d)(inp))
         for padding_size in range(0, 5):
             outputs.append(ZeroPadding1D(padding_size)(inp))
+        for crop_left in range(0, 2):
+            for crop_right in range(0, 2):
+                outputs.append(Cropping1D((crop_left, crop_right))(inp))
         for upsampling_factor in range(1, 5):
             outputs.append(UpSampling1D(upsampling_factor)(inp))
         for padding in ['valid', 'same']:
@@ -209,6 +213,9 @@ def get_test_model_full():
     outputs.append(ZeroPadding2D(2)(inputs[0]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
     outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[0]))
+    outputs.append(Cropping2D(2)(inputs[0]))
+    outputs.append(Cropping2D((2, 3))(inputs[0]))
+    outputs.append(Cropping2D(((1, 2), (3, 4)))(inputs[0]))
     for y in range(1, 3):
         for x in range(1, 3):
             outputs.append(UpSampling2D(size=(y, x))(inputs[0]))

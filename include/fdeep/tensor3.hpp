@@ -241,6 +241,28 @@ inline tensor3 pad_tensor3(float_type val,
     return result;
 }
 
+inline tensor3 crop_tensor3(
+    std::size_t top_crop, std::size_t bottom_crop,
+    std::size_t left_crop, std::size_t right_crop,
+    const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().depth_,
+        in.shape().height_ - (top_crop + bottom_crop),
+        in.shape().width_ - (left_crop + right_crop)), 0);
+    for (std::size_t z = 0; z < result.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < result.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < result.shape().width_; ++x)
+            {
+                result.set(z, y, x, in.get(z, y + top_crop, x + left_crop));
+            }
+        }
+    }
+    return result;
+}
+
 inline tensor3 dilate_tensor3(const shape2& dilation_rate, const tensor3& in)
 {
     if (dilation_rate == shape2(1, 1))

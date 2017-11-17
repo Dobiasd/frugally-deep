@@ -452,6 +452,38 @@ inline layer_ptr create_zero_padding_2d_layer(
     }
 }
 
+inline layer_ptr create_cropping_2d_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    const auto cropping =
+        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            data["config"]["cropping"]);
+
+    assertion(cropping.size() == 2 && cropping[0].size() == cropping[1].size(),
+        "invalid cropping format");
+
+    if (cropping[0].size() == 1)
+    {
+        const std::size_t top_crop = 0;
+        const std::size_t bottom_crop = 0;
+        const std::size_t left_crop = cropping[0][0];
+        const std::size_t right_crop = cropping[1][0];
+        return std::make_shared<cropping_2d_layer>(name,
+            top_crop, bottom_crop, left_crop, right_crop);
+    }
+    else
+    {
+        const std::size_t top_crop = cropping[0][0];
+        const std::size_t bottom_crop = cropping[0][1];
+        const std::size_t left_crop = cropping[1][0];
+        const std::size_t right_crop = cropping[1][1];
+        return std::make_shared<cropping_2d_layer>(name,
+            top_crop, bottom_crop, left_crop, right_crop);
+    }
+}
+
 inline activation_layer_ptr create_linear_layer(const std::string& name)
 {
     return std::make_shared<linear_layer>(name);
@@ -578,6 +610,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Flatten", create_flatten_layer},
             {"ZeroPadding1D", create_zero_padding_2d_layer},
             {"ZeroPadding2D", create_zero_padding_2d_layer},
+            {"Cropping1D", create_cropping_2d_layer},
+            {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer_as_layer}
         };
 

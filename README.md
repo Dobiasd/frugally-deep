@@ -48,6 +48,8 @@ Layer types typically used in image recognition/generation are supported, making
 * Concatenate
 * Conv1D
 * Conv2D
+* Cropping1D
+* Cropping2D
 * Dense
 * Dropout (is passive during prediction anyway)
 * ELU
@@ -92,8 +94,6 @@ Currently not supported are the following layer types:
 `ConvLSTM2D`,
 `CuDNNGRU`,
 `CuDNNLSTM`,
-`Cropping1D`,
-`Cropping2D`,
 `Cropping3D`,
 `DepthwiseConv2D`,
 `Dot`,

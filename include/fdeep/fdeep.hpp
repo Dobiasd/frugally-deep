@@ -23,6 +23,7 @@
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
+#include "fdeep/layers/cropping_2d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
 #include "fdeep/layers/flatten_layer.hpp"

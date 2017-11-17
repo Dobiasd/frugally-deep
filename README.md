@@ -42,17 +42,22 @@ Layer types typically used in image recognition/generation are supported, making
 
 * Activation
 * Add
+* AveragePooling1D
 * AveragePooling2D
 * BatchNormalization
 * Concatenate
+* Conv1D
 * Conv2D
 * Dense
 * Dropout (is passive during prediction anyway)
 * ELU
 * Flatten
+* GlobalAveragePooling1D
 * GlobalAveragePooling2D
+* GlobalMaxPooling1D
 * GlobalMaxPooling2D
 * LeakyReLU
+* MaxPooling1D
 * MaxPooling2D
 * ReLU
 * SeLU
@@ -61,7 +66,9 @@ Layer types typically used in image recognition/generation are supported, making
 * Softmax
 * Softplus
 * Tanh
+* UpSampling1D
 * UpSampling2D
+* ZeroPadding1D
 * ZeroPadding2D
 
 
@@ -78,10 +85,8 @@ Currently not supported are the following layer types:
 `ActivityRegularization`,
 `AlphaDropout`,
 `Average`,
-`AveragePooling1D`,
 `AveragePooling3D`,
 `Bidirectional`,
-`Conv1D`,
 `Conv2DTranspose`,
 `Conv3D`,
 `ConvLSTM2D`,
@@ -95,8 +100,6 @@ Currently not supported are the following layer types:
 `Embedding`,
 `GaussianDropout`,
 `GaussianNoise`,
-`GlobalAveragePooling1D`,
-`GlobalMaxPooling1D`,
 `GRU`,
 `GRUCell`,
 `Lambda`,
@@ -106,7 +109,6 @@ Currently not supported are the following layer types:
 `LSTMCell`,
 `Masking`,
 `Maximum`,
-`MaxPooling1D`,
 `MaxPooling3D`,
 `Multiply`,
 `Permute`,
@@ -120,10 +122,7 @@ Currently not supported are the following layer types:
 `Subtract`,
 `ThresholdedReLU`,
 `TimeDistributed`,
-`Upsampling1D`,
 `Upsampling3D`,
-`ZeroPadding1D`,
-`ZeroPadding3D`,
 `any custom layers`
 
 

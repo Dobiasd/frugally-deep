@@ -40,15 +40,15 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 
 Layer types typically used in image recognition/generation are supported, making many popular model architectures possible (see [Performance section](#performance)).
 
-* Add, Concatenate
-* AveragePooling1D/2D, GlobalAveragePooling1D/2D
-* Conv1D/2D, SeparableConv2D
-* Cropping1D/2D, ZeroPadding1D/2D
-* BatchNormalization, Dense, Dropout, Flatten
-* MaxPooling1D/2D, GlobalMaxPooling1D/2D
-* ELU, LeakyReLU, ReLU, SeLU
-* Sigmoid, Softmax, Softplus, Tanh
-* UpSampling1D/2D
+* `Add`, `Concatenate`
+* `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
+* `Conv1D/2D`, `SeparableConv2D`
+* `Cropping1D/2D`, `ZeroPadding1D/2D`
+* `BatchNormalization`, `Dense`, `Dropout`, `Flatten`
+* `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
+* `ELU`, `LeakyReLU`, `ReLU`, `SeLU`
+* `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
+* `UpSampling1D/2D`
 
 
 ### Also supported

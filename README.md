@@ -165,15 +165,15 @@ Duration of a single forward pass*
 
 | Model       | Keras + TensorFlow | frugally-deep |
 |-------------|--------------------|---------------|
-| InceptionV3 |             1.10 s |        1.67 s |
-| ResNet50    |             0.98 s |        1.18 s |
-| VGG16       |             1.32 s |        4.43 s |
-| VGG19       |             1.47 s |        5.68 s |
-| Xception    |             1.83 s |        2.65 s |
+| InceptionV3 |             1.10 s |        1.68 s |
+| ResNet50    |             0.98 s |        1.16 s |
+| VGG16       |             1.32 s |        4.41 s |
+| VGG19       |             1.47 s |        5.45 s |
+| Xception    |             1.83 s |        2.76 s |
 
 *measured using GCC -O3,
  run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz,
- versions: Keras 2.0.9, TensorFlow 1.4.0
+ versions: Keras 2.1.1, TensorFlow 1.4.0
 ```
 
 However frugally-deeps offers other beneficial properties like low RAM usage, small library size and ease of use regarding Keras import and integration. GPU usage is not supported.

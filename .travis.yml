@@ -24,6 +24,7 @@ before_install:
 install:
   - sudo apt-get install python3-pip python3-dev
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
+  - sudo apt-get mercurial
   - sudo pip3 install numpy
   - sudo pip3 install scipy
   - sudo pip3 install --upgrade pip
@@ -37,8 +38,14 @@ install:
   - cmake ..
   - make
   - sudo make install
-  - cd ..
-  - cd ..
+  - cd ../..
+  - hg clone https://bitbucket.org/eigen/eigen/
+  - cd eigen
+  - mkdir -p build && cd build
+  - cmake ..
+  - make
+  - sudo make install
+  - cd ../..
   - mkdir -p build && cd build
   - cmake .. -DUNITTEST=ON
 

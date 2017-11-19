@@ -92,27 +92,6 @@ tensor2 transform_tensor2(F f, const tensor2& m)
     return tensor2(m.shape(), fplus::transform(f, m.as_vector()));
 }
 
-inline tensor2 multiply(const tensor2& a, const tensor2& b)
-{
-    assertion(a.shape().width_ == b.shape().height_, "invalid tensor shapes");
-
-    tensor2 m(shape2(a.shape().height_, b.shape().width_),
-        static_cast<float_type>(0.0f));
-
-    for (std::size_t i = 0; i < a.shape().height_; ++i)
-    {
-        for (std::size_t k = 0; k < a.shape().width_; ++k)
-        {
-            float_type a_i_k = a.get(i, k);
-            for (std::size_t j = 0; j < b.shape().width_; ++j)
-            {
-                m.get(i, j) += a_i_k * b.get(k, j);
-            }
-        }
-    }
-    return m;
-}
-
 inline tensor2 add_to_tensor2_elems(const tensor2& m, float_type x)
 {
     return tensor2(m.shape(), fplus::transform([x](float_type e) -> float_type

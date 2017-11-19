@@ -121,42 +121,47 @@ inline tensor3 convolve_im2col(
     const tensor3& in)
 {
     const std::size_t fz = filters.front().shape().depth_;
-    shape2 a_shape(fz * fy * fx + 1, out_height * out_width);
-    float_vec a_values;
-    a_values.reserve(a_shape.area());
 
-    shape2 b_shape(filters.size(), fz * fy * fx + 1);
-    float_vec b_values;
-    b_values.reserve(b_shape.area());
-
+    eigen_mat a(fz * fy * fx + 1, out_height * out_width);
+    eigen_idx a_y = 0;
     for (std::size_t zf = 0; zf < fz; ++zf)
     {
         for (std::size_t yf = 0; yf < fy; ++yf)
         {
             for (std::size_t xf = 0; xf < fx; ++xf)
             {
+                eigen_idx a_x = 0;
                 for (std::size_t y = 0; y < out_height; ++y)
                 {
                     for (std::size_t x = 0; x < out_width; ++x)
                     {
-                        a_values.push_back(in.get(zf,
+                        a(a_y, a_x++) = in.get(zf,
                                 offset_y + strides_y * y + yf,
-                                offset_x + strides_x * x + xf));
+                                offset_x + strides_x * x + xf);
                     }
                 }
+                ++a_y;
             }
         }
     }
+    // todo: eigen mem layout?
+
+    eigen_idx a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
         for (std::size_t x = 0; x < out_width; ++x)
         {
-            a_values.push_back(static_cast<float_type>(1));
+            a(a_y, a_x++) = static_cast<float_type>(1);
         }
     }
+    ++a_y;
 
+    eigen_mat b(filters.size(), fz * fy * fx + 1);
+    eigen_idx b_y = 0;
+    eigen_idx b_x = 0;
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
+        b_x = 0;
         const filter& filter = filters[f];
         for (std::size_t zf = 0; zf < fz; ++zf)
         {
@@ -164,22 +169,18 @@ inline tensor3 convolve_im2col(
             {
                 for (std::size_t xf = 0; xf < fx; ++xf)
                 {
-                    b_values.push_back(filter.get(zf, yf, xf));
+                    b(b_y, b_x++) = filter.get(zf, yf, xf);
                 }
             }
         }
-        b_values.push_back(filter.get_bias());
+        b(b_y, b_x++) = filter.get_bias();
+        ++b_y;
     }
 
-    tensor2 a(a_shape, std::move(a_values));
-    tensor2 b(b_shape, std::move(b_values));
+    const auto result = b * a;
 
-    tensor2 result = multiply(b, a);
-
-    tensor3 out(shape3(filters.size(), out_height, out_width),
-        result.as_vector());
-
-    return out;
+    return tensor3(shape3(filters.size(), out_height, out_width),
+        eigen_mat_to_values(result));
 }
 
 enum class padding { valid, same };

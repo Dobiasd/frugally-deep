@@ -19,10 +19,11 @@ namespace fdeep { namespace internal
 class dense_layer : public layer
 {
 public:
-    static tensor2 generate_params(std::size_t n_in,
+    static eigen_mat generate_params(std::size_t n_in,
         const float_vec& weights, const float_vec& bias)
     {
-        return tensor2(shape2(n_in + 1, bias.size()),
+        assertion(weights.size() % bias.size() == 0, "invalid params");
+        return eigen_mat_from_values(n_in + 1, bias.size(),
             fplus::append(weights, bias));
     }
     dense_layer(const std::string& name, std::size_t units,
@@ -44,18 +45,26 @@ protected:
         assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
             "input not flattened");
         const auto bias_padded_input = bias_pad_input(input);
-        return {tensor3(shape3(n_out_, 1, 1),
-            multiply(bias_padded_input, params_).as_vector())};
+        const auto result = bias_padded_input * params_;
+        assertion(result.rows() == 1, "invalid result size");
+        return {tensor3(shape3(static_cast<std::size_t>(result.cols()), 1, 1),
+            eigen_mat_to_values(result))};
     }
-    static tensor2 bias_pad_input(const tensor3& input)
+    static eigen_mat bias_pad_input(const tensor3& input)
     {
-        return tensor2(
-            shape2(1, input.shape().depth_ + 1),
-            fplus::append(*input.as_vector(), {1}));
+        assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
+            "tensor not flattened");
+        eigen_mat m(1, input.shape().depth_ + 1);
+        for (std::size_t z = 0; z < input.shape().depth_; ++z)
+        {
+            m(0, static_cast<eigen_idx>(z)) = input.get(tensor3_pos(z, 0, 0));
+        }
+        m(0, static_cast<eigen_idx>(input.shape().depth_)) = 1;
+        return m;
     }
     std::size_t n_in_;
     std::size_t n_out_;
-    tensor2 params_;
+    eigen_mat params_;
 };
 
 } } // namespace fdeep, namespace internal

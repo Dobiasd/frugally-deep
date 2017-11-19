@@ -30,7 +30,7 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 
 * **is a small header-only library** written in modern and pure C++.
 * is very easy to integrate and use.
-* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) - also a small header-only library.
+* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) and [Eigen](http://eigen.tuxfamily.org/)- also header-only libraries.
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
@@ -157,26 +157,22 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
-Currently frugally-deep is not able to keep up with the speed of TensorFlow and its highly optimized code, i.e. alignment, SIMD, kernel fusion and the matrix multiplication of the [Eigen](http://eigen.tuxfamily.org/) library.
+Below you can find the durations of one isolated forward pass for some popular models run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `GCC -O3`.
 
 ```
-Duration of a single forward pass*
+*
 ----------------------------------
 
 | Model       | Keras + TensorFlow | frugally-deep |
 |-------------|--------------------|---------------|
-| InceptionV3 |             1.10 s |        1.68 s |
-| ResNet50    |             0.98 s |        1.16 s |
-| VGG16       |             1.32 s |        4.41 s |
-| VGG19       |             1.47 s |        5.45 s |
-| Xception    |             1.83 s |        2.76 s |
+| InceptionV3 |             1.10 s |        0.78 s |
+| ResNet50    |             0.98 s |        0.68 s |
+| VGG16       |             1.32 s |        1.57 s |
+| VGG19       |             1.47 s |        1.98 s |
+| Xception    |             1.83 s |        1.34 s |
 
-*measured using GCC -O3,
- run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz,
- versions: Keras 2.1.1, TensorFlow 1.4.0
+versions: Keras 2.1.1, TensorFlow 1.4.0 (default packages from pip)
 ```
-
-However frugally-deeps offers other beneficial properties like low RAM usage, small library size and ease of use regarding Keras import and integration. GPU usage is not supported.
 
 
 Requirements and Installation
@@ -192,12 +188,22 @@ cd FunctionalPlus
 mkdir -p build && cd build
 cmake ..
 make && sudo make install
-cd ..
+cd ../..
+
+sudo apt install mercurial
+hg clone https://bitbucket.org/eigen/eigen/
+cd eigen
+mkdir -p build && cd build
+cmake ..
+make && sudo make install
+cd ../..
+
 git clone https://github.com/Dobiasd/frugally-deep
 cd frugally-deep
 mkdir -p build && cd build
 cmake ..
 make && sudo make install
+cd ../..
 ```
 
 Building the tests (optional) requires [doctest](https://github.com/onqtam/doctest). Unit Tests are disabled by default – they are enabled and executed by:

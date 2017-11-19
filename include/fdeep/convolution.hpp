@@ -127,15 +127,15 @@ inline tensor3 convolve_im2col(
     int pad_top_int = static_cast<int>(pad_top);
     int pad_left_int = static_cast<int>(pad_left);
 
-    eigen_mat a(fz * fy * fx + 1, out_height * out_width);
-    eigen_idx a_y = 0;
+    RowMajorMatrixXf a(fz * fy * fx + 1, out_height * out_width);
+    Eigen::Index a_y = 0;
     for (std::size_t zf = 0; zf < fz; ++zf)
     {
         for (std::size_t yf = 0; yf < fy; ++yf)
         {
             for (std::size_t xf = 0; xf < fx; ++xf)
             {
-                eigen_idx a_x = 0;
+                Eigen::Index a_x = 0;
                 for (std::size_t y = 0; y < out_height; ++y)
                 {
                     int in_get_y = static_cast<int>(offset_y + strides_y * y + yf) - pad_top_int;
@@ -151,7 +151,7 @@ inline tensor3 convolve_im2col(
         }
     }
 
-    eigen_idx a_x = 0;
+    Eigen::Index a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
         for (std::size_t x = 0; x < out_width; ++x)
@@ -161,9 +161,9 @@ inline tensor3 convolve_im2col(
     }
     ++a_y;
 
-    eigen_mat b(filters.size(), fz * fy * fx + 1);
-    eigen_idx b_y = 0;
-    eigen_idx b_x = 0;
+    RowMajorMatrixXf b(filters.size(), fz * fy * fx + 1);
+    Eigen::Index b_y = 0;
+    Eigen::Index b_x = 0;
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
         b_x = 0;

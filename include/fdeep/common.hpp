@@ -53,7 +53,6 @@ typedef float float_type;
 typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
-using eigen_mat = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using eigen_idx = Eigen::Index;
+using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 } } // namespace fdeep, namespace internal

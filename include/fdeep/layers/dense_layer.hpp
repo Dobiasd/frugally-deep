@@ -19,7 +19,7 @@ namespace fdeep { namespace internal
 class dense_layer : public layer
 {
 public:
-    static eigen_mat generate_params(std::size_t n_in,
+    static RowMajorMatrixXf generate_params(std::size_t n_in,
         const float_vec& weights, const float_vec& bias)
     {
         assertion(weights.size() % bias.size() == 0, "invalid params");
@@ -50,21 +50,21 @@ protected:
         return {tensor3(shape3(static_cast<std::size_t>(result.cols()), 1, 1),
             eigen_mat_to_values(result))};
     }
-    static eigen_mat bias_pad_input(const tensor3& input)
+    static RowMajorMatrixXf bias_pad_input(const tensor3& input)
     {
         assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
             "tensor not flattened");
-        eigen_mat m(1, input.shape().depth_ + 1);
+        RowMajorMatrixXf m(1, input.shape().depth_ + 1);
         for (std::size_t z = 0; z < input.shape().depth_; ++z)
         {
-            m(0, static_cast<eigen_idx>(z)) = input.get(tensor3_pos(z, 0, 0));
+            m(0, static_cast<Eigen::Index>(z)) = input.get(tensor3_pos(z, 0, 0));
         }
-        m(0, static_cast<eigen_idx>(input.shape().depth_)) = 1;
+        m(0, static_cast<Eigen::Index>(input.shape().depth_)) = 1;
         return m;
     }
     std::size_t n_in_;
     std::size_t n_out_;
-    eigen_mat params_;
+    RowMajorMatrixXf params_;
 };
 
 } } // namespace fdeep, namespace internal

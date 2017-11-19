@@ -157,7 +157,7 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
-Below you can find the durations of one isolated forward pass for some popular models run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `GCC -O3`.
+Below you can find the durations of one isolated forward pass for some popular models run on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `g++ -O3`.
 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
@@ -167,9 +167,17 @@ Below you can find the durations of one isolated forward pass for some popular m
 | VGG16             |             1.32 s |        1.45 s |
 | VGG19             |             1.47 s |        1.71 s |
 | Xception          |             1.83 s |        1.09 s |
-
-versions: Keras 2.1.1, TensorFlow 1.4.0 (default packages from pip)
 ```
+
+versions: `Keras 2.1.1`, `TensorFlow 1.4.0` (default packages from pip)
+
+Using `-march=native` when compiling frugally-deep brings the times down to
+`0.38 s`,
+`0.30 s`,
+`0.59 s`,
+`0.68 s` and
+`0.74 s`
+but this values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
 
 
 Requirements and Installation

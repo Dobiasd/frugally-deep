@@ -28,7 +28,7 @@ int main()
         #ifdef NDEBUG
         try
         {
-            const auto model = fdeep::load_model(model_path);
+            const auto model = fdeep::load_model(model_path, true, true);
         }
         catch (const std::exception& e)
         {
@@ -36,7 +36,7 @@ int main()
             error = true;
         }
         #else
-            const auto model = fdeep::load_model(model_path);
+            const auto model = fdeep::load_model(model_path, true, true);
         #endif
     }
 

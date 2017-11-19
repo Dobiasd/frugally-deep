@@ -291,6 +291,22 @@ inline tensor3 convolve(
         filter_shape.without_depth(),
         strides, pad_type, use_offset, input.shape());
 
+    if (use_im2col)
+    {
+        return convolve_im2col(
+            conv_cfg.pad_top_,
+            conv_cfg.pad_left_,
+            conv_cfg.out_height_,
+            conv_cfg.out_width_,
+            strides.height_,
+            strides.width_,
+            conv_cfg.offset_y_,
+            conv_cfg.offset_x_,
+            filter_shape.height_,
+            filter_shape.width_,
+            filters, input);
+    }
+
     const std::size_t pad_top = conv_cfg.pad_top_;
     const std::size_t pad_bottom = conv_cfg.pad_bottom_;
     const std::size_t pad_left = conv_cfg.pad_left_;
@@ -301,22 +317,6 @@ inline tensor3 convolve(
     const std::size_t offset_x = conv_cfg.offset_x_;
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
-
-    if (use_im2col)
-    {
-        return convolve_im2col(
-            pad_top,
-            pad_left,
-            out_height,
-            out_width,
-            strides_y,
-            strides_x,
-            offset_y,
-            offset_x,
-            filter_shape.height_,
-            filter_shape.width_,
-            filters, input);
-    }
 
     const auto in_padded = pad_tensor3(0,
         pad_top, pad_bottom, pad_left, pad_right,

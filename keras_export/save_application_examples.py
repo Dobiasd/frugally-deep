@@ -47,8 +47,9 @@ def save_inceptionv3(dir_path, file_name):
 
 def save_inceptionvresnetv2(dir_path, file_name):
     """Save InceptionResNetV2 model"""
-    keras.applications.inception_resnet_v2.InceptionResNetV2().save(
-        os.path.join(dir_path, file_name + ".h5"))
+    keras.applications.inception_resnet_v2.InceptionResNetV2(
+        input_shape=(299, 299, 3)).save(
+            os.path.join(dir_path, file_name + ".h5"))
 
 
 def save_mobilenet(dir_path, file_name):
@@ -74,8 +75,8 @@ def main():
         save_vgg19(dir_path, 'vgg19')
         save_resnet50(dir_path, 'resnet50')
         save_inceptionv3(dir_path, 'inceptionv3')
-        # save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # wait for pip
-        # save_mobilenet(dir_path, 'mobilenet') #relu6
+        # save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # lambda
+        # save_mobilenet(dir_path, 'mobilenet') # relu6
 
         # ../keras_export/convert_model.py inceptionv3.h5 inceptionv3.json
         # ../keras_export/convert_model.py resnet50.h5 resnet50.json

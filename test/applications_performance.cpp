@@ -17,8 +17,8 @@ int main()
         "vgg16.json",
         "vgg19.json",
         "xception.json",
-        //"keras_export/inceptionvresnetv2.json", // wait for pip
-        //"keras_export/mobilenet.json", // relu6
+        //"inceptionvresnetv2.json", // lambda
+        //"mobilenet.json", // relu6
     };
 
     bool error = false;

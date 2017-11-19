@@ -144,7 +144,6 @@ inline tensor3 convolve_im2col(
             }
         }
     }
-    // todo: eigen mem layout?
 
     eigen_idx a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
@@ -332,5 +331,18 @@ inline tensor3 convolve(
         filter_shape.width_,
         filters, in_padded);
 }
+
+inline tensor3 convolve_transpose(
+    const shape2& strides,
+    const padding& pad_type,
+    bool use_offset,
+    const std::vector<filter>& filters,
+    const tensor3& input,
+    bool use_im2col)
+{
+    assertion(false, "not yet implemented");
+    return convolve(strides, pad_type, use_offset, filters, input, use_im2col);
+}
+
 
 } } // namespace fdeep, namespace internal

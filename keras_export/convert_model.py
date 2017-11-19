@@ -151,6 +151,25 @@ def show_conv_2d_layer(layer):
     return result
 
 
+def show_conv_2d_transpose_layer(layer):
+    """Serialize Conv2DTranspose layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 4
+    weights_flat = prepare_filter_weights_conv_2d(weights[0])
+    assert weights_flat
+    assert layer.padding in ['valid', 'same']
+    assert len(layer.input_shape) == 4
+    assert layer.input_shape[0] is None
+    result = {
+        'weights': decode_floats(weights_flat)
+    }
+    if len(weights) == 2:
+        bias = weights[1].tolist()
+        result['bias'] = decode_floats(bias)
+    return result
+
+
 def show_separable_conv_2d_layer(layer):
     """Serialize SeparableConv2D layer to dict"""
     weights = layer.get_weights()
@@ -252,6 +271,7 @@ def get_all_weights(model):
     show_layer_functions = {
         'Conv1D': show_conv_1d_layer,
         'Conv2D': show_conv_2d_layer,
+        'Conv2DTranspose': show_conv_2d_transpose_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer

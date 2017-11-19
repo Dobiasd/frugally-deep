@@ -16,7 +16,7 @@ from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import SeparableConv2D
+from keras.layers import SeparableConv2D, Conv2DTranspose
 from keras.layers.advanced_activations import LeakyReLU, ELU
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -64,7 +64,9 @@ def generate_input_data(data_size, input_shapes):
 
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
-    return [generate_random_data(data_size, output.shape)
+    # using ._keras_shape instead of .shape because:
+    # https://github.com/fchollet/keras/issues/6777
+    return [generate_random_data(data_size, output._keras_shape)
             for output in outputs]
 
 
@@ -79,8 +81,9 @@ def get_test_model_small():
 
     outputs = []
 
-    outputs.append(Conv1D(2, 3, padding='valid', dilation_rate=1)(inputs[0]))
-    outputs.append(Conv2D(2, (5, 7), padding='valid', dilation_rate=1)(inputs[1]))
+    outputs.append(Conv1D(2, 3, padding='valid')(inputs[0]))
+    outputs.append(Conv2D(2, (5, 7), padding='valid')(inputs[1]))
+    #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')

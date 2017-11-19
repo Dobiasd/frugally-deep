@@ -53,37 +53,7 @@ typedef float float_type;
 typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
-using eigen_mat = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>;
+using eigen_mat = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using eigen_idx = Eigen::Index;
-
-shared_float_vec eigen_mat_to_values(const eigen_mat& m)
-{
-    shared_float_vec result = fplus::make_shared_ref<float_vec>();
-    result->reserve(static_cast<std::size_t>(m.rows() * m.cols()));
-    for (Eigen::Index y = 0; y < m.rows(); ++y)
-    {
-        for (Eigen::Index x = 0; x < m.cols(); ++x)
-        {
-            result->push_back(m(y, x));
-        }
-    }
-    return result;
-}
-
-eigen_mat eigen_mat_from_values(std::size_t height, std::size_t width,
-    const float_vec& values)
-{
-    assertion(height * width == values.size(), "invalid shape");
-    eigen_mat m(height, width);
-    std::size_t i = 0;
-    for (Eigen::Index y = 0; y < m.rows(); ++y)
-    {
-        for (Eigen::Index x = 0; x < m.cols(); ++x)
-        {
-            m(y, x) = values[i++];
-        }
-    }
-    return m;
-}
 
 } } // namespace fdeep, namespace internal

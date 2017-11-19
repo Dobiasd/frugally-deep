@@ -22,23 +22,22 @@ public:
     {
     }
 protected:
-    tensor3 pool(const tensor3& in_unpadded) const override
+    tensor3 pool(const tensor3& in) const override
     {
         const float_type invalid = std::numeric_limits<float_type>::lowest();
-        const auto input_data = preprocess_convolution(
-            pool_size_, strides_, padding_, use_offset(), in_unpadded,
-            invalid);
+        const auto conv_cfg = preprocess_convolution(
+            pool_size_, strides_, padding_, use_offset(), in.shape());
 
+        int pad_top_int = static_cast<int>(conv_cfg.pad_top_);
+        int pad_left_int = static_cast<int>(conv_cfg.pad_left_);
         const std::size_t strides_y = strides_.height_;
         const std::size_t strides_x = strides_.width_;
-        const std::size_t offset_y = input_data.offset_y_;
-        const std::size_t offset_x = input_data.offset_x_;
-        const std::size_t out_height = input_data.out_height_;
-        const std::size_t out_width = input_data.out_width_;
-        const tensor3& in = input_data.in_padded_;
+        const std::size_t offset_y = conv_cfg.offset_y_;
+        const std::size_t offset_x = conv_cfg.offset_x_;
+        const std::size_t out_height = conv_cfg.out_height_;
+        const std::size_t out_width = conv_cfg.out_width_;
 
-        tensor3 out(
-            shape3(in_unpadded.shape().depth_, out_height, out_width), 0);
+        tensor3 out(shape3(in.shape().depth_, out_height, out_width), 0);
 
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
@@ -50,11 +49,12 @@ protected:
                     std::size_t divisor = 0;
                     for (std::size_t yf = 0; yf < pool_size_.height_; ++yf)
                     {
+                        int in_get_y = static_cast<int>(offset_y + strides_y * y + yf) - pad_top_int;
                         for (std::size_t xf = 0; xf < pool_size_.width_; ++xf)
                         {
-                            const auto current = in.get(z,
-                                offset_y + strides_y * y + yf,
-                                offset_x + strides_x * x + xf);
+                            int in_get_x = static_cast<int>(offset_x + strides_x * x + xf) - pad_left_int;
+                            const auto current = in.get_x_y_padded(invalid, z,
+                                in_get_y, in_get_x);
                             if (current != invalid)
                             {
                                 val += current;

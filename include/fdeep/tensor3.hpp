@@ -52,6 +52,17 @@ public:
     {
         return get(tensor3_pos(z, y, x));
     }
+    float_type get_x_y_padded(float_type pad_value,
+        std::size_t z, int y, int x) const
+    {
+        if (y < 0 || y >= static_cast<int>(shape().height_) ||
+            x < 0 || x >= static_cast<int>(shape().width_))
+        {
+            return pad_value;
+        }
+        return get(tensor3_pos(z,
+            static_cast<std::size_t>(y), static_cast<std::size_t>(x)));
+    }
     void set(const tensor3_pos& pos, float_type value)
     {
         (*values_)[idx(pos)] = value;

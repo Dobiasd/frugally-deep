@@ -73,7 +73,7 @@ private:
             output_shapes_(output_shapes),
             model_layer_(model_layer) {}
 
-    friend model load_model(const std::string&, bool,
+    friend model load_model(const std::string&, bool, bool,
         const std::function<void(std::string)>&, float_type);
 
     std::vector<shape3> input_shapes_;
@@ -89,6 +89,7 @@ inline void cout_logger(const std::string& str)
 // Throws an exception if a problem occurs.
 inline model load_model(const std::string& path,
     bool verify = true,
+    bool verify_no_im2col = false,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.00001))
 {
@@ -175,13 +176,16 @@ inline model load_model(const std::string& path,
                 check_test_outputs(verify_epsilon,
                     output_im2col, tests[i].output_);
 
-                log_sol("Running test (no im2col) " + fplus::show(i + 1) +
-                    " of " + fplus::show(tests.size()));
-                const auto output_no_im2col =
-                full_model.predict(tests[i].input_, false);
-                log_duration();
-                check_test_outputs(verify_epsilon,
-                    output_no_im2col, tests[i].output_);
+                if (verify_no_im2col)
+                {
+                    log_sol("Running test (no im2col) " + fplus::show(i + 1) +
+                        " of " + fplus::show(tests.size()));
+                    const auto output_no_im2col =
+                    full_model.predict(tests[i].input_, false);
+                    log_duration();
+                    check_test_outputs(verify_epsilon,
+                        output_no_im2col, tests[i].output_);
+                }
             }
         }
     }

@@ -46,6 +46,13 @@ install:
   - make
   - sudo make install
   - cd ../..
+  - git clone https://github.com/nlohmann/json
+  - cd json
+  - mkdir -p build && cd build
+  - cmake ..
+  - make
+  - sudo make install
+  - cd ../..
   - mkdir -p build && cd build
   - cmake .. -DUNITTEST=ON
 

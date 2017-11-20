@@ -30,7 +30,7 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 
 * **is a small header-only library** written in modern and pure C++.
 * is very easy to integrate and use.
-* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) and [Eigen](http://eigen.tuxfamily.org/)- also header-only libraries.
+* depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus) and [Eigen](http://eigen.tuxfamily.org/) - also header-only libraries.
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)

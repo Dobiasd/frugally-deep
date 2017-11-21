@@ -162,21 +162,21 @@ Below you can find the durations of one isolated forward pass for some popular m
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.10 s |        0.63 s |
-| ResNet50          |             0.98 s |        0.50 s |
-| VGG16             |             1.32 s |        1.45 s |
-| VGG19             |             1.47 s |        1.71 s |
-| Xception          |             1.83 s |        1.09 s |
+| InceptionV3       |             1.15 s |        0.58 s |
+| ResNet50          |             0.97 s |        0.39 s |
+| VGG16             |             1.18 s |        1.40 s |
+| VGG19             |             1.52 s |        1.69 s |
+| Xception          |             1.74 s |        1.00 s |
 ```
 
 versions: `Keras 2.1.1`, `TensorFlow 1.4.0` (default packages from pip)
 
 Using `-march=native` when compiling frugally-deep brings the times down to
-`0.38 s`,
-`0.30 s`,
-`0.59 s`,
-`0.68 s` and
-`0.74 s`
+`0.31 s`,
+`0.20 s`,
+`0.56 s`,
+`0.67 s` and
+`0.58 s`
 but this values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
 
 

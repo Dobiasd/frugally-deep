@@ -11,3 +11,5 @@ reduce memory usage during model loading
 add tests for Conv2DTranspose with dilation when it actually supports it: https://github.com/fchollet/keras/issues/8159
 
 make whole model/prediction templatable with the data type (currently float32)
+
+test also with tf.keras

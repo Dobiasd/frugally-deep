@@ -39,35 +39,43 @@ protected:
 
     tensor3 apply_to_slices(const tensor3& input) const
     {
-        const auto slices = tensor3_to_depth_slices(input);
+        assertion(moving_mean_.size() == input.shape().depth_,
+            "invalid beta");
+        assertion(moving_variance_.size() == input.shape().depth_,
+            "invalid beta");
 
-        assertion(moving_mean_.size() == slices.size(), "invalid beta");
-        assertion(moving_variance_.size() == slices.size(), "invalid beta");
-
-        if (!gamma_.empty())
+        const bool use_gamma = !gamma_.empty();
+        if (use_gamma)
         {
-            assertion(gamma_.size() == slices.size(), "invalid gamma");
-        }
-        if (!beta_.empty())
-        {
-            assertion(beta_.size() == slices.size(), "invalid beta");
+            assertion(gamma_.size() == input.shape().depth_, "invalid gamma");
         }
 
-        std::vector<tensor2> result;
-        result.reserve(slices.size());
-        for (std::size_t z = 0; z < slices.size(); ++z)
+        const bool use_beta = !beta_.empty();
+        if (use_beta)
         {
-            tensor2 slice = slices[z];
-            slice = sub_from_tensor2_elems(slice, moving_mean_[z]);
-            if (!gamma_.empty())
-                slice = multiply_tensor2_elems(slice, gamma_[z]);
-            slice = divide_tensor2_elems(slice,
-                std::sqrt(moving_variance_[z] + epsilon_));
-            if (!beta_.empty())
-                slice = add_to_tensor2_elems(slice, beta_[z]);
-            result.push_back(slice);
+            assertion(beta_.size() == input.shape().depth_, "invalid beta");
         }
-        return tensor3_from_depth_slices(result);
+
+        tensor3 output(input.shape(), 0);
+        for (std::size_t z = 0; z < output.shape().depth_; ++z)
+        {
+            const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
+            for (std::size_t y = 0; y < output.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < output.shape().width_; ++x)
+                {
+                    float_type val = input.get(z, y, x);
+                    val -= moving_mean_[z];
+                    if (use_gamma)
+                        val *= gamma_[z];
+                    val /= denom;
+                    if (use_beta)
+                        val += beta_[z];
+                    output.set(z, y, x, val);
+                }
+            }
+        }
+        return output;
     }
 
     tensor3s apply_impl(bool, const tensor3s& inputs) const override

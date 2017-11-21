@@ -74,7 +74,8 @@ def get_test_model_small():
     """Returns a minimalistic test model."""
     input_shapes = [
         (17, 4),
-        (16, 18, 3)
+        (16, 18, 3),
+        (8,),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -83,6 +84,10 @@ def get_test_model_small():
 
     outputs.append(Conv1D(2, 3, padding='valid')(inputs[0]))
     outputs.append(Conv2D(2, (5, 7), padding='valid')(inputs[1]))
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization()(inputs[1]))
+    outputs.append(BatchNormalization()(inputs[2]))
+
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')

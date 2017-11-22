@@ -25,6 +25,24 @@ public:
         return outputs;
     }
 
+    std::vector<tensor3s> predict_multi(const std::vector<tensor3s>& inputs_vec,
+        bool parallelly,
+        bool use_im2col = true) const
+    {
+        const auto f = [this, use_im2col](const tensor3s& inputs) -> tensor3s
+        {
+            return predict(inputs, use_im2col);
+        };
+        if (parallelly)
+        {
+            return fplus::transform_parallelly(f, inputs_vec);
+        }
+        else
+        {
+            return fplus::transform(f, inputs_vec);
+        }
+    }
+
     // Convenience wrapper around predict for models with
     // single tensor outputs of shape (1, 1, z).
     // Returns the index of the output neuron with the maximum actication.

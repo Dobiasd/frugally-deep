@@ -15,6 +15,7 @@ namespace fdeep
 class model
 {
 public:
+    // A single forward pass.
     // im2col is faster on most architectures but uses more RAM.
     tensor3s predict(const tensor3s& inputs, bool use_im2col = true) const
     {
@@ -25,6 +26,9 @@ public:
         return outputs;
     }
 
+    // Forward pass multiple data.
+    // When parallelly == true, the work is distributed to up to
+    // as many CPUs as data entries are provided.
     std::vector<tensor3s> predict_multi(const std::vector<tensor3s>& inputs_vec,
         bool parallelly,
         bool use_im2col = true) const
@@ -58,10 +62,12 @@ public:
         return internal::tensor3_max_pos(outputs.front()).z_;
 
     }
+
     const std::vector<shape3>& get_input_shapes() const
     {
         return input_shapes_;
     }
+
     const std::vector<shape3>& get_output_shapes() const
     {
         return output_shapes_;
@@ -75,6 +81,8 @@ public:
             return tensor3(shape, 0);
         }, get_input_shapes());
     }
+
+    // Measure time of one single forward pass using dummy input data.
     double test_speed(bool use_im2col = true) const
     {
         const auto inputs = generate_dummy_inputs();
@@ -99,11 +107,13 @@ private:
     internal::layer_ptr model_layer_;
 };
 
+// Write an std::string to std::cout.
 inline void cout_logger(const std::string& str)
 {
     std::cout << str << std::flush;
 }
 
+// Load and construct an fdeep::model from file.
 // Throws an exception if a problem occurs.
 inline model load_model(const std::string& path,
     bool verify = true,

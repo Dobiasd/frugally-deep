@@ -109,8 +109,6 @@ inline tensor3 convolve(
 // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
 // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
 inline tensor3 convolve_im2col(
-    std::size_t pad_top,
-    std::size_t pad_left,
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
@@ -120,12 +118,9 @@ inline tensor3 convolve_im2col(
     std::size_t fy,
     std::size_t fx,
     const std::vector<filter>& filters,
-    const tensor3& in)
+    const tensor3& in_padded)
 {
     const std::size_t fz = filters.front().shape().depth_;
-
-    int pad_top_int = static_cast<int>(pad_top);
-    int pad_left_int = static_cast<int>(pad_left);
 
     RowMajorMatrixXf a(fz * fy * fx + 1, out_height * out_width);
     Eigen::Index a_y = 0;
@@ -138,12 +133,11 @@ inline tensor3 convolve_im2col(
                 Eigen::Index a_x = 0;
                 for (std::size_t y = 0; y < out_height; ++y)
                 {
-                    int in_get_y = static_cast<int>(offset_y + strides_y * y + yf) - pad_top_int;
                     for (std::size_t x = 0; x < out_width; ++x)
                     {
-                        int in_get_x = static_cast<int>(offset_x + strides_x * x + xf) - pad_left_int;
-                        a(a_y, a_x++) = in.get_x_y_padded(0, zf,
-                            in_get_y, in_get_x);
+                        a(a_y, a_x++) = in_padded.get(zf,
+                                offset_y + strides_y * y + yf,
+                                offset_x + strides_x * x + xf);
                     }
                 }
                 ++a_y;
@@ -291,11 +285,13 @@ inline tensor3 convolve(
         filter_shape.without_depth(),
         strides, pad_type, use_offset, input.shape());
 
+    const auto in_padded = pad_tensor3(0,
+        conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
+        input);
+
     if (use_im2col)
     {
         return convolve_im2col(
-            conv_cfg.pad_top_,
-            conv_cfg.pad_left_,
             conv_cfg.out_height_,
             conv_cfg.out_width_,
             strides.height_,
@@ -304,13 +300,9 @@ inline tensor3 convolve(
             conv_cfg.offset_x_,
             filter_shape.height_,
             filter_shape.width_,
-            filters, input);
+            filters, in_padded);
     }
 
-    const std::size_t pad_top = conv_cfg.pad_top_;
-    const std::size_t pad_bottom = conv_cfg.pad_bottom_;
-    const std::size_t pad_left = conv_cfg.pad_left_;
-    const std::size_t pad_right = conv_cfg.pad_right_;
     const std::size_t strides_y = strides.height_;
     const std::size_t strides_x = strides.width_;
     const std::size_t offset_y = conv_cfg.offset_y_;
@@ -318,9 +310,6 @@ inline tensor3 convolve(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    const auto in_padded = pad_tensor3(0,
-        pad_top, pad_bottom, pad_left, pad_right,
-        input);
     // Allow the compiler to optimize common convolution cases.
     if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 1 && filter_shape.width_ == 1)
         return convolve_opt<1, 1, 1, 1>(out_height, out_width, offset_y, offset_x, filters, in_padded);

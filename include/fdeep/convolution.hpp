@@ -17,12 +17,12 @@
 namespace fdeep { namespace internal
 {
 
-template <std::size_t strides_y, std::size_t strides_x, std::size_t fy, std::size_t fx>
-tensor3 convolve_opt(
-    std::size_t out_height,
-    std::size_t out_width,
-    std::size_t offset_y,
-    std::size_t offset_x,
+template <std::size_t instance_id = 0>
+FDEEP_INLINE inline tensor3 convolve(
+    std::size_t out_height, std::size_t out_width,
+    std::size_t strides_y, std::size_t strides_x,
+    std::size_t offset_y, std::size_t offset_x,
+    std::size_t fy, std::size_t fx,
     const std::vector<filter>& filters,
     const tensor3& in)
 {
@@ -55,52 +55,6 @@ tensor3 convolve_opt(
             }
         }
     }
-
-    return out;
-}
-
-inline tensor3 convolve(
-    std::size_t out_height,
-    std::size_t out_width,
-    std::size_t strides_y,
-    std::size_t strides_x,
-    std::size_t offset_y,
-    std::size_t offset_x,
-    std::size_t fy,
-    std::size_t fx,
-    const std::vector<filter>& filters,
-    const tensor3& in)
-{
-    tensor3 out(shape3(filters.size(), out_height, out_width), 0);
-
-    const std::size_t fz = filters.front().shape().depth_;
-
-    for (std::size_t z = 0; z < out.shape().depth_; ++z)
-    {
-        const filter& filter = filters[z];
-        for (std::size_t y = 0; y < out.shape().height_; ++y)
-        {
-            for (std::size_t x = 0; x < out.shape().width_; ++x)
-            {
-                float_type sum = 0;
-                for (std::size_t zf = 0; zf < fz; ++zf)
-                {
-                    for (std::size_t yf = 0; yf < fy; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < fx; ++xf)
-                        {
-                            sum += filter.get(zf, yf, xf) *
-                                in.get(zf,
-                                    offset_y + strides_y * y + yf,
-                                    offset_x + strides_x * x + xf);
-                        }
-                    }
-                }
-                out.set(z, y, x, sum + filter.get_bias());
-            }
-        }
-    }
-
     return out;
 }
 
@@ -108,7 +62,7 @@ inline tensor3 convolve(
 // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
 // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
 // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-inline tensor3 convolve_im2col(
+FDEEP_INLINE inline tensor3 convolve_im2col(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
@@ -333,9 +287,10 @@ inline tensor3 convolve(
     FDEEPCONVOPTSYSXHWIF(2,2,7,7)\
     FDEEPCONVOPTSYSXHWIF(2,2,1,7)\
     FDEEPCONVOPTSYSXHWIF(2,2,7,1)
-    #define FDEEPCONVOPTSYSXHWIF(SY, SX, H, W) \
-    if (strides_y == SY && strides_x == SX && filter_shape.height_ == H && filter_shape.width_ == W)\
-        return convolve_opt<SY, SX, H, W>(out_height, out_width, offset_y, offset_x, filters, in_padded);
+    #define FDEEPCONVOPTSYSXHWIF(SY, SX, FH, FW) \
+    if (strides_y == SY && strides_x == SX && filter_shape.height_ == FH && filter_shape.width_ == FW)\
+        return convolve(out_height, out_width, SY, SX, offset_y, offset_x, FH, FW, filters, in_padded);
+
     FDEEPCONVOPTSYSXHWLIST
     #undef FDEEPCONVOPTSYSXHWIF
     #undef FDEEPCONVOPTSYSXHWLIST
@@ -363,6 +318,5 @@ inline tensor3 convolve_transpose(
     assertion(false, "not yet implemented");
     return convolve(strides, pad_type, use_offset, filters, input, use_im2col);
 }
-
 
 } } // namespace fdeep, namespace internal

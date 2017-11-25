@@ -28,6 +28,14 @@
 #include <string>
 #include <stdexcept>
 
+#if defined(__GNUC__) || defined(__GNUG__)
+#define FDEEP_INLINE __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define FDEEP_INLINE __forceinline
+#else
+#define FDEEP_INLINE
+#endif
+
 namespace fdeep { namespace internal
 {
 

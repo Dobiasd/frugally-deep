@@ -62,7 +62,7 @@ FDEEP_INLINE inline tensor3 convolve(
 // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
 // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
 // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-FDEEP_INLINE inline tensor3 convolve_im2col(
+inline tensor3 convolve_im2col(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
@@ -239,6 +239,13 @@ inline tensor3 convolve(
         filter_shape.without_depth(),
         strides, pad_type, use_offset, input.shape());
 
+    const std::size_t strides_y = strides.height_;
+    const std::size_t strides_x = strides.width_;
+    const std::size_t offset_y = conv_cfg.offset_y_;
+    const std::size_t offset_x = conv_cfg.offset_x_;
+    const std::size_t out_height = conv_cfg.out_height_;
+    const std::size_t out_width = conv_cfg.out_width_;
+
     const auto in_padded = pad_tensor3(0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
@@ -246,23 +253,13 @@ inline tensor3 convolve(
     if (use_im2col)
     {
         return convolve_im2col(
-            conv_cfg.out_height_,
-            conv_cfg.out_width_,
-            strides.height_,
-            strides.width_,
-            conv_cfg.offset_y_,
-            conv_cfg.offset_x_,
+            out_height, out_width,
+            strides.height_, strides.width_,
+            offset_y, offset_x,
             filter_shape.height_,
             filter_shape.width_,
             filters, in_padded);
     }
-
-    const std::size_t strides_y = strides.height_;
-    const std::size_t strides_x = strides.width_;
-    const std::size_t offset_y = conv_cfg.offset_y_;
-    const std::size_t offset_x = conv_cfg.offset_x_;
-    const std::size_t out_height = conv_cfg.out_height_;
-    const std::size_t out_width = conv_cfg.out_width_;
 
     // Allow the compiler to optimize common convolution cases.
     // https://stackoverflow.com/a/47484201/1866775

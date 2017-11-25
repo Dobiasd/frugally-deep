@@ -311,18 +311,34 @@ inline tensor3 convolve(
     const std::size_t out_width = conv_cfg.out_width_;
 
     // Allow the compiler to optimize common convolution cases.
-    if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 1 && filter_shape.width_ == 1)
-        return convolve_opt<1, 1, 1, 1>(out_height, out_width, offset_y, offset_x, filters, in_padded);
-    if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 3 && filter_shape.width_ == 3)
-        return convolve_opt<1, 1, 3, 3>(out_height, out_width, offset_y, offset_x, filters, in_padded);
-    if (strides_y == 1 && strides_x == 1 && filter_shape.height_ == 5 && filter_shape.width_ == 5)
-        return convolve_opt<1, 1, 5, 5>(out_height, out_width, offset_y, offset_x, filters, in_padded);
-    if (strides_y == 2 && strides_x == 2 && filter_shape.height_ == 1 && filter_shape.width_ == 1)
-        return convolve_opt<2, 2, 1, 1>(out_height, out_width, offset_y, offset_x, filters, in_padded);
-    if (strides_y == 2 && strides_x == 2 && filter_shape.height_ == 3 && filter_shape.width_ == 3)
-        return convolve_opt<2, 2, 3, 3>(out_height, out_width, offset_y, offset_x, filters, in_padded);
-    if (strides_y == 2 && strides_x == 2 && filter_shape.height_ == 5 && filter_shape.width_ == 5)
-        return convolve_opt<2, 2, 5, 5>(out_height, out_width, offset_y, offset_x, filters, in_padded);
+    // https://stackoverflow.com/a/47484201/1866775
+    #define CONVOPTSYSXHWLIST \
+    CONVOPTSYSXHWIF(1,1,1,1)\
+    CONVOPTSYSXHWIF(1,1,3,3)\
+    CONVOPTSYSXHWIF(1,1,1,3)\
+    CONVOPTSYSXHWIF(1,1,3,1)\
+    CONVOPTSYSXHWIF(1,1,5,5)\
+    CONVOPTSYSXHWIF(1,1,1,5)\
+    CONVOPTSYSXHWIF(1,1,5,1)\
+    CONVOPTSYSXHWIF(1,1,7,7)\
+    CONVOPTSYSXHWIF(1,1,1,7)\
+    CONVOPTSYSXHWIF(1,1,7,1)\
+    CONVOPTSYSXHWIF(2,2,1,1)\
+    CONVOPTSYSXHWIF(2,2,3,3)\
+    CONVOPTSYSXHWIF(2,2,1,3)\
+    CONVOPTSYSXHWIF(2,2,3,1)\
+    CONVOPTSYSXHWIF(2,2,5,5)\
+    CONVOPTSYSXHWIF(2,2,1,5)\
+    CONVOPTSYSXHWIF(2,2,5,1)\
+    CONVOPTSYSXHWIF(2,2,7,7)\
+    CONVOPTSYSXHWIF(2,2,1,7)\
+    CONVOPTSYSXHWIF(2,2,7,1)
+    #define CONVOPTSYSXHWIF(SY, SX, H, W) \
+    if (strides_y == SY && strides_x == SX && filter_shape.height_ == H && filter_shape.width_ == W)\
+        return convolve_opt<SY, SX, H, W>(out_height, out_width, offset_y, offset_x, filters, in_padded);
+    CONVOPTSYSXHWLIST
+    #undef CONVOPTSYSXHWIF
+    #undef CONVOPTSYSXHWLIST
 
     return convolve(
         out_height,

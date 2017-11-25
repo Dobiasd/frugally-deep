@@ -29,11 +29,11 @@
 #include <stdexcept>
 
 #if defined(__GNUC__) || defined(__GNUG__)
-#define FDEEP_INLINE __attribute__((always_inline))
+#define FDEEP_FORCE_INLINE __attribute__((always_inline))
 #elif defined(_MSC_VER)
-#define FDEEP_INLINE __forceinline
+#define FDEEP_FORCE_INLINE __forceinline
 #else
-#define FDEEP_INLINE
+#define FDEEP_FORCE_INLINE
 #endif
 
 namespace fdeep { namespace internal

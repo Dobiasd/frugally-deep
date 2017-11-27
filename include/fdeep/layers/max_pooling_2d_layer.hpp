@@ -13,7 +13,7 @@
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE inline tensor3 max_pool_2d(
+FDEEP_FORCE_INLINE tensor3 max_pool_2d(
     std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_y, std::size_t strides_x,
     padding pad_type,

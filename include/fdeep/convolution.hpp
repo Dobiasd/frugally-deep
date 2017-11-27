@@ -18,7 +18,7 @@ namespace fdeep { namespace internal
 {
 
 template <std::size_t instance_id = 0>
-FDEEP_FORCE_INLINE inline tensor3 convolve(
+FDEEP_FORCE_INLINE tensor3 convolve(
     std::size_t out_height, std::size_t out_width,
     std::size_t strides_y, std::size_t strides_x,
     std::size_t offset_y, std::size_t offset_x,

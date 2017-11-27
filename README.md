@@ -34,6 +34,7 @@ Would you like to use/deploy your already-trained Keras models in C++? And would
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * has a small memory footprint.
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
+* but is quite fast on one CPU core [compared to TensorFlow](#performance).
 
 
 ### Supported layer types

@@ -128,7 +128,7 @@ inline shared_float_vec eigen_mat_to_values(const RowMajorMatrixXf& m)
 {
     shared_float_vec result = fplus::make_shared_ref<float_vec>();
     result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
-    std::copy(m.data(), m.data() + m.size(), std::begin(*result));
+    std::memcpy(result->data(), m.data(), result->size() * sizeof(float_type));
     return result;
 }
 
@@ -137,7 +137,7 @@ inline RowMajorMatrixXf eigen_mat_from_values(std::size_t height, std::size_t wi
 {
     assertion(height * width == values.size(), "invalid shape");
     RowMajorMatrixXf m(height, width);
-    std::copy(std::begin(values), std::end(values), m.data());
+    std::memcpy(m.data(), values.data(), values.size() * sizeof(float_type));
     return m;
 }
 

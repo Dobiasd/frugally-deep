@@ -52,6 +52,11 @@ inline bool operator == (const shape3& lhs, const shape3& rhs)
         lhs.width_ == rhs.width_;
 }
 
+inline bool operator != (const shape3& lhs, const shape3& rhs)
+{
+    return !(lhs == rhs);
+}
+
 } // namespace internal
 
 using shape3 = internal::shape3;

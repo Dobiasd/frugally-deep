@@ -1,3 +1,5 @@
+message(STATUS "Building Unit Tests ${UNITTEST}")
+
 add_custom_command ( OUTPUT test_model_small.h5
                      COMMAND bash -c "python3 ../keras_export/generate_test_models.py small test_model_small.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)

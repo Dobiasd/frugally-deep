@@ -133,7 +133,7 @@ inline model load_model(const std::string& path,
     bool verify = true,
     bool verify_no_im2col = false,
     const std::function<void(std::string)>& logger = cout_logger,
-    float_type verify_epsilon = static_cast<float_type>(0.00001))
+    float_type verify_epsilon = static_cast<float_type>(0.0001))
 {
     const auto log = [&logger](const std::string& msg)
     {

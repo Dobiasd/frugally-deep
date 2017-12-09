@@ -10,5 +10,6 @@
 
 TEST_CASE("test_model_sequential_test, load_model")
 {
-    const auto model = fdeep::load_model("../test_model_sequential.json");
+    const auto model = fdeep::load_model("../test_model_sequential.json",
+        true, true, fdeep::cout_logger, 0.00001);
 }

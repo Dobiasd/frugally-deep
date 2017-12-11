@@ -15,8 +15,8 @@
 #if defined _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4706)
+#pragma warning( disable : 4996)
 #endif
-// source: https://github.com/nlohmann/json
 #include <nlohmann/json.hpp>
 #if defined _MSC_VER
 #pragma warning( pop )
@@ -26,6 +26,7 @@
 #endif
 
 #include <fplus/fplus.hpp>
+
 #include <iostream>
 #include <chrono>
 

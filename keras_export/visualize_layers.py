@@ -22,6 +22,7 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
+GRADIENT_ASCENT_STEPS = 20
 
 def deprocess_image(x):
     # normalize tensor: center on 0., ensure std is 0.1
@@ -76,22 +77,14 @@ def process_conv_2d_layer(layer, input_img):
         input_img_data = np.random.random((1, img_width, img_height, img_chans))
         input_img_data = (input_img_data - 0.5) * 20 + 128
 
-        # we run gradient ascent for 20 steps
-        for i in range(20):
+        # run gradient ascent
+        for i in range(GRADIENT_ASCENT_STEPS):
             loss_value, grads_value = iterate([input_img_data])
             input_img_data += grads_value * step
 
-            #print('Current loss value:', loss_value)
-            if loss_value <= 0.:
-                # some filters get stuck to 0, we can skip them
-                print('Skipping filter {}, loss {}'.format(
-                    filter_index, loss_value))
-                break
-
         # decode the resulting input image
-        if loss_value > 0:
-            img = deprocess_image(input_img_data[0])
-            kept_filters.append((img, loss_value))
+        img = deprocess_image(input_img_data[0])
+        kept_filters.append((img, loss_value))
 
     return kept_filters
 
@@ -129,7 +122,8 @@ def process_layers(model, out_dir):
                 images_with_loss = process_func(layer, model.input)
                 for i, (image, loss) in enumerate(images_with_loss):
                     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
-                    image = np.squeeze(image)
+                    if image.shape[-1] == 1:
+                        image = image.reshape(image.shape[:-1])
                     imsave('{}/{}_{}_{}_{}.png'.format(
                         out_dir, date_time_str, name, i, loss), image)
     return result

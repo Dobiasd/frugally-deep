@@ -54,7 +54,7 @@ def process_conv_2d_layer(layer, input_img):
     img_width, img_height, img_chans = input_img.shape[1:4]
     kept_filters = []
     for filter_index in range(filter_cnt):
-        print('Processing layer {}, filter {} of {}'.format(
+        print('{}:, filter {} of {}'.format(
             layer.name, filter_index, filter_cnt))
 
         # we build a loss function that maximizes the activation
@@ -106,7 +106,7 @@ def process_layers(model, out_dir):
     }
     result = {}
     layers = model.layers
-    for layer in layers:
+    for i, layer in enumerate(layers):
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = process_layers(layer, out_dir)
@@ -115,6 +115,8 @@ def process_layers(model, out_dir):
             name = layer.name
             assert is_ascii(name)
             if process_func:
+                print('Processing layer {} ({} of {})'.format(
+                    layer.name, i, len(layers)))
                 images_with_loss = process_func(layer, model.get_input_at(0))
                 for i, (image, loss) in enumerate(images_with_loss):
                     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")

@@ -294,7 +294,7 @@ def get_all_weights(model):
 
 
 def convert_sequential_to_model(model):
-    """Convert a sequential model to the unterlying functions format"""
+    """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ == 'Sequential':
         name = model.name
         inbound_nodes = model.inbound_nodes

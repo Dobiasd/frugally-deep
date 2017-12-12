@@ -22,10 +22,11 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-GRADIENT_ASCENT_STEPS = 20
+GRADIENT_ASCENT_STEPS = 24
+GRADIENT_ASCENT_STEP_SIZE = 1.
 
 def deprocess_image(x):
-    # normalize tensor: center on 0., ensure std is 0.1
+    """normalize tensor: center on 0., ensure std is 0.1"""
     x -= x.mean()
     x /= (x.std() + K.epsilon())
     x *= 0.1
@@ -43,19 +44,18 @@ def deprocess_image(x):
 
 
 def normalize(x):
-    # utility function to normalize a tensor by its L2 norm
+    """utility function to normalize a tensor by its L2 norm"""
     return x / (K.sqrt(K.mean(K.square(x))) + K.epsilon())
 
 
 def process_conv_2d_layer(layer, input_img):
+    """Generate images maximizing the activation of conv2d filters"""
     filter_cnt = layer.get_weights()[0].shape[-1]
-    print('Processing layer {} with {} filters'.format(layer.name, filter_cnt))
     img_width, img_height, img_chans = input_img.shape[1:4]
     kept_filters = []
     for filter_index in range(filter_cnt):
-        # we only scan through the first 200 filters,
-        # but there are actually 512 of them
-        print('Processing filter %d' % filter_index)
+        print('Processing layer {}, filter {} of {}'.format(
+            layer.name, filter_index, filter_cnt))
 
         # we build a loss function that maximizes the activation
         # of the nth filter of the layer considered
@@ -70,17 +70,13 @@ def process_conv_2d_layer(layer, input_img):
         # this function returns the loss and grads given the input picture
         iterate = K.function([input_img], [loss, grads])
 
-        # step size for gradient ascent
-        step = 1.
-
         # we start from a gray image with some random noise
         input_img_data = np.random.random((1, img_width, img_height, img_chans))
-        input_img_data = (input_img_data - 0.5) * 20 + 128
 
         # run gradient ascent
         for i in range(GRADIENT_ASCENT_STEPS):
             loss_value, grads_value = iterate([input_img_data])
-            input_img_data += grads_value * step
+            input_img_data += grads_value * GRADIENT_ASCENT_STEP_SIZE
 
         # decode the resulting input image
         img = deprocess_image(input_img_data[0])
@@ -113,7 +109,7 @@ def process_layers(model, out_dir):
     for layer in layers:
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
-            result = process_layers(layer)
+            result = process_layers(layer, out_dir)
         else:
             process_func = process_layer_functions.get(layer_type, None)
             name = layer.name

@@ -115,7 +115,7 @@ def process_layers(model, out_dir):
             name = layer.name
             assert is_ascii(name)
             if process_func:
-                images_with_loss = process_func(layer, model.input)
+                images_with_loss = process_func(layer, model.get_input_at(0))
                 for i, (image, loss) in enumerate(images_with_loss):
                     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
                     if image.shape[-1] == 1:

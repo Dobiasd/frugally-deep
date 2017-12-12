@@ -285,7 +285,7 @@ def get_all_weights(model):
         else:
             show_func = show_layer_functions.get(layer_type, None)
             name = layer.name
-            is_ascii(name)
+            assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
             if show_func:

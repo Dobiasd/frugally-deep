@@ -367,6 +367,28 @@ inline tensor3 sum_tensor3s(const tensor3s& ts)
     return tensor3(ts.front().shape(), std::move(result_values));
 }
 
+inline tensor3 max_tensor3s(const tensor3s& ts)
+{
+    assertion(!ts.empty(), "no tensor3s given");
+    assertion(
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor3, shape, shape3), ts),
+        "all tensor3s must have the same size");
+    const auto ts_values = fplus::transform(
+        fplus_c_mem_fn_t(tensor3, as_vector, shared_float_vec), ts);
+    float_vec result_values;
+    result_values.reserve(ts_values.front()->size());
+    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    {
+        float_type max_val = std::numeric_limits<float_type>::lowest();
+        for (const auto& t_vals : ts_values)
+        {
+            max_val = std::max(max_val, (*t_vals)[i]);
+        }
+        result_values.push_back(max_val);
+    }
+    return tensor3(ts.front().shape(), std::move(result_values));
+}
+
 } // namespace internal
 
 using float_type = internal::float_type;

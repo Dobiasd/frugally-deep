@@ -455,6 +455,13 @@ inline layer_ptr create_add_layer(
     return std::make_shared<add_layer>(name);
 }
 
+inline layer_ptr create_maximum_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
+{
+    const std::string name = data["name"];
+    return std::make_shared<maximum_layer>(name);
+}
+
 inline layer_ptr create_flatten_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data)
 {
@@ -649,6 +656,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"UpSampling2D", create_upsampling_2d_layer},
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
+            {"Maximum", create_maximum_layer},
             {"Concatenate", create_concatename_layer},
             {"Flatten", create_flatten_layer},
             {"ZeroPadding1D", create_zero_padding_2d_layer},

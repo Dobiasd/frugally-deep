@@ -61,7 +61,7 @@ protected:
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
 
-        const auto input_slices = tensor3_to_depth_slices(inputs.front());
+        const auto input_slices = tensor3_to_tensor_2_depth_slices(inputs.front());
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");

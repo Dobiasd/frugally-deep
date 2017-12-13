@@ -130,7 +130,7 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
     return m;
 }
 
-inline std::vector<tensor2> tensor3_to_depth_slices(const tensor3& m)
+inline std::vector<tensor2> tensor3_to_tensor_2_depth_slices(const tensor3& m)
 {
     std::vector<tensor2> ms;
     ms.reserve(m.shape().depth_);
@@ -440,8 +440,8 @@ inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
 // Converts a tensor3 into a memory block holding 8-bit values.
 // Data will be stored row-wise (and channels_last).
 // Scales the values from range [low, high] into [0, 255].
-// May be used to convert a tensor3 to an image.
-inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
+// May be used to convert a tensor3 into an image.
+inline void tensor3_into_bytes(const tensor3& t, std::uint8_t* value_ptr,
     std::size_t bytes_available,
     internal::float_type low = 0.0f, internal::float_type high = 1.0f)
 {
@@ -460,6 +460,41 @@ inline void tensor3_to_bytes(const tensor3& t, std::uint8_t* value_ptr,
     {
         *(value_ptr++) = bytes[i];
     }
+}
+
+// Converts a tensor3 into a vector of bytes.
+// Data will be stored row-wise (and channels_last).
+// Scales the values from range [low, high] into [0, 255].
+inline std::vector<std::uint8_t> tensor3_to_bytes(const tensor3& t,
+    internal::float_type low = 0.0f, internal::float_type high = 1.0f)
+{
+    std::vector<std::uint8_t> bytes(t.shape().volume(), 0);
+    tensor3_into_bytes(t, bytes.data(), bytes.size(), low, high);
+    return bytes;
+}
+
+// Return one tensor3 with depth 1 for every depth slice of a given tensor3.
+inline std::vector<tensor3> tensor3_to_depth_slices(const tensor3& m)
+{
+    std::vector<tensor3> ms;
+    ms.reserve(m.shape().depth_);
+    for (std::size_t i = 0; i < m.shape().depth_; ++i)
+    {
+        ms.push_back(tensor3(
+            shape3(1, m.shape().height_, m.shape().width_), 0));
+    }
+
+    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < m.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < m.shape().width_; ++x)
+            {
+                ms[z].set(0, y, x, m.get(z, y, x));
+            }
+        }
+    }
+    return ms;
 }
 
 } // namespace fdeep

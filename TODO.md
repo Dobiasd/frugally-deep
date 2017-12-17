@@ -2,7 +2,6 @@
 
 implement Conv2DTranspose
 
-reduce memory usage during model conversion (decode floats)
 reduce memory usage during model loading
 https://www.reddit.com/r/cpp/comments/7c91n0/frugallydeep_a_headeronly_library_for_using_keras/dq529a6/
 

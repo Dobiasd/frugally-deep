@@ -52,10 +52,10 @@ def arr_as_arr3(arr):
 
 def show_tensor3(tens):
     """Serialize 3-tensor to a dict"""
-    values = tens.flatten().tolist()
+    values = tens.flatten()
     return {
         'shape': tens.shape,
-        'values': decode_floats(values)
+        'values': encode_floats(values)
     }
 
 
@@ -75,7 +75,8 @@ def gen_test_data(model):
         return shape
 
     data_in = list(map(lambda l: np.random.random(
-        set_shape_idx_0_to_1(l.input_shape)), model.input_layers))
+        set_shape_idx_0_to_1(l.input_shape)).astype(np.float32),
+        model.input_layers))
 
     start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
@@ -94,23 +95,22 @@ def split_every(size, seq):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
-def decode_floats(values):
+def encode_floats(arr):
     """Serialize a sequence of floats."""
     if STORE_FLOATS_HUMAN_READABLE:
         return values
-    bs = struct.pack('%sf' % len(values), *values)
-    return list(split_every(1024, base64.b64encode(bs).decode('ascii')))
+    return list(split_every(1024, base64.b64encode(arr).decode('ascii')))
 
 
 def prepare_filter_weights_conv_2d(weights):
     """Change dimension order of 2d filter weights to the one used in fdeep"""
     return np.swapaxes(np.swapaxes(np.swapaxes(
-        weights, 0, 2), 1, 3), 0, 1).flatten().tolist()
+        weights, 0, 2), 1, 3), 0, 1).flatten()
 
 
 def prepare_filter_weights_conv_1d(weights):
     """Change dimension order of 1d filter weights to the one used in fdeep"""
-    return np.swapaxes(weights, 0, 2).flatten().tolist()
+    return np.swapaxes(weights, 0, 2).flatten()
 
 
 def show_conv_1d_layer(layer):
@@ -119,16 +119,15 @@ def show_conv_1d_layer(layer):
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 3
     weights_flat = prepare_filter_weights_conv_1d(weights[0])
-    assert weights_flat
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 3
     assert layer.input_shape[0] is None
     result = {
-        'weights': decode_floats(weights_flat)
+        'weights': encode_floats(weights_flat)
     }
     if len(weights) == 2:
-        bias = weights[1].tolist()
-        result['bias'] = decode_floats(bias)
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
     return result
 
 
@@ -138,16 +137,15 @@ def show_conv_2d_layer(layer):
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
     weights_flat = prepare_filter_weights_conv_2d(weights[0])
-    assert weights_flat
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] is None
     result = {
-        'weights': decode_floats(weights_flat)
+        'weights': encode_floats(weights_flat)
     }
     if len(weights) == 2:
-        bias = weights[1].tolist()
-        result['bias'] = decode_floats(bias)
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
     return result
 
 
@@ -157,16 +155,15 @@ def show_conv_2d_transpose_layer(layer):
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
     weights_flat = prepare_filter_weights_conv_2d(weights[0])
-    assert weights_flat
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] is None
     result = {
-        'weights': decode_floats(weights_flat)
+        'weights': encode_floats(weights_flat)
     }
     if len(weights) == 2:
-        bias = weights[1].tolist()
-        result['bias'] = decode_floats(bias)
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
     return result
 
 
@@ -182,35 +179,33 @@ def show_separable_conv_2d_layer(layer):
     slice_weights = prepare_filter_weights_conv_2d(weights[0])
     stack_weights = prepare_filter_weights_conv_2d(weights[1])
 
-    assert slice_weights
-    assert stack_weights
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
     assert layer.input_shape[0] is None
     result = {
-        'slice_weights': decode_floats(slice_weights),
-        'stack_weights': decode_floats(stack_weights),
+        'slice_weights': encode_floats(slice_weights),
+        'stack_weights': encode_floats(stack_weights),
     }
     if len(weights) == 3:
-        bias = weights[2].tolist()
-        result['bias'] = decode_floats(bias)
+        bias = weights[2]
+        result['bias'] = encode_floats(bias)
     return result
 
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
     assert layer.axis == -1 or layer.axis == 3
-    moving_mean = K.get_value(layer.moving_mean).tolist()
-    moving_variance = K.get_value(layer.moving_variance).tolist()
+    moving_mean = K.get_value(layer.moving_mean)
+    moving_variance = K.get_value(layer.moving_variance)
     result = {}
-    result['moving_mean'] = decode_floats(moving_mean)
-    result['moving_variance'] = decode_floats(moving_variance)
+    result['moving_mean'] = encode_floats(moving_mean)
+    result['moving_variance'] = encode_floats(moving_variance)
     if layer.center:
-        beta = K.get_value(layer.beta).tolist()
-        result['beta'] = decode_floats(beta)
+        beta = K.get_value(layer.beta)
+        result['beta'] = encode_floats(beta)
     if layer.scale:
-        gamma = K.get_value(layer.gamma).tolist()
-        result['gamma'] = decode_floats(gamma)
+        gamma = K.get_value(layer.gamma)
+        result['gamma'] = encode_floats(gamma)
     return result
 
 
@@ -231,13 +226,13 @@ def show_dense_layer(layer):
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 2
-    weights_flat = weights[0].flatten().tolist()
+    weights_flat = weights[0].flatten()
     result = {
-        'weights': decode_floats(weights_flat)
+        'weights': encode_floats(weights_flat)
     }
     if len(weights) == 2:
-        bias = weights[1].tolist()
-        result['bias'] = decode_floats(bias)
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
     return result
 
 

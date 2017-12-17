@@ -5,7 +5,6 @@
 import base64
 import datetime
 import json
-import struct
 import sys
 
 import numpy as np

@@ -65,7 +65,12 @@ inline void assertion(bool cond, const std::string& error)
     }
 }
 
-typedef float float_type;
+#ifdef FDEEP_FLOAT_TYPE
+    typedef FDEEP_FLOAT_TYPE float_type;
+#else
+    typedef float float_type;
+#endif
+
 typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 

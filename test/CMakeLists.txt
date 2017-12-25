@@ -53,6 +53,7 @@ _add_test(test_model_small_test)
 _add_test(test_model_sequential_test)
 if(NOT DEFINED ENV{TRAVIS})
 _add_test(test_model_full_test)
+_add_test(test_model_full_test_double)
 endif()
 _add_test(readme_example_main)
 
@@ -66,6 +67,7 @@ add_custom_target(unittest
     COMMAND test_model_small_test
     COMMAND test_model_sequential_test
     COMMAND test_model_full_test
+    COMMAND test_model_full_test_double
     COMMAND readme_example_main
 
     COMMENT "Running unittests\n\n"

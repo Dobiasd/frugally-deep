@@ -179,7 +179,8 @@ inline model load_model(const std::string& path,
     };
 
     const model full_model(internal::create_model_layer(
-        get_param, get_global_param, json_data["architecture"]),
+        get_param, get_global_param, json_data["architecture"],
+        json_data["architecture"]["config"]["name"]),
         internal::create_shape3s(json_data["input_shapes"]),
         internal::create_shape3s(json_data["output_shapes"]));
 

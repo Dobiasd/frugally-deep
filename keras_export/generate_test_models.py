@@ -109,8 +109,10 @@ def get_test_model_sequential():
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(16, (3, 3), activation='relu'))
-    model.add(Conv2D(16, (3, 3), activation='relu'))
+    model.add(Conv2D(16, (3, 3), activation='elu'))
+    model.add(Conv2D(16, (3, 3)))
+    model.add(ELU())
+
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 

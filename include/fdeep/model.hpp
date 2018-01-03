@@ -98,7 +98,7 @@ private:
             output_shapes_(output_shapes),
             model_layer_(model_layer) {}
 
-    friend model load_model(const std::string&, bool, bool,
+    friend model read_model(const std::string&, bool, bool,
         const std::function<void(std::string)>&, float_type);
 
     std::vector<shape3> input_shapes_;
@@ -112,9 +112,10 @@ inline void cout_logger(const std::string& str)
     std::cout << str << std::flush;
 }
 
-// Load and construct an fdeep::model from file.
+// Load and construct an fdeep::model from an std::string
+// holding the exported json content.
 // Throws an exception if a problem occurs.
-inline model load_model(const std::string& path,
+inline model read_model(const std::string& content,
     bool verify = true,
     bool verify_no_im2col = false,
     const std::function<void(std::string)>& logger = cout_logger,
@@ -149,13 +150,8 @@ inline model load_model(const std::string& path,
         stopwatch.reset();
     };
 
-    log_sol("Loading " + path);
-    auto maybe_json_str = fplus::read_text_file_maybe(path)();
-    internal::assertion(fplus::is_just(maybe_json_str),
-        "Unable to load: " + path);
-    auto json_data =
-        nlohmann::json::parse(maybe_json_str.unsafe_get_just());
-    maybe_json_str = fplus::nothing<std::string>(); // free RAM
+    log_sol("Parsing json");
+    auto json_data = nlohmann::json::parse(content);
     log_duration();
 
     const std::string image_data_format = json_data["image_data_format"];
@@ -219,6 +215,21 @@ inline model load_model(const std::string& path,
     }
 
     return full_model;
+}
+
+// Load and construct an fdeep::model from file.
+// Throws an exception if a problem occurs.
+inline model load_model(const std::string& path,
+    bool verify = true,
+    bool verify_no_im2col = false,
+    const std::function<void(std::string)>& logger = cout_logger,
+    float_type verify_epsilon = static_cast<float_type>(0.0001))
+{
+    auto maybe_json_str = fplus::read_text_file_maybe(path)();
+    internal::assertion(fplus::is_just(maybe_json_str),
+        "Unable to load: " + path);
+    return read_model(maybe_json_str.unsafe_get_just(),
+        verify, verify_no_im2col, logger, verify_epsilon);
 }
 
 } // namespace fdeep

@@ -24,7 +24,7 @@ Table of contents
 Introduction
 ------------
 
-Would you like to use/deploy your already-trained Keras models in C++? And would like to avoid linking your application against TensorFlow? Then frugally-deep is exactly for you.
+Would you like to build/train a model using Keras/Python? And would you like run the prediction (forward pass) on your model in C++ without linking your application against TensorFlow? Then frugally-deep is exactly for you.
 
 **frugally-deep**
 

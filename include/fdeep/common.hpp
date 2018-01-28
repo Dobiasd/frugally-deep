@@ -20,7 +20,7 @@
 #pragma warning( disable : 4706)
 #pragma warning( disable : 4996)
 #endif
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #if defined _MSC_VER
 #pragma warning( pop )
 #endif

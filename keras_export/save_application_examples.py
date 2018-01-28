@@ -58,6 +58,18 @@ def save_mobilenet(dir_path, file_name):
         os.path.join(dir_path, file_name + ".h5"))
 
 
+def save_densenet201(dir_path, file_name):
+    """Save DenseNet201 model"""
+    keras.applications.densenet.DenseNet201().save(
+        os.path.join(dir_path, file_name + ".h5"))
+
+
+def save_nasnetlarge(dir_path, file_name):
+    """Save NASNetLarge model"""
+    keras.applications.nasnet.NASNetLarge().save(
+        os.path.join(dir_path, file_name + ".h5"))
+
+
 def main():
     """Save famous example models in Keras format."""
     if len(sys.argv) != 2:
@@ -75,6 +87,10 @@ def main():
         save_vgg19(dir_path, 'vgg19')
         save_resnet50(dir_path, 'resnet50')
         save_inceptionv3(dir_path, 'inceptionv3')
+        save_densenet201(dir_path, 'densenet201')
+        save_nasnetlarge(dir_path, 'nasnetlarge')
+        keras.applications.densenet.DenseNet201(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000)
+        keras.applications.nasnet.NASNetLarge(input_shape=None, include_top=True, weights='imagenet', input_tensor=None, pooling=None, classes=1000)
         # save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # lambda
         # save_mobilenet(dir_path, 'mobilenet') # relu6
 
@@ -83,6 +99,8 @@ def main():
         # ../keras_export/convert_model.py vgg16.h5 vgg16.json
         # ../keras_export/convert_model.py vgg19.h5 vgg19.json
         # ../keras_export/convert_model.py xception.h5 xception.json
+        # ../keras_export/convert_model.py densenet201.h5 densenet201.json
+        # ../keras_export/convert_model.py nasnetlarge.h5 nasnetlarge.json
 
         # ../keras_export/convert_model.py inceptionvresnetv2.h5 inceptionvresnetv2.json
         # ../keras_export/convert_model.py mobilenet.h5 mobilenet.json

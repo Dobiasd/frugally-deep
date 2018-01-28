@@ -17,6 +17,8 @@ int main()
         "vgg16.json",
         "vgg19.json",
         "xception.json",
+        "densenet201.json",
+        "nasnetlarge.json",
         //"inceptionvresnetv2.json", // lambda
         //"mobilenet.json", // relu6
     };

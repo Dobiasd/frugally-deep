@@ -235,6 +235,12 @@ Internals
 frugally-deep uses `channels_first` (`depth/channels, height, width`) as its `image_data_format` internally. `convert_model.py` takes care of all necessary conversions.
 From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
 
+In case you would like to use `double` instead of `float` for all calculations, simply do this:
+```cpp
+#define FDEEP_FLOAT_TYPE double
+#include <fdeep/fdeep.hpp>
+```
+
 A frugally-deep model is thread-safe, i.e. you can call `model.predict` on the same model instance from different threads simultaneously. This way you may utilize up to as many CPU cores as you have predictions to make. With `model::predict_multi` there is a convenience function available to handle the parallelism for you.
 
 Convolution is done using im2col per default. You can disable it in the call of `model.predict` in case it is not suited for you application, e.g. due to tight memory constraints.

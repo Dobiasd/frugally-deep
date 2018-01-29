@@ -291,10 +291,18 @@ def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ == 'Sequential':
         name = model.name
-        inbound_nodes = model.inbound_nodes
+        if hasattr(model, '_inbound_nodes'):
+            inbound_nodes = model._inbound_nodes
+        elif hasattr(model, 'inbound_nodes'):
+            inbound_nodes = model.inbound_nodes
+        else:
+            assert False
         model = model.model
         model.name = name
-        model.inbound_nodes = inbound_nodes
+        if hasattr(model, '_inbound_nodes'):
+            model._inbound_nodes = inbound_nodes
+        elif hasattr(model, 'inbound_nodes'):
+            model.inbound_nodes = inbound_nodes
     assert model.input_layers
     assert model.layers
     for i in range(len(model.layers)):

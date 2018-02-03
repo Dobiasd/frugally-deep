@@ -33,6 +33,8 @@ Would you like to build/train a model using Keras/Python? And would you like run
 * depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus), [Eigen](http://eigen.tuxfamily.org/) and [json](https://github.com/nlohmann/json) - also header-only libraries.
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
 * re-implements a (small) subset of TensorFlow, i.e. the operations needed to support prediction.
+* results in a much smaller binary size than linking against TensorFlow.
+* works out of-the-box also when compiled into a 32-bit executable.
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
 * but is quite fast on one CPU core [compared to TensorFlow](#performance).
 

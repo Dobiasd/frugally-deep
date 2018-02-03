@@ -44,6 +44,7 @@ install:
   - cmake ..
   - make
   - sudo make install
+  - ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ../..
   - git clone https://github.com/nlohmann/json
   - cd json

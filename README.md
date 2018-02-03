@@ -204,6 +204,7 @@ cd eigen
 mkdir -p build && cd build
 cmake ..
 make && sudo make install
+sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 cd ../..
 
 git clone https://github.com/nlohmann/json

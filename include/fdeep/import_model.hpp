@@ -17,7 +17,7 @@
 #pragma warning( disable : 4706)
 #pragma warning( disable : 4996)
 #endif
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #if defined _MSC_VER
 #pragma warning( pop )
 #endif

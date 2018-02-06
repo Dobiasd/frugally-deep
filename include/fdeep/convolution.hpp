@@ -112,8 +112,6 @@ inline tensor3 convolve_im2col(
         }
     }
 
-    const auto result = filter_mat.mat_ * a;
-
     const std::size_t val_cnt =
         static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
     assertion(val_cnt % (out_height * out_width) == 0,
@@ -123,8 +121,18 @@ inline tensor3 convolve_im2col(
     assertion(val_cnt == out_depth * out_height * out_width,
         "Invalid target size");
 
-    return tensor3(shape3(out_depth, out_height, out_width),
-        eigen_mat_to_values(result));
+    shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
+    res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
+
+    Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> out_mat_map(
+        res_vec->data(),
+        static_cast<Eigen::Index>(filter_mat.mat_.rows()),
+        static_cast<Eigen::Index>(a.cols()));
+
+    // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
+    out_mat_map.noalias() = filter_mat.mat_ * a;
+
+    return tensor3(shape3(out_depth, out_height, out_width), res_vec);
 }
 
 enum class padding { valid, same };

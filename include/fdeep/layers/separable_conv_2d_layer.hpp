@@ -39,10 +39,12 @@ public:
             const float_vec& bias_0,
             const float_vec& bias)
         : layer(name),
-        filters_depthwise_(generate_filters(dilation_rate, filter_shape,
-            input_depth, depthwise_weights, bias_0)),
-        filters_pointwise_(generate_filters(shape2(1, 1),
-            shape3(input_depth, 1, 1), k, pointwise_weights, bias)),
+        filters_depthwise_(fplus::transform(generate_im2col_single_filter_matrix,
+            generate_filters(dilation_rate, filter_shape,
+                input_depth, depthwise_weights, bias_0))),
+        filters_pointwise_(generate_im2col_filter_matrix(
+            generate_filters(shape2(1, 1),
+                shape3(input_depth, 1, 1), k, pointwise_weights, bias))),
         strides_(strides),
         padding_(p),
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
@@ -57,7 +59,7 @@ public:
             "invalid number of filters");
     }
 protected:
-    tensor3s apply_impl(bool use_im2col, const tensor3s& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
 
@@ -73,12 +75,11 @@ protected:
             (padding_ == padding::same && padding_same_offset_depth_2_));
 
         const auto convolve_slice =
-            [&](const tensor2& slice, const filter& f) -> tensor3
+            [&](const tensor2& slice, const im2col_filter_matrix& f) -> tensor3
         {
-            assertion(f.shape().depth_ == 1, "invalid filter depth");
+            assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_,
-                use_offset, filter_vec(1, f), tensor2_to_tensor3(slice),
-                use_im2col);
+                use_offset, f, tensor2_to_tensor3(slice));
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
         };
@@ -89,11 +90,11 @@ protected:
             convolve_slice, input_slices, filters_depthwise_));
 
         return {convolve(shape2(1, 1), padding::valid, false,
-            filters_pointwise_, temp, use_im2col)};
+            filters_pointwise_, temp)};
     }
 
-    filter_vec filters_depthwise_;
-    filter_vec filters_pointwise_;
+    std::vector<im2col_filter_matrix> filters_depthwise_;
+    im2col_filter_matrix filters_pointwise_;
     shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;

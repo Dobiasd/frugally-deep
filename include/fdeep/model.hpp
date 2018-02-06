@@ -16,10 +16,9 @@ class model
 {
 public:
     // A single forward pass.
-    // im2col is faster on most architectures but uses more RAM.
-    tensor3s predict(const tensor3s& inputs, bool use_im2col = true) const
+    tensor3s predict(const tensor3s& inputs) const
     {
-        const auto outputs = model_layer_->apply(use_im2col, inputs);
+        const auto outputs = model_layer_->apply(inputs);
         internal::assertion(
             fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3), outputs)
             == get_output_shapes(), "invalid outputs shape");
@@ -30,12 +29,11 @@ public:
     // When parallelly == true, the work is distributed to up to
     // as many CPUs as data entries are provided.
     std::vector<tensor3s> predict_multi(const std::vector<tensor3s>& inputs_vec,
-        bool parallelly,
-        bool use_im2col = true) const
+        bool parallelly) const
     {
-        const auto f = [this, use_im2col](const tensor3s& inputs) -> tensor3s
+        const auto f = [this](const tensor3s& inputs) -> tensor3s
         {
-            return predict(inputs, use_im2col);
+            return predict(inputs);
         };
         if (parallelly)
         {
@@ -50,15 +48,14 @@ public:
     // Convenience wrapper around predict for models with
     // single tensor outputs of shape (1, 1, z).
     // Returns the index of the output neuron with the maximum actication.
-    std::size_t predict_class(const tensor3s& inputs,
-        bool use_im2col = true) const
+    std::size_t predict_class(const tensor3s& inputs) const
     {
         internal::assertion(get_output_shapes().size() == 1,
             "invalid number of outputs");
         const auto output_shape = get_output_shapes().front();
         internal::assertion(output_shape.without_depth().area() == 1,
             "invalid output shape");
-        const tensor3s outputs = predict(inputs, use_im2col);
+        const tensor3s outputs = predict(inputs);
         return internal::tensor3_max_pos(outputs.front()).z_;
     }
 
@@ -82,11 +79,11 @@ public:
     }
 
     // Measure time of one single forward pass using dummy input data.
-    double test_speed(bool use_im2col = true) const
+    double test_speed() const
     {
         const auto inputs = generate_dummy_inputs();
         fplus::stopwatch stopwatch;
-        predict(inputs, use_im2col);
+        predict(inputs);
         return stopwatch.elapsed();
     }
 
@@ -98,7 +95,7 @@ private:
             output_shapes_(output_shapes),
             model_layer_(model_layer) {}
 
-    friend model read_model(const std::string&, bool, bool,
+    friend model read_model(const std::string&, bool,
         const std::function<void(std::string)>&, float_type);
 
     std::vector<shape3> input_shapes_;
@@ -117,7 +114,6 @@ inline void cout_logger(const std::string& str)
 // Throws an exception if a problem occurs.
 inline model read_model(const std::string& content,
     bool verify = true,
-    bool verify_no_im2col = false,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.0001))
 {
@@ -192,24 +188,11 @@ inline model read_model(const std::string& content,
             json_data = {}; // free RAM
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
-                log_sol("Running test (im2col)    " + fplus::show(i + 1) +
+                log_sol("Running test " + fplus::show(i + 1) +
                     " of " + fplus::show(tests.size()));
-                const auto output_im2col =
-                    full_model.predict(tests[i].input_, true);
+                const auto output = full_model.predict(tests[i].input_);
                 log_duration();
-                check_test_outputs(verify_epsilon,
-                    output_im2col, tests[i].output_);
-
-                if (verify_no_im2col)
-                {
-                    log_sol("Running test (no im2col) " + fplus::show(i + 1) +
-                        " of " + fplus::show(tests.size()));
-                    const auto output_no_im2col =
-                    full_model.predict(tests[i].input_, false);
-                    log_duration();
-                    check_test_outputs(verify_epsilon,
-                        output_no_im2col, tests[i].output_);
-                }
+                check_test_outputs(verify_epsilon, output, tests[i].output_);
             }
         }
     }
@@ -221,7 +204,6 @@ inline model read_model(const std::string& content,
 // Throws an exception if a problem occurs.
 inline model load_model(const std::string& path,
     bool verify = true,
-    bool verify_no_im2col = false,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.0001))
 {
@@ -229,7 +211,7 @@ inline model load_model(const std::string& path,
     internal::assertion(fplus::is_just(maybe_json_str),
         "Unable to load: " + path);
     return read_model(maybe_json_str.unsafe_get_just(),
-        verify, verify_no_im2col, logger, verify_epsilon);
+        verify, logger, verify_epsilon);
 }
 
 } // namespace fdeep

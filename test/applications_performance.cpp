@@ -27,10 +27,11 @@ int main()
 
     for (const auto& model_path : model_paths)
     {
+        std::cout << model_path << std::endl;
         #ifdef NDEBUG
         try
         {
-            const auto model = fdeep::load_model(model_path, true, true);
+            const auto model = fdeep::load_model(model_path, true);
         }
         catch (const std::exception& e)
         {
@@ -38,7 +39,7 @@ int main()
             error = true;
         }
         #else
-            const auto model = fdeep::load_model(model_path, true, true);
+            const auto model = fdeep::load_model(model_path, true);
         #endif
     }
 

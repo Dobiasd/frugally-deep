@@ -165,24 +165,18 @@ Below you can find the durations of one isolated forward pass for some popular m
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.21 s |        0.61 s |
-| ResNet50          |             0.95 s |        0.41 s |
-| VGG16             |             1.15 s |        1.44 s |
-| VGG19             |             1.45 s |        1.76 s |
-| Xception          |             1.63 s |        1.00 s |
-| DenseNet201       |             2.49 s |        0.57 s |
-| NASNetLarge       |             5.86 s |        3.64 s |
+| InceptionV3       |             1.21 s |        0.54 s |
+| ResNet50          |             0.95 s |        0.35 s |
+| VGG16             |             1.15 s |        1.37 s |
+| VGG19             |             1.45 s |        1.67 s |
+| Xception          |             1.63 s |        0.86 s |
+| DenseNet201       |             2.49 s |        0.49 s |
+| NASNetLarge       |             5.86 s |        3.12 s |
 ```
 
 versions: `Keras 2.1.3`, `TensorFlow 1.5.0` (default packages from pip)
 
-Using `-march=native` when compiling frugally-deep brings the times down to
-`0.31 s`,
-`0.20 s`,
-`0.56 s`,
-`0.67 s` and
-`0.58 s`
-but this values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
+Using `-march=native` when compiling frugally-deep brings the times further down but this values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
 
 
 Requirements and Installation
@@ -245,8 +239,6 @@ In case you would like to use `double` instead of `float` for all calculations, 
 ```
 
 A frugally-deep model is thread-safe, i.e. you can call `model.predict` on the same model instance from different threads simultaneously. This way you may utilize up to as many CPU cores as you have predictions to make. With `model::predict_multi` there is a convenience function available to handle the parallelism for you.
-
-Convolution is done using im2col per default. You can disable it in the call of `model.predict` in case it is not suited for you application, e.g. due to tight memory constraints.
 
 
 Disclaimer

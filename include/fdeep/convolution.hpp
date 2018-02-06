@@ -17,45 +17,50 @@
 namespace fdeep { namespace internal
 {
 
-template <std::size_t instance_id = 0>
-FDEEP_FORCE_INLINE tensor3 convolve(
-    std::size_t out_height, std::size_t out_width,
-    std::size_t strides_y, std::size_t strides_x,
-    std::size_t offset_y, std::size_t offset_x,
-    std::size_t fy, std::size_t fx,
-    const std::vector<filter>& filters,
-    const tensor3& in)
+struct im2col_filter_matrix
 {
-    tensor3 out(shape3(filters.size(), out_height, out_width), 0);
+    RowMajorMatrixXf mat_;
+    shape3 filter_shape_;
+    std::size_t filter_count_;
+};
+
+inline im2col_filter_matrix generate_im2col_filter_matrix(
+    const std::vector<filter>& filters)
+{
+    assertion(fplus::all_the_same_on(
+        fplus_c_mem_fn_t(filter, shape, shape3), filters),
+        "all filters must have the same shape");
 
     const std::size_t fz = filters.front().shape().depth_;
-
-    for (std::size_t z = 0; z < out.shape().depth_; ++z)
+    const std::size_t fy = filters.front().shape().height_;
+    const std::size_t fx = filters.front().shape().width_;
+    RowMajorMatrixXf b(filters.size(), fz * fy * fx + 1);
+    Eigen::Index b_y = 0;
+    Eigen::Index b_x = 0;
+    for (std::size_t f = 0; f < filters.size(); ++f)
     {
-        const filter& filter = filters[z];
-        for (std::size_t y = 0; y < out.shape().height_; ++y)
+        b_x = 0;
+        const filter& filter = filters[f];
+        for (std::size_t zf = 0; zf < fz; ++zf)
         {
-            for (std::size_t x = 0; x < out.shape().width_; ++x)
+            for (std::size_t yf = 0; yf < fy; ++yf)
             {
-                float_type sum = 0;
-                for (std::size_t zf = 0; zf < fz; ++zf)
+                for (std::size_t xf = 0; xf < fx; ++xf)
                 {
-                    for (std::size_t yf = 0; yf < fy; ++yf)
-                    {
-                        for (std::size_t xf = 0; xf < fx; ++xf)
-                        {
-                            sum += filter.get(zf, yf, xf) *
-                                in.get(zf,
-                                    offset_y + strides_y * y + yf,
-                                    offset_x + strides_x * x + xf);
-                        }
-                    }
+                    b(b_y, b_x++) = filter.get(zf, yf, xf);
                 }
-                out.set(z, y, x, sum + filter.get_bias());
             }
         }
+        b(b_y, b_x++) = filter.get_bias();
+        ++b_y;
     }
-    return out;
+    return {b, filters.front().shape(), filters.size()};
+}
+
+inline im2col_filter_matrix generate_im2col_single_filter_matrix(
+    const filter& filter)
+{
+    return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
 // GEMM convolution, faster but uses more RAM
@@ -69,13 +74,12 @@ inline tensor3 convolve_im2col(
     std::size_t strides_x,
     std::size_t offset_y,
     std::size_t offset_x,
-    std::size_t fy,
-    std::size_t fx,
-    const std::vector<filter>& filters,
+    const im2col_filter_matrix& filter_mat,
     const tensor3& in_padded)
 {
-    const std::size_t fz = filters.front().shape().depth_;
-
+    const auto fz = filter_mat.filter_shape_.depth_;
+    const auto fy = filter_mat.filter_shape_.height_;
+    const auto fx = filter_mat.filter_shape_.width_;
     RowMajorMatrixXf a(fz * fy * fx + 1, out_height * out_width);
     Eigen::Index a_y = 0;
     for (std::size_t zf = 0; zf < fz; ++zf)
@@ -107,32 +111,19 @@ inline tensor3 convolve_im2col(
             a(a_y, a_x++) = static_cast<float_type>(1);
         }
     }
-    ++a_y;
 
-    RowMajorMatrixXf b(filters.size(), fz * fy * fx + 1);
-    Eigen::Index b_y = 0;
-    Eigen::Index b_x = 0;
-    for (std::size_t f = 0; f < filters.size(); ++f)
-    {
-        b_x = 0;
-        const filter& filter = filters[f];
-        for (std::size_t zf = 0; zf < fz; ++zf)
-        {
-            for (std::size_t yf = 0; yf < fy; ++yf)
-            {
-                for (std::size_t xf = 0; xf < fx; ++xf)
-                {
-                    b(b_y, b_x++) = filter.get(zf, yf, xf);
-                }
-            }
-        }
-        b(b_y, b_x++) = filter.get_bias();
-        ++b_y;
-    }
+    const auto result = filter_mat.mat_ * a;
 
-    const auto result = b * a;
+    const std::size_t val_cnt =
+        static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
+    assertion(val_cnt % (out_height * out_width) == 0,
+        "Can not calculate out_depth");
 
-    return tensor3(shape3(filters.size(), out_height, out_width),
+    const std::size_t out_depth = val_cnt / (out_height * out_width);
+    assertion(val_cnt == out_depth * out_height * out_width,
+        "Invalid target size");
+
+    return tensor3(shape3(out_depth, out_height, out_width),
         eigen_mat_to_values(result));
 }
 
@@ -220,27 +211,16 @@ inline tensor3 convolve(
     const shape2& strides,
     const padding& pad_type,
     bool use_offset,
-    const std::vector<filter>& filters,
-    const tensor3& input,
-    bool use_im2col)
+    const im2col_filter_matrix& filter_mat,
+    const tensor3& input)
 {
-    assertion(filters.size() > 0, "no filters");
-
-    assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(filter, shape, shape3), filters),
-        "all filters must have the same shape");
-
-    const auto filter_shape = filters.front().shape();
-
-    assertion(filter_shape.depth_ == input.shape().depth_,
+    assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
         "invalid filter depth");
 
     const auto conv_cfg = preprocess_convolution(
-        filter_shape.without_depth(),
+        filter_mat.filter_shape_.without_depth(),
         strides, pad_type, use_offset, input.shape());
 
-    const std::size_t strides_y = strides.height_;
-    const std::size_t strides_x = strides.width_;
     const std::size_t offset_y = conv_cfg.offset_y_;
     const std::size_t offset_x = conv_cfg.offset_x_;
     const std::size_t out_height = conv_cfg.out_height_;
@@ -250,70 +230,22 @@ inline tensor3 convolve(
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 
-    if (use_im2col)
-    {
-        return convolve_im2col(
-            out_height, out_width,
-            strides.height_, strides.width_,
-            offset_y, offset_x,
-            filter_shape.height_,
-            filter_shape.width_,
-            filters, in_padded);
-    }
-
-    // Allow the compiler to optimize common convolution cases.
-    // https://stackoverflow.com/a/47484201/1866775
-    #define FDEEPCONVOPTSYSXHWLIST \
-    FDEEPCONVOPTSYSXHWIF(1,1,1,1)\
-    FDEEPCONVOPTSYSXHWIF(1,1,3,3)\
-    FDEEPCONVOPTSYSXHWIF(1,1,1,3)\
-    FDEEPCONVOPTSYSXHWIF(1,1,3,1)\
-    FDEEPCONVOPTSYSXHWIF(1,1,5,5)\
-    FDEEPCONVOPTSYSXHWIF(1,1,1,5)\
-    FDEEPCONVOPTSYSXHWIF(1,1,5,1)\
-    FDEEPCONVOPTSYSXHWIF(1,1,7,7)\
-    FDEEPCONVOPTSYSXHWIF(1,1,1,7)\
-    FDEEPCONVOPTSYSXHWIF(1,1,7,1)\
-    FDEEPCONVOPTSYSXHWIF(2,2,1,1)\
-    FDEEPCONVOPTSYSXHWIF(2,2,3,3)\
-    FDEEPCONVOPTSYSXHWIF(2,2,1,3)\
-    FDEEPCONVOPTSYSXHWIF(2,2,3,1)\
-    FDEEPCONVOPTSYSXHWIF(2,2,5,5)\
-    FDEEPCONVOPTSYSXHWIF(2,2,1,5)\
-    FDEEPCONVOPTSYSXHWIF(2,2,5,1)\
-    FDEEPCONVOPTSYSXHWIF(2,2,7,7)\
-    FDEEPCONVOPTSYSXHWIF(2,2,1,7)\
-    FDEEPCONVOPTSYSXHWIF(2,2,7,1)
-    #define FDEEPCONVOPTSYSXHWIF(SY, SX, FH, FW) \
-    if (strides_y == SY && strides_x == SX && filter_shape.height_ == FH && filter_shape.width_ == FW)\
-        return convolve(out_height, out_width, SY, SX, offset_y, offset_x, FH, FW, filters, in_padded);
-
-    FDEEPCONVOPTSYSXHWLIST
-    #undef FDEEPCONVOPTSYSXHWIF
-    #undef FDEEPCONVOPTSYSXHWLIST
-
-    return convolve(
-        out_height,
-        out_width,
-        strides_y,
-        strides_x,
-        offset_y,
-        offset_x,
-        filter_shape.height_,
-        filter_shape.width_,
-        filters, in_padded);
+    return convolve_im2col(
+        out_height, out_width,
+        strides.height_, strides.width_,
+        offset_y, offset_x,
+        filter_mat, in_padded);
 }
 
 inline tensor3 convolve_transpose(
-    const shape2& strides,
-    const padding& pad_type,
-    bool use_offset,
-    const std::vector<filter>& filters,
-    const tensor3& input,
-    bool use_im2col)
+    const shape2&,
+    const padding&,
+    bool,
+    const std::vector<filter>&,
+    const tensor3&)
 {
     assertion(false, "not yet implemented");
-    return convolve(strides, pad_type, use_offset, filters, input, use_im2col);
+    return tensor3(shape3(0, 0, 0), 0);
 }
 
 } } // namespace fdeep, namespace internal

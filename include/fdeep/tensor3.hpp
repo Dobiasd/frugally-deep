@@ -280,15 +280,8 @@ inline tensor3 dilate_tensor3(const shape2& dilation_rate, const tensor3& in)
     {
         return in;
     }
-    assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
-    assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
 
-    const std::size_t height = in.shape().height_ +
-        (in.shape().height_ - 1) * (dilation_rate.height_ - 1);
-    const std::size_t width = in.shape().width_ +
-        (in.shape().width_ - 1) * (dilation_rate.width_ - 1);
-
-    tensor3 result(shape3(in.shape().depth_, height, width), 0);
+    tensor3 result(dilate_shape3(dilation_rate, in.shape()), 0);
     for (std::size_t z = 0; z < in.shape().depth_; ++z)
     {
         for (std::size_t y = 0; y < in.shape().height_; ++y)
@@ -426,7 +419,8 @@ inline tensor3 tensor3_from_bytes(const std::uint8_t* value_ptr,
 {
     const std::vector<std::uint8_t> bytes(
         value_ptr, value_ptr + height * width * channels);
-    auto values = fplus::transform([low, high](std::uint8_t b) -> internal::float_type
+    auto values = fplus::transform_convert<float_vec>(
+        [low, high](std::uint8_t b) -> internal::float_type
     {
         return fplus::reference_interval(low, high,
             static_cast<float_type>(0.0f),

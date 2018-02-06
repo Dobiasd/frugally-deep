@@ -33,8 +33,8 @@ public:
             const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_filters(dilation_rate, filter_shape, k,
-            weights, bias)),
+        filters_(generate_im2col_filter_matrix(
+            generate_filters(dilation_rate, filter_shape, k, weights, bias))),
         strides_(strides),
         padding_(p),
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
@@ -47,7 +47,7 @@ public:
         assertion(strides.area() > 0, "invalid strides");
     }
 protected:
-    tensor3s apply_impl(bool use_im2col, const tensor3s& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
         const bool use_offset = inputs.front().shape().depth_ == 1 ?
@@ -56,9 +56,9 @@ protected:
             ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
             (padding_ == padding::same && padding_same_offset_depth_2_));
         return {convolve(strides_, padding_, use_offset,
-            filters_, inputs.front(), use_im2col)};
+            filters_, inputs.front())};
     }
-    filter_vec filters_;
+    im2col_filter_matrix filters_;
     shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;

@@ -19,7 +19,7 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(bool, const tensor3s& input) const override
+    tensor3s apply_impl(const tensor3s& input) const override
     {
         return {sum_tensor3s(input)};
     }

@@ -16,13 +16,13 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #endif
 #if defined _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4706)
-#pragma warning( disable : 4996)
+#pragma warning(push)
+#pragma warning(disable : 4706)
+#pragma warning(disable : 4996)
 #endif
 #include <Eigen/Core>
 #if defined _MSC_VER
-#pragma warning( pop )
+#pragma warning(pop)
 #endif
 #if defined(__GNUC__) || defined(__GNUG__)
 #pragma GCC diagnostic pop

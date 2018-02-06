@@ -24,7 +24,7 @@ typedef std::vector<layer_ptr> layer_ptrs;
 
 class activation_layer;
 typedef std::shared_ptr<activation_layer> activation_layer_ptr;
-tensor3s apply_activation_layer(bool, const activation_layer_ptr& ptr,
+tensor3s apply_activation_layer(const activation_layer_ptr& ptr,
     const tensor3s& input);
 
 class layer
@@ -48,16 +48,16 @@ public:
         nodes_ = layer_nodes;
     }
 
-    virtual tensor3s apply(bool use_im2col, const tensor3s& input) const final
+    virtual tensor3s apply(const tensor3s& input) const final
     {
-        const auto result = apply_impl(use_im2col, input);
+        const auto result = apply_impl(input);
         if (activation_ == nullptr)
             return result;
         else
-            return apply_activation_layer(use_im2col, activation_, result);
+            return apply_activation_layer(activation_, result);
     }
 
-    virtual tensor3 get_output(bool use_im2col, const layer_ptrs& layers,
+    virtual tensor3 get_output(const layer_ptrs& layers,
         output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const
     {
@@ -67,8 +67,7 @@ public:
         {
             assertion(node_idx < nodes_.size(), "invalid node index");
             output_cache[conn.without_tensor_idx()] =
-                nodes_[node_idx].get_output(use_im2col,
-                    layers, output_cache, *this);
+                nodes_[node_idx].get_output(layers, output_cache, *this);
         }
 
         const auto& outputs = fplus::get_from_map_unsafe(
@@ -83,24 +82,21 @@ public:
     nodes nodes_;
 
 protected:
-    virtual tensor3s apply_impl(bool use_im2col,
-        const tensor3s& input) const = 0;
+    virtual tensor3s apply_impl(const tensor3s& input) const = 0;
     activation_layer_ptr activation_;
 };
 
-inline tensor3 get_layer_output(bool use_im2col, const layer_ptrs& layers,
+inline tensor3 get_layer_output(const layer_ptrs& layers,
     output_dict& output_cache,
     const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
 {
-    return layer->get_output(use_im2col, layers,
-        output_cache, node_idx, tensor_idx);
+    return layer->get_output(layers, output_cache, node_idx, tensor_idx);
 }
 
-inline tensor3s apply_layer(bool use_im2col,
-    const layer& layer, const tensor3s& inputs)
+inline tensor3s apply_layer(const layer& layer, const tensor3s& inputs)
 {
-    return layer.apply(use_im2col, inputs);
+    return layer.apply(inputs);
 }
 
 inline layer_ptr get_layer(const layer_ptrs& layers,

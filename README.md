@@ -176,7 +176,7 @@ Below you can find the durations of one isolated forward pass for some popular m
 
 versions: `Keras 2.1.3`, `TensorFlow 1.5.0` (default packages from pip)
 
-Using `-march=native` when compiling frugally-deep brings the times further down but this values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
+Using `-march=native` when compiling frugally-deep brings the times further down but these values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
 
 
 Requirements and Installation

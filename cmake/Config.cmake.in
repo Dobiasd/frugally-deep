@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+find_package(Eigen3 CONFIG REQUIRED)
+find_package(FunctionalPlus CONFIG REQUIRED)
+find_package(Threads REQUIRED) 
+find_package(nlohmann_json CONFIG REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@TARGETS_EXPORT_NAME@.cmake")
+check_required_components("@PROJECT_NAME@")

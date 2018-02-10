@@ -54,7 +54,7 @@ install:
   - sudo make install
   - cd ../..
   - mkdir -p build && cd build
-  - cmake .. -DUNITTEST=ON
+  - cmake .. -DFDEEP_BUILD_UNITTEST=ON
 
 script:
   - which $CXX

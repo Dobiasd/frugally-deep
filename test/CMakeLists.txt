@@ -75,7 +75,7 @@ if(FDEEP_BUILD_FULL_TEST)
     COMMAND test_model_full_test_double
     COMMAND readme_example_main
 
-    COMMENT "Creating data for unittests\n\n"
+    COMMENT "Running unittests\n\n"
     VERBATIM
     )
 else()
@@ -84,7 +84,7 @@ else()
     COMMAND test_model_sequential_test
     COMMAND readme_example_main
 
-    COMMENT "Creating data for unittests\n\n"
+    COMMENT "Running unittests\n\n"
     VERBATIM
     )
 endif()

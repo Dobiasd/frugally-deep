@@ -160,7 +160,7 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
-Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `g++ -O3`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
+Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `g++ -O3` (GCC ver. 5.4.0). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |

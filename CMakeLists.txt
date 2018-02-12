@@ -12,7 +12,7 @@ message(STATUS "===( ${PROJECT_NAME} ${PROJECT_VERSION} )===")
 
 option(FDEEP_BUILD_UNITTEST "Build unit tests" OFF)
 option(FDEEP_USE_TOOLCHAIN "Use external toolchain" OFF)
-option(FDEEP_USE_DOUBLE "Use doulbe precision" OFF)
+option(FDEEP_USE_DOUBLE "Use double precision" OFF)
 
 if(NOT FDEEP_USE_TOOLCHAIN)
   include(cmake/toolchain.cmake)

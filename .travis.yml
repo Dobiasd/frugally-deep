@@ -46,6 +46,13 @@ install:
   - sudo make install
   - sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ../..
+  - git clone https://github.com/onqtam/doctest
+  - cd doctest
+  - mkdir -p build && cd build
+  - cmake ..
+  - make
+  - sudo make install
+  - cd ../..
   - git clone https://github.com/nlohmann/json
   - cd json
   - mkdir -p build && cd build
@@ -54,7 +61,7 @@ install:
   - sudo make install
   - cd ../..
   - mkdir -p build && cd build
-  - cmake .. -DUNITTEST=ON
+  - cmake .. -DFDEEP_BUILD_UNITTEST=ON
 
 script:
   - which $CXX

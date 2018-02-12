@@ -221,7 +221,7 @@ cd ../..
 Building the tests (optional) requires [doctest](https://github.com/onqtam/doctest). Unit Tests are disabled by default – they are enabled and executed by:
 
 ```
-cmake -DUNITTEST=ON ..
+cmake -DFDEEP_UNITTEST=ON ..
 make unittest
 ```
 

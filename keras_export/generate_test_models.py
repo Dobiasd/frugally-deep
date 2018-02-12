@@ -87,6 +87,9 @@ def get_test_model_small():
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization()(inputs[1]))
     outputs.append(BatchNormalization()(inputs[2]))
+    outputs.append(Activation('softmax')(inputs[0]))
+    outputs.append(Activation('softmax')(inputs[1]))
+    outputs.append(Activation('softmax')(inputs[2]))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 

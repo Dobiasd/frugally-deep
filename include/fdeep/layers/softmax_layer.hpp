@@ -21,19 +21,39 @@ public:
 protected:
     tensor3 transform_input(const tensor3& input) const override
     {
+        // Softmax function is applied along channel dimension.
+
         const auto ex = [this](float_type x) -> float_type
         {
             return std::exp(x);
         };
-        const auto unnormalized = transform_tensor3(ex, input);
-        const auto unnormalized_sum = fplus::sum(*unnormalized.as_vector());
-        const auto div_by_unnormalized_sum =
-            [unnormalized_sum](float_type x) -> float_type
-        {
-            return x / unnormalized_sum;
-        };
 
-        return {transform_tensor3(div_by_unnormalized_sum, unnormalized)};
+        // Get unnormalised values of exponent function.
+        auto output = transform_tensor3(ex, input);;
+
+        for (size_t iRow = 0; iRow < input.shape().height_; ++iRow)
+        {
+            for (size_t jColumn = 0; jColumn < input.shape().width_; ++jColumn)
+            {
+                // Get the sum of unnormalised values for one pixel.
+                // We are not using Kahan summation algorithm due to usually
+                // small number of object classes.
+                float_type sum = 0.0f;
+                for (size_t kClass = 0; kClass < input.shape().depth_; ++kClass)
+                {
+                    sum += output.get(kClass, iRow, jColumn);
+                }
+                // Divide the unnormalised values for one pixel by sum.
+                for (size_t kClass = 0; kClass < input.shape().depth_; ++kClass)
+                {
+                    output.set(kClass, iRow, jColumn, output.get(kClass, iRow, jColumn)/sum);
+                }
+
+            }
+        }
+
+        return output;
+
     }
 };
 

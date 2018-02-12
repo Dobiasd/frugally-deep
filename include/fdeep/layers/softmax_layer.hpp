@@ -21,39 +21,34 @@ public:
 protected:
     tensor3 transform_input(const tensor3& input) const override
     {
-        // Softmax function is applied along channel dimension.
-
+        // Get unnormalized values of exponent function.
         const auto ex = [this](float_type x) -> float_type
         {
             return std::exp(x);
         };
+        auto output = transform_tensor3(ex, input);
 
-        // Get unnormalised values of exponent function.
-        auto output = transform_tensor3(ex, input);;
-
-        for (size_t iRow = 0; iRow < input.shape().height_; ++iRow)
+        // Softmax function is applied along channel dimension.
+        for (size_t y = 0; y < input.shape().height_; ++y)
         {
-            for (size_t jColumn = 0; jColumn < input.shape().width_; ++jColumn)
+            for (size_t x = 0; x < input.shape().width_; ++x)
             {
-                // Get the sum of unnormalised values for one pixel.
-                // We are not using Kahan summation algorithm due to usually
-                // small number of object classes.
+                // Get the sum of unnormalized values for one pixel.
+                // We are not using Kahan summation, since the number
+                // of object classes is usually quite small.
                 float_type sum = 0.0f;
-                for (size_t kClass = 0; kClass < input.shape().depth_; ++kClass)
+                for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    sum += output.get(kClass, iRow, jColumn);
+                    sum += output.get(z_class, y, x);
                 }
-                // Divide the unnormalised values for one pixel by sum.
-                for (size_t kClass = 0; kClass < input.shape().depth_; ++kClass)
+                // Divide the unnormalized values of each pixel by the stacks sum.
+                for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    output.set(kClass, iRow, jColumn, output.get(kClass, iRow, jColumn)/sum);
+                    output.set(z_class, y, x, output.get(z_class, y, x) / sum);
                 }
-
             }
         }
-
         return output;
-
     }
 };
 

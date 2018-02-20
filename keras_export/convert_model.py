@@ -357,54 +357,62 @@ def get_shapes(tensor3s):
     return [t['shape'] for t in tensor3s]
 
 
-def main():
+def convert(in_path, out_path):
     """Convert any Keras model to the frugally-deep model format."""
 
+    assert K.backend() == "tensorflow"
+    assert K.floatx() == "float32"
+    assert K.image_data_format() == 'channels_last'
+
+    print('loading {}'.format(in_path))
+    model = load_model(in_path)
+    model = convert_sequential_to_model(model)
+    test_data = gen_test_data(model)
+
+    json_output = {}
+    json_output['architecture'] = json.loads(model.to_json())
+
+    json_output['image_data_format'] = K.image_data_format()
+    for depth in range(1, 3, 1):
+        json_output['conv2d_valid_offset_depth_' + str(depth)] =\
+            check_operation_offset(depth, offset_conv2d_eval, 'valid')
+        json_output['conv2d_same_offset_depth_' + str(depth)] =\
+            check_operation_offset(depth, offset_conv2d_eval, 'same')
+        json_output['separable_conv2d_valid_offset_depth_' + str(depth)] =\
+            check_operation_offset(depth, offset_sep_conv2d_eval, 'valid')
+        json_output['separable_conv2d_same_offset_depth_' + str(depth)] =\
+            check_operation_offset(depth, offset_sep_conv2d_eval, 'same')
+    json_output['max_pooling_2d_valid_offset'] =\
+        check_operation_offset(1, conv2d_offset_max_pool_eval, 'valid')
+    json_output['max_pooling_2d_same_offset'] =\
+        check_operation_offset(1, conv2d_offset_max_pool_eval, 'same')
+    json_output['average_pooling_2d_valid_offset'] =\
+        check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
+    json_output['average_pooling_2d_same_offset'] =\
+        check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
+    json_output['input_shapes'] = get_shapes(test_data['inputs'])
+    json_output['output_shapes'] = get_shapes(test_data['outputs'])
+    json_output['tests'] = [test_data]
+    json_output['trainable_params'] = get_all_weights(model)
+
+    print('writing {}'.format(out_path))
+    write_text_file(out_path, json.dumps(
+        json_output, allow_nan=False, indent=2, sort_keys=True))
+
+
+def main():
+    """Parse command line and convert model."""
+
     usage = 'usage: [Keras model in HDF5 format] [output path]'
+
     if len(sys.argv) != 3:
         print(usage)
         sys.exit(1)
-    else:
-        assert K.backend() == "tensorflow"
-        assert K.floatx() == "float32"
-        assert K.image_data_format() == 'channels_last'
 
-        in_path = sys.argv[1]
-        out_path = sys.argv[2]
-        print('loading {}'.format(in_path))
-        model = load_model(in_path)
-        model = convert_sequential_to_model(model)
-        test_data = gen_test_data(model)
+    in_path = sys.argv[1]
+    out_path = sys.argv[2]
 
-        json_output = {}
-        json_output['architecture'] = json.loads(model.to_json())
-
-        json_output['image_data_format'] = K.image_data_format()
-        for depth in range(1, 3, 1):
-            json_output['conv2d_valid_offset_depth_' + str(depth)] =\
-                check_operation_offset(depth, offset_conv2d_eval, 'valid')
-            json_output['conv2d_same_offset_depth_' + str(depth)] =\
-                check_operation_offset(depth, offset_conv2d_eval, 'same')
-            json_output['separable_conv2d_valid_offset_depth_' + str(depth)] =\
-                check_operation_offset(depth, offset_sep_conv2d_eval, 'valid')
-            json_output['separable_conv2d_same_offset_depth_' + str(depth)] =\
-                check_operation_offset(depth, offset_sep_conv2d_eval, 'same')
-        json_output['max_pooling_2d_valid_offset'] =\
-            check_operation_offset(1, conv2d_offset_max_pool_eval, 'valid')
-        json_output['max_pooling_2d_same_offset'] =\
-            check_operation_offset(1, conv2d_offset_max_pool_eval, 'same')
-        json_output['average_pooling_2d_valid_offset'] =\
-            check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
-        json_output['average_pooling_2d_same_offset'] =\
-            check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
-        json_output['input_shapes'] = get_shapes(test_data['inputs'])
-        json_output['output_shapes'] = get_shapes(test_data['outputs'])
-        json_output['tests'] = [test_data]
-        json_output['trainable_params'] = get_all_weights(model)
-
-        print('writing {}'.format(out_path))
-        write_text_file(out_path, json.dumps(
-            json_output, allow_nan=False, indent=2, sort_keys=True))
+    convert(in_path, out_path)
 
 
 if __name__ == "__main__":

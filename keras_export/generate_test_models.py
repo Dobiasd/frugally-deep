@@ -342,16 +342,14 @@ def main():
         model_name = sys.argv[1]
         dest_path = sys.argv[2]
 
-        # Save sequential model with optimizer, see:
-        # https://github.com/fchollet/keras/issues/8136
         get_model_functions = {
-            'small': (get_test_model_small, False),
-            'sequential': (get_test_model_sequential, True),
-            'full': (get_test_model_full, False)
+            'small': get_test_model_small,
+            'sequential': get_test_model_sequential,
+            'full': get_test_model_full
         }
 
         if not model_name in get_model_functions:
-            print('unknoen model name: ', model_name)
+            print('unknown model name: ', model_name)
             sys.exit(2)
 
         assert K.backend() == "tensorflow"
@@ -360,9 +358,9 @@ def main():
 
         np.random.seed(0)
 
-        model_func, include_optimizer = get_model_functions[model_name]
+        model_func = get_model_functions[model_name]
         model = model_func()
-        model.save(dest_path, include_optimizer=include_optimizer)
+        model.save(dest_path, include_optimizer=False)
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

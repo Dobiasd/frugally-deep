@@ -366,6 +366,12 @@ def convert(in_path, out_path):
 
     print('loading {}'.format(in_path))
     model = load_model(in_path)
+
+    # Force creation of underlying functional model.
+    # see: https://github.com/fchollet/keras/issues/8136
+    # Loss and optimizer type do not matter, since to don't train the model.
+    model.compile(loss='mse', optimizer='sgd')
+
     model = convert_sequential_to_model(model)
     test_data = gen_test_data(model)
 

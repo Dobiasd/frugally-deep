@@ -9,8 +9,8 @@ import sys
 
 import numpy as np
 
-from keras.models import load_model
-from keras import backend as K
+from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras import backend as K
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -75,7 +75,7 @@ def gen_test_data(model):
 
     data_in = list(map(lambda l: np.random.random(
         set_shape_idx_0_to_1(l.input_shape)).astype(np.float32),
-        model.input_layers))
+        model._input_layers))
 
     start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
@@ -193,7 +193,6 @@ def show_separable_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    assert layer.axis == -1 or layer.axis == 3
     moving_mean = K.get_value(layer.moving_mean)
     moving_variance = K.get_value(layer.moving_variance)
     result = {}
@@ -290,7 +289,7 @@ def get_all_weights(model):
 def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ == 'Sequential':
-        name = model.name
+        name = model._name
         if hasattr(model, '_inbound_nodes'):
             inbound_nodes = model._inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
@@ -298,12 +297,12 @@ def convert_sequential_to_model(model):
         else:
             assert False
         model = model.model
-        model.name = name
+        model._name = name
         if hasattr(model, '_inbound_nodes'):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
             model.inbound_nodes = inbound_nodes
-    assert model.input_layers
+    assert model._input_layers
     assert model.layers
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:

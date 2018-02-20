@@ -8,6 +8,14 @@ import sys
 import keras
 from keras import backend as K
 
+# Application model weights are not all available via tensorflow.python.keras
+# in TensorFlow versions < 1.6.0.
+# https://stackoverflow.com/questions/48810937/keras-tensorflow-does-not-find-weights-file-imagenet
+# https://github.com/tensorflow/tensorflow/issues/16683#issuecomment-363621409
+# That's why here the following imports are not used.
+# from tensorflow.python import keras
+# from tensorflow.python.keras import backend as K
+
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
@@ -18,56 +26,56 @@ __email__ = "editgym@gmail.com"
 def save_xception(dir_path, file_name):
     """Save Xception model"""
     keras.applications.xception.Xception(input_shape=(299, 299, 3)).save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_vgg16(dir_path, file_name):
     """Save VGG16 model"""
     keras.applications.vgg16.VGG16().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_vgg19(dir_path, file_name):
     """Save VGG19 model"""
     keras.applications.vgg19.VGG19().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_resnet50(dir_path, file_name):
     """Save ResNet50 model"""
     keras.applications.resnet50.ResNet50().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_inceptionv3(dir_path, file_name):
     """Save InceptionV3 model"""
     keras.applications.inception_v3.InceptionV3(input_shape=(299, 299, 3)).save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_inceptionvresnetv2(dir_path, file_name):
     """Save InceptionResNetV2 model"""
     keras.applications.inception_resnet_v2.InceptionResNetV2(
         input_shape=(299, 299, 3)).save(
-            os.path.join(dir_path, file_name + ".h5"))
+            os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_mobilenet(dir_path, file_name):
     """Save MobileNet model"""
     keras.applications.mobilenet.MobileNet().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_densenet201(dir_path, file_name):
     """Save DenseNet201 model"""
     keras.applications.densenet.DenseNet201().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def save_nasnetlarge(dir_path, file_name):
     """Save NASNetLarge model"""
     keras.applications.nasnet.NASNetLarge().save(
-        os.path.join(dir_path, file_name + ".h5"))
+        os.path.join(dir_path, file_name + ".h5"), include_optimizer=False)
 
 
 def main():

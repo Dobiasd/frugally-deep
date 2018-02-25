@@ -1,4 +1,5 @@
-language: generic
+language: python
+python: 3.6
 
 dist: trusty
 sudo: required
@@ -20,6 +21,13 @@ before_install:
   - wget https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
   - sudo mv ./doctest.h /usr/local/include/doctest.h
   - export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"
+  - |
+    set -e
+    set -x
+
+    pip install conan --upgrade
+    pip install conan_package_tools
+    conan user
 
 install:
   - sudo apt-get install python3-pip python3-dev
@@ -67,3 +75,4 @@ script:
   - which $CXX
   - $CXX --version
   - cmake --build . --target unittest --config Release --
+  - cd .. && python conan_build.py

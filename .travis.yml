@@ -1,5 +1,4 @@
-language: python
-python: 3.6
+language: generic
 
 dist: trusty
 sudo: required
@@ -75,4 +74,4 @@ script:
   - which $CXX
   - $CXX --version
   - cmake --build . --target unittest --config Release --
-  - cd .. && python conan_build.py
+  - cd .. && python3 conan_build.py

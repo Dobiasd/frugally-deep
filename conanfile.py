@@ -1,12 +1,15 @@
-from conans import ConanFile
+from conans import ConanFile, CMake, tools
 import os
+
 
 class FrugallyDeepConan(ConanFile):
     name = "frugally-deep"
-    license = "MIT License"
+    version = "0.1-p0"
+    license = "The MIT License (MIT)"
     url = "https://github.com/Dobiasd/frugally-deep"
-    description = "Header-only library for using Keras models in C++."
-    exports_sources = ["include*", "LICENSE"]
+    description = "Use Keras models in C++ with ease"
+    no_copy_source = True
+    exports_sources = ["LICENSE"]
     requires = ("eigen/3.3.4@conan/stable",
                 "functionalplus/0.2@conan/stable",
                 "jsonformoderncpp/3.1.0@vthiery/stable")
@@ -17,9 +20,9 @@ class FrugallyDeepConan(ConanFile):
         os.rename("%s-%s" % (self.name, self.version), "sources")
 
     def package(self):
-        self.copy("*LICENSE", dst="licenses")
-        self.copy("*.h", src=".")
-        self.copy("*.hpp", src=".")
+        self.copy("*LICENSE*", dst="licenses", src="sources")
+        self.copy("*.h", dst=".", src="sources")
+        self.copy("*.hpp", dst=".", src="sources")
 
     def package_id(self):
         self.info.header_only()

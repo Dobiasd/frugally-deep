@@ -233,7 +233,7 @@ Just add a *conanfile.txt* with frugally-deep as a requirement and chose the gen
 
 ```
 [requires]
-frugally-deep/0.2@Dobiasd/stable
+frugally-deep/v0.2.2@dobiasd/stable
 
 [generators]
 cmake

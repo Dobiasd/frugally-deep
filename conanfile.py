@@ -13,6 +13,6 @@ class FrugallyDeepConan(ConanFile):
                 "jsonformoderncpp/3.1.0@vthiery/stable")
 
     def package(self):
-        self.copy("*LICENSE*", dst="licenses", src="sources")
-        self.copy("*.h", dst=".", src="sources")
-        self.copy("*.hpp", dst=".", src="sources")
+        self.copy("*LICENSE*", dst="licenses")
+        self.copy("*.h", dst=".")
+        self.copy("*.hpp", dst=".")

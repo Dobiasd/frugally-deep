@@ -226,6 +226,26 @@ make unittest
 ```
 
 
+Installation using [Conan C/C++ package manager](https://conan.io)
+------------------------------------------------------------------
+
+Just add a *conanfile.txt* with frugally-deep as a requirement and chose the generator for your project.
+
+```
+[requires]
+frugally-deep/v0.2.2-p0@dobiasd/stable
+
+[generators]
+cmake
+```
+
+Then install it:
+
+```
+$ conan install conanfile.txt
+```
+
+
 Internals
 ---------
 

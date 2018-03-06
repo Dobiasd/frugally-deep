@@ -7,19 +7,19 @@ import sys
 
 import numpy as np
 
-import keras
-from keras.models import Model, load_model, Sequential
-from keras.layers import Input, Dense, Dropout, Flatten, Activation
-from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
-from keras.layers import Conv2D, ZeroPadding2D, Cropping2D
-from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
-from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
-from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import SeparableConv2D, Conv2DTranspose
-from keras.layers.advanced_activations import LeakyReLU, ELU
-from keras.layers.normalization import BatchNormalization
-from keras import backend as K
+from tensorflow.python import keras
+from tensorflow.python.keras.models import Model, load_model, Sequential
+from tensorflow.python.keras.layers import Input, Dense, Dropout, Flatten, Activation
+from tensorflow.python.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
+from tensorflow.python.keras.layers import Conv2D, ZeroPadding2D, Cropping2D
+from tensorflow.python.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
+from tensorflow.python.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from tensorflow.python.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from tensorflow.python.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from tensorflow.python.keras.layers import SeparableConv2D, Conv2DTranspose
+from tensorflow.python.keras.layers import LeakyReLU, ELU
+from tensorflow.python.keras.layers import BatchNormalization
+from tensorflow.python.keras import backend as K
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -64,9 +64,7 @@ def generate_input_data(data_size, input_shapes):
 
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
-    # using ._keras_shape instead of .shape because:
-    # https://github.com/fchollet/keras/issues/6777
-    return [generate_random_data(data_size, output._keras_shape)
+    return [generate_random_data(data_size, output.shape)
             for output in outputs]
 
 

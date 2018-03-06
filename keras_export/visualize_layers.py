@@ -12,8 +12,8 @@ import numpy as np
 
 from scipy.misc import imsave
 
-from keras.models import load_model
-from keras import backend as K
+from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras import backend as K
 
 # based on: https://blog.keras.io/how-convolutional-neural-networks-see-the-world.html
 __author__ = "Francois Chollet, Tobias Hermann"

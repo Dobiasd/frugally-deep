@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from keras.layers import Input, Dense
-from keras.models import Model
+from tensorflow.python.keras.layers import Input, Dense
+from tensorflow.python.keras.models import Model
 
 inputs = Input(shape=(4,))
 x = Dense(5, activation='relu')(inputs)

@@ -36,7 +36,6 @@ install:
   - sudo pip3 install --upgrade pip
   - sudo pip3 install tensorflow
   - sudo pip3 install h5py
-  - sudo pip3 install keras
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
   - mkdir build

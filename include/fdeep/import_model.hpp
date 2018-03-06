@@ -258,10 +258,6 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto depth_multiplier = create_size_t(
-        data["config"]["depth_multiplier"]);
-    assertion(depth_multiplier == 1, "invalid depth_multiplier");
-
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
 

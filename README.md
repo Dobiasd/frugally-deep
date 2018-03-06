@@ -120,8 +120,8 @@ The following minimal example shows the full workflow:
 ```python
 # create_model.py
 import numpy as np
-from keras.layers import Input, Dense
-from keras.models import Model
+from tensorflow.python.keras.layers import Input, Dense
+from tensorflow.python.keras.models import Model
 
 inputs = Input(shape=(4,))
 x = Dense(5, activation='relu')(inputs)
@@ -161,23 +161,19 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
-Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled with `g++ -O3` (GCC ver. 5.4.0). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
+Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow 1.6.0 binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.21 s |        0.54 s |
-| ResNet50          |             0.95 s |        0.34 s |
-| VGG16             |             1.15 s |        1.37 s |
-| VGG19             |             1.45 s |        1.67 s |
-| Xception          |             1.63 s |        0.85 s |
-| DenseNet201       |             2.49 s |        0.49 s |
-| NASNetLarge       |             5.86 s |        3.12 s |
+| InceptionV3       |             1.04 s |        0.36 s |
+| ResNet50          |             0.82 s |        0.22 s |
+| VGG16             |             0.68 s |        0.79 s |
+| VGG19             |             0.82 s |        0.94 s |
+| Xception          |             1.79 s |        0.54 s |
+| DenseNet201       |             2.39 s |        0.34 s |
+| NASNetLarge       |             4.98 s |        2.23 s |
 ```
-
-versions: `Keras 2.1.3`, `TensorFlow 1.5.0` (default packages from pip)
-
-Using `-march=native` when compiling frugally-deep brings the times further down but these values would have to be compared with the ones resulting from a TensorFlow version with the same optimizations.
 
 
 Requirements and Installation

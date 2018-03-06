@@ -5,16 +5,9 @@
 import os
 import sys
 
-import keras
-from keras import backend as K
+from tensorflow.python import keras
+from tensorflow.python.keras import backend as K
 
-# Application model weights are not all available via tensorflow.python.keras
-# in TensorFlow versions < 1.6.0.
-# https://stackoverflow.com/questions/48810937/keras-tensorflow-does-not-find-weights-file-imagenet
-# https://github.com/tensorflow/tensorflow/issues/16683#issuecomment-363621409
-# That's why here the following imports are not used.
-# from tensorflow.python import keras
-# from tensorflow.python.keras import backend as K
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"

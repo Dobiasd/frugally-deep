@@ -219,8 +219,12 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 
 ```
 # install doctest
-wget https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
-sudo mv ./doctest.h /usr/local/include/doctest.h
+git clone https://github.com/onqtam/doctest.git
+cd doctest
+mkdir -p build && cd build
+cmake -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF ..
+make && sudo make install
+cd ../..
 
 # build unit tests
 cmake -DFDEEP_BUILD_UNITTEST=ON ..

@@ -1,10 +1,6 @@
 message(STATUS "Building Unit Tests ${UNITTEST}")
 
-if(NOT DEFINED ENV{TRAVIS}) # Do not use full model on travis since it takes too long.
-  set(full_test_default ON)
-else()
-  set(full_test_default OFF)
-endif()
+set(full_test_default OFF)
 
 option(FDEEP_BUILD_FULL_TEST "Build full model tests" ${full_test_default})
 

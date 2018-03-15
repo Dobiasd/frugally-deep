@@ -17,8 +17,6 @@ matrix:
           addons:
 
 before_install:
-  - wget https://raw.githubusercontent.com/onqtam/doctest/master/doctest/doctest.h
-  - sudo mv ./doctest.h /usr/local/include/doctest.h
   - export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"
   - |
     set -e

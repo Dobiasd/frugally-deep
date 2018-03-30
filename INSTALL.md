@@ -61,7 +61,7 @@ make unittest
 ```
 
 
-# Installation using [Conan C/C++ package manager](https://conan.io)
+### Installation using [Conan C/C++ package manager](https://conan.io)
 
 Just add a *conanfile.txt* with frugally-deep as a requirement and chose the generator for your project.
 
@@ -79,7 +79,7 @@ Then install it:
 $ conan install conanfile.txt
 ```
 
-# Installation using the [Hunter CMake package manager](https://github.com/ruslo/hunter)
+### Installation using the [Hunter CMake package manager](https://github.com/ruslo/hunter)
 
 The [First Step](https://docs.hunter.sh/en/latest/quick-start/boost-components.html#first-step) section of the [Hunter documentation](https://docs.hunter.sh/en/latest/index.html) shows how to get started.  The following is reproduced from the the [frugally-deep](https://docs.hunter.sh/en/latest/packages/pkg/frugally-deep.html?highlight=frugally-deep) package notes.
 

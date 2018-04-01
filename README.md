@@ -161,18 +161,18 @@ In order to convert images to `fdeep::tensor3` the convenience function `tensor3
 Performance
 -----------
 
-Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow 1.6.0 binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
+Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow 1.7.0 binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.04 s |        0.36 s |
-| ResNet50          |             0.82 s |        0.22 s |
-| VGG16             |             0.68 s |        0.79 s |
-| VGG19             |             0.82 s |        0.94 s |
-| Xception          |             1.79 s |        0.54 s |
-| DenseNet201       |             2.39 s |        0.34 s |
-| NASNetLarge       |             4.98 s |        2.23 s |
+| InceptionV3       |             1.14 s |        0.38 s |
+| ResNet50          |             0.86 s |        0.23 s |
+| VGG16             |             0.70 s |        0.85 s |
+| VGG19             |             0.89 s |        0.98 s |
+| Xception          |             1.27 s |        0.59 s |
+| DenseNet201       |             2.52 s |        0.38 s |
+| NASNetLarge       |             5.32 s |        2.43 s |
 ```
 
 

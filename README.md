@@ -166,13 +166,13 @@ Below you can find the durations of one isolated forward pass for some popular m
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.14 s |        0.38 s |
-| ResNet50          |             0.86 s |        0.23 s |
-| VGG16             |             0.70 s |        0.85 s |
-| VGG19             |             0.89 s |        0.98 s |
-| Xception          |             1.27 s |        0.59 s |
-| DenseNet201       |             2.52 s |        0.38 s |
-| NASNetLarge       |             5.32 s |        2.43 s |
+| InceptionV3       |             1.21 s |        0.38 s |
+| ResNet50          |             0.90 s |        0.23 s |
+| VGG16             |             0.91 s |        0.85 s |
+| VGG19             |             0.93 s |        1.00 s |
+| Xception          |             1.30 s |        0.61 s |
+| DenseNet201       |             2.77 s |        0.38 s |
+| NASNetLarge       |             5.72 s |        2.43 s |
 ```
 
 

@@ -90,8 +90,6 @@ def main():
         save_inceptionv3(dir_path, 'inceptionv3')
         save_densenet201(dir_path, 'densenet201')
         save_nasnetlarge(dir_path, 'nasnetlarge')
-        keras.applications.densenet.DenseNet201(include_top=True, weights='imagenet', input_tensor=None, input_shape=None, pooling=None, classes=1000)
-        keras.applications.nasnet.NASNetLarge(input_shape=None, include_top=True, weights='imagenet', input_tensor=None, pooling=None, classes=1000)
         # save_inceptionvresnetv2(dir_path, 'inceptionvresnetv2') # lambda
         # save_mobilenet(dir_path, 'mobilenet') # relu6
 

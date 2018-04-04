@@ -560,6 +560,13 @@ inline activation_layer_ptr create_relu_layer(
     return std::make_shared<relu_layer>(name);
 }
 
+inline activation_layer_ptr create_relu6_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<relu6_layer>(name);
+}
+
 inline activation_layer_ptr create_selu_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -624,6 +631,7 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"sigmoid", create_sigmoid_layer},
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
+        {"relu6", create_relu6_layer},
         {"selu", create_selu_layer},
         {"elu", create_elu_layer}
     };

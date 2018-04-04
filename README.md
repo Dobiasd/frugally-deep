@@ -154,7 +154,8 @@ int main()
 
 When using `convert_model.py` a test case (input and corresponding output values) is generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as in Keras.
 
-In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided. In case you want to convert an `Eigen::Matrix` to `fdeep::tensor3`, have a look at the following two examples: [copy values](https://gist.github.com/Dobiasd/966334bb867d170b334c8374e635cb9b), [reuse memory](https://gist.github.com/Dobiasd/2852c81adbd57a57e89d2d0385cc4c06)
+In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided ([cimg example](https://gist.github.com/Dobiasd/21651861b73042762126e8eea52d9974), [opencv example](https://gist.github.com/Dobiasd/3140cfd9f539b6adb346e0b4a0ce157b)).
+In case you want to convert an `Eigen::Matrix` to `fdeep::tensor3`, have a look at the following two examples: [copy values](https://gist.github.com/Dobiasd/966334bb867d170b334c8374e635cb9b), [reuse memory](https://gist.github.com/Dobiasd/2852c81adbd57a57e89d2d0385cc4c06)
 
 
 

@@ -135,7 +135,6 @@ def convert_sequential_to_model(model):
         model = model.model
         model.name = name
         model.inbound_nodes = inbound_nodes
-    assert model.input_layers
     assert model.layers
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:

@@ -63,6 +63,14 @@ def show_test_data_as_3tensor(arr):
     return show_tensor3(arr_as_arr3(arr))
 
 
+def get_model_input_layers(model):
+    if hasattr(model, '_input_layers'):
+        return model._input_layers
+    elif hasattr(model, 'input_layers'):
+        return model.input_layers
+    assert False, "can not get (_)input_layers from model"
+
+
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -75,7 +83,7 @@ def gen_test_data(model):
 
     data_in = list(map(lambda l: np.random.random(
         set_shape_idx_0_to_1(l.input_shape)).astype(np.float32),
-        model._input_layers))
+        get_model_input_layers(model)))
 
     start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
@@ -304,7 +312,6 @@ def convert_sequential_to_model(model):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
             model.inbound_nodes = inbound_nodes
-    assert model._input_layers
     assert model.layers
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:

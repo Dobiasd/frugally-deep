@@ -12,6 +12,9 @@ import numpy as np
 from tensorflow.python.keras.models import load_model
 from tensorflow.python.keras import backend as K
 
+from tensorflow.python.keras._impl.keras.utils.generic_utils import CustomObjectScope
+from tensorflow.python.keras._impl.keras.applications import mobilenet
+
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
@@ -366,7 +369,8 @@ def convert(in_path, out_path):
     assert K.image_data_format() == 'channels_last'
 
     print('loading {}'.format(in_path))
-    model = load_model(in_path)
+    with CustomObjectScope({'relu6': mobilenet.relu6,'DepthwiseConv2D': mobilenet.DepthwiseConv2D}):
+        model = load_model(in_path)
 
     # Force creation of underlying functional model.
     # see: https://github.com/fchollet/keras/issues/8136

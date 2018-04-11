@@ -200,6 +200,29 @@ def show_separable_conv_2d_layer(layer):
     return result
 
 
+def show_depthwise_conv_2d_layer(layer):
+    """Serialize DepthwiseConv2D layer to dict"""
+    weights = layer.get_weights()
+    assert layer.depth_multiplier == 1
+    assert len(weights) in [1, 2]
+    assert len(weights[0].shape) == 4
+
+    # probably incorrect for depth_multiplier > 1?
+    slice_weights = prepare_filter_weights_conv_2d(weights[0])
+
+    assert layer.padding in ['valid', 'same']
+    assert len(layer.input_shape) == 4
+    assert layer.input_shape[0] is None
+    result = {
+        'slice_weights': encode_floats(slice_weights),
+        'filters': layer.input_shape[-1],
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+    return result
+
+
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
     layer_axis = None
@@ -282,6 +305,7 @@ def get_all_weights(model):
         'Conv2D': show_conv_2d_layer,
         'Conv2DTranspose': show_conv_2d_transpose_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,
+        'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer
     }

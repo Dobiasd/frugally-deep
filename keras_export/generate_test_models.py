@@ -16,7 +16,7 @@ from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import SeparableConv2D, Conv2DTranspose
+from keras.layers import SeparableConv2D, Conv2DTranspose, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU
 from keras.layers import BatchNormalization
 from keras import backend as K
@@ -107,6 +107,17 @@ def get_test_model_small():
     outputs.append(keras.layers.Reshape((2, 34))(inputs[0]))
     outputs.append(keras.layers.Reshape((864,))(inputs[1]))
     outputs.append(keras.layers.Reshape((2, 2, 2))(inputs[2]))
+
+    for inp in [inputs[1]]:
+        for padding in ['valid', 'same']:
+            for h in range(1, 6):
+                outputs.append(
+                    DepthwiseConv2D((h, 1), padding=padding)(inp))
+                for sy in range(1, 4):
+                    outputs.append(
+                        DepthwiseConv2D((h, 1),
+                                        strides=(sy, sy),
+                                        padding=padding)(inp))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 

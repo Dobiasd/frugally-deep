@@ -27,6 +27,7 @@
 #include "fdeep/layers/conv_2d_transpose_layer.hpp"
 #include "fdeep/layers/cropping_2d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
+#include "fdeep/layers/depthwise_conv_2d_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
 #include "fdeep/layers/flatten_layer.hpp"
 #include "fdeep/layers/global_average_pooling_2d_layer.hpp"

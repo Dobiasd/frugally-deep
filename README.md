@@ -168,6 +168,7 @@ Below you can find the durations of one isolated forward pass for some popular m
 | VGG16             |             0.91 s |        0.85 s |
 | VGG19             |             0.93 s |        1.00 s |
 | Xception          |             1.30 s |        0.61 s |
+| MobileNet         |             0.45 s |        0.07 s |
 | DenseNet201       |             2.77 s |        0.38 s |
 | NASNetLarge       |             5.72 s |        2.43 s |
 ```

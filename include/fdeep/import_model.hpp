@@ -308,6 +308,47 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
         dilation_rate, slice_weights, stack_weights, bias_0, bias);
 }
 
+inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
+    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    const std::string padding_str = data["config"]["padding"];
+    const auto pad_type = create_padding(padding_str);
+
+    const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
+
+    const std::size_t filter_count = get_param(name, "filters");
+    float_vec bias(filter_count, 0);
+    const bool use_bias = data["config"]["use_bias"];
+    if (use_bias)
+        bias = decode_floats(get_param(name, "bias"));
+    assertion(bias.size() == filter_count, "size of bias does not match");
+
+    const float_vec slice_weights = decode_floats(
+        get_param(name, "slice_weights"));
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
+    assertion(slice_weights.size() % kernel_size.area() == 0,
+        "invalid number of weights");
+    const std::size_t input_depth = slice_weights.size() / kernel_size.area();
+    const shape3 filter_shape(1,
+        kernel_size.height_, kernel_size.width_);
+    float_vec bias_0(input_depth, 0);
+    const bool padding_valid_uses_offset_depth_1 =
+        get_global_param("separable_conv2d_valid_offset_depth_1");
+    const bool padding_same_uses_offset_depth_1 =
+        get_global_param("separable_conv2d_same_offset_depth_1");
+        const bool padding_valid_uses_offset_depth_2 =
+        get_global_param("separable_conv2d_valid_offset_depth_2");
+    const bool padding_same_uses_offset_depth_2 =
+        get_global_param("separable_conv2d_same_offset_depth_2");
+    return std::make_shared<depthwise_conv_2d_layer>(name, input_depth,
+        filter_shape, filter_count, strides, pad_type,
+        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
+        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
+        dilation_rate, slice_weights, bias);
+}
+
 inline layer_ptr create_input_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -722,6 +763,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             //{"Conv2DTranspose", create_conv_2d_transpose_layer},
             {"SeparableConv1D", create_separable_conv_2D_layer},
             {"SeparableConv2D", create_separable_conv_2D_layer},
+            {"DepthwiseConv2D", create_depthwise_conv_2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},

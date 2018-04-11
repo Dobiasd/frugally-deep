@@ -9,6 +9,7 @@
 int main()
 {
     std::vector<std::string> model_paths = {
+
         "test_model_small.json",
         "test_model_sequential.json",
         "test_model_full.json",
@@ -17,10 +18,11 @@ int main()
         "vgg16.json",
         "vgg19.json",
         "xception.json",
+        "mobilenet.json",
         "densenet201.json",
         "nasnetlarge.json",
         //"inceptionvresnetv2.json", // lambda
-        //"mobilenet.json", // relu6
+
     };
 
     bool error = false;

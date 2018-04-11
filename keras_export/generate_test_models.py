@@ -101,6 +101,13 @@ def get_test_model_small():
     outputs.append(keras.layers.Maximum()([inputs[2], inputs[3], inputs[3]]))
     outputs.append(keras.layers.Concatenate()([inputs[2], inputs[3], inputs[3]]))
 
+    outputs.append(keras.layers.Reshape((68,))(inputs[0]))
+    outputs.append(keras.layers.Reshape((864,))(inputs[1]))
+    outputs.append(keras.layers.Reshape((8,))(inputs[2]))
+    outputs.append(keras.layers.Reshape((2, 34))(inputs[0]))
+    outputs.append(keras.layers.Reshape((864,))(inputs[1]))
+    outputs.append(keras.layers.Reshape((2, 2, 2))(inputs[2]))
+
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
@@ -286,6 +293,15 @@ def get_test_model_full():
     outputs.append(x)
     x = Dense(3)(x)  # (1, 1, 3)
     outputs.append(x)
+
+    outputs.append(Activation(relu6)(inputs[6]))
+
+    outputs.append(keras.layers.Add()([inputs[6], inputs[7], inputs[7]]))
+    outputs.append(keras.layers.Subtract()([inputs[6], inputs[7]]))
+    outputs.append(keras.layers.Multiply()([inputs[6], inputs[7], inputs[7]]))
+    outputs.append(keras.layers.Average()([inputs[6], inputs[3], inputs[7]]))
+    outputs.append(keras.layers.Maximum()([inputs[6], inputs[3], inputs[7]]))
+    outputs.append(keras.layers.Concatenate()([inputs[6], inputs[7], inputs[7]]))
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)

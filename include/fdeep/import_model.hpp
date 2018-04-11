@@ -73,6 +73,12 @@ inline std::size_t create_size_t(const nlohmann::json& int_data)
     return static_cast<std::size_t>(val);
 }
 
+inline int create_int(const nlohmann::json& int_data)
+{
+    const int val = int_data;
+    return val;
+}
+
 inline float_vec decode_floats(const nlohmann::json& data)
 {
     assertion(data.is_array() || data.is_string(),
@@ -526,6 +532,19 @@ inline layer_ptr create_cropping_2d_layer(
     }
 }
 
+inline layer_ptr create_reshape_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const auto target_shape_channel_last =
+        create_vector<int>(create_int, data["config"]["target_shape"]);
+
+    const auto filled_shape_channel_last =
+        fplus::fill_left(1, 3, target_shape_channel_last);
+
+    return std::make_shared<reshape_layer>(name, filled_shape_channel_last);
+}
+
 inline bool json_obj_has_member(const nlohmann::json& data,
     const std::string& member_name)
 {
@@ -730,7 +749,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"ZeroPadding2D", create_zero_padding_2d_layer},
             {"Cropping1D", create_cropping_2d_layer},
             {"Cropping2D", create_cropping_2d_layer},
-            {"Activation", create_activation_layer}
+            {"Activation", create_activation_layer},
+            {"Reshape", create_reshape_layer}
         };
 
     const std::string type = data["class_name"];

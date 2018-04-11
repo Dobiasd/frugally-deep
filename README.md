@@ -52,6 +52,7 @@ Layer types typically used in image recognition/generation are supported, making
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
 * `UpSampling1D/2D`
+* `Reshape`
 
 
 ### Also supported
@@ -91,7 +92,6 @@ Currently not supported are the following layer types:
 `Permute`,
 `PReLU`,
 `RepeatVector`,
-`Reshape`,
 `RNN`,
 `SimpleRNN`,
 `SimpleRNNCell`,

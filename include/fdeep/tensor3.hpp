@@ -338,6 +338,37 @@ inline tensor3 depth_first_to_depth_last(const tensor3& in)
     return result;
 }
 
+inline tensor3 reshape_tensor3(const tensor3& in,
+    const std::vector<int>& target_shape_channel_last)
+{
+    const auto shape = target_shape_channel_last;
+    assertion(shape.size() > 0 && shape.size() < 4,
+        "Invalid shape in reshape");
+    assertion(fplus::count(-1, shape) < 2,
+        "Reshape can only infer one dimension");
+    const auto fixed_dims = fplus::keep_if(fplus::is_not_equal_to(-1), shape);
+    const auto fixes_dims_prod = fplus::product(fixed_dims);
+    const auto num_values = static_cast<int>(in.as_vector()->size());
+    assertion(num_values % fixes_dims_prod == 0,
+        "Invalid dimensions in reshape");
+    const auto deduced_dim = num_values / fixes_dims_prod;
+    const auto deduced_shape = fplus::replace_elems(-1, deduced_dim, shape);
+    assertion(fplus::product(deduced_shape) == num_values,
+        "Invalid input tensor size in reshape");
+    assertion(fplus::all_by(fplus::is_positive<int>, deduced_shape),
+        "Invalid shape values in reshape");
+
+    const auto depth_last_in = depth_first_to_depth_last(in);
+
+    const tensor3 depth_last_out(shape3(
+        static_cast<std::size_t>(deduced_shape[0]),
+        static_cast<std::size_t>(deduced_shape[1]),
+        static_cast<std::size_t>(deduced_shape[2])),
+        depth_last_in.as_vector());
+
+    return depth_last_to_depth_first(depth_last_out);
+}
+
 inline tensor3 sum_tensor3s(const tensor3s& ts)
 {
     assertion(!ts.empty(), "no tensor3s given");

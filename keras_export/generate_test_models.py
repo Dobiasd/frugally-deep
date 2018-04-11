@@ -68,6 +68,10 @@ def generate_output_data(data_size, outputs):
             for output in outputs]
 
 
+def relu6(x):
+    return K.relu(x, max_value=6)
+
+
 def get_test_model_small():
     """Returns a minimalistic test model."""
     input_shapes = [
@@ -88,6 +92,7 @@ def get_test_model_small():
     outputs.append(Activation('softmax')(inputs[0]))
     outputs.append(Activation('softmax')(inputs[1]))
     outputs.append(Activation('softmax')(inputs[2]))
+    outputs.append(Activation(relu6)(inputs[0]))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
@@ -362,7 +367,7 @@ def main():
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
-        model = load_model(dest_path)
+        model = load_model(dest_path, custom_objects={'relu6': relu6})
         print(model.summary())
 
 if __name__ == "__main__":

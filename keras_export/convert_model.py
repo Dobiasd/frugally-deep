@@ -9,8 +9,8 @@ import sys
 
 import numpy as np
 
-from tensorflow.python.keras.models import load_model
-from tensorflow.python.keras import backend as K
+from keras.models import load_model
+from keras import backend as K
 
 
 __author__ = "Tobias Hermann"
@@ -106,7 +106,7 @@ def split_every(size, seq):
 def encode_floats(arr):
     """Serialize a sequence of floats."""
     if STORE_FLOATS_HUMAN_READABLE:
-        return values
+        return arr
     return list(split_every(1024, base64.b64encode(arr).decode('ascii')))
 
 
@@ -202,8 +202,13 @@ def show_separable_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    assert len(layer.axis) == 1
-    assert layer.axis[0] == -1 or layer.axis[0] + 1 == len(layer.input_shape)
+    layer_axis = None
+    if isinstance(layer.axis, int):
+        layer_axis = layer.axis
+    else:
+        assert len(layer.axis) == 1
+        layer_axis = layer.axis[0]
+    assert layer_axis == -1 or layer_axis + 1 == len(layer.input_shape)
     moving_mean = K.get_value(layer.moving_mean)
     moving_variance = K.get_value(layer.moving_variance)
     result = {}

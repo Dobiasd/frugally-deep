@@ -40,6 +40,7 @@
 #include "fdeep/layers/model_layer.hpp"
 #include "fdeep/layers/pooling_2d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
+#include "fdeep/layers/relu6_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/selu_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"

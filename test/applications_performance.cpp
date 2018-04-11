@@ -9,7 +9,6 @@
 int main()
 {
     std::vector<std::string> model_paths = {
-        "deleteme.json",
         "test_model_small.json",
         "test_model_sequential.json",
         "test_model_full.json",

@@ -302,10 +302,30 @@ def get_all_weights(model):
     return result
 
 
+def get_model_name(model):
+    """Return .name or ._name or 'dummy_model_name'"""
+    if hasattr(model, 'name'):
+        return model.name
+    elif hasattr(model, '_name'):
+        return model._name
+    else:
+        return 'dummy_model_name'
+
+
+def set_model_name(model, name):
+    """Overwrite .name or ._name'"""
+    if hasattr(model, 'name'):
+        model.name = name
+    elif hasattr(model, '_name'):
+        model._name = name
+    else:
+        pass # Model has no name property.
+
+
 def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ == 'Sequential':
-        name = model._name
+        name = get_model_name(model)
         if hasattr(model, '_inbound_nodes'):
             inbound_nodes = model._inbound_nodes
         elif hasattr(model, 'inbound_nodes'):

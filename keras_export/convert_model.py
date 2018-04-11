@@ -333,7 +333,7 @@ def convert_sequential_to_model(model):
         else:
             assert False
         model = model.model
-        model._name = name
+        set_model_name(model, name)
         if hasattr(model, '_inbound_nodes'):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):

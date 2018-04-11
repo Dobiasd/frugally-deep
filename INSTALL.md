@@ -25,6 +25,7 @@ cd ../..
 
 git clone https://github.com/nlohmann/json
 cd json
+git checkout v3.1.2
 mkdir -p build && cd build
 cmake ..
 make && sudo make install

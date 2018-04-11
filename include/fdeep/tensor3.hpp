@@ -360,6 +360,44 @@ inline tensor3 sum_tensor3s(const tensor3s& ts)
     return tensor3(ts.front().shape(), std::move(result_values));
 }
 
+inline tensor3 multiply_tensor3s(const tensor3s& ts)
+{
+    assertion(!ts.empty(), "no tensor3s given");
+    assertion(
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor3, shape, shape3), ts),
+        "all tensor3s must have the same size");
+    const auto ts_values = fplus::transform(
+        fplus_c_mem_fn_t(tensor3, as_vector, shared_float_vec), ts);
+    float_vec result_values;
+    result_values.reserve(ts_values.front()->size());
+    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    {
+        float_type product_val = static_cast<float_type>(1);
+        for (const auto& t_vals : ts_values)
+        {
+            product_val *= (*t_vals)[i];
+        }
+        result_values.push_back(product_val);
+    }
+    return tensor3(ts.front().shape(), std::move(result_values));
+}
+
+inline tensor3 subtract_tensor3(const tensor3& a, const tensor3& b)
+{
+    assertion(a.shape() == b.shape(),
+        "both tensor3s must have the same size");
+    auto result_values = fplus::zip_with(std::minus<float_type>(),
+        *a.as_vector(), *b.as_vector());
+    return tensor3(a.shape(), std::move(result_values));
+}
+
+inline tensor3 average_tensor3s(const tensor3s& ts)
+{
+    const auto sum = sum_tensor3s(ts);
+    const float_type divisor = static_cast<float_type>(ts.size());
+    return transform_tensor3(fplus::multiply_with(1 / divisor), sum);
+}
+
 inline tensor3 max_tensor3s(const tensor3s& ts)
 {
     assertion(!ts.empty(), "no tensor3s given");

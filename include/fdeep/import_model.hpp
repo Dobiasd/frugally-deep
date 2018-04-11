@@ -434,6 +434,27 @@ inline layer_ptr create_maximum_layer(
     return std::make_shared<maximum_layer>(name);
 }
 
+inline layer_ptr create_multiply_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<multiply_layer>(name);
+}
+
+inline layer_ptr create_average_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<average_layer>(name);
+}
+
+inline layer_ptr create_subtract_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<subtract_layer>(name);
+}
+
 inline layer_ptr create_flatten_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -701,6 +722,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Add", create_add_layer},
             {"Maximum", create_maximum_layer},
             {"Concatenate", create_concatename_layer},
+            {"Multiply", create_multiply_layer},
+            {"Average", create_average_layer},
+            {"Subtract", create_subtract_layer},
             {"Flatten", create_flatten_layer},
             {"ZeroPadding1D", create_zero_padding_2d_layer},
             {"ZeroPadding2D", create_zero_padding_2d_layer},

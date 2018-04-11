@@ -19,6 +19,7 @@
 #include "fdeep/shape3.hpp"
 
 #include "fdeep/layers/add_layer.hpp"
+#include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_2d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
@@ -38,6 +39,7 @@
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
+#include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/pooling_2d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
 #include "fdeep/layers/relu6_layer.hpp"
@@ -47,6 +49,7 @@
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
+#include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"

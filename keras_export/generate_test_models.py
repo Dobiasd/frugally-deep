@@ -78,6 +78,7 @@ def get_test_model_small():
         (17, 4),
         (16, 18, 3),
         (8,),
+        (8,),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -93,6 +94,12 @@ def get_test_model_small():
     outputs.append(Activation('softmax')(inputs[1]))
     outputs.append(Activation('softmax')(inputs[2]))
     outputs.append(Activation(relu6)(inputs[0]))
+    outputs.append(keras.layers.Add()([inputs[2], inputs[3], inputs[3]]))
+    outputs.append(keras.layers.Subtract()([inputs[2], inputs[3]]))
+    outputs.append(keras.layers.Multiply()([inputs[2], inputs[3], inputs[3]]))
+    outputs.append(keras.layers.Average()([inputs[2], inputs[3], inputs[3]]))
+    outputs.append(keras.layers.Maximum()([inputs[2], inputs[3], inputs[3]]))
+    outputs.append(keras.layers.Concatenate()([inputs[2], inputs[3], inputs[3]]))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 

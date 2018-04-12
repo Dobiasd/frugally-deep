@@ -38,9 +38,12 @@ int main()
             const std::size_t test_runs = 5;
             for (std::size_t i = 0; i < warm_up_runs; ++i)
             {
-                model.test_speed();
+                const double duration = model.test_speed();
+                std::cout << "Forward pass took "
+                    << duration << " s." << std::endl;
             }
             double duration_sum = 0;
+            std::cout << "Starting performance measurements." << std::endl;
             for (std::size_t i = 0; i < test_runs; ++i)
             {
                 const double duration = model.test_speed();

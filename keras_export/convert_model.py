@@ -107,7 +107,7 @@ def gen_test_data(model):
         data_out, duration = measure_predict(model, data_in)
         duration_sum = duration_sum + duration
     duration_avg = duration_sum / test_runs
-    print('Forward pass took {} s on average.'.format(duration.total_seconds()))
+    print('Forward pass took {} s on average.'.format(duration_avg))
 
     return {
         'inputs': list(map(show_test_data_as_3tensor, data_in)),

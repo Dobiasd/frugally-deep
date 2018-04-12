@@ -108,16 +108,8 @@ def get_test_model_small():
     outputs.append(keras.layers.Reshape((864,))(inputs[1]))
     outputs.append(keras.layers.Reshape((2, 2, 2))(inputs[2]))
 
-    for inp in [inputs[1]]:
-        for padding in ['valid', 'same']:
-            for h in range(1, 6):
-                outputs.append(
-                    DepthwiseConv2D((h, 1), padding=padding)(inp))
-                for sy in range(1, 4):
-                    outputs.append(
-                        DepthwiseConv2D((h, 1),
-                                        strides=(sy, sy),
-                                        padding=padding)(inp))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
@@ -175,6 +167,7 @@ def get_test_model_full():
         (27, 29, 1),
         (17, 1),
         (17, 4),
+        (2, 3),
     ]
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -228,6 +221,10 @@ def get_test_model_full():
                                             padding=padding)(inp))
                 for sy in range(1, 4):
                     outputs.append(
+                        DepthwiseConv2D((h, 1),
+                                        strides=(sy, sy),
+                                        padding=padding)(inp))
+                    outputs.append(
                         MaxPooling2D((h, 1), strides=(1, sy),
                                      padding=padding)(inp))
             for w in range(1, 6):
@@ -248,6 +245,10 @@ def get_test_model_full():
                                             strides=(sx, sx),
                                             padding=padding)(inp))
                 for sx in range(1, 4):
+                    outputs.append(
+                        DepthwiseConv2D((1, w),
+                                        strides=(sy, sy),
+                                        padding=padding)(inp))
                     outputs.append(
                         MaxPooling2D((1, w), strides=(1, sx),
                                      padding=padding)(inp))
@@ -276,6 +277,8 @@ def get_test_model_full():
     outputs.append(Conv2D(2, (3, 3), use_bias=False)(inputs[0]))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=True)(inputs[0]))
     outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[0]))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[0]))
 
     outputs.append(Dense(2, use_bias=True)(inputs[3]))
     outputs.append(Dense(2, use_bias=False)(inputs[3]))
@@ -305,14 +308,14 @@ def get_test_model_full():
     x = Dense(3)(x)  # (1, 1, 3)
     outputs.append(x)
 
-    outputs.append(Activation(relu6)(inputs[6]))
+    outputs.append(Activation(relu6)(inputs[7]))
 
-    outputs.append(keras.layers.Add()([inputs[6], inputs[7], inputs[7]]))
-    outputs.append(keras.layers.Subtract()([inputs[6], inputs[7]]))
-    outputs.append(keras.layers.Multiply()([inputs[6], inputs[7], inputs[7]]))
-    outputs.append(keras.layers.Average()([inputs[6], inputs[3], inputs[7]]))
-    outputs.append(keras.layers.Maximum()([inputs[6], inputs[3], inputs[7]]))
-    outputs.append(keras.layers.Concatenate()([inputs[6], inputs[7], inputs[7]]))
+    outputs.append(keras.layers.Add()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(keras.layers.Subtract()([inputs[4], inputs[8]]))
+    outputs.append(keras.layers.Multiply()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(keras.layers.Average()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(keras.layers.Maximum()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(keras.layers.Concatenate()([inputs[4], inputs[8], inputs[8]]))
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)

@@ -158,19 +158,19 @@ In case you want to convert an `Eigen::Matrix` to `fdeep::tensor3`, have a look 
 Performance
 -----------
 
-Below you can find the durations of one isolated forward pass for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow 1.7.0 binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
+Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow 1.7.0 binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
-| InceptionV3       |             1.21 s |        0.38 s |
-| ResNet50          |             0.90 s |        0.23 s |
-| VGG16             |             0.91 s |        0.85 s |
-| VGG19             |             0.93 s |        1.00 s |
-| Xception          |             1.30 s |        0.61 s |
-| MobileNet         |             0.45 s |        0.07 s |
-| DenseNet201       |             2.77 s |        0.38 s |
-| NASNetLarge       |             5.72 s |        2.43 s |
+| InceptionV3       |             0.40 s |        0.33 s |
+| ResNet50          |             0.39 s |        0.21 s |
+| VGG16             |             0.37 s |        0.77 s |
+| VGG19             |             0.45 s |        0.93 s |
+| Xception          |             0.84 s |        0.54 s |
+| MobileNet         |             0.18 s |        0.06 s |
+| DenseNet201       |             0.81 s |        0.34 s |
+| NASNetLarge       |             2.28 s |        2.20 s |
 ```
 
 

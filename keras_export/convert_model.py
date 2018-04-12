@@ -72,6 +72,16 @@ def get_model_input_layers(model):
     assert False, "can not get (_)input_layers from model"
 
 
+def measure_predict(model, data_in):
+    """Returns output and duration in seconds"""
+    start_time = datetime.datetime.now()
+    data_out = model.predict(data_in)
+    end_time = datetime.datetime.now()
+    duration = end_time - start_time
+    print('Forward pass took {} s.'.format(duration.total_seconds()))
+    return data_out, duration.total_seconds()
+
+
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -86,11 +96,18 @@ def gen_test_data(model):
         set_shape_idx_0_to_1(l.input_shape)).astype(np.float32),
         get_model_input_layers(model)))
 
-    start_time = datetime.datetime.now()
-    data_out = model.predict(data_in)
-    end_time = datetime.datetime.now()
-    duration = end_time - start_time
-    print('Forward pass took {} s.'.format(duration.total_seconds()))
+    warm_up_runs = 3
+    test_runs = 5
+    data_out = None
+    for i in range(warm_up_runs):
+        measure_predict(model, data_in)
+    duration_sum = 0
+    print('Starting performance measurements.')
+    for i in range(test_runs):
+        data_out, duration = measure_predict(model, data_in)
+        duration_sum = duration_sum + duration
+    duration_avg = duration_sum / test_runs
+    print('Forward pass took {} s on average.'.format(duration.total_seconds()))
 
     return {
         'inputs': list(map(show_test_data_as_3tensor, data_in)),

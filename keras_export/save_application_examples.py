@@ -108,9 +108,9 @@ def main():
         # ../keras_export/convert_model.py vgg16.h5 vgg16.json
         # ../keras_export/convert_model.py vgg19.h5 vgg19.json
         # ../keras_export/convert_model.py xception.h5 xception.json
+        # ../keras_export/convert_model.py mobilenet.h5 mobilenet.json
         # ../keras_export/convert_model.py densenet201.h5 densenet201.json
         # ../keras_export/convert_model.py nasnetlarge.h5 nasnetlarge.json
-        # ../keras_export/convert_model.py mobilenet.h5 mobilenet.json
 
         # ../keras_export/convert_model.py inceptionvresnetv2.h5 inceptionvresnetv2.json
 

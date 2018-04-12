@@ -34,6 +34,24 @@ int main()
         try
         {
             const auto model = fdeep::load_model(model_path, true);
+            const std::size_t warm_up_runs = 3;
+            const std::size_t test_runs = 5;
+            for (std::size_t i = 0; i < warm_up_runs; ++i)
+            {
+                model.test_speed();
+            }
+            double duration_sum = 0;
+            for (std::size_t i = 0; i < test_runs; ++i)
+            {
+                const double duration = model.test_speed();
+                duration_sum += duration;
+                std::cout << "Forward pass took "
+                    << duration << " s." << std::endl;
+            }
+            const double duration_avg =
+                duration_sum / static_cast<double>(test_runs);
+            std::cout << "Forward pass took "
+                << duration_avg << " s on average." << std::endl;
         }
         catch (const std::exception& e)
         {

@@ -41,10 +41,7 @@ protected:
                 {
                     sum += output.get(z_class, y, x);
                 }
-                if (sum == 0)
-                {
-                    sum = std::numeric_limits<float_type>::min();
-                }
+                assertion(sum != 0, "Invalid divisor in softmax layer. Try using\n#define FDEEP_FLOAT_TYPE double\nbefore\n#include \"fdeep/fdeep.hpp\"");
                 // Divide the unnormalized values of each pixel by the stacks sum.
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {

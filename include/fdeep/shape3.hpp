@@ -73,4 +73,15 @@ inline shape3 dilate_shape3(const shape2& dilation_rate, const shape3& s)
 
 using shape3 = internal::shape3;
 
+inline std::string show_shape3(const shape3& s)
+{
+    const std::vector<std::size_t> dimensions = {s.depth_, s.height_, s.width_};
+    return fplus::show_cont_with_frame(", ", "(", ")", dimensions);
+}
+
+inline std::string show_shape3s(const std::vector<shape3>& shapes)
+{
+    return fplus::show_cont(fplus::transform(show_shape3, shapes));
+}
+
 } // namespace fdeep

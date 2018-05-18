@@ -99,7 +99,7 @@ Layer types typically used in image recognition/generation are supported, making
 `ThresholdedReLU`,
 `TimeDistributed`,
 `Upsampling3D`,
-`any custom layers`
+`any custom layers`,
 `None` as input/output shape
 
 

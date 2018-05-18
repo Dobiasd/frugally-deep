@@ -64,7 +64,7 @@ Layer types typically used in image recognition/generation are supported, making
 * arbitrary complex model architectures / computational graphs
 
 
-Currently not supported are the following layer types:
+### Currently not supported are the following:
 `ActivityRegularization`,
 `AlphaDropout`,
 `AveragePooling3D`,
@@ -100,6 +100,7 @@ Currently not supported are the following layer types:
 `TimeDistributed`,
 `Upsampling3D`,
 `any custom layers`
+`None` as input/output shape
 
 
 Usage

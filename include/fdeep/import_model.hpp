@@ -460,7 +460,7 @@ inline layer_ptr create_dense_layer(const get_param_f& get_param,
         name, units, weights, bias);
 }
 
-inline layer_ptr create_concatename_layer(
+inline layer_ptr create_concatenate_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json&,
     const std::string& name)
 {
@@ -782,7 +782,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
             {"Maximum", create_maximum_layer},
-            {"Concatenate", create_concatename_layer},
+            {"Concatenate", create_concatenate_layer},
             {"Multiply", create_multiply_layer},
             {"Average", create_average_layer},
             {"Subtract", create_subtract_layer},

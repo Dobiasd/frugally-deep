@@ -29,7 +29,8 @@ def write_text_file(path, text):
 
 
 def arr3_to_channels_first_format(arr):
-    """Convert a 3-tensor for channels_first"""
+    """Convert a 3-tensor from channel_last to channels_first format,
+    i.e. HWC (TensorFlow format) to CHW (frugally-deep format)."""
     assert len(arr.shape) == 3
     assert K.image_data_format() == 'channels_last'
     return np.swapaxes(np.swapaxes(arr, 2, 1), 1, 0)

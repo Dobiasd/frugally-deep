@@ -233,7 +233,6 @@ def show_depthwise_conv_2d_layer(layer):
     assert layer.input_shape[0] is None
     result = {
         'slice_weights': encode_floats(slice_weights),
-        'filters': layer.input_shape[-1],
     }
     if len(weights) == 2:
         bias = weights[1]

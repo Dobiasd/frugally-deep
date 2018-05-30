@@ -318,13 +318,6 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     const shape2 strides = create_shape2(data["config"]["strides"]);
     const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
-    const std::size_t filter_count = get_param(name, "filters");
-    float_vec bias(filter_count, 0);
-    const bool use_bias = data["config"]["use_bias"];
-    if (use_bias)
-        bias = decode_floats(get_param(name, "bias"));
-    assertion(bias.size() == filter_count, "size of bias does not match");
-
     const float_vec slice_weights = decode_floats(
         get_param(name, "slice_weights"));
     const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
@@ -333,7 +326,12 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
     const shape3 filter_shape(1,
         kernel_size.height_, kernel_size.width_);
-    float_vec bias_0(input_depth, 0);
+    const std::size_t filter_count = input_depth;
+    float_vec bias(filter_count, 0);
+    const bool use_bias = data["config"]["use_bias"];
+    if (use_bias)
+        bias = decode_floats(get_param(name, "bias"));
+    assertion(bias.size() == filter_count, "size of bias does not match");
     const bool padding_valid_uses_offset_depth_1 =
         get_global_param("separable_conv2d_valid_offset_depth_1");
     const bool padding_same_uses_offset_depth_1 =

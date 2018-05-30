@@ -164,14 +164,14 @@ Below you can find the average durations of multiple consecutive forward passes 
 ```
 | Model             | Keras + TensorFlow | frugally-deep |
 |-------------------|--------------------|---------------|
+| DenseNet201       |             0.81 s |        0.34 s |
 | InceptionV3       |             0.40 s |        0.33 s |
+| MobileNet         |             0.18 s |        0.06 s |
+| NASNetLarge       |             2.28 s |        2.20 s |
 | ResNet50          |             0.39 s |        0.21 s |
 | VGG16             |             0.37 s |        0.77 s |
 | VGG19             |             0.45 s |        0.93 s |
 | Xception          |             0.84 s |        0.54 s |
-| MobileNet         |             0.18 s |        0.06 s |
-| DenseNet201       |             0.81 s |        0.34 s |
-| NASNetLarge       |             2.28 s |        2.20 s |
 ```
 
 

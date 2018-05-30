@@ -36,7 +36,7 @@ install:
   # FunctionalPlus
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
-  - mkdir build && cd build && cmake .. & make & sudo make install
+  - mkdir build && cd build && cmake .. && make && sudo make install
   - cd ../..
   # Eigen
   - git clone https://github.com/eigenteam/eigen-git-mirror

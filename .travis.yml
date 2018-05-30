@@ -28,44 +28,34 @@ before_install:
     conan user
 
 install:
+  # system libs
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
-  - sudo pip3 install numpy
-  - sudo pip3 install scipy
+  # python libs
   - sudo pip3 install --upgrade pip
-  - sudo pip3 install tensorflow
-  - sudo pip3 install h5py
-  - sudo pip3 install keras
+  - sudo pip3 install numpy scipy tensorflow h5py keras
+  # FunctionalPlus
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make
-  - sudo make install
+  - mkdir build && cd build && cmake .. & make & sudo make install
   - cd ../..
+  # Eigen
   - git clone https://github.com/eigenteam/eigen-git-mirror
   - cd eigen-git-mirror
-  - mkdir -p build && cd build
-  - cmake ..
-  - make
-  - sudo make install
+  - mkdir -p build && cd build && cmake .. && make && sudo make install
   - sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ../..
+  # Doctest
   - git clone https://github.com/onqtam/doctest
   - cd doctest
-  - mkdir -p build && cd build
-  - cmake ..
-  - make
-  - sudo make install
+  - mkdir -p build && cd build && cmake .. && make && sudo make install
   - cd ../..
+  # json
   - git clone https://github.com/nlohmann/json
   - cd json
   - git checkout v3.1.2
-  - mkdir -p build && cd build
-  - cmake ..
-  - make
-  - sudo make install
+  - mkdir -p build && cd build && cmake .. && make && sudo make install
   - cd ../..
+  # run CMake
   - mkdir -p build && cd build
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
 

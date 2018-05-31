@@ -13,16 +13,18 @@ int main()
         "test_model_small.json",
         "test_model_sequential.json",
         "test_model_full.json",
+        "densenet121.json",
+        "densenet169.json",
+        "densenet201.json",
+        //"inceptionresnetv2.json", // lambda
         "inceptionv3.json",
+        "mobilenet.json",
+        "nasnetlarge.json",
+        "nasnetmobile.json",
         "resnet50.json",
         "vgg16.json",
         "vgg19.json",
-        "xception.json",
-        "mobilenet.json",
-        "densenet201.json",
-        "nasnetlarge.json",
-        //"inceptionvresnetv2.json", // lambda
-
+        "xception.json"
     };
 
     bool error = false;

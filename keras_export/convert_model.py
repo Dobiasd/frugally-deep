@@ -93,9 +93,12 @@ def gen_test_data(model):
         shape = tuple(shape_lst)
         return shape
 
-    data_in = list(map(lambda l: np.random.random(
-        set_shape_idx_0_to_1(l.input_shape)).astype(np.float32),
-        get_model_input_layers(model)))
+    def generate_input_data(layer):
+        """Random data fitting the input shape of a layer."""
+        return np.random.random(
+            set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
+
+    data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
     warm_up_runs = 3
     test_runs = 5
@@ -448,7 +451,7 @@ def convert(in_path, out_path):
 
     # Force creation of underlying functional model.
     # see: https://github.com/fchollet/keras/issues/8136
-    # Loss and optimizer type do not matter, since to don't train the model.
+    # Loss and optimizer type do not matter, since we do not train the model.
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)

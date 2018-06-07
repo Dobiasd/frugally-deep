@@ -9,6 +9,7 @@ import sys
 
 import numpy as np
 
+import keras
 from keras.models import load_model
 from keras import backend as K
 
@@ -292,6 +293,16 @@ def show_dense_layer(layer):
         result['bias'] = encode_floats(bias)
     return result
 
+def show_prelu_layer(layer):
+    """Serialize prelu layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1
+    print (weights[0].shape)
+    weights_flat = weights[0].flatten()
+    result = {
+        'alpha': encode_floats(weights_flat)
+    }
+    return result
 
 def get_dict_keys(d):
     """Return keys of a dictionary"""
@@ -327,7 +338,8 @@ def get_all_weights(model):
         'SeparableConv2D': show_separable_conv_2d_layer,
         'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
-        'Dense': show_dense_layer
+        'Dense': show_dense_layer,
+        'PReLU': show_prelu_layer
     }
     result = {}
     layers = model.layers

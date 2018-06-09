@@ -674,7 +674,7 @@ inline layer_ptr create_leaky_relu_layer_isolated(
 }
 
 inline layer_ptr create_prelu_layer(
-    const get_param_f& get_param, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f& get_param, const get_global_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     float_vec alpha;

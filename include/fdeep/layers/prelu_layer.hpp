@@ -25,14 +25,14 @@ namespace fdeep {
             {
                 const auto my_shared_ref = fplus::make_shared_ref<std::vector<float>>(alpha_);
                 fdeep::tensor3 alpha_tensor3(input[0].shape(), my_shared_ref);
-                std::cout << "alpha_tensor shape"<< fdeep::show_shape3(input[0].shape())<<" values " << fdeep::show_tensor3(alpha_tensor3) << std::endl;
+                //std::cout << "alpha_tensor shape"<< fdeep::show_shape3(input[0].shape())<<" values " << fdeep::show_tensor3(alpha_tensor3) << std::endl;
 
                 fdeep::tensor3 out(input[0].shape(), 1.0f);
-                for (int x = 0; x < out.shape().width_; x++)
+                for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
-                    for (int y = 0; y < out.shape().height_; y++)
+                    for (std::size_t y = 0; y < out.shape().height_; ++y)
                     {
-                        for (int z = 0; z < out.shape().depth_; z++)
+                        for (std::size_t z = 0; z < out.shape().depth_; ++z)
                         {
                             if (input[0].get(z, y, x) > 0)
                             {
@@ -42,7 +42,7 @@ namespace fdeep {
                             {
                                 out.set(z, y, x, alpha_tensor3.get(z, y, x) * input[0].get(z, y, x));
                             }
-                            std::cout << "tensor " << alpha_tensor3.get(z, y, x) << " vector " << alpha_[z*out.shape().height_*out.shape().width_ + y * out.shape().width_ + x] << std::endl;
+                            //std::cout << "tensor " << alpha_tensor3.get(z, y, x) << " vector " << alpha_[z*out.shape().height_*out.shape().width_ + y * out.shape().width_ + x] << std::endl;
                         }
                     }
                 }

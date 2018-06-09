@@ -111,6 +111,10 @@ def get_test_model_small():
     outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
     outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
 
+    outputs.append(keras.layers.PReLU()(inputs[0]))
+    outputs.append(keras.layers.PReLU()(inputs[1]))
+    outputs.append(keras.layers.PReLU()(inputs[2]))
+
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')

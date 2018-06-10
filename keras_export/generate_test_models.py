@@ -115,6 +115,9 @@ def get_test_model_small():
     outputs.append(keras.layers.PReLU()(inputs[1]))
     outputs.append(keras.layers.PReLU()(inputs[2]))
 
+    outputs.append(keras.layers.PReLU()(Conv1D(2, 3, padding='valid')(inputs[0])))
+    outputs.append(keras.layers.PReLU()(Conv2D(2, (5, 7), padding='valid')(inputs[1])))
+
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')

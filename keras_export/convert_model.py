@@ -95,8 +95,8 @@ def gen_test_data(model):
 
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
-        return np.random.random(
-            set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
+        return np.random.normal(
+            size=set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 

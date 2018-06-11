@@ -127,7 +127,7 @@ def split_every(size, seq):
 def encode_floats(arr):
     """Serialize a sequence of floats."""
     if STORE_FLOATS_HUMAN_READABLE:
-        return arr
+        return arr.flatten().tolist()
     return list(split_every(1024, base64.b64encode(arr).decode('ascii')))
 
 

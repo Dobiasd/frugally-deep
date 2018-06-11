@@ -42,7 +42,7 @@ def arr_as_arr3(arr):
     if depth == 1:
         return arr.reshape(arr.shape[0], 1, 1)
     if depth == 2:
-        return arr.reshape(arr.shape[1], 1, arr.shape[0])
+        return arr3_to_channels_first_format(arr.reshape(1, arr.shape[0], arr.shape[1]))
     if depth == 3:
         return arr3_to_channels_first_format(arr)
     if depth == 4 and arr.shape[0] in [None, 1]:

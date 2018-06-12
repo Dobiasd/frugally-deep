@@ -17,7 +17,7 @@ from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, Conv2DTranspose, DepthwiseConv2D
-from keras.layers import LeakyReLU, ELU
+from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization
 from keras import backend as K
 
@@ -111,12 +111,12 @@ def get_test_model_small():
     outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
     outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
 
-    outputs.append(keras.layers.PReLU()(inputs[0]))
-    outputs.append(keras.layers.PReLU()(inputs[1]))
-    outputs.append(keras.layers.PReLU()(inputs[2]))
+    outputs.append(PReLU()(inputs[0]))
+    outputs.append(PReLU()(inputs[1]))
+    outputs.append(PReLU()(inputs[2]))
 
-    outputs.append(keras.layers.PReLU()(Conv1D(2, 3, padding='valid')(inputs[0])))
-    outputs.append(keras.layers.PReLU()(Conv2D(2, (5, 7), padding='valid')(inputs[1])))
+    outputs.append(PReLU()(Conv1D(2, 3, padding='valid')(inputs[0])))
+    outputs.append(PReLU()(Conv2D(2, (5, 7), padding='valid')(inputs[1])))
 
     #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
 
@@ -358,6 +358,9 @@ def get_test_model_full():
         Activation('relu')(inputs[3]),
         LeakyReLU()(inputs[3]),
         ELU()(inputs[3]),
+        PReLU()(inputs[2]),
+        PReLU()(inputs[3]),
+        PReLU()(inputs[4]),
         shared_activation(inputs[3]),
         inputs[4],
         inputs[1],

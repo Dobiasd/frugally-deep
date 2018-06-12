@@ -16,18 +16,16 @@ namespace fdeep {
         {
         public:
             explicit prelu_layer(const std::string& name, const float_vec& alpha) :
-                layer(name), alpha_(alpha)
+                layer(name), alpha_(fplus::make_shared_ref<float_vec>(alpha))
             {
             }
         protected:
-            float_vec alpha_;
+            fdeep::shared_float_vec alpha_;
             tensor3s apply_impl(const tensor3s& input) const override
             {
-                const auto my_shared_ref = fplus::make_shared_ref<std::vector<float>>(alpha_);
-                fdeep::tensor3 alpha_tensor3(input[0].shape(), my_shared_ref);
-                //std::cout << "alpha_tensor shape"<< fdeep::show_shape3(input[0].shape())<<" values " << fdeep::show_tensor3(alpha_tensor3) << std::endl;
-
+                fdeep::tensor3 alpha_tensor3(input[0].shape(), alpha_);
                 fdeep::tensor3 out(input[0].shape(), 1.0f);
+
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
                     for (std::size_t y = 0; y < out.shape().height_; ++y)
@@ -42,7 +40,6 @@ namespace fdeep {
                             {
                                 out.set(z, y, x, alpha_tensor3.get(z, y, x) * input[0].get(z, y, x));
                             }
-                            //std::cout << "tensor " << alpha_tensor3.get(z, y, x) << " vector " << alpha_[z*out.shape().height_*out.shape().width_ + y * out.shape().width_ + x] << std::endl;
                         }
                     }
                 }

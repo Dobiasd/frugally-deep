@@ -297,8 +297,14 @@ def show_prelu_layer(layer):
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1
-    print (weights[0].shape)
-    weights_flat = weights[0].flatten()
+    if len(weights[0].shape) == 3:
+        weights_flat = np.swapaxes(np.swapaxes(weights[0], 2, 1), 1, 0).flatten()
+    elif len(weights[0].shape) == 2:
+        weights_flat = np.swapaxes(weights[0], 1, 0).flatten()
+    elif len(weights[0].shape) == 1:
+        weights_flat = weights[0].flatten()
+    else:
+        assert False
     result = {
         'alpha': encode_floats(weights_flat)
     }

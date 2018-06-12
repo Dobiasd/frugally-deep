@@ -49,7 +49,7 @@ Layer types typically used in image recognition/generation are supported, making
 * `Cropping1D/2D`, `ZeroPadding1D/2D`
 * `BatchNormalization`, `Dense`, `Dropout`, `Flatten`
 * `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
-* `ELU`, `LeakyReLU`, `ReLU`, `SeLU`
+* `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
 * `UpSampling1D/2D`
 * `Reshape`
@@ -90,7 +90,6 @@ Layer types typically used in image recognition/generation are supported, making
 `Masking`,
 `MaxPooling3D`,
 `Permute`,
-`PReLU`,
 `RepeatVector`,
 `RNN`,
 `SimpleRNN`,

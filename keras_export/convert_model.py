@@ -43,7 +43,7 @@ def arr_as_arr3(arr):
     if depth == 1:
         return arr.reshape(arr.shape[0], 1, 1)
     if depth == 2:
-        return arr.reshape(arr.shape[1], 1, arr.shape[0])
+        return arr3_to_channels_first_format(arr.reshape(1, arr.shape[0], arr.shape[1]))
     if depth == 3:
         return arr3_to_channels_first_format(arr)
     if depth == 4 and arr.shape[0] in [None, 1]:
@@ -96,8 +96,8 @@ def gen_test_data(model):
 
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
-        return np.random.random(
-            set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
+        return np.random.normal(
+            size=set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -128,7 +128,7 @@ def split_every(size, seq):
 def encode_floats(arr):
     """Serialize a sequence of floats."""
     if STORE_FLOATS_HUMAN_READABLE:
-        return arr
+        return arr.flatten().tolist()
     return list(split_every(1024, base64.b64encode(arr).decode('ascii')))
 
 

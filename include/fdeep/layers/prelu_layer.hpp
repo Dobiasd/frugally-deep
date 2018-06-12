@@ -25,11 +25,11 @@ protected:
         fdeep::tensor3 alpha_tensor3(input[0].shape(), alpha_);
         fdeep::tensor3 out(input[0].shape(), 1.0f);
 
-        for (std::size_t x = 0; x < out.shape().width_; ++x)
+        for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
             for (std::size_t y = 0; y < out.shape().height_; ++y)
             {
-                for (std::size_t z = 0; z < out.shape().depth_; ++z)
+                for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
                     if (input[0].get(z, y, x) > 0)
                     {

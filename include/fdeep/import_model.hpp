@@ -673,6 +673,15 @@ inline layer_ptr create_leaky_relu_layer_isolated(
     return create_leaky_relu_layer(get_param, get_global_param, data, name);
 }
 
+inline layer_ptr create_prelu_layer(
+    const get_param_f& get_param, const get_global_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    float_vec alpha;
+    alpha = decode_floats(get_param(name, "alpha"));
+    return std::make_shared<prelu_layer>(name, alpha);
+}
+
 inline activation_layer_ptr create_elu_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -766,6 +775,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},
             {"LeakyReLU", create_leaky_relu_layer_isolated},
+            {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
             {"MaxPooling1D", create_max_pooling_2d_layer},
             {"MaxPooling2D", create_max_pooling_2d_layer},

@@ -36,6 +36,7 @@
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
+#include "fdeep/layers/prelu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"

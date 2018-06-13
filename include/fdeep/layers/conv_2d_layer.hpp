@@ -15,6 +15,7 @@
 #include <fplus/fplus.hpp>
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 namespace fdeep { namespace internal

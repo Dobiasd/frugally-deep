@@ -9,6 +9,10 @@
 #include "fdeep/common.hpp"
 #include "fdeep/import_model.hpp"
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
 namespace fdeep
 {
 

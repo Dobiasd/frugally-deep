@@ -16,6 +16,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <string>
 
 namespace fdeep { namespace internal
 {

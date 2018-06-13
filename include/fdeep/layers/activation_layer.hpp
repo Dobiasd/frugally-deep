@@ -10,9 +10,11 @@
 
 #include <fplus/fplus.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <vector>
+#include <string>
 
 namespace fdeep { namespace internal
 {

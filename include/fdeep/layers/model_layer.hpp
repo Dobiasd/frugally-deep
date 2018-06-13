@@ -12,8 +12,10 @@
 
 #include "fdeep/layers/layer.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
+#include <string>
 
 namespace fdeep { namespace internal
 {
@@ -45,7 +47,7 @@ public:
     }
 
 protected:
-    virtual tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor3s apply_impl(const tensor3s& inputs) const override
     {
         output_dict output_cache;
 

@@ -8,7 +8,9 @@
 
 #include "fdeep/layers/pooling_2d_layer.hpp"
 
+#include <algorithm>
 #include <limits>
+#include <string>
 
 namespace fdeep { namespace internal
 {

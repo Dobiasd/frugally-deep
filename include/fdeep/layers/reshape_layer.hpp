@@ -8,6 +8,9 @@
 
 #include "fdeep/layers/layer.hpp"
 
+#include <string>
+#include <vector>
+
 namespace fdeep { namespace internal
 {
 

@@ -8,6 +8,8 @@
 
 #include "fdeep/layers/global_pooling_2d_layer.hpp"
 
+#include <string>
+
 namespace fdeep { namespace internal
 {
 

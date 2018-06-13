@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <string>
 #include <vector>
 
 namespace fdeep { namespace internal

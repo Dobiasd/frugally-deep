@@ -10,9 +10,11 @@
 
 #include "fdeep/shape2.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 namespace fdeep { namespace internal
 {

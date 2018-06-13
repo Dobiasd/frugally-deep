@@ -10,6 +10,7 @@
 
 #include "fdeep/filter.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <vector>

@@ -14,10 +14,13 @@
 
 #include <fplus/fplus.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace fdeep { namespace internal

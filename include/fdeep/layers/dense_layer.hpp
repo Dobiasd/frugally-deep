@@ -12,6 +12,8 @@
 
 #include <fplus/fplus.hpp>
 
+#include <string>
+
 namespace fdeep { namespace internal
 {
 

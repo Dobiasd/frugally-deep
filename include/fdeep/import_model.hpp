@@ -27,8 +27,15 @@
 
 #include <fplus/fplus.hpp>
 
+#include <algorithm>
 #include <iostream>
-#include <chrono>
+#include <limits>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 
 namespace fdeep { namespace internal
 {

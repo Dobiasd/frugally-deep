@@ -8,6 +8,9 @@
 
 #include "fdeep/layers/activation_layer.hpp"
 
+#include <limits>
+#include <string>
+
 namespace fdeep { namespace internal
 {
 

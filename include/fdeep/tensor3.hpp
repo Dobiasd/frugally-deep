@@ -536,28 +536,4 @@ inline std::vector<std::uint8_t> tensor3_to_bytes(const tensor3& t,
     return bytes;
 }
 
-// Return one tensor3 with depth 1 for every depth slice of a given tensor3.
-inline std::vector<tensor3> tensor3_to_depth_slices(const tensor3& m)
-{
-    std::vector<tensor3> ms;
-    ms.reserve(m.shape().depth_);
-    for (std::size_t i = 0; i < m.shape().depth_; ++i)
-    {
-        ms.push_back(tensor3(
-            shape3(1, m.shape().height_, m.shape().width_), 0));
-    }
-
-    for (std::size_t z = 0; z < m.shape().depth_; ++z)
-    {
-        for (std::size_t y = 0; y < m.shape().height_; ++y)
-        {
-            for (std::size_t x = 0; x < m.shape().width_; ++x)
-            {
-                ms[z].set(0, y, x, m.get(z, y, x));
-            }
-        }
-    }
-    return ms;
-}
-
 } // namespace fdeep

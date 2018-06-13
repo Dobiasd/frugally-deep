@@ -101,6 +101,7 @@ private:
 };
 
 typedef std::vector<tensor3> tensor3s;
+typedef std::vector<tensor3s> tensor3s_vec;
 
 template <typename F>
 tensor3 transform_tensor3(F f, const tensor3& m)
@@ -458,6 +459,8 @@ using float_vec = internal::float_vec;
 using shared_float_vec = internal::shared_float_vec;
 using tensor3 = internal::tensor3;
 using tensor3s = internal::tensor3s;
+using tensor3s_vec = internal::tensor3s_vec;
+
 
 inline std::string show_tensor3(const tensor3& t)
 {
@@ -534,6 +537,29 @@ inline std::vector<std::uint8_t> tensor3_to_bytes(const tensor3& t,
     std::vector<std::uint8_t> bytes(t.shape().volume(), 0);
     tensor3_into_bytes(t, bytes.data(), bytes.size(), low, high);
     return bytes;
+}
+
+inline tensor3s_vec reshape_tensor3_vectors(
+    std::size_t vectors_size,
+    std::size_t vector_size,
+    std::size_t depth,
+    std::size_t height,
+    std::size_t width,
+    const tensor3s_vec& tss)
+{
+    const auto values = fplus::concat(fplus::concat(
+        fplus::transform_inner(
+            [](const tensor3& t) -> float_vec {return *t.as_vector();},
+            tss)));
+
+    fdeep::internal::assertion(values.size() == vectors_size * vector_size *  depth *  height * width,
+        "Invalid number of values for reshape target.");
+
+    const auto ts = fplus::transform(
+        [&](fdeep::float_vec v) -> tensor3 {return tensor3(shape3(depth, height, width), std::move(v));},
+        fplus::split_every(depth * height * width, values));
+
+    return fplus::split_every(vector_size, ts);
 }
 
 } // namespace fdeep

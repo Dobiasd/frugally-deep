@@ -10,7 +10,8 @@ import sys
 import numpy as np
 
 import keras
-from keras.models import load_model
+from keras.layers import Input
+from keras.models import Model, load_model
 from keras import backend as K
 
 
@@ -397,6 +398,14 @@ def convert_sequential_to_model(model):
         else:
             assert False
         model = model.model
+        # Since Keras 2.2.0
+        if model == model:
+            input_layer = Input(batch_shape=model.layers[0].input_shape)
+            prev_layer = input_layer
+            for layer in model.layers:
+                prev_layer = layer(prev_layer)
+            funcmodel = Model([input_layer], [prev_layer])
+            model = funcmodel
         set_model_name(model, name)
         if hasattr(model, '_inbound_nodes'):
             model._inbound_nodes = inbound_nodes

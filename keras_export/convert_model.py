@@ -397,15 +397,16 @@ def convert_sequential_to_model(model):
             inbound_nodes = model.inbound_nodes
         else:
             assert False
-        model = model.model
         # Since Keras 2.2.0
-        if model == model:
+        if model.model == model:
             input_layer = Input(batch_shape=model.layers[0].input_shape)
             prev_layer = input_layer
             for layer in model.layers:
                 prev_layer = layer(prev_layer)
             funcmodel = Model([input_layer], [prev_layer])
             model = funcmodel
+        else:
+            model = model.model
         set_model_name(model, name)
         if hasattr(model, '_inbound_nodes'):
             model._inbound_nodes = inbound_nodes

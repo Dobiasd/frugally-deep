@@ -32,7 +32,7 @@ install:
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
   # python libs
   - sudo pip3 install --upgrade pip
-  - sudo pip3 install numpy scipy tensorflow==1.7.1 h5py
+  - sudo pip3 install numpy scipy tensorflow==1.7.1 h5py keras
   # FunctionalPlus
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus

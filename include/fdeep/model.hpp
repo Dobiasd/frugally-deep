@@ -59,7 +59,7 @@ public:
 
     // Convenience wrapper around predict for models with
     // single tensor outputs of shape (1, 1, z).
-    // Returns the index of the output neuron with the maximum actication.
+    // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensor3s& inputs) const
     {
         internal::assertion(get_output_shapes().size() == 1,

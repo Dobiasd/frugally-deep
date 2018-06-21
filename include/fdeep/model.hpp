@@ -59,6 +59,7 @@ public:
 
     // Convenience wrapper around predict for models with
     // single tensor outputs of shape (1, 1, z).
+    // Suitable for classification models with more than one output neuron.
     // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensor3s& inputs) const
     {
@@ -69,6 +70,21 @@ public:
             "invalid output shape");
         const tensor3s outputs = predict(inputs);
         return internal::tensor3_max_pos(outputs.front()).z_;
+    }
+
+    // Convenience wrapper around predict for models with
+    // single tensor outputs of shape (1, 1, 1),
+    // typically used for regression or binary classification.
+    // Returns this one activation value.
+    float_type predict_single_output(const tensor3s& inputs) const
+    {
+        internal::assertion(get_output_shapes().size() == 1,
+            "invalid number of outputs");
+        const auto output_shape = get_output_shapes().front();
+        internal::assertion(output_shape.volume() == 1,
+            "invalid output shape");
+        const tensor3s outputs = predict(inputs);
+        return outputs.front().get(0, 0, 0);
     }
 
     const std::vector<shape3>& get_input_shapes() const

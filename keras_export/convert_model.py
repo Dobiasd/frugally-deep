@@ -352,7 +352,10 @@ def get_all_weights(model):
     }
     result = {}
     layers = model.layers
+    assert K.image_data_format() == 'channels_last'
     for layer in layers:
+        if hasattr(layer, 'data_format'):
+            assert layer.data_format == 'channels_last'
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))

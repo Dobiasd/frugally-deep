@@ -86,7 +86,7 @@ protected:
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid depthwise filter count");
-        const auto temp = concatenate_tensor3s(fplus::zip_with(
+        const auto temp = concatenate_tensor3s_depth(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
         return {convolve(shape2(1, 1), padding::valid, false,

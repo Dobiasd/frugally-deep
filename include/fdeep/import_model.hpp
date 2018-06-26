@@ -466,10 +466,11 @@ inline layer_ptr create_dense_layer(const get_param_f& get_param,
 }
 
 inline layer_ptr create_concatenate_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    return std::make_shared<concatenate_layer>(name);
+    const std::int32_t keras_axis = data["config"]["axis"];
+    return std::make_shared<concatenate_layer>(name, keras_axis);
 }
 
 inline layer_ptr create_add_layer(

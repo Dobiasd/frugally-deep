@@ -86,6 +86,14 @@ public:
     {
         return shape().depth_;
     }
+    std::size_t height() const
+    {
+        return shape().height_;
+    }
+    std::size_t width() const
+    {
+        return shape().width_;
+    }
     const shared_float_vec& as_vector() const
     {
         return values_;
@@ -197,7 +205,45 @@ inline tensor3_pos tensor3_max_pos(const tensor3& vol)
     return tensor3_min_max_pos(vol).second;
 }
 
-inline tensor3 concatenate_tensor3s(const tensor3s& ts)
+inline tensor3 tensor3_swap_depth_and_height(const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().height_,
+        in.shape().depth_,
+        in.shape().width_), 0);
+    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            {
+                result.set(y, z, x, in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
+inline tensor3 tensor3_swap_depth_and_width(const tensor3& in)
+{
+    tensor3 result(shape3(
+        in.shape().width_,
+        in.shape().height_,
+        in.shape().depth_), 0);
+    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            {
+                result.set(x, y, z, in.get(z, y, x));
+            }
+        }
+    }
+    return result;
+}
+
+inline tensor3 concatenate_tensor3s_depth(const tensor3s& ts)
 {
     assertion(fplus::all_the_same_on(
         fplus_c_mem_fn_t(tensor3, size_without_depth, shape2), ts),
@@ -209,12 +255,43 @@ inline tensor3 concatenate_tensor3s(const tensor3s& ts)
         fplus_c_mem_fn_t(tensor3, depth, std::size_t), ts));
 
     return tensor3(
-        shape3(depth_sum,
-            ts.front().shape().height_, ts.front().shape().width_),
+        shape3(depth_sum, ts.front().shape().height_,
+            ts.front().shape().width_),
         fplus::transform_and_concat([](const tensor3& t) -> float_vec
         {
             return *t.as_vector();
         }, ts));
+}
+
+inline tensor3 concatenate_tensor3s_height(const tensor3s& ts)
+{
+    return fplus::fwd::apply(ts,
+        fplus::fwd::transform(tensor3_swap_depth_and_height),
+        concatenate_tensor3s_depth,
+        tensor3_swap_depth_and_height);
+}
+
+inline tensor3 concatenate_tensor3s_width(const tensor3s& ts)
+{
+    return fplus::fwd::apply(ts,
+        fplus::fwd::transform(tensor3_swap_depth_and_width),
+        concatenate_tensor3s_depth,
+        tensor3_swap_depth_and_width);
+}
+
+inline tensor3 concatenate_tensor3s(const tensor3s& ts, std::int32_t axis)
+{
+    if (axis == 1)
+    {
+        return concatenate_tensor3s_height(ts);
+    }
+    if (axis == 2)
+    {
+        return concatenate_tensor3s_width(ts);
+    }
+    assertion(axis == 0, "Invalid axis (" + std::to_string(axis) +
+        ") for tensor concatenation.");
+    return concatenate_tensor3s_depth(ts);
 }
 
 inline tensor3 flatten_tensor3(const tensor3& vol)

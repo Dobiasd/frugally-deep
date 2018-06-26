@@ -79,46 +79,20 @@ def get_test_model_small():
         (16, 18, 3),
         (8,),
         (8,),
+        (2, 3, 5),
+        (2, 3, 5),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
 
-    outputs.append(Conv1D(2, 3, padding='valid')(inputs[0]))
-    outputs.append(Conv2D(2, (5, 7), padding='valid')(inputs[1]))
-    outputs.append(BatchNormalization()(inputs[0]))
-    outputs.append(BatchNormalization()(inputs[1]))
-    outputs.append(BatchNormalization()(inputs[2]))
-    outputs.append(Activation('softmax')(inputs[0]))
-    outputs.append(Activation('softmax')(inputs[1]))
-    outputs.append(Activation('softmax')(inputs[2]))
-    outputs.append(Activation(relu6)(inputs[0]))
-    outputs.append(keras.layers.Add()([inputs[2], inputs[3], inputs[3]]))
-    outputs.append(keras.layers.Subtract()([inputs[2], inputs[3]]))
-    outputs.append(keras.layers.Multiply()([inputs[2], inputs[3], inputs[3]]))
-    outputs.append(keras.layers.Average()([inputs[2], inputs[3], inputs[3]]))
-    outputs.append(keras.layers.Maximum()([inputs[2], inputs[3], inputs[3]]))
-    outputs.append(keras.layers.Concatenate()([inputs[2], inputs[3], inputs[3]]))
-
-    outputs.append(keras.layers.Reshape((68,))(inputs[0]))
-    outputs.append(keras.layers.Reshape((864,))(inputs[1]))
-    outputs.append(keras.layers.Reshape((8,))(inputs[2]))
-    outputs.append(keras.layers.Reshape((2, 34))(inputs[0]))
-    outputs.append(keras.layers.Reshape((864,))(inputs[1]))
-    outputs.append(keras.layers.Reshape((2, 2, 2))(inputs[2]))
-
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
-
-    outputs.append(PReLU()(inputs[0]))
-    outputs.append(PReLU()(inputs[1]))
-    outputs.append(PReLU()(inputs[2]))
-
-    outputs.append(PReLU()(Conv1D(2, 3, padding='valid')(inputs[0])))
-    outputs.append(PReLU()(Conv2D(2, (5, 7), padding='valid')(inputs[1])))
-
-    #outputs.append(Conv2DTranspose(2, (3, 3), padding='valid')(inputs[1]))
+    # same as axis=-1
+    outputs.append(keras.layers.Concatenate()([inputs[4], inputs[5]]))
+    outputs.append(keras.layers.Concatenate(axis=3)([inputs[4], inputs[5]]))
+    # axis=0 does not make sense, since dimension 0 is the batch dimension
+    outputs.append(keras.layers.Concatenate(axis=1)([inputs[4], inputs[5]]))
+    outputs.append(keras.layers.Concatenate(axis=2)([inputs[4], inputs[5]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -273,8 +247,17 @@ def get_test_model_full():
     outputs.append(AveragePooling2D((2, 2))(inputs[0]))
     outputs.append(MaxPooling2D((2, 2))(inputs[0]))
     outputs.append(UpSampling2D((2, 2))(inputs[0]))
-    outputs.append(keras.layers.concatenate([inputs[0], inputs[0]]))
     outputs.append(Dropout(0.5)(inputs[0]))
+
+    outputs.append(keras.layers.concatenate([inputs[0], inputs[0]]))
+
+    # same as axis=-1
+    outputs.append(keras.layers.Concatenate()([inputs[1], inputs[2]]))
+    outputs.append(keras.layers.Concatenate(axis=3)([inputs[1], inputs[2]]))
+    # axis=0 does not make sense, since dimension 0 is the batch dimension
+    outputs.append(keras.layers.Concatenate(axis=1)([inputs[1], inputs[2]]))
+    outputs.append(keras.layers.Concatenate(axis=2)([inputs[1], inputs[2]]))
+
 
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(center=False)(inputs[0]))

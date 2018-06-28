@@ -235,11 +235,20 @@ inline model load_model(const std::string& path,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.0001))
 {
+    fplus::stopwatch stopwatch;
     auto maybe_json_str = fplus::read_text_file_maybe(path)();
     internal::assertion(fplus::is_just(maybe_json_str),
         "Unable to load: " + path);
-    return read_model(maybe_json_str.unsafe_get_just(),
+    const auto model = read_model(maybe_json_str.unsafe_get_just(),
         verify, logger, verify_epsilon);
+    if (logger)
+    {
+        const std::string additional_action = verify ? ", testing" : "";
+        logger("Reading, parsing, constructing" + additional_action +
+            " of " + path + " took " +
+            fplus::show_float(0, 6, stopwatch.elapsed()) + " s overall.\n");
+    }
+    return model;
 }
 
 } // namespace fdeep

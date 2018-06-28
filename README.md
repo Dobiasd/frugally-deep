@@ -175,6 +175,7 @@ Below you can find the average durations of multiple consecutive forward passes 
 | `Xception`        |     1.02 s |        0.54 s |
 
 Keras version: `2.1.6`
+
 TensorFlow version: `1.7.1`
 
 

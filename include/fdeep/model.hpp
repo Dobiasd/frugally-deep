@@ -28,8 +28,8 @@ public:
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape3_concretes(get_input_shapes()) +
-                " but you provided: " + show_shape3_concretes(input_shapes));
+                "The model takes " + show_shape3s_concrete(get_input_shapes()) +
+                " but you provided: " + show_shape3s_concrete(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
         internal::assertion(
             fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3_concrete), outputs)
@@ -201,8 +201,8 @@ inline model read_model(const std::string& content,
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"]),
-        internal::create_shape3_concretes(json_data["input_shapes"]),
-        internal::create_shape3_concretes(json_data["output_shapes"]));
+        internal::create_shape3s_concrete(json_data["input_shapes"]),
+        internal::create_shape3s_concrete(json_data["output_shapes"]));
 
     if (verify)
     {

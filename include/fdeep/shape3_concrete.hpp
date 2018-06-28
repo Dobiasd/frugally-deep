@@ -59,7 +59,8 @@ inline bool operator != (const shape3_concrete& lhs, const shape3_concrete& rhs)
     return !(lhs == rhs);
 }
 
-inline shape3_concrete dilate_shape3_concrete(const shape2_concrete& dilation_rate, const shape3_concrete& s)
+inline shape3_concrete dilate_shape3_concrete(
+    const shape2_concrete& dilation_rate, const shape3_concrete& s)
 {
     assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
     assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
@@ -77,11 +78,13 @@ using shape3_concrete = internal::shape3_concrete;
 
 inline std::string show_shape3_concrete(const shape3_concrete& s)
 {
-    const std::vector<std::size_t> dimensions = {s.depth_, s.height_, s.width_};
+    const std::vector<std::size_t> dimensions =
+        {s.depth_, s.height_, s.width_};
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
-inline std::string show_shape3_concretes(const std::vector<shape3_concrete>& shapes)
+inline std::string show_shape3s_concrete(
+    const std::vector<shape3_concrete>& shapes)
 {
     return fplus::show_cont(fplus::transform(show_shape3_concrete, shapes));
 }

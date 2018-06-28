@@ -68,7 +68,7 @@ inline std::string show_shape3_variable(const shape3_variable& s)
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
 }
 
-inline std::string show_shape3_concretes_variable(
+inline std::string show_shape3s_concrete_variable(
     const std::vector<shape3_variable>& shapes)
 {
     return fplus::show_cont(fplus::transform(show_shape3_variable, shapes));

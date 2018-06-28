@@ -130,7 +130,7 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
         return fplus::singleton_seq(f(data));
 }
 
-inline std::vector<shape3_concrete> create_shape3_concretes(const nlohmann::json& data)
+inline std::vector<shape3_concrete> create_shape3s_concrete(const nlohmann::json& data)
 {
     return create_vector<shape3_concrete>(create_shape3_concrete, data);
 }

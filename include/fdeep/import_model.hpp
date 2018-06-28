@@ -52,7 +52,7 @@ inline shape3 create_shape3(const nlohmann::json& data)
     if (data.size() == 3 + offset)
         return shape3(data[0 + offset], data[1 + offset], data[2 + offset]);
     raise_error("shape3 needs 1, 2 or 3 dimensions");
-    return shape3(0, 0, 0);
+    return shape3(0, 0, 0); // Should never be called
 }
 
 inline shape2 create_shape2(const nlohmann::json& data)
@@ -881,7 +881,7 @@ inline void check_test_outputs(float_type epsilon,
                             fplus::show(x) + " " +
                             "value=" + fplus::show(output.get(z, y, x)) + " "
                             "target=" + fplus::show(target.get(z, y, x));
-                        internal::assertion(false, msg);
+                        internal::raise_error(msg);
                     }
                 }
             }

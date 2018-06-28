@@ -253,7 +253,7 @@ inline tensor3 convolve_transpose(
     const std::vector<filter>&,
     const tensor3&)
 {
-    assertion(false, "convolve_transpose not yet implemented");
+    raise_error("convolve_transpose not yet implemented");
     return tensor3(shape3(0, 0, 0), 0);
 }
 

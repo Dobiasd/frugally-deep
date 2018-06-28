@@ -53,6 +53,20 @@ def arr_as_arr3(arr):
         raise ValueError('invalid number of dimensions')
 
 
+def get_layer_input_shape_as_channel_first_shape3(layer):
+    """Convert a keras shape to an fdeep shape"""
+    shape = layer.input_shape[1:]
+    depth = len(shape)
+    if depth == 1:
+        return (shape[0], 1, 1)
+    if depth == 2:
+        return (shape[1], 1, shape[0])
+    if depth == 3:
+        return (shape[2], shape[0], shape[1])
+    else:
+        raise ValueError('invalid number of dimensions')
+
+
 def show_tensor3(tens):
     """Serialize 3-tensor to a dict"""
     values = tens.flatten()
@@ -85,6 +99,11 @@ def measure_predict(model, data_in):
     return data_out, duration.total_seconds()
 
 
+def replace_none_with(value, shape):
+    """Replace every None with a fixed value."""
+    return tuple(list(map(lambda x: x if x is not None else value, shape)))
+
+
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -98,7 +117,8 @@ def gen_test_data(model):
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
         return np.random.normal(
-            size=set_shape_idx_0_to_1(layer.input_shape)).astype(np.float32)
+            size=set_shape_idx_0_to_1(replace_none_with(42, \
+                layer.input_shape))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -511,8 +531,7 @@ def convert(in_path, out_path):
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
     json_output['average_pooling_2d_same_offset'] =\
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
-    json_output['input_shapes'] = get_shapes(test_data['inputs'])
-    json_output['output_shapes'] = get_shapes(test_data['outputs'])
+    json_output['input_shapes'] = list(map(get_layer_input_shape_as_channel_first_shape3, get_model_input_layers(model)))
     json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
 

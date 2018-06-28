@@ -28,14 +28,9 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 
-def remove_sample_axis_from_shape(shape):
-    """Remove first dimension from shape if not fixed."""
-    if len(shape) == 4:
-        assert not isinstance(shape[0], numbers.Number)
-        return shape[1:]
-    if not isinstance(shape[0], numbers.Number):
-        return shape[1:]
-    return shape
+def replace_none_with(value, shape):
+    """Replace every None with a fixed value."""
+    return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
 def get_shape_for_random_data(data_size, shape):
@@ -52,8 +47,7 @@ def get_shape_for_random_data(data_size, shape):
 def generate_random_data(data_size, shape):
     """Random data for training."""
     return np.random.random(
-        size=get_shape_for_random_data(data_size,
-                                       remove_sample_axis_from_shape(shape)))
+        size=get_shape_for_random_data(data_size, replace_none_with(42, shape)))
 
 
 def generate_input_data(data_size, input_shapes):
@@ -64,7 +58,7 @@ def generate_input_data(data_size, input_shapes):
 
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
-    return [generate_random_data(data_size, output.shape)
+    return [generate_random_data(data_size, output.shape[1:])
             for output in outputs]
 
 
@@ -108,7 +102,43 @@ def get_test_model_small():
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
-    data_out = generate_output_data(training_data_size, outputs)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+
+def get_test_model_variable():
+    """Returns a small model for variably shaped input tensors."""
+
+    input_shapes = [
+        (None, None, 1),
+        (None, None, 3),
+        (None, 4),
+    ]
+
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+
+    # same as axis=-1
+    outputs.append(Concatenate()([inputs[0], inputs[1]]))
+    outputs.append(Conv2D(8, (3, 3), padding='same', activation='elu')(inputs[0]))
+    outputs.append(Conv2D(8, (3, 3), padding='same', activation='relu')(inputs[1]))
+    outputs.append(GlobalMaxPooling2D()(inputs[0]))
+    outputs.append(MaxPooling2D()(inputs[1]))
+    outputs.append(AveragePooling1D()(inputs[2]))
+
+    # TODO: add PReLU
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_variable')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
     return model
 
@@ -369,7 +399,8 @@ def get_test_model_full():
     batch_size = 1
     epochs = 10
     data_in = generate_input_data(training_data_size, input_shapes)
-    data_out = generate_output_data(training_data_size, outputs)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
@@ -385,6 +416,7 @@ def main():
 
         get_model_functions = {
             'small': get_test_model_small,
+            'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
             'full': get_test_model_full
         }

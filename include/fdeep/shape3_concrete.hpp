@@ -9,6 +9,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/shape2_concrete.hpp"
+#include "fdeep/shape3_variable.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -45,6 +46,35 @@ public:
     std::size_t height_;
     std::size_t width_;
 };
+
+inline shape3_concrete make_shape3_concrete_with(
+    const shape3_concrete& default_shape,
+    const shape3_variable shape)
+{
+    return shape3_concrete(
+        fplus::just_with_default(default_shape.depth_, shape.depth_),
+        fplus::just_with_default(default_shape.height_, shape.height_),
+        fplus::just_with_default(default_shape.width_, shape.width_));
+}
+
+inline bool operator == (const shape3_concrete& lhs, const shape3_variable& rhs)
+{
+    return
+        (rhs.depth_.is_nothing() || lhs.depth_ == rhs.depth_.unsafe_get_just()) &&
+        (rhs.height_.is_nothing() || lhs.height_ == rhs.height_.unsafe_get_just()) &&
+        (rhs.width_.is_nothing() || lhs.width_ == rhs.width_.unsafe_get_just());
+}
+
+inline bool operator == (const std::vector<shape3_concrete>& lhss,
+    const std::vector<shape3_variable>& rhss)
+{
+    return fplus::all(fplus::zip_with(
+        [](const shape3_concrete& lhs, const shape3_variable& rhs) -> bool
+        {
+            return lhs == rhs;
+        },
+        lhss, rhss));
+}
 
 inline bool operator == (const shape3_concrete& lhs, const shape3_concrete& rhs)
 {

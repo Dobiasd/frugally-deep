@@ -16,7 +16,7 @@ namespace fdeep { namespace internal
 class input_layer : public layer
 {
 public:
-    explicit input_layer(const std::string& name, const shape3_concrete& input_shape)
+    explicit input_layer(const std::string& name, const shape3_variable& input_shape)
         : layer(name), input_shape_(input_shape), output_()
     {
     }
@@ -27,7 +27,7 @@ protected:
         assertion(inputs.front().shape() == input_shape_, "invalid input size");
         return inputs;
     }
-    shape3_concrete input_shape_;
+    shape3_variable input_shape_;
 
     // provide initial tensor for computation
     mutable fplus::maybe<tensor3> output_;

@@ -28,12 +28,9 @@ public:
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape3s_concrete(get_input_shapes()) +
+                "The model takes " + show_shape3s_variable(get_input_shapes()) +
                 " but you provided: " + show_shape3s_concrete(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
-        internal::assertion(
-            fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3_concrete), outputs)
-            == get_output_shapes(), "invalid outputs shape");
         return outputs;
     }
 
@@ -63,12 +60,12 @@ public:
     // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensor3s& inputs) const
     {
-        internal::assertion(get_output_shapes().size() == 1,
+        const tensor3s outputs = predict(inputs);
+        internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
-        const auto output_shape = get_output_shapes().front();
+        const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.without_depth().area() == 1,
             "invalid output shape");
-        const tensor3s outputs = predict(inputs);
         return internal::tensor3_max_pos(outputs.front()).z_;
     }
 
@@ -78,23 +75,26 @@ public:
     // Returns this one activation value.
     float_type predict_single_output(const tensor3s& inputs) const
     {
-        internal::assertion(get_output_shapes().size() == 1,
+        const tensor3s outputs = predict(inputs);
+        internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
-        const auto output_shape = get_output_shapes().front();
+        const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.volume() == 1,
             "invalid output shape");
-        const tensor3s outputs = predict(inputs);
         return outputs.front().get(0, 0, 0);
     }
 
-    const std::vector<shape3_concrete>& get_input_shapes() const
+    const std::vector<shape3_variable>& get_input_shapes() const
     {
         return input_shapes_;
     }
 
-    const std::vector<shape3_concrete>& get_output_shapes() const
+    const std::vector<shape3_concrete> get_dummy_input_shapes() const
     {
-        return output_shapes_;
+        return fplus::transform(
+            fplus::bind_1st_of_2(internal::make_shape3_concrete_with,
+                                 shape3_concrete(42, 42, 42)),
+            get_input_shapes());
     }
 
     // Returns zero-filled tensors with the models input shapes.
@@ -103,7 +103,7 @@ public:
         return fplus::transform([](const shape3_concrete& shape) -> tensor3
         {
             return tensor3(shape, 0);
-        }, get_input_shapes());
+        }, get_dummy_input_shapes());
     }
 
     // Measure time of one single forward pass using dummy input data.
@@ -117,17 +117,14 @@ public:
 
 private:
     model(const internal::layer_ptr& model_layer,
-        const std::vector<shape3_concrete>& input_shapes,
-        const std::vector<shape3_concrete>& output_shapes) :
+        const std::vector<shape3_variable>& input_shapes) :
             input_shapes_(input_shapes),
-            output_shapes_(output_shapes),
             model_layer_(model_layer) {}
 
     friend model read_model(const std::string&, bool,
         const std::function<void(std::string)>&, float_type);
 
-    std::vector<shape3_concrete> input_shapes_;
-    std::vector<shape3_concrete> output_shapes_;
+    std::vector<shape3_variable> input_shapes_;
     internal::layer_ptr model_layer_;
 };
 
@@ -201,8 +198,7 @@ inline model read_model(const std::string& content,
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"]),
-        internal::create_shape3s_concrete(json_data["input_shapes"]),
-        internal::create_shape3s_concrete(json_data["output_shapes"]));
+        internal::create_shape3s_variable(json_data["input_shapes"]));
 
     if (verify)
     {

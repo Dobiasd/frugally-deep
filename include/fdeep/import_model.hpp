@@ -40,10 +40,39 @@
 namespace fdeep { namespace internal
 {
 
+inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
+{
+    if (data.is_null())
+    {
+        return fplus::nothing<std::size_t>();
+    }
+    const std::size_t result = data;
+    return fplus::just(result);
+}
+
+inline shape3_variable create_shape3_variable(const nlohmann::json& data)
+{
+    assertion(data.is_array(), "shape3_variable needs to be an array");
+    assertion(data.size() > 0, "need at least one dimension");
+    //TODO: offset still needed?
+    const std::size_t offset = data.front().is_null() ? 1 : 0;
+    if (data.size() == 1 + offset)
+        return shape3_variable(0, 0, create_maybe_size_t(data[0 + offset]));
+    if (data.size() == 2 + offset)
+        return shape3_variable(0, create_maybe_size_t(data[0 + offset]), create_maybe_size_t(data[1 + offset]));
+    if (data.size() == 3 + offset)
+        return shape3_variable(create_maybe_size_t(data[0 + offset]), create_maybe_size_t(data[1 + offset]), create_maybe_size_t(data[2 + offset]));
+    raise_error("shape3_variable needs 1, 2 or 3 dimensions");
+    return shape3_variable(fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>()); // Should never be called
+}
+
 inline shape3_concrete create_shape3_concrete(const nlohmann::json& data)
 {
     assertion(data.is_array(), "shape3_concrete needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
+    //TODO: offset still needed?
     const std::size_t offset = data.front().is_null() ? 1 : 0;
     if (data.size() == 1 + offset)
         return shape3_concrete(0, 0, data[0 + offset]);
@@ -130,9 +159,9 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
         return fplus::singleton_seq(f(data));
 }
 
-inline std::vector<shape3_concrete> create_shape3s_concrete(const nlohmann::json& data)
+inline std::vector<shape3_variable> create_shape3s_variable(const nlohmann::json& data)
 {
-    return create_vector<shape3_concrete>(create_shape3_concrete, data);
+    return create_vector<shape3_variable>(create_shape3_variable, data);
 }
 
 inline node_connection create_node_connection(const nlohmann::json& data)
@@ -360,7 +389,7 @@ inline layer_ptr create_input_layer(
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
-    const auto input_shape = create_shape3_concrete(data["config"]["batch_input_shape"]);
+    const auto input_shape = create_shape3_variable(data["config"]["batch_input_shape"]);
     return std::make_shared<input_layer>(name, input_shape);
 }
 

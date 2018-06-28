@@ -8,6 +8,7 @@
 
 #include "fdeep/common.hpp"
 
+#include "fdeep/shape2_variable.hpp"
 #include "fdeep/shape2_concrete.hpp"
 
 #include <algorithm>
@@ -68,7 +69,7 @@ inline std::string show_shape3_variable(const shape3_variable& s)
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
 }
 
-inline std::string show_shape3s_concrete_variable(
+inline std::string show_shape3s_variable(
     const std::vector<shape3_variable>& shapes)
 {
     return fplus::show_cont(fplus::transform(show_shape3_variable, shapes));

@@ -8,6 +8,10 @@ add_custom_command ( OUTPUT test_model_small.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py small test_model_small.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_variable.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_sequential.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py sequential test_model_sequential.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -25,6 +29,11 @@ add_custom_command ( OUTPUT readme_example_model.h5
 add_custom_command ( OUTPUT test_model_small.json
                      DEPENDS test_model_small.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_small.h5 test_model_small.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_variable.json
+                     DEPENDS test_model_variable.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_variable.h5 test_model_variable.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_sequential.json
@@ -56,6 +65,7 @@ macro(_add_test _NAME _DEPENDS)
 endmacro()
 
 _add_test(test_model_small_test test_model_small.json)
+_add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 if(FDEEP_BUILD_FULL_TEST)
   _add_test(test_model_full_test test_model_full.json)
@@ -66,6 +76,7 @@ _add_test(readme_example_main readme_example_model.json)
 if(FDEEP_BUILD_FULL_TEST)
   add_custom_target(unittest
     COMMAND test_model_small_test
+    COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
     COMMAND test_model_full_test
     COMMAND test_model_full_test_double
@@ -77,6 +88,7 @@ if(FDEEP_BUILD_FULL_TEST)
 else()
   add_custom_target(unittest
     COMMAND test_model_small_test
+    COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
     COMMAND readme_example_main
 

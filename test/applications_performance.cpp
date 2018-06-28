@@ -10,6 +10,7 @@ int main()
 {
     std::vector<std::string> model_paths = {
         "test_model_small.json",
+        "test_model_variable.json",
         "test_model_sequential.json",
         "test_model_full.json",
         "densenet121.json",
@@ -30,6 +31,7 @@ int main()
 
     for (const auto& model_path : model_paths)
     {
+        std::cout << "----" << std::endl;
         std::cout << model_path << std::endl;
         #ifdef NDEBUG
         try

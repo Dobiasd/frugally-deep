@@ -61,6 +61,7 @@ Layer types typically used in image recognition/generation are supported, making
 * nested models
 * residual connections
 * shared layers
+* variable input shapes
 * arbitrary complex model architectures / computational graphs
 
 

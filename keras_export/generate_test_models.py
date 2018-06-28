@@ -98,6 +98,8 @@ def get_test_model_small():
     outputs.append(PReLU()(inputs[1]))
     outputs.append(PReLU()(inputs[2]))
 
+    outputs.append(PReLU()(Conv2D(8, (3, 3), activation='elu')(inputs[1])))
+
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 

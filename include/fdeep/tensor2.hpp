@@ -8,7 +8,7 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2.hpp"
+#include "fdeep/shape2_concrete.hpp"
 #include "fdeep/tensor2_pos.hpp"
 
 #include <fplus/fplus.hpp>
@@ -26,19 +26,19 @@ namespace fdeep { namespace internal
 class tensor2
 {
 public:
-    tensor2(const shape2& shape, const shared_float_vec& values) :
+    tensor2(const shape2_concrete& shape, const shared_float_vec& values) :
         shape_(shape),
         values_(values)
     {
         assertion(shape.area() == values->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, float_vec&& values) :
+    tensor2(const shape2_concrete& shape, float_vec&& values) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(std::move(values)))
     {
         assertion(shape.area() == values_->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, float_type value) :
+    tensor2(const shape2_concrete& shape, float_type value) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(shape.area(), value))
     {
@@ -68,7 +68,7 @@ public:
     {
         set(tensor2_pos(y, x), value);
     }
-    const shape2& shape() const
+    const shape2_concrete& shape() const
     {
         return shape_;
     }
@@ -84,7 +84,7 @@ private:
             pos.y_ * shape().width_ +
             pos.x_;
     };
-    shape2 shape_;
+    shape2_concrete shape_;
     shared_float_vec values_;
 };
 

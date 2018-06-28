@@ -23,7 +23,7 @@ public:
 protected:
     tensor3 pool(const tensor3& in) const override
     {
-        tensor3 out(shape3(in.shape().depth_, 1, 1), 0);
+        tensor3 out(shape3_concrete(in.shape().depth_, 1, 1), 0);
         for (std::size_t z = 0; z < in.shape().depth_; ++z)
         {
             float_type val = 0;

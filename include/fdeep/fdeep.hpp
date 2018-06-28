@@ -15,9 +15,10 @@
 #include "fdeep/tensor3.hpp"
 #include "fdeep/tensor3_pos.hpp"
 #include "fdeep/node.hpp"
-#include "fdeep/shape2.hpp"
-#include "fdeep/shape3.hpp"
-
+#include "fdeep/shape2_concrete.hpp"
+#include "fdeep/shape2_variable.hpp"
+#include "fdeep/shape3_concrete.hpp"
+#include "fdeep/shape3_variable.hpp"
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_2d_layer.hpp"

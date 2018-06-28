@@ -23,16 +23,16 @@ public:
     tensor3s predict(const tensor3s& inputs) const
     {
         const auto input_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor3, shape, shape3),
+            fplus_c_mem_fn_t(tensor3, shape, shape3_concrete),
             inputs);
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape3s(get_input_shapes()) +
-                " but you provided: " + show_shape3s(input_shapes));
+                "The model takes " + show_shape3_concretes(get_input_shapes()) +
+                " but you provided: " + show_shape3_concretes(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
         internal::assertion(
-            fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3), outputs)
+            fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3_concrete), outputs)
             == get_output_shapes(), "invalid outputs shape");
         return outputs;
     }
@@ -87,12 +87,12 @@ public:
         return outputs.front().get(0, 0, 0);
     }
 
-    const std::vector<shape3>& get_input_shapes() const
+    const std::vector<shape3_concrete>& get_input_shapes() const
     {
         return input_shapes_;
     }
 
-    const std::vector<shape3>& get_output_shapes() const
+    const std::vector<shape3_concrete>& get_output_shapes() const
     {
         return output_shapes_;
     }
@@ -100,7 +100,7 @@ public:
     // Returns zero-filled tensors with the models input shapes.
     tensor3s generate_dummy_inputs() const
     {
-        return fplus::transform([](const shape3& shape) -> tensor3
+        return fplus::transform([](const shape3_concrete& shape) -> tensor3
         {
             return tensor3(shape, 0);
         }, get_input_shapes());
@@ -117,8 +117,8 @@ public:
 
 private:
     model(const internal::layer_ptr& model_layer,
-        const std::vector<shape3>& input_shapes,
-        const std::vector<shape3>& output_shapes) :
+        const std::vector<shape3_concrete>& input_shapes,
+        const std::vector<shape3_concrete>& output_shapes) :
             input_shapes_(input_shapes),
             output_shapes_(output_shapes),
             model_layer_(model_layer) {}
@@ -126,8 +126,8 @@ private:
     friend model read_model(const std::string&, bool,
         const std::function<void(std::string)>&, float_type);
 
-    std::vector<shape3> input_shapes_;
-    std::vector<shape3> output_shapes_;
+    std::vector<shape3_concrete> input_shapes_;
+    std::vector<shape3_concrete> output_shapes_;
     internal::layer_ptr model_layer_;
 };
 
@@ -201,8 +201,8 @@ inline model read_model(const std::string& content,
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"]),
-        internal::create_shape3s(json_data["input_shapes"]),
-        internal::create_shape3s(json_data["output_shapes"]));
+        internal::create_shape3_concretes(json_data["input_shapes"]),
+        internal::create_shape3_concretes(json_data["output_shapes"]));
 
     if (verify)
     {

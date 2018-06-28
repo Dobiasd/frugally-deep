@@ -8,7 +8,7 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2.hpp"
+#include "fdeep/shape2_concrete.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -19,10 +19,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape3
+class shape3_concrete
 {
 public:
-    explicit shape3(
+    explicit shape3_concrete(
         std::size_t depth,
         std::size_t height,
         std::size_t width) :
@@ -36,9 +36,9 @@ public:
         return depth_ * height_ * width_;
     }
 
-    shape2 without_depth() const
+    shape2_concrete without_depth() const
     {
-        return shape2(height_, width_);
+        return shape2_concrete(height_, width_);
     }
 
     std::size_t depth_;
@@ -46,7 +46,7 @@ public:
     std::size_t width_;
 };
 
-inline bool operator == (const shape3& lhs, const shape3& rhs)
+inline bool operator == (const shape3_concrete& lhs, const shape3_concrete& rhs)
 {
     return
         lhs.depth_ == rhs.depth_ &&
@@ -54,12 +54,12 @@ inline bool operator == (const shape3& lhs, const shape3& rhs)
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const shape3& lhs, const shape3& rhs)
+inline bool operator != (const shape3_concrete& lhs, const shape3_concrete& rhs)
 {
     return !(lhs == rhs);
 }
 
-inline shape3 dilate_shape3(const shape2& dilation_rate, const shape3& s)
+inline shape3_concrete dilate_shape3_concrete(const shape2_concrete& dilation_rate, const shape3_concrete& s)
 {
     assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
     assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
@@ -68,22 +68,22 @@ inline shape3 dilate_shape3(const shape2& dilation_rate, const shape3& s)
         (s.height_ - 1) * (dilation_rate.height_ - 1);
     const std::size_t width = s.width_ +
         (s.width_ - 1) * (dilation_rate.width_ - 1);
-    return shape3(s.depth_, height, width);
+    return shape3_concrete(s.depth_, height, width);
 }
 
 } // namespace internal
 
-using shape3 = internal::shape3;
+using shape3_concrete = internal::shape3_concrete;
 
-inline std::string show_shape3(const shape3& s)
+inline std::string show_shape3_concrete(const shape3_concrete& s)
 {
     const std::vector<std::size_t> dimensions = {s.depth_, s.height_, s.width_};
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
-inline std::string show_shape3s(const std::vector<shape3>& shapes)
+inline std::string show_shape3_concretes(const std::vector<shape3_concrete>& shapes)
 {
-    return fplus::show_cont(fplus::transform(show_shape3, shapes));
+    return fplus::show_cont(fplus::transform(show_shape3_concrete, shapes));
 }
 
 } // namespace fdeep

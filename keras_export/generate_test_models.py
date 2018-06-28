@@ -81,6 +81,7 @@ def get_test_model_small():
         (8,),
         (2, 3, 5),
         (2, 3, 5),
+        (32, 32, 3),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -98,7 +99,8 @@ def get_test_model_small():
     outputs.append(PReLU()(inputs[1]))
     outputs.append(PReLU()(inputs[2]))
 
-    outputs.append(PReLU()(Conv2D(8, (3, 3), activation='elu')(inputs[1])))
+    outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
+                                  activation='elu')(inputs[6])))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')

@@ -160,9 +160,8 @@ Performance
 
 Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
 
-```
 | Model             | Keras + TF | frugally-deep |
-|-------------------|------------|---------------|
+| ----------------- | ----------:| -------------:|
 | DenseNet121       |     0.64 s |        0.24 s |
 | DenseNet169       |     0.74 s |        0.26 s |
 | DenseNet201       |     0.95 s |        0.34 s |
@@ -175,9 +174,8 @@ Below you can find the average durations of multiple consecutive forward passes 
 | VGG19             |     0.79 s |        0.94 s |
 | Xception          |     1.02 s |        0.54 s |
 
-Keras version: 2.1.6
-TensorFlow version: 1.7.1
-```
+Keras version: `2.1.6`
+TensorFlow version: `1.7.1`
 
 
 Requirements and Installation

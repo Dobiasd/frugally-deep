@@ -24,7 +24,7 @@ class pooling_2d_layer : public layer
 {
 public:
     explicit pooling_2d_layer(const std::string& name,
-        const shape2_concrete& pool_size, const shape2_concrete& strides, padding p,
+        const shape2& pool_size, const shape2& strides, padding p,
         bool padding_valid_uses_offset, bool padding_same_uses_offset) :
         layer(name),
         pool_size_(pool_size),
@@ -51,8 +51,8 @@ protected:
 
     virtual tensor3 pool(const tensor3& input) const = 0;
 
-    shape2_concrete pool_size_;
-    shape2_concrete strides_;
+    shape2 pool_size_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_uses_offset_;
     bool padding_same_uses_offset_;

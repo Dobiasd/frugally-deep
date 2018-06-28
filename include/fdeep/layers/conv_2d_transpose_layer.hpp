@@ -8,8 +8,8 @@
 
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
-#include "fdeep/shape2_concrete.hpp"
-#include "fdeep/shape3_concrete.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/shape3.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -25,15 +25,15 @@ class conv_2d_transpose_layer : public layer
 {
 public:
     explicit conv_2d_transpose_layer(
-            const std::string& name, const shape3_concrete& filter_shape,
-            std::size_t k, const shape2_concrete& strides, padding p,
+            const std::string& name, const shape3& filter_shape,
+            std::size_t k, const shape2& strides, padding p,
             bool padding_valid_offset_depth_1,
             bool padding_same_offset_depth_1,
             bool padding_valid_offset_depth_2,
             bool padding_same_offset_depth_2,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_filters(shape2_concrete(1, 1), filter_shape, k,
+        filters_(generate_filters(shape2(1, 1), filter_shape, k,
             weights, bias)),
         strides_(strides),
         padding_(p),
@@ -59,7 +59,7 @@ protected:
             filters_, inputs.front())};
     }
     filter_vec filters_;
-    shape2_concrete strides_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;
     bool padding_same_offset_depth_1_;

@@ -8,7 +8,7 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2_concrete.hpp"
+#include "fdeep/shape2.hpp"
 #include "fdeep/shape3_variable.hpp"
 
 #include <algorithm>
@@ -20,10 +20,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape3_concrete
+class shape3
 {
 public:
-    explicit shape3_concrete(
+    explicit shape3(
         std::size_t depth,
         std::size_t height,
         std::size_t width) :
@@ -37,9 +37,9 @@ public:
         return depth_ * height_ * width_;
     }
 
-    shape2_concrete without_depth() const
+    shape2 without_depth() const
     {
-        return shape2_concrete(height_, width_);
+        return shape2(height_, width_);
     }
 
     std::size_t depth_;
@@ -47,17 +47,17 @@ public:
     std::size_t width_;
 };
 
-inline shape3_concrete make_shape3_concrete_with(
-    const shape3_concrete& default_shape,
+inline shape3 make_shape3_with(
+    const shape3& default_shape,
     const shape3_variable shape)
 {
-    return shape3_concrete(
+    return shape3(
         fplus::just_with_default(default_shape.depth_, shape.depth_),
         fplus::just_with_default(default_shape.height_, shape.height_),
         fplus::just_with_default(default_shape.width_, shape.width_));
 }
 
-inline bool operator == (const shape3_concrete& lhs, const shape3_variable& rhs)
+inline bool operator == (const shape3& lhs, const shape3_variable& rhs)
 {
     return
         (rhs.depth_.is_nothing() || lhs.depth_ == rhs.depth_.unsafe_get_just()) &&
@@ -65,18 +65,18 @@ inline bool operator == (const shape3_concrete& lhs, const shape3_variable& rhs)
         (rhs.width_.is_nothing() || lhs.width_ == rhs.width_.unsafe_get_just());
 }
 
-inline bool operator == (const std::vector<shape3_concrete>& lhss,
+inline bool operator == (const std::vector<shape3>& lhss,
     const std::vector<shape3_variable>& rhss)
 {
     return fplus::all(fplus::zip_with(
-        [](const shape3_concrete& lhs, const shape3_variable& rhs) -> bool
+        [](const shape3& lhs, const shape3_variable& rhs) -> bool
         {
             return lhs == rhs;
         },
         lhss, rhss));
 }
 
-inline bool operator == (const shape3_concrete& lhs, const shape3_concrete& rhs)
+inline bool operator == (const shape3& lhs, const shape3& rhs)
 {
     return
         lhs.depth_ == rhs.depth_ &&
@@ -84,13 +84,13 @@ inline bool operator == (const shape3_concrete& lhs, const shape3_concrete& rhs)
         lhs.width_ == rhs.width_;
 }
 
-inline bool operator != (const shape3_concrete& lhs, const shape3_concrete& rhs)
+inline bool operator != (const shape3& lhs, const shape3& rhs)
 {
     return !(lhs == rhs);
 }
 
-inline shape3_concrete dilate_shape3_concrete(
-    const shape2_concrete& dilation_rate, const shape3_concrete& s)
+inline shape3 dilate_shape3(
+    const shape2& dilation_rate, const shape3& s)
 {
     assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
     assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
@@ -99,24 +99,24 @@ inline shape3_concrete dilate_shape3_concrete(
         (s.height_ - 1) * (dilation_rate.height_ - 1);
     const std::size_t width = s.width_ +
         (s.width_ - 1) * (dilation_rate.width_ - 1);
-    return shape3_concrete(s.depth_, height, width);
+    return shape3(s.depth_, height, width);
 }
 
 } // namespace internal
 
-using shape3_concrete = internal::shape3_concrete;
+using shape3 = internal::shape3;
 
-inline std::string show_shape3_concrete(const shape3_concrete& s)
+inline std::string show_shape3(const shape3& s)
 {
     const std::vector<std::size_t> dimensions =
         {s.depth_, s.height_, s.width_};
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
-inline std::string show_shape3s_concrete(
-    const std::vector<shape3_concrete>& shapes)
+inline std::string show_shape3s(
+    const std::vector<shape3>& shapes)
 {
-    return fplus::show_cont(fplus::transform(show_shape3_concrete, shapes));
+    return fplus::show_cont(fplus::transform(show_shape3, shapes));
 }
 
 } // namespace fdeep

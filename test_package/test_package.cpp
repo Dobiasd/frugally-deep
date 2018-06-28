@@ -3,6 +3,6 @@
 
 int main()
 {
-    const fdeep::tensor3 t(fdeep::shape3_concrete(4, 1, 1), {1, 2, 3, 4});
+    const fdeep::tensor3 t(fdeep::shape3(4, 1, 1), {1, 2, 3, 4});
     std::cout << fdeep::show_tensor3(t) << std::endl;
 }

@@ -23,13 +23,13 @@ public:
     tensor3s predict(const tensor3s& inputs) const
     {
         const auto input_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor3, shape, shape3_concrete),
+            fplus_c_mem_fn_t(tensor3, shape, shape3),
             inputs);
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
                 "The model takes " + show_shape3s_variable(get_input_shapes()) +
-                " but you provided: " + show_shape3s_concrete(input_shapes));
+                " but you provided: " + show_shape3s(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
         return outputs;
     }
@@ -89,18 +89,18 @@ public:
         return input_shapes_;
     }
 
-    const std::vector<shape3_concrete> get_dummy_input_shapes() const
+    const std::vector<shape3> get_dummy_input_shapes() const
     {
         return fplus::transform(
-            fplus::bind_1st_of_2(internal::make_shape3_concrete_with,
-                                 shape3_concrete(42, 42, 42)),
+            fplus::bind_1st_of_2(internal::make_shape3_with,
+                                 shape3(42, 42, 42)),
             get_input_shapes());
     }
 
     // Returns zero-filled tensors with the models input shapes.
     tensor3s generate_dummy_inputs() const
     {
-        return fplus::transform([](const shape3_concrete& shape) -> tensor3
+        return fplus::transform([](const shape3& shape) -> tensor3
         {
             return tensor3(shape, 0);
         }, get_dummy_input_shapes());

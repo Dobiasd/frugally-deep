@@ -9,7 +9,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/shape2_variable.hpp"
-#include "fdeep/shape2_concrete.hpp"
+#include "fdeep/shape2.hpp"
 
 #include <algorithm>
 #include <cstddef>

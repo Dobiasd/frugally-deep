@@ -8,8 +8,8 @@
 
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
-#include "fdeep/shape2_concrete.hpp"
-#include "fdeep/shape3_concrete.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/shape3.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -27,13 +27,13 @@ class separable_conv_2d_layer : public layer
 public:
     explicit separable_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
-            const shape3_concrete& filter_shape,
-            std::size_t k, const shape2_concrete& strides, padding p,
+            const shape3& filter_shape,
+            std::size_t k, const shape2& strides, padding p,
             bool padding_valid_offset_depth_1,
             bool padding_same_offset_depth_1,
             bool padding_valid_offset_depth_2,
             bool padding_same_offset_depth_2,
-            const shape2_concrete& dilation_rate,
+            const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
             const float_vec& bias_0,
@@ -43,8 +43,8 @@ public:
             generate_filters(dilation_rate, filter_shape,
                 input_depth, depthwise_weights, bias_0))),
         filters_pointwise_(generate_im2col_filter_matrix(
-            generate_filters(shape2_concrete(1, 1),
-                shape3_concrete(input_depth, 1, 1), k, pointwise_weights, bias))),
+            generate_filters(shape2(1, 1),
+                shape3(input_depth, 1, 1), k, pointwise_weights, bias))),
         strides_(strides),
         padding_(p),
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
@@ -89,13 +89,13 @@ protected:
         const auto temp = concatenate_tensor3s_depth(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        return {convolve(shape2_concrete(1, 1), padding::valid, false,
+        return {convolve(shape2(1, 1), padding::valid, false,
             filters_pointwise_, temp)};
     }
 
     std::vector<im2col_filter_matrix> filters_depthwise_;
     im2col_filter_matrix filters_pointwise_;
-    shape2_concrete strides_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;
     bool padding_same_offset_depth_1_;

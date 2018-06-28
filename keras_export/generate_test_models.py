@@ -18,7 +18,7 @@ from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, Conv2DTranspose, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
-from keras.layers import BatchNormalization
+from keras.layers import BatchNormalization, Concatenate
 from keras import backend as K
 
 __author__ = "Tobias Hermann"
@@ -88,11 +88,15 @@ def get_test_model_small():
     outputs = []
 
     # same as axis=-1
-    outputs.append(keras.layers.Concatenate()([inputs[4], inputs[5]]))
-    outputs.append(keras.layers.Concatenate(axis=3)([inputs[4], inputs[5]]))
+    outputs.append(Concatenate()([inputs[4], inputs[5]]))
+    outputs.append(Concatenate(axis=3)([inputs[4], inputs[5]]))
     # axis=0 does not make sense, since dimension 0 is the batch dimension
-    outputs.append(keras.layers.Concatenate(axis=1)([inputs[4], inputs[5]]))
-    outputs.append(keras.layers.Concatenate(axis=2)([inputs[4], inputs[5]]))
+    outputs.append(Concatenate(axis=1)([inputs[4], inputs[5]]))
+    outputs.append(Concatenate(axis=2)([inputs[4], inputs[5]]))
+
+    outputs.append(PReLU()(inputs[0]))
+    outputs.append(PReLU()(inputs[1]))
+    outputs.append(PReLU()(inputs[2]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -249,14 +253,14 @@ def get_test_model_full():
     outputs.append(UpSampling2D((2, 2))(inputs[0]))
     outputs.append(Dropout(0.5)(inputs[0]))
 
-    outputs.append(keras.layers.concatenate([inputs[0], inputs[0]]))
+    outputs.append(Concatenate([inputs[0], inputs[0]]))
 
     # same as axis=-1
-    outputs.append(keras.layers.Concatenate()([inputs[1], inputs[2]]))
-    outputs.append(keras.layers.Concatenate(axis=3)([inputs[1], inputs[2]]))
+    outputs.append(Concatenate()([inputs[1], inputs[2]]))
+    outputs.append(Concatenate(axis=3)([inputs[1], inputs[2]]))
     # axis=0 does not make sense, since dimension 0 is the batch dimension
-    outputs.append(keras.layers.Concatenate(axis=1)([inputs[1], inputs[2]]))
-    outputs.append(keras.layers.Concatenate(axis=2)([inputs[1], inputs[2]]))
+    outputs.append(Concatenate(axis=1)([inputs[1], inputs[2]]))
+    outputs.append(Concatenate(axis=2)([inputs[1], inputs[2]]))
 
 
     outputs.append(BatchNormalization()(inputs[0]))
@@ -280,14 +284,14 @@ def get_test_model_full():
     x1 = shared_conv(up_scale_2(inputs[1]))  # (1, 8, 8)
     x2 = shared_conv(up_scale_2(inputs[2]))  # (1, 8, 8)
     x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(inputs[2]))  # (1, 8, 8)
-    x = keras.layers.concatenate([x1, x2, x3])  # (3, 8, 8)
+    x = Concatenate([x1, x2, x3])  # (3, 8, 8)
     outputs.append(x)
 
     x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x)  # (3, 8, 8)
     outputs.append(x)
     x = Dropout(0.5)(x)
     outputs.append(x)
-    x = keras.layers.concatenate([
+    x = Concatenate([
         MaxPooling2D((2, 2))(x),
         AveragePooling2D((2, 2))(x)])  # (6, 4, 4)
     outputs.append(x)
@@ -305,7 +309,7 @@ def get_test_model_full():
     outputs.append(keras.layers.Multiply()([inputs[4], inputs[8], inputs[8]]))
     outputs.append(keras.layers.Average()([inputs[4], inputs[8], inputs[8]]))
     outputs.append(keras.layers.Maximum()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(keras.layers.Concatenate()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(Concatenate()([inputs[4], inputs[8], inputs[8]]))
 
     intermediate_input_shape = (3,)
     intermediate_in = Input(intermediate_input_shape)

@@ -162,17 +162,17 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| DenseNet121       |     0.64 s |        0.24 s |
-| DenseNet169       |     0.74 s |        0.26 s |
-| DenseNet201       |     0.95 s |        0.34 s |
-| InceptionV3       |     0.51 s |        0.33 s |
-| MobileNet         |     0.21 s |        0.06 s |
-| NASNetLarge       |     2.81 s |        2.35 s |
-| NASNetMobile      |     0.24 s |        0.16 s |
-| ResNet50          |     0.49 s |        0.23 s |
-| VGG16             |     0.64 s |        0.81 s |
-| VGG19             |     0.79 s |        0.94 s |
-| Xception          |     1.02 s |        0.54 s |
+| `DenseNet121`     |     0.64 s |        0.24 s |
+| `DenseNet169`     |     0.74 s |        0.26 s |
+| `DenseNet201`     |     0.95 s |        0.34 s |
+| `InceptionV3`     |     0.51 s |        0.33 s |
+| `MobileNet`       |     0.21 s |        0.06 s |
+| `NASNetLarge`     |     2.81 s |        2.35 s |
+| `NASNetMobile`    |     0.24 s |        0.16 s |
+| `ResNet50`        |     0.49 s |        0.23 s |
+| `VGG16`           |     0.64 s |        0.81 s |
+| `VGG19`           |     0.79 s |        0.94 s |
+| `Xception`        |     1.02 s |        0.54 s |
 
 Keras version: `2.1.6`
 TensorFlow version: `1.7.1`

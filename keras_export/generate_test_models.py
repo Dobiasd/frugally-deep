@@ -128,6 +128,8 @@ def get_test_model_variable():
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[2]))
+    outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1, 2])(inputs[2]))
 
     # TODO: add PReLU
 

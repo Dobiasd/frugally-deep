@@ -16,12 +16,13 @@ namespace fdeep { namespace internal
 class prelu_layer : public layer
 {
 public:
-    explicit prelu_layer(const std::string& name, const float_vec& alpha) :
-        layer(name), alpha_(fplus::make_shared_ref<float_vec>(alpha))
+    explicit prelu_layer(const std::string& name, const float_vec& alpha, std::vector<std::size_t> shared_axes = std::vector<std::size_t>()) :
+        layer(name), alpha_(fplus::make_shared_ref<float_vec>(alpha)), shared_axes_(shared_axes)
     {
     }
 protected:
     fdeep::shared_float_vec alpha_;
+    std::vector<std::size_t> shared_axes_;
     tensor3s apply_impl(const tensor3s& input) const override
     {
         fdeep::tensor3 alpha_tensor3(input[0].shape(), alpha_);

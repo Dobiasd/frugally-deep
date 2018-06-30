@@ -138,6 +138,7 @@ def get_test_model_variable():
     outputs.append(PReLU(shared_axes=[1, 2])(inputs[0]))
     outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
     outputs.append(PReLU(shared_axes=[1, 2, 3])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1])(inputs[2]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_variable')
     model.compile(loss='mse', optimizer='nadam')

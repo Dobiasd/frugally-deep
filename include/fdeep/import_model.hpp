@@ -716,7 +716,8 @@ inline layer_ptr create_prelu_layer(
 {
     std::vector<std::size_t> shared_axes;
     if (json_obj_has_member(data, "config") &&
-        json_obj_has_member(data["config"], "shared_axes"))
+        json_obj_has_member(data["config"], "shared_axes") &&
+        !data["config"]["shared_axes"].empty())
     {
         shared_axes = data["config"]["shared_axes"].get<std::vector<std::size_t>>();
     }

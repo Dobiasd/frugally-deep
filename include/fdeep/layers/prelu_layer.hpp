@@ -25,9 +25,9 @@ protected:
     std::vector<std::size_t> shared_axes_;
     tensor3s apply_impl(const tensor3s& input) const override
     {
-        bool height_shared = std::find(shared_axes_.begin(), shared_axes_.end(), 1) != shared_axes_.end();
-        bool width_shared = std::find(shared_axes_.begin(), shared_axes_.end(), 2) != shared_axes_.end();
-        bool channels_shared = std::find(shared_axes_.begin(), shared_axes_.end(), 3) != shared_axes_.end();
+        const bool height_shared = fplus::is_elem_of(1, shared_axes_);
+        const bool width_shared = fplus::is_elem_of(2, shared_axes_);
+        const bool channels_shared = fplus::is_elem_of(3, shared_axes_);
         size_t width = width_shared ? 1 : input[0].shape().width_;
         size_t height = height_shared ? 1 : input[0].shape().height_;
 

@@ -13,6 +13,41 @@
 namespace fdeep { namespace internal
 {
 
+class string_vec_char_prodiver {
+public:
+    string_vec_char_prodiver(std::vector<std::string>&& string_vec) :
+        string_vec_(std::move(string_vec)),
+        size_(fplus::sum(fplus::transform(
+            fplus::size_of_cont<std::string>, string_vec_))),
+        it_vec(std::begin(string_vec_)),
+        it_str(std::begin(*it_vec))
+    {
+    }
+    std::size_t size() const
+    {
+        return size_;
+    }
+    void push_back(std::string::value_type c)
+    {
+        string_vec_.back().push_back(c);
+        ++size_;
+    }
+    std::string::value_type next()
+    {
+        if (it_str == std::end(*it_vec))
+        {
+            ++it_vec;
+            it_str = std::begin(*it_vec);
+        }
+        return *(it_str++);
+    }
+private:
+    std::vector<std::string> string_vec_;
+    std::size_t size_;
+    std::vector<std::string>::const_iterator it_vec;
+    std::string::const_iterator it_str;
+};
+
 // source: https://stackoverflow.com/a/31322410/1866775
 static const std::uint8_t from_base64[] = { 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -26,8 +61,10 @@ static const char to_base64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
-inline std::vector<std::uint8_t> Base64_decode(std::string&& encoded_string)
+inline std::vector<std::uint8_t> Base64_decode(
+    std::vector<std::string>&& encoded_strs)
 {
+    string_vec_char_prodiver encoded_string(std::move(encoded_strs));
     // Make sure string length is a multiple of 4
     while ((encoded_string.size() % 4) != 0)
     {
@@ -40,10 +77,14 @@ inline std::vector<std::uint8_t> Base64_decode(std::string&& encoded_string)
     {
         // Get values for each group of four base 64 characters
         std::uint8_t b4[4];
-        b4[0] = (encoded_string[i+0] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+0])] : 0xff;
-        b4[1] = (encoded_string[i+1] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+1])] : 0xff;
-        b4[2] = (encoded_string[i+2] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+2])] : 0xff;
-        b4[3] = (encoded_string[i+3] <= 'z') ? from_base64[static_cast<std::size_t>(encoded_string[i+3])] : 0xff;
+        const auto c0 = encoded_string.next();
+        const auto c1 = encoded_string.next();
+        const auto c2 = encoded_string.next();
+        const auto c3 = encoded_string.next();
+        b4[0] = (c0 <= 'z') ? from_base64[static_cast<std::size_t>(c0)] : 0xff;
+        b4[1] = (c1 <= 'z') ? from_base64[static_cast<std::size_t>(c1)] : 0xff;
+        b4[2] = (c2 <= 'z') ? from_base64[static_cast<std::size_t>(c2)] : 0xff;
+        b4[3] = (c3 <= 'z') ? from_base64[static_cast<std::size_t>(c3)] : 0xff;
         // Transform into a group of three bytes
         std::uint8_t b3[3];
         b3[0] = static_cast<std::uint8_t>(((b4[0] & 0x3f) << 2) + ((b4[1] & 0x30) >> 4));

@@ -10,42 +10,57 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 namespace fdeep { namespace internal
 {
 
-class string_vec_char_prodiver {
+// Make sure data outlives instances of this this fascade class.
+class json_data_strs_char_prodiver {
 public:
-    string_vec_char_prodiver(std::vector<std::string>&& string_vec) :
-        string_vec_(std::move(string_vec)),
-        size_(fplus::sum(fplus::transform(
-            fplus::size_of_cont<std::string>, string_vec_))),
-        it_vec(std::begin(string_vec_)),
-        it_str(std::begin(*it_vec))
+    json_data_strs_char_prodiver(const nlohmann::json& data,
+        std::string::value_type pad_right_char) :
+        data_(data),
+        it_data_(std::begin(data_)),
+        current_str_(data_to_str(*it_data_)),
+        it_str_(std::begin(current_str_)),
+        pad_right_char_(pad_right_char)
     {
+    }
+    static std::string data_to_str(const nlohmann::json& dat)
+    {
+        std::string result = dat;
+        return result;
     }
     std::size_t size() const
     {
-        return size_;
-    }
-    void push_back(std::string::value_type c)
-    {
-        string_vec_.back().push_back(c);
-        ++size_;
+        std::size_t sum = 0;
+        for (const auto& dat : data_)
+        {
+            sum += data_to_str(dat).size();
+        }
+        return sum;
     }
     std::string::value_type next()
     {
-        if (it_str == std::end(*it_vec))
+        if (it_data_ == std::end(data_))
         {
-            ++it_vec;
-            it_str = std::begin(*it_vec);
+            return pad_right_char_;
         }
-        return *(it_str++);
+        if (it_str_ == std::end(current_str_))
+        {
+            ++it_data_;
+            current_str_ = data_to_str(*it_data_);
+            it_str_ = std::begin(current_str_);
+        }
+        return *(it_str_++);
     }
 private:
-    std::vector<std::string> string_vec_;
-    std::size_t size_;
-    std::vector<std::string>::const_iterator it_vec;
-    std::string::const_iterator it_str;
+    const nlohmann::json& data_;
+    nlohmann::json::const_iterator it_data_;
+    std::string current_str_;
+    std::string::const_iterator it_str_;
+    std::string::value_type pad_right_char_;
 };
 
 // source: https://stackoverflow.com/a/31322410/1866775
@@ -62,15 +77,14 @@ static const char to_base64[] =
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
 inline std::vector<std::uint8_t> Base64_decode(
-    std::vector<std::string>&& encoded_strs)
+    json_data_strs_char_prodiver&& encoded_string)
 {
-    string_vec_char_prodiver encoded_string(std::move(encoded_strs));
     // Make sure string length is a multiple of 4
+    auto encoded_size = encoded_string.size();
     while ((encoded_string.size() % 4) != 0)
     {
-        encoded_string.push_back('=');
+        ++encoded_size;
     }
-    const size_t encoded_size = encoded_string.size();
     std::vector<std::uint8_t> ret;
     ret.reserve(3 * encoded_size / 4);
     for (size_t i = 0; i < encoded_size; i += 4)

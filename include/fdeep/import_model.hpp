@@ -135,7 +135,8 @@ inline float_vec decode_floats(const nlohmann::json& data)
         const std::string& str = json_str_part;
         encoded.append(str);
     }
-    const auto res = Base64_decode(encoded);
+    const auto res = Base64_decode(std::move(encoded));
+    encoded.clear(); // free RAM
     float_vec out;
     assertion(res.size() % 4 == 0, "invalid float vector data");
     out.reserve(res.size() / 4);

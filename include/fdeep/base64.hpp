@@ -26,7 +26,7 @@ static const char to_base64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
-inline std::vector<std::uint8_t> Base64_decode(std::string encoded_string)
+inline std::vector<std::uint8_t> Base64_decode(std::string&& encoded_string)
 {
     // Make sure string length is a multiple of 4
     while ((encoded_string.size() % 4) != 0)

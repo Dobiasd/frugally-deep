@@ -121,7 +121,7 @@ private:
             input_shapes_(input_shapes),
             model_layer_(model_layer) {}
 
-    friend model read_model(const std::string&, bool,
+    friend model read_model(std::istream&, bool,
         const std::function<void(std::string)>&, float_type);
 
     std::vector<shape3_variable> input_shapes_;
@@ -134,10 +134,10 @@ inline void cout_logger(const std::string& str)
     std::cout << str << std::flush;
 }
 
-// Load and construct an fdeep::model from an std::string
-// holding the exported json content.
+// Load and construct an fdeep::model from an istream
+// providing the exported json content.
 // Throws an exception if a problem occurs.
-inline model read_model(const std::string& content,
+inline model read_model(std::istream& model_file_stream,
     bool verify = true,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.0001))
@@ -171,8 +171,9 @@ inline model read_model(const std::string& content,
         stopwatch.reset();
     };
 
-    log_sol("Parsing json");
-    auto json_data = nlohmann::json::parse(content);
+    log_sol("Loading json");
+    nlohmann::json json_data;
+    model_file_stream >> json_data;
     log_duration();
 
     const std::string image_data_format = json_data["image_data_format"];
@@ -224,24 +225,31 @@ inline model read_model(const std::string& content,
     return full_model;
 }
 
+inline model read_model_from_string(const std::string& content,
+    bool verify = true,
+    const std::function<void(std::string)>& logger = cout_logger,
+    float_type verify_epsilon = static_cast<float_type>(0.0001))
+{
+    std::istringstream content_stream(content);
+    return read_model(content_stream, verify, logger, verify_epsilon);
+}
+
 // Load and construct an fdeep::model from file.
 // Throws an exception if a problem occurs.
-inline model load_model(const std::string& path,
+inline model load_model(const std::string& file_path,
     bool verify = true,
     const std::function<void(std::string)>& logger = cout_logger,
     float_type verify_epsilon = static_cast<float_type>(0.0001))
 {
     fplus::stopwatch stopwatch;
-    auto maybe_json_str = fplus::read_text_file_maybe(path)();
-    internal::assertion(fplus::is_just(maybe_json_str),
-        "Unable to load: " + path);
-    const auto model = read_model(maybe_json_str.unsafe_get_just(),
-        verify, logger, verify_epsilon);
+    std::ifstream in_stream(file_path);
+    internal::assertion(in_stream.good(), "Can not open " + file_path);
+    const auto model = read_model(in_stream, verify, logger, verify_epsilon);
     if (logger)
     {
         const std::string additional_action = verify ? ", testing" : "";
-        logger("Reading, parsing, constructing" + additional_action +
-            " of " + path + " took " +
+        logger("Loading, constructing" + additional_action +
+            " of " + file_path + " took " +
             fplus::show_float(0, 6, stopwatch.elapsed()) + " s overall.\n");
     }
     return model;

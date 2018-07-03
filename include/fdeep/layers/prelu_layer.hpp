@@ -16,17 +16,36 @@ namespace fdeep { namespace internal
 class prelu_layer : public layer
 {
 public:
-    explicit prelu_layer(const std::string& name, const float_vec& alpha) :
-        layer(name), alpha_(fplus::make_shared_ref<float_vec>(alpha))
+    explicit prelu_layer(const std::string& name, const float_vec& alpha, std::vector<std::size_t> shared_axes = std::vector<std::size_t>()) :
+        layer(name), alpha_(fplus::make_shared_ref<float_vec>(alpha)), shared_axes_(shared_axes)
     {
     }
 protected:
     fdeep::shared_float_vec alpha_;
+    std::vector<std::size_t> shared_axes_;
     tensor3s apply_impl(const tensor3s& input) const override
     {
-        fdeep::tensor3 alpha_tensor3(input[0].shape(), alpha_);
-        fdeep::tensor3 out(input[0].shape(), 1.0f);
+        // We need to shift shared_axes if the original keras tensor was one or two dimensional
+        // We detect this by checking if the axes indicated in shared axes has length 1
+        // For this to work we need to remove axes with length 1 from shared axes in python!
+        std::vector<std::size_t> shared_axes_shifted;
+        std::size_t shift = 0;
+        for (std::size_t i = 0; i < shared_axes_.size(); ++i)
+        {
+            if ((shared_axes_[i] == 1 && input[0].shape().height_ == 1) || (shared_axes_[i] == 2 && input[0].shape().width_ == 1))
+            {
+                shift++;
+            } 
+            shared_axes_shifted.push_back(shared_axes_[i]+shift);
+        }
 
+        const bool height_shared = fplus::is_elem_of(1, shared_axes_shifted);
+        const bool width_shared = fplus::is_elem_of(2, shared_axes_shifted);
+        const bool channels_shared = fplus::is_elem_of(3, shared_axes_shifted);
+        size_t width = width_shared ? 1 : input[0].shape().width_;
+        size_t height = height_shared ? 1 : input[0].shape().height_;
+
+        fdeep::tensor3 out(input[0].shape(), 1.0f);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
             for (std::size_t y = 0; y < out.shape().height_; ++y)
@@ -39,7 +58,11 @@ protected:
                     }
                     else
                     {
-                        out.set(z, y, x, alpha_tensor3.get(z, y, x) * input[0].get(z, y, x));
+                        size_t y_temp = height_shared ? 0 : y;
+                        size_t x_temp = width_shared ? 0 : x;
+                        size_t z_temp = channels_shared ? 0 : z;
+                        size_t pos = z_temp * height * width + y_temp * width + x_temp;
+                        out.set(z, y, x, alpha_->at(pos) * input[0].get(z, y, x));
                     }
                 }
             }

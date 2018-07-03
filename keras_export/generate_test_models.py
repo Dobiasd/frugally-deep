@@ -92,6 +92,13 @@ def get_test_model_small():
     outputs.append(PReLU()(inputs[0]))
     outputs.append(PReLU()(inputs[1]))
     outputs.append(PReLU()(inputs[2]))
+    outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1, 3])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[2, 3])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1, 2, 3])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[2])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[3])(inputs[1]))
 
     outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
                                   activation='elu')(inputs[6])))
@@ -128,8 +135,10 @@ def get_test_model_variable():
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[2]))
-
-    # TODO: add PReLU
+    outputs.append(PReLU(shared_axes=[1, 2])(inputs[0]))
+    outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1, 2, 3])(inputs[1]))
+    outputs.append(PReLU(shared_axes=[1])(inputs[2]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_variable')
     model.compile(loss='mse', optimizer='nadam')

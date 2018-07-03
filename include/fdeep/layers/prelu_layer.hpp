@@ -29,8 +29,8 @@ protected:
         // We detect this by checking if the axes indicated in shared axes has length 1
         // For this to work we need to remove axes with length 1 from shared axes in python!
         std::vector<std::size_t> shared_axes_shifted;
-        int shift = 0;
-        for (int i = 0; i < shared_axes_.size(); ++i)
+        std::size_t shift = 0;
+        for (std::size_t i = 0; i < shared_axes_.size(); ++i)
         {
             if ((shared_axes_[i] == 1 && input[0].shape().height_ == 1) || (shared_axes_[i] == 2 && input[0].shape().width_ == 1))
             {

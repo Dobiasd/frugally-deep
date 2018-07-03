@@ -25,9 +25,22 @@ protected:
     std::vector<std::size_t> shared_axes_;
     tensor3s apply_impl(const tensor3s& input) const override
     {
-        const bool height_shared = fplus::is_elem_of(1, shared_axes_);
-        const bool width_shared = fplus::is_elem_of(2, shared_axes_);
-        const bool channels_shared = fplus::is_elem_of(3, shared_axes_);
+        // We detect this by checking if the axes indicated in shared axes has length 1
+        // For this to work we need to remove axes with length 1 from shared axes in python!
+        std::vector<std::size_t> shared_axes_shifted;
+        int shift = 0;
+        for (int i = 0; i < shared_axes_.size(); ++i)
+        {
+            if ((shared_axes_[i] == 1 && input[0].shape().height_ == 1) || (shared_axes_[i] == 2 && input[0].shape().width_ == 1))
+            {
+                shift++;
+            } 
+            shared_axes_shifted.push_back(shared_axes_[i]+shift);
+        }
+
+        const bool height_shared = fplus::is_elem_of(1, shared_axes_shifted);
+        const bool width_shared = fplus::is_elem_of(2, shared_axes_shifted);
+        const bool channels_shared = fplus::is_elem_of(3, shared_axes_shifted);
         size_t width = width_shared ? 1 : input[0].shape().width_;
         size_t height = height_shared ? 1 : input[0].shape().height_;
 

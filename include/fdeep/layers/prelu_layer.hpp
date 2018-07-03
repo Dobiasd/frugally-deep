@@ -25,6 +25,7 @@ protected:
     std::vector<std::size_t> shared_axes_;
     tensor3s apply_impl(const tensor3s& input) const override
     {
+        // We need to shift shared_axes if the original keras tensor was one or two dimensional
         // We detect this by checking if the axes indicated in shared axes has length 1
         // For this to work we need to remove axes with length 1 from shared axes in python!
         std::vector<std::size_t> shared_axes_shifted;

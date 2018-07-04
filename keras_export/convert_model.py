@@ -318,8 +318,6 @@ def show_prelu_layer(layer):
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1
-    #assert layer.shared_axes == None,\
-    #    "shared_axes in PReLU layers is not supported"
     if len(weights[0].shape) == 3:
         weights_flat = np.swapaxes(np.swapaxes(weights[0], 2, 1), 1, 0).flatten()
     elif len(weights[0].shape) == 2:

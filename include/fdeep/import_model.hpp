@@ -709,23 +709,19 @@ inline layer_ptr create_leaky_relu_layer_isolated(
 }
 
 inline layer_ptr create_prelu_layer(
-    const get_param_f& get_param, const get_global_param_f&, const nlohmann::json& data,
-    const std::string& name)
+    const get_param_f& get_param, const get_global_param_f&,
+    const nlohmann::json& data, const std::string& name)
 {
     std::vector<std::size_t> shared_axes;
     if (json_obj_has_member(data, "config") &&
         json_obj_has_member(data["config"], "shared_axes") &&
         !data["config"]["shared_axes"].empty())
     {
-        shared_axes = data["config"]["shared_axes"].get<std::vector<std::size_t>>();
+        shared_axes = create_vector<std::size_t>(create_size_t,
+            data["config"]["shared_axes"]);
     }
-    float_vec alpha;
-    alpha = decode_floats(get_param(name, "alpha"));
-    if (!shared_axes.empty())
-    {
-        return std::make_shared<prelu_layer>(name, alpha, shared_axes);
-    }
-    return std::make_shared<prelu_layer>(name, alpha);
+    const float_vec alpha = decode_floats(get_param(name, "alpha"));
+    return std::make_shared<prelu_layer>(name, alpha, shared_axes);
 }
 
 inline activation_layer_ptr create_elu_layer(

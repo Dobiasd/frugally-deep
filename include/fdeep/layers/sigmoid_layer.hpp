@@ -24,13 +24,8 @@ public:
 protected:
     static float_type activation_function(float_type x)
     {
-        float_type divisor = 1 + std::exp(-x);
-        if (divisor == 0)
-        {
-            divisor = std::numeric_limits<float_type>::min();
-        }
-        return 1 / divisor;
-    };
+        return 1 / (1 + std::exp(-x));
+    }
     tensor3 transform_input(const tensor3& in_vol) const override
     {
         return transform_tensor3(activation_function, in_vol);

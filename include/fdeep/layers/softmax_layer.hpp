@@ -43,7 +43,11 @@ protected:
                 {
                     sum += output.get(z_class, y, x);
                 }
-                assertion(sum != 0, "Invalid divisor in softmax layer. Try using\n#define FDEEP_FLOAT_TYPE double\nbefore\n#include \"fdeep/fdeep.hpp\"\nIf you receive this error while using fdeep::load_model(filepath) try fdeep::load_model(filepath, false) instead to skip the verification step.");
+                assertion(sum != 0 && !std::isinf(sum), "Invalid divisor in softmax layer. Try using\n"
+                                                        "#define FDEEP_FLOAT_TYPE double\n"
+                                                        "before\n"
+                                                        "#include \"fdeep/fdeep.hpp\"\n"
+                                                        "If you receive this error while using fdeep::load_model(filepath) try fdeep::load_model(filepath, false) instead to skip the verification step.");
                 // Divide the unnormalized values of each pixel by the stacks sum.
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {

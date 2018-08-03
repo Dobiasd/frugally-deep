@@ -3,4 +3,5 @@ build*
 *~
 _*
 .mypy_cache
-experiments
+/experiments
+.idea

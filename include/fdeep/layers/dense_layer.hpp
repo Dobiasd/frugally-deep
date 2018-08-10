@@ -59,9 +59,9 @@ protected:
         RowMajorMatrixXf m(1, input.shape().depth_ + 1);
         for (std::size_t z = 0; z < input.shape().depth_; ++z)
         {
-            m(0, static_cast<Eigen::Index>(z)) = input.get(tensor3_pos(z, 0, 0));
+            m(0, static_cast<EigenIndex>(z)) = input.get(tensor3_pos(z, 0, 0));
         }
-        m(0, static_cast<Eigen::Index>(input.shape().depth_)) = 1;
+        m(0, static_cast<EigenIndex>(input.shape().depth_)) = 1;
         return m;
     }
     std::size_t n_in_;

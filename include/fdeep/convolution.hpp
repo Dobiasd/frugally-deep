@@ -36,8 +36,8 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::size_t fy = filters.front().shape().height_;
     const std::size_t fx = filters.front().shape().width_;
     RowMajorMatrixXf b(filters.size(), fz * fy * fx + 1);
-    Eigen::Index b_y = 0;
-    Eigen::Index b_x = 0;
+    EigenIndex b_y = 0;
+    EigenIndex b_x = 0;
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
         b_x = 0;
@@ -82,14 +82,14 @@ inline tensor3 convolve_im2col(
     const auto fy = filter_mat.filter_shape_.height_;
     const auto fx = filter_mat.filter_shape_.width_;
     RowMajorMatrixXf a(fz * fy * fx + 1, out_height * out_width);
-    Eigen::Index a_y = 0;
+    EigenIndex a_y = 0;
     for (std::size_t zf = 0; zf < fz; ++zf)
     {
         for (std::size_t yf = 0; yf < fy; ++yf)
         {
             for (std::size_t xf = 0; xf < fx; ++xf)
             {
-                Eigen::Index a_x = 0;
+                EigenIndex a_x = 0;
                 for (std::size_t y = 0; y < out_height; ++y)
                 {
                     for (std::size_t x = 0; x < out_width; ++x)
@@ -104,7 +104,7 @@ inline tensor3 convolve_im2col(
         }
     }
 
-    Eigen::Index a_x = 0;
+    EigenIndex a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
         for (std::size_t x = 0; x < out_width; ++x)
@@ -127,8 +127,8 @@ inline tensor3 convolve_im2col(
 
     Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> out_mat_map(
         res_vec->data(),
-        static_cast<Eigen::Index>(filter_mat.mat_.rows()),
-        static_cast<Eigen::Index>(a.cols()));
+        static_cast<EigenIndex>(filter_mat.mat_.rows()),
+        static_cast<EigenIndex>(a.cols()));
 
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
     out_mat_map.noalias() = filter_mat.mat_ * a;

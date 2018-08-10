@@ -71,6 +71,12 @@ inline void assertion(bool cond, const std::string& error)
     typedef float float_type;
 #endif
 
+#if EIGEN_VERSION_AT_LEAST(3,3,0)
+    typedef Eigen::Index EigenIndex;
+#else
+    typedef Eigen::DenseIndex EigenIndex;
+#endif
+
 typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 

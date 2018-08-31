@@ -32,7 +32,7 @@ public:
         U_(U),
         bias_(bias)
     {
-        assertion(bias_.size() == Eigen::Index(n_units_) * 4, "invalid bias size");
+        assertion(bias_.size() == EigenIndex(n_units_) * 4, "invalid bias size");
     }
     
 protected:
@@ -110,7 +110,7 @@ private:
         
         for (std::size_t a_y = 0; a_y < y_height; ++a_y)
             for (std::size_t a_x = 0; a_x < x_width; ++a_x)
-                in(Eigen::Index(a_y), Eigen::Index(a_x)) = input.get(0, a_y, a_x);
+                in(EigenIndex(a_y), EigenIndex(a_x)) = input.get(0, a_y, a_x);
       
         // initialize X
         RowMajorMatrixXf X(x_width, n_units_ * 4);
@@ -132,9 +132,9 @@ private:
         const auto act_func_recurrent = get_activation_func(recurrent_activation);
         
         // computing LSTM output
-        const Eigen::Index n = Eigen::Index(n_units_);
+        const EigenIndex n = EigenIndex(n_units_);
         
-        for (Eigen::Index k = 0; k < Eigen::Index(x_width); ++k)
+        for (EigenIndex k = 0; k < EigenIndex(x_width); ++k)
         {
             const RowMajorMatrixXf ifco = h_tm1 * U;
            
@@ -149,10 +149,10 @@ private:
            
             // save every h sequence or just last
             if (return_sequences_ == true)
-                for (Eigen::Index idx = 0; idx < n; ++idx)
+                for (EigenIndex idx = 0; idx < n; ++idx)
                     result(k, idx) = h_tm1(idx);
-            else if (k == Eigen::Index(x_width) - 1)
-                for (Eigen::Index idx = 0; idx < n; ++idx)
+            else if (k == EigenIndex(x_width) - 1)
+                for (EigenIndex idx = 0; idx < n; ++idx)
                     result(0, idx) = h_tm1(idx);
         }
         

@@ -22,9 +22,10 @@ before_install:
     set -e
     set -x
 
-    sudo apt-get install python3-pip python3-dev
-    sudo pip3 install conan --upgrade
-    sudo pip3 install conan_package_tools
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    python3 get-pip.py
+    pip install conan
+    pip install conan_package_tools
     conan user
 
 install:

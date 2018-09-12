@@ -801,6 +801,30 @@ inline nodes create_nodes(const nlohmann::json& data)
     return fplus::transform(create_node, inbound_nodes_data);
 }
 
+inline layer_ptr create_lstm_layer(const get_param_f &get_param,
+                                   const get_global_param_f &,
+                                   const nlohmann::json &data,
+                                   const std::string &name)
+{
+    const std::size_t units = data["config"]["units"];
+    const std::string unit_activation = data["config"]["activation"];
+    const std::string recurrent_activation = data["config"]["recurrent_activation"];
+    const bool use_bias = data["config"]["use_bias"];
+
+    RowMajorMatrixXf bias(1, units * 4);
+    if (use_bias)
+        bias = eigen_mat_from_values(1, units * 4, decode_floats(get_param(name, "bias")));
+
+    const float_vec W = decode_floats(get_param(name, "weights"));
+    const RowMajorMatrixXf weights = eigen_mat_from_values(W.size() / (units * 4), units * 4, W);
+    const RowMajorMatrixXf recurrent_weights = eigen_mat_from_values(units, units * 4, decode_floats(get_param(name, "recurrent_weights")));
+    const bool return_sequences = data["config"]["return_sequences"];
+
+    return std::make_shared<lstm_layer>(name, units, unit_activation,
+                                        recurrent_activation, use_bias, return_sequences,
+                                        weights, recurrent_weights, bias);
+}
+
 inline layer_ptr create_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
@@ -848,7 +872,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Cropping1D", create_cropping_2d_layer},
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
-            {"Reshape", create_reshape_layer}
+            {"Reshape", create_reshape_layer},
+            {"LSTM", create_lstm_layer}
         };
 
     const std::string type = data["class_name"];
@@ -859,7 +884,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             get_param, get_global_param, data, name);
 
     if (type != "Activation" &&
-        json_obj_has_member(data["config"], "activation"))
+        json_obj_has_member(data["config"], "activation")
+        && type != "LSTM")
     {
         result->set_activation(
             create_activation_layer_type_name(get_param, get_global_param, data,

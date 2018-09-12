@@ -19,6 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, Conv2DTranspose, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
+from keras.layers import LSTM
 from keras import backend as K
 
 __author__ = "Tobias Hermann"
@@ -72,6 +73,7 @@ def get_test_model_small():
         (2, 3, 5),
         (2, 3, 5),
         (32, 32, 3),
+        (1, 5),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -98,6 +100,10 @@ def get_test_model_small():
 
     outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
                                   activation='elu')(inputs[6])))
+    outputs.append(PReLU()(LSTM(units=32,
+                            activation='tanh',
+                            recurrent_activation='hard_sigmoid',
+                            return_sequences=True)(inputs[7])))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')

@@ -55,6 +55,7 @@
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
+#include "fdeep/layers/lstm_layer.hpp"
 
 #include "fdeep/import_model.hpp"
 

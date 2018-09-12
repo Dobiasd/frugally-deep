@@ -378,7 +378,8 @@ def get_all_weights(model):
         'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
-        'PReLU': show_prelu_layer
+        'PReLU': show_prelu_layer,
+        'LSTM': show_lstm_layer
     }
     result = {}
     layers = model.layers

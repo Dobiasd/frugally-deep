@@ -87,9 +87,7 @@ class lstm_layer : public layer
         return x >= 0 ? x : std::exp(x) - 1;
     }
 
-    typedef float_type (*act_fun_ptr)(float_type);
-
-    static act_fun_ptr get_activation_func(const std::string &activation_func_name)
+    std::function<float_type(float_type)> get_activation_func(const std::string &activation_func_name) const
     {
         if (activation_func_name == "linear")
             return linear_activation;

@@ -331,6 +331,18 @@ def show_prelu_layer(layer):
     }
     return result
 
+def show_lstm_layer(layer):
+    """Serialize LSTM layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 2 or len(weights) == 3
+    result = {'weights': encode_floats(weights[0]),
+              'recurrent_weights': encode_floats(weights[1])}
+
+    if len(weights) == 3:
+        result['bias'] = encode_floats(weights[2])
+
+    return result
+
 def get_dict_keys(d):
     """Return keys of a dictionary"""
     return [key for key in d]

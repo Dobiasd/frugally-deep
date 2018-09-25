@@ -17,19 +17,20 @@ namespace fdeep { namespace internal
 class relu_layer : public activation_layer
 {
 public:
-    explicit relu_layer(const std::string& name)
-        : activation_layer(name)
+    explicit relu_layer(const std::string& name, const float_type max_value)
+        : activation_layer(name), max_value_(max_value)
     {
     }
 protected:
     tensor3 transform_input(const tensor3& in_vol) const override
     {
-        auto activation_function = [](float_type x) -> float_type
+        auto activation_function = [&](float_type x) -> float_type
         {
-            return std::max<float_type>(x, 0);
+            return std::min<float_type>(std::max<float_type>(x, 0), max_value_);
         };
         return transform_tensor3(activation_function, in_vol);
     }
+    float_type max_value_;
 };
 
 } } // namespace fdeep, namespace internal

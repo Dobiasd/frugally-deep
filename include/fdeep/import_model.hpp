@@ -668,17 +668,16 @@ inline activation_layer_ptr create_hard_sigmoid_layer(
 }
 
 inline activation_layer_ptr create_relu_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    return std::make_shared<relu_layer>(name);
-}
-
-inline activation_layer_ptr create_relu6_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
-    const std::string& name)
-{
-    return std::make_shared<relu6_layer>(name);
+    float_type max_value = std::numeric_limits<float_type>::max();
+    if (json_obj_has_member(data, "config") &&
+        json_obj_has_member(data["config"], "max_value"))
+    {
+        max_value = data["config"]["max_value"];
+    }
+    return std::make_shared<relu_layer>(name, max_value);
 }
 
 inline activation_layer_ptr create_selu_layer(
@@ -744,6 +743,13 @@ inline layer_ptr create_elu_layer_isolated(
     return create_elu_layer(get_param, get_global_param, data, name);
 }
 
+inline layer_ptr create_relu_layer_isolated(
+    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const nlohmann::json& data, const std::string& name)
+{
+    return create_relu_layer(get_param, get_global_param, data, name);
+}
+
 inline activation_layer_ptr create_activation_layer_type_name(
     const get_param_f& get_param, const get_global_param_f& get_global_param,
     const nlohmann::json& data,
@@ -761,7 +767,6 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"sigmoid", create_sigmoid_layer},
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
-        {"relu6", create_relu6_layer},
         {"selu", create_selu_layer},
         {"elu", create_elu_layer}
     };
@@ -819,6 +824,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"LeakyReLU", create_leaky_relu_layer_isolated},
             {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
+            {"ReLU", create_relu_layer_isolated},
             {"MaxPooling1D", create_max_pooling_2d_layer},
             {"MaxPooling2D", create_max_pooling_2d_layer},
             {"AveragePooling1D", create_average_pooling_2d_layer},

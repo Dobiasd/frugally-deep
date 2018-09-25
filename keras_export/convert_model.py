@@ -486,10 +486,6 @@ def get_shapes(tensor3s):
     return [t['shape'] for t in tensor3s]
 
 
-def relu6(x):
-    return K.relu(x, max_value=6)
-
-
 def convert(in_path, out_path):
     """Convert any Keras model to the frugally-deep model format."""
 
@@ -498,7 +494,7 @@ def convert(in_path, out_path):
     assert K.image_data_format() == 'channels_last'
 
     print('loading {}'.format(in_path))
-    model = load_model(in_path, custom_objects={'relu6': relu6})
+    model = load_model(in_path)
 
     # Force creation of underlying functional model.
     # see: https://github.com/fchollet/keras/issues/8136

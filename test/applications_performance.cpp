@@ -19,6 +19,7 @@ int main()
         //"inceptionresnetv2.json", // lambda
         "inceptionv3.json",
         "mobilenet.json",
+        "mobilenetv2.json",
         "nasnetlarge.json",
         "nasnetmobile.json",
         "resnet50.json",

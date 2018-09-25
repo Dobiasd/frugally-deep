@@ -62,10 +62,6 @@ def generate_output_data(data_size, outputs):
             for output in outputs]
 
 
-def relu6(x):
-    return K.relu(x, max_value=6)
-
-
 def get_test_model_small():
     """Returns a minimalistic test model."""
     input_shapes = [
@@ -345,8 +341,6 @@ def get_test_model_full():
     x = Dense(3)(x)  # (1, 1, 3)
     outputs.append(x)
 
-    outputs.append(Activation(relu6)(inputs[7]))
-
     outputs.append(keras.layers.Add()([inputs[4], inputs[8], inputs[8]]))
     outputs.append(keras.layers.Subtract()([inputs[4], inputs[8]]))
     outputs.append(keras.layers.Multiply()([inputs[4], inputs[8], inputs[8]]))
@@ -446,7 +440,7 @@ def main():
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
-        model = load_model(dest_path, custom_objects={'relu6': relu6})
+        model = load_model(dest_path)
         print(model.summary())
 
 if __name__ == "__main__":

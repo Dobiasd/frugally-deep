@@ -38,13 +38,26 @@ class lstm_layer : public layer
           U_(U),
           bias_(bias)
     {
-        assertion(bias_.size() == EigenIndex(n_units_) * 4, "invalid bias size");
     }
 
   protected:
     tensor3s apply_impl(const tensor3s &inputs) const override final
     {
-        return {lstm_impl(inputs, W_, U_, bias_, activation_, recurrent_activation_)};
+        const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape3), inputs);
+
+        // ensure that tensor3 shape is (n, 1, 1) when using multiple tensor3s elements as seq_len
+        if (inputs.size() > 1)
+        {
+            assertion(inputs.front().shape().height_ == 1 && inputs.front().shape().width_ == 1,
+                      "height and width dimension must be 1, but shape is '" + show_shape3s(input_shapes) + "'");
+        }
+        else
+        {
+            assertion(inputs.front().shape().height_ == 1,
+                      "height dimension must be 1, but shape is '" + show_shape3s(input_shapes) + "'");
+        }
+
+        return lstm_impl(inputs, W_, U_, bias_, activation_, recurrent_activation_);
     }
 
   private:
@@ -108,7 +121,7 @@ class lstm_layer : public layer
         return {}; //should never be called
     }
 
-    tensor3s lstm_impl(const tensor3s &input,
+    tensor3s lstm_impl(const tensor3s &inputs,
                        const RowMajorMatrixXf &W,
                        const RowMajorMatrixXf &U,
                        const RowMajorMatrixXf &bias,
@@ -121,15 +134,37 @@ class lstm_layer : public layer
         h.setZero();
         c.setZero();
 
-        const std::size_t n_timesteps = input.size();
-        const std::size_t n_features = input.front().shape().depth_;
+        std::size_t n_timesteps;
+        std::size_t n_features;
 
-        // write input to eigen matrix
+        const bool multi_inputs = inputs.size() > 1;
+
+        if (multi_inputs)
+        {
+            n_timesteps = inputs.size();
+            n_features = inputs.front().shape().depth_;
+        }
+        else
+        {
+            n_timesteps = inputs.front().shape().width_;
+            n_features = inputs.front().shape().depth_;
+        }
+
         RowMajorMatrixXf in(n_timesteps, n_features);
 
-        for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-            for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-                in(EigenIndex(a_t), EigenIndex(a_f)) = input[a_t].get(a_f, 0, 0);
+        // write input to eigen matrix
+        if (multi_inputs)
+        {
+            for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
+                for (std::size_t a_f = 0; a_f < n_features; ++a_f)
+                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs[a_t].get(a_f, 0, 0);
+        }
+        else
+        {
+            for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
+                for (std::size_t a_f = 0; a_f < n_features; ++a_f)
+                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs.front().get(a_f, 0, a_t);
+        }
 
         RowMajorMatrixXf X = in * W;
 
@@ -148,7 +183,15 @@ class lstm_layer : public layer
 
         // computing LSTM output
         const EigenIndex n = EigenIndex(n_units_);
-        tensor3s result;
+
+        tensor3s lstm_result;
+
+        if (multi_inputs)
+            lstm_result = {};
+        else if (return_sequences_)
+            lstm_result = {tensor3(shape3(n_units_, 1, n_timesteps), float_type(0))};
+        else
+            lstm_result = {tensor3(shape3(n_units_, 1, 1), float_type(0))};
 
         for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
         {
@@ -163,14 +206,25 @@ class lstm_layer : public layer
             c = f.array() * c.array() + i.array() * c_pre.array();
             h = o.array() * c.unaryExpr(act_func).array();
 
-            // save every h sequence or just last
-            if (return_sequences_ == true)
-                result.push_back(tensor3(shape3(n_units_, 1, 1), eigen_mat_to_values(h)));
-            else if (k == EigenIndex(n_timesteps) - 1)
-                result = {tensor3(shape3(n_units_, 1, 1), eigen_mat_to_values(h))};
+            if (multi_inputs)
+            {
+                if (return_sequences_)
+                    lstm_result.push_back(tensor3(shape3(n_units_, 1, 1), eigen_mat_to_values(h)));
+                else if (k == EigenIndex(n_timesteps) - 1)
+                    lstm_result = {tensor3(shape3(n_units_, 1, 1), eigen_mat_to_values(h))};
+            }
+            else
+            {
+                if (return_sequences_)
+                    for (EigenIndex idx = 0; idx < n; ++idx)
+                        lstm_result.front().set(std::size_t(idx), 0, std::size_t(k), h(idx));
+                else if (k == EigenIndex(n_timesteps) - 1)
+                    for (EigenIndex idx = 0; idx < n; ++idx)
+                        lstm_result.front().set(std::size_t(idx), 0, 0, h(idx));
+            }
         }
 
-        return result;
+        return lstm_result;
     }
 
     const std::size_t n_units_;

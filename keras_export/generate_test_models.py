@@ -120,8 +120,8 @@ def get_test_model_recurrent():
     """Returns a minimalistic test model for recurrent layers."""
     input_shapes = [
         (17, 4),
-        (10, 25),
-        (1, 10)
+        (1, 10),
+        (5, 10)
     ]
 
     outputs = []
@@ -150,7 +150,7 @@ def get_test_model_recurrent():
 
     outputs.append(lstm3)
 
-    conv1 = (Conv1D(1, 1, activation='sigmoid'))(inputs[2])
+    conv1 = (Conv1D(1, 1, activation='sigmoid'))(inputs[1])
     lstm4 = LSTM(units=15,
                 return_sequences=False,
                 bias_initializer='random_uniform',  # default is zero use random to test computation
@@ -164,7 +164,7 @@ def get_test_model_recurrent():
                  return_sequences=True,
                  bias_initializer='random_uniform',
                  activation='elu',
-                 recurrent_activation='selu')(inputs[1])
+                 recurrent_activation='selu')(inputs[2])
 
     outputs.append(lstm5)
 

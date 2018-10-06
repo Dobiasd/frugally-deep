@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "fdeep/layers/layer.hpp"
+#include "fdeep/layers/activation_layer.hpp"
 
 #include <string>
 

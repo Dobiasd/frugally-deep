@@ -6,8 +6,10 @@
 
 #pragma once
 
-#include "fdeep/common.hpp"
 #include "fdeep/import_model.hpp"
+#include "fdeep/common.hpp"
+#include "fdeep/layers/layer.hpp"
+#include "fdeep/tensor3.hpp"
 
 #include <algorithm>
 #include <string>

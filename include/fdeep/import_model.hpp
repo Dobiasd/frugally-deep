@@ -62,7 +62,6 @@
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
-#include "fdeep/model.hpp"
 #include "fdeep/shape3.hpp"
 #include "fdeep/shape3_variable.hpp"
 #include "fdeep/tensor3.hpp"

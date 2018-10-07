@@ -13,7 +13,7 @@
 namespace fdeep { namespace internal
 {
 
-// Converts a volume into single column volume (shape3(n, 1, 1)).
+// Converts a volume into single column volume (shape3(1, 1, n)).
 class flatten_layer : public layer
 {
 public:

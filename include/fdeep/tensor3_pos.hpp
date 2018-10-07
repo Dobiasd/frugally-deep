@@ -19,26 +19,26 @@ class tensor3_pos
 {
 public:
     explicit tensor3_pos(
-        std::size_t z,
         std::size_t y,
-        std::size_t x) :
-            z_(z),
+        std::size_t x,
+        std::size_t z) :
             y_(y),
-            x_(x)
+            x_(x),
+            z_(z)
     {
     }
 
-    std::size_t z_;
     std::size_t y_;
     std::size_t x_;
+    std::size_t z_;
 };
 
 inline bool operator == (const tensor3_pos& lhs, const tensor3_pos& rhs)
 {
     return
-        lhs.z_ == rhs.z_ &&
         lhs.y_ == rhs.y_ &&
-        lhs.x_ == rhs.x_;
+        lhs.x_ == rhs.x_ &&
+        lhs.z_ == rhs.z_;
 }
 
 } } // namespace fdeep, namespace internal

@@ -36,9 +36,9 @@ public:
     {
         return m_;
     }
-    float_type get(std::size_t z, std::size_t y, size_t x) const
+    float_type get(std::size_t y, size_t x, std::size_t z) const
     {
-        return m_.get(z, y, x);
+        return m_.get(y, x, z);
     }
     float_type get_bias() const
     {

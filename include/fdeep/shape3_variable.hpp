@@ -24,12 +24,12 @@ class shape3_variable
 {
 public:
     explicit shape3_variable(
-        fplus::maybe<std::size_t> depth,
         fplus::maybe<std::size_t> height,
-        fplus::maybe<std::size_t> width) :
-            depth_(depth),
+        fplus::maybe<std::size_t> width,
+        fplus::maybe<std::size_t> depth) :
             height_(height),
-            width_(width)
+            width_(width),
+            depth_(depth)
     {
     }
 
@@ -38,17 +38,17 @@ public:
         return shape2_variable(height_, width_);
     }
 
-    fplus::maybe<std::size_t> depth_;
     fplus::maybe<std::size_t> height_;
     fplus::maybe<std::size_t> width_;
+    fplus::maybe<std::size_t> depth_;
 };
 
 inline bool operator == (const shape3_variable& lhs, const shape3_variable& rhs)
 {
     return
-        lhs.depth_ == rhs.depth_ &&
         lhs.height_ == rhs.height_ &&
-        lhs.width_ == rhs.width_;
+        lhs.width_ == rhs.width_ &&
+        lhs.depth_ == rhs.depth_;
 }
 
 inline bool operator != (const shape3_variable& lhs, const shape3_variable& rhs)
@@ -63,7 +63,7 @@ using shape3_variable = internal::shape3_variable;
 inline std::string show_shape3_variable(const shape3_variable& s)
 {
     const std::vector<fplus::maybe<std::size_t>> dimensions =
-        {s.depth_, s.height_, s.width_};
+        {s.height_, s.width_, s.depth_};
     const auto dimensions_repr = fplus::transform(
         fplus::show_maybe<std::size_t>, dimensions);
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);

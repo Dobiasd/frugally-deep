@@ -95,16 +95,17 @@ inline shape3_variable create_shape3_variable(const nlohmann::json& data)
 {
     assertion(data.is_array(), "shape3_variable needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
-    //TODO: offset still needed?
-    const std::size_t offset = data.front().is_null() ? 1 : 0;
-    if (data.size() == 1 + offset)
-        return shape3_variable(0, 0, create_maybe_size_t(data[0 + offset]));
-    if (data.size() == 2 + offset)
-        return shape3_variable(0, create_maybe_size_t(data[0 + offset]), create_maybe_size_t(data[1 + offset]));
-    if (data.size() == 3 + offset)
-        return shape3_variable(create_maybe_size_t(data[0 + offset]), create_maybe_size_t(data[1 + offset]), create_maybe_size_t(data[2 + offset]));
+    if (data.size() == 1)
+        return shape3_variable(fplus::nothing<std::size_t>(), fplus::nothing<std::size_t>(), create_maybe_size_t(data[0]));
+    if (data.size() == 2)
+        return shape3_variable(fplus::nothing<std::size_t>(), create_maybe_size_t(data[0]), create_maybe_size_t(data[1]));
+    if (data.size() == 3)
+        return shape3_variable(create_maybe_size_t(data[0]), create_maybe_size_t(data[1]), create_maybe_size_t(data[2]));
+    if (data.size() == 4)
+        return shape3_variable(create_maybe_size_t(data[1]), create_maybe_size_t(data[2]), create_maybe_size_t(data[3]));
     raise_error("shape3_variable needs 1, 2 or 3 dimensions");
-    return shape3_variable(fplus::nothing<std::size_t>(),
+    return shape3_variable(
+        fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>()); // Should never be called
 }
@@ -113,14 +114,12 @@ inline shape3 create_shape3(const nlohmann::json& data)
 {
     assertion(data.is_array(), "shape3 needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
-    //TODO: offset still needed?
-    const std::size_t offset = data.front().is_null() ? 1 : 0;
-    if (data.size() == 1 + offset)
-        return shape3(0, 0, data[0 + offset]);
-    if (data.size() == 2 + offset)
-        return shape3(0, data[0 + offset], data[1 + offset]);
-    if (data.size() == 3 + offset)
-        return shape3(data[0 + offset], data[1 + offset], data[2 + offset]);
+    if (data.size() == 1)
+        return shape3(0, 0, data[0]);
+    if (data.size() == 2)
+        return shape3(0, data[0], data[1]);
+    if (data.size() == 3)
+        return shape3(data[0], data[1], data[2]);
     raise_error("shape3 needs 1, 2 or 3 dimensions");
     return shape3(0, 0, 0); // Should never be called
 }
@@ -278,7 +277,7 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
     const shape3 filter_shape(
-        filter_depths, kernel_size.height_, kernel_size.width_);
+        kernel_size.height_, kernel_size.width_, filter_depths);
 
     const bool padding_valid_uses_offset_depth_1 =
         get_global_param("conv2d_valid_offset_depth_1");
@@ -318,7 +317,7 @@ inline layer_ptr create_conv_2d_transpose_layer(const get_param_f& get_param,
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
     const shape3 filter_shape(
-        filter_depths, kernel_size.height_, kernel_size.width_);
+        kernel_size.height_, kernel_size.width_, filter_depths);
 
     const bool padding_valid_uses_offset_depth_1 =
         get_global_param("conv2d_valid_offset_depth_1");
@@ -365,8 +364,7 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    const shape3 filter_shape(1,
-        kernel_size.height_, kernel_size.width_);
+    const shape3 filter_shape(kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
     const bool padding_valid_uses_offset_depth_1 =
         get_global_param("separable_conv2d_valid_offset_depth_1");
@@ -399,8 +397,7 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
-    const shape3 filter_shape(1,
-        kernel_size.height_, kernel_size.width_);
+    const shape3 filter_shape(kernel_size.height_, kernel_size.width_, 1);
     const std::size_t filter_count = input_depth;
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
@@ -651,13 +648,13 @@ inline layer_ptr create_reshape_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto target_shape_channel_last =
+    const auto target_shape =
         create_vector<int>(create_int, data["config"]["target_shape"]);
 
-    const auto filled_shape_channel_last =
-        fplus::fill_left(1, 3, target_shape_channel_last);
+    const auto filled_shape =
+        fplus::fill_left(1, 3, target_shape);
 
-    return std::make_shared<reshape_layer>(name, filled_shape_channel_last);
+    return std::make_shared<reshape_layer>(name, filled_shape);
 }
 
 inline bool json_obj_has_member(const nlohmann::json& data,
@@ -951,17 +948,17 @@ inline void check_test_outputs(float_type epsilon,
                 for (std::size_t x = 0; x < output.shape().width_; ++x)
                 {
                     if (!fplus::is_in_closed_interval_around(epsilon,
-                        target.get(z, y, x), output.get(z, y, x)))
+                        target.get(y, x, z), output.get(y, x, z)))
                     {
                         const std::string msg =
                             std::string("test failed: ") +
                             "output=" + fplus::show(i) + " " +
                             "pos=" +
-                            fplus::show(z) + "," +
                             fplus::show(y) + "," +
-                            fplus::show(x) + " " +
-                            "value=" + fplus::show(output.get(z, y, x)) + " "
-                            "target=" + fplus::show(target.get(z, y, x));
+                            fplus::show(x) + "," +
+                            fplus::show(z) + " " +
+                            "value=" + fplus::show(output.get(y, x, z)) + " "
+                            "target=" + fplus::show(target.get(y, x, z));
                         internal::raise_error(msg);
                     }
                 }

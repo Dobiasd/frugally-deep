@@ -126,7 +126,7 @@ inline tensor2 divide_tensor2_elems(const tensor2& m, float_type x)
     }, *m.as_vector()));
 }
 
-inline shared_float_vec eigen_mat_to_values(const RowMajorMatrixXf& m)
+inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
 {
     shared_float_vec result = fplus::make_shared_ref<float_vec>();
     result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
@@ -134,8 +134,8 @@ inline shared_float_vec eigen_mat_to_values(const RowMajorMatrixXf& m)
     return result;
 }
 
-inline RowMajorMatrixXf eigen_mat_from_values(std::size_t height, std::size_t width,
-    const float_vec& values)
+inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_vec& values)
 {
     assertion(height * width == values.size(), "invalid shape");
     RowMajorMatrixXf m(height, width);

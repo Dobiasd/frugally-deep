@@ -20,7 +20,7 @@ namespace fdeep { namespace internal
 
 struct im2col_filter_matrix
 {
-    RowMajorMatrixXf mat_;
+    ColMajorMatrixXf mat_;
     shape3 filter_shape_;
     std::size_t filter_count_;
 };
@@ -32,23 +32,23 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         fplus_c_mem_fn_t(filter, shape, shape3), filters),
         "all filters must have the same shape");
 
-    const std::size_t fz = filters.front().shape().depth_;
     const std::size_t fy = filters.front().shape().height_;
     const std::size_t fx = filters.front().shape().width_;
-    RowMajorMatrixXf b(filters.size(), fz * fy * fx + 1);
+    const std::size_t fz = filters.front().shape().depth_;
+    ColMajorMatrixXf b(filters.size(), fy * fx * fz + 1);
     EigenIndex b_y = 0;
     EigenIndex b_x = 0;
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
         b_x = 0;
         const filter& filter = filters[f];
-        for (std::size_t zf = 0; zf < fz; ++zf)
+        for (std::size_t yf = 0; yf < fy; ++yf)
         {
-            for (std::size_t yf = 0; yf < fy; ++yf)
+            for (std::size_t xf = 0; xf < fx; ++xf)
             {
-                for (std::size_t xf = 0; xf < fx; ++xf)
+                for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_y, b_x++) = filter.get(zf, yf, xf);
+                    b(b_y, b_x++) = filter.get(yf, xf, zf);
                 }
             }
         }
@@ -78,38 +78,31 @@ inline tensor3 convolve_im2col(
     const im2col_filter_matrix& filter_mat,
     const tensor3& in_padded)
 {
-    const auto fz = filter_mat.filter_shape_.depth_;
     const auto fy = filter_mat.filter_shape_.height_;
     const auto fx = filter_mat.filter_shape_.width_;
-    RowMajorMatrixXf a(fz * fy * fx + 1, out_height * out_width);
-    EigenIndex a_y = 0;
-    for (std::size_t zf = 0; zf < fz; ++zf)
-    {
-        for (std::size_t yf = 0; yf < fy; ++yf)
-        {
-            for (std::size_t xf = 0; xf < fx; ++xf)
-            {
-                EigenIndex a_x = 0;
-                for (std::size_t y = 0; y < out_height; ++y)
-                {
-                    for (std::size_t x = 0; x < out_width; ++x)
-                    {
-                        a(a_y, a_x++) = in_padded.get(zf,
-                                offset_y + strides_y * y + yf,
-                                offset_x + strides_x * x + xf);
-                    }
-                }
-                ++a_y;
-            }
-        }
-    }
-
+    const auto fz = filter_mat.filter_shape_.depth_;
+    ColMajorMatrixXf a(fy * fx * fz + 1, out_height * out_width);
     EigenIndex a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
         for (std::size_t x = 0; x < out_width; ++x)
         {
-            a(a_y, a_x++) = static_cast<float_type>(1);
+            EigenIndex a_y = 0;
+            for (std::size_t yf = 0; yf < fy; ++yf)
+            {
+                for (std::size_t xf = 0; xf < fx; ++xf)
+                {
+                    for (std::size_t zf = 0; zf < fz; ++zf)
+                    {
+                        a(a_y++, a_x) = in_padded.get(
+                                offset_y + strides_y * y + yf,
+                                offset_x + strides_x * x + xf,
+                                zf);
+                    }
+                }
+                a(a_y, a_x) = static_cast<float_type>(1);
+            }
+            ++a_x;
         }
     }
 
@@ -125,7 +118,7 @@ inline tensor3 convolve_im2col(
     shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
-    Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> out_mat_map(
+    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned> out_mat_map(
         res_vec->data(),
         static_cast<EigenIndex>(filter_mat.mat_.rows()),
         static_cast<EigenIndex>(a.cols()));
@@ -133,7 +126,7 @@ inline tensor3 convolve_im2col(
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
     out_mat_map.noalias() = filter_mat.mat_ * a;
 
-    return tensor3(shape3(out_depth, out_height, out_width), res_vec);
+    return tensor3(shape3(out_height, out_width, out_depth), res_vec);
 }
 
 enum class padding { valid, same };

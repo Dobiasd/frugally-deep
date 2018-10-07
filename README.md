@@ -144,7 +144,7 @@ int main()
 {
     const auto model = fdeep::load_model("fdeep_model.json");
     const auto result = model.predict(
-        {fdeep::tensor3(fdeep::shape3(4, 1, 1), {1, 2, 3, 4})});
+        {fdeep::tensor3(fdeep::shape3(1, 1, 4), {1, 2, 3, 4})});
     std::cout << fdeep::show_tensor3s(result) << std::endl;
 }
 ```
@@ -193,7 +193,7 @@ Guides for different ways to install frugally-deep can be found in [`INSTALL.md`
 Internals
 ---------
 
-frugally-deep uses `channels_first` (`depth/channels, height, width`) as its `image_data_format` internally. `convert_model.py` takes care of all necessary conversions.
+frugally-deep uses `channels_last` (`height, width, depth/channels`) as its `image_data_format` internally.
 From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
 
 In case you would like to use `double` instead of `float` for all calculations, simply do this:

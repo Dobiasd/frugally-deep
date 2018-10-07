@@ -35,7 +35,7 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    tensor3 out(shape3(in.shape().depth_, out_height, out_width), 0);
+    tensor3 out(shape3(out_height, out_width, in.shape().depth_), 0);
     for (std::size_t z = 0; z < out.shape().depth_; ++z)
     {
         for (std::size_t y = 0; y < out.shape().height_; ++y)
@@ -50,8 +50,8 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
                     for (std::size_t xf = 0; xf < pool_width; ++xf)
                     {
                         int in_get_x = static_cast<int>(offset_x + strides_x * x + xf) - pad_left_int;
-                        const auto current = in.get_x_y_padded(invalid, z,
-                            in_get_y, in_get_x);
+                        const auto current = in.get_x_y_padded(invalid,
+                            in_get_y, in_get_x, z);
                         if (current != invalid)
                         {
                             val += current;
@@ -59,7 +59,7 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
                         }
                     }
                 }
-                out.set(z, y, x, val / static_cast<float_type>(divisor));
+                out.set(y, x, z, val / static_cast<float_type>(divisor));
             }
         }
     }

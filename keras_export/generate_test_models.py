@@ -63,7 +63,7 @@ def generate_output_data(data_size, outputs):
 
 
 def get_test_model_small():
-    """Returns a minimalistic test model."""
+    """Returns a minimalist test model."""
     input_shapes = [
         (17, 4),
         (16, 18, 3),
@@ -99,6 +99,23 @@ def get_test_model_small():
     outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
                                   activation='elu')(inputs[6])))
 
+    outputs.append(GlobalMaxPooling2D()(inputs[1]))
+    outputs.append(MaxPooling2D()(inputs[1]))
+    outputs.append(AveragePooling1D()(inputs[0]))
+
+    outputs.append(Conv1D(2, 3)(inputs[0]))
+
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization(center=False)(inputs[0]))
+    outputs.append(BatchNormalization(scale=False)(inputs[0]))
+
+    outputs.append(Conv2D(2, (3, 3), use_bias=True)(inputs[1]))
+    outputs.append(Conv2D(2, (3, 3), use_bias=False)(inputs[1]))
+    outputs.append(SeparableConv2D(2, (3, 3), use_bias=True)(inputs[1]))
+    outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[1]))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
+    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
+
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
@@ -131,10 +148,8 @@ def get_test_model_variable():
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[2]))
-    outputs.append(PReLU(shared_axes=[1, 2])(inputs[0]))
-    outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[1, 2, 3])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[1])(inputs[2]))
+
+    # todo: test PReLU
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_variable')
     model.compile(loss='mse', optimizer='nadam')
@@ -292,15 +307,12 @@ def get_test_model_full():
     outputs.append(UpSampling2D((2, 2))(inputs[0]))
     outputs.append(Dropout(0.5)(inputs[0]))
 
-    outputs.append(Concatenate([inputs[0], inputs[0]]))
-
     # same as axis=-1
     outputs.append(Concatenate()([inputs[1], inputs[2]]))
     outputs.append(Concatenate(axis=3)([inputs[1], inputs[2]]))
     # axis=0 does not make sense, since dimension 0 is the batch dimension
     outputs.append(Concatenate(axis=1)([inputs[1], inputs[2]]))
     outputs.append(Concatenate(axis=2)([inputs[1], inputs[2]]))
-
 
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(center=False)(inputs[0]))
@@ -323,14 +335,14 @@ def get_test_model_full():
     x1 = shared_conv(up_scale_2(inputs[1]))  # (1, 8, 8)
     x2 = shared_conv(up_scale_2(inputs[2]))  # (1, 8, 8)
     x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(inputs[2]))  # (1, 8, 8)
-    x = Concatenate([x1, x2, x3])  # (3, 8, 8)
+    x = Concatenate()([x1, x2, x3])  # (3, 8, 8)
     outputs.append(x)
 
     x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x)  # (3, 8, 8)
     outputs.append(x)
     x = Dropout(0.5)(x)
     outputs.append(x)
-    x = Concatenate([
+    x = Concatenate()([
         MaxPooling2D((2, 2))(x),
         AveragePooling2D((2, 2))(x)])  # (6, 4, 4)
     outputs.append(x)
@@ -386,8 +398,8 @@ def get_test_model_full():
         PReLU()(inputs[3]),
         PReLU()(inputs[4]),
         shared_activation(inputs[3]),
-        inputs[4],
-        inputs[1],
+        Activation('linear')(inputs[4]),
+        Activation('linear')(inputs[1]),
         x,
         shared_activation(x),
     ]

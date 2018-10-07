@@ -38,9 +38,9 @@ protected:
     tensor3 upsampling2d(const tensor3& in_vol) const
     {
         tensor3 out_vol(shape3(
-            in_vol.shape().depth_,
             in_vol.shape().height_ * scale_factor_.height_,
-            in_vol.shape().width_ * scale_factor_.width_), 0);
+            in_vol.shape().width_ * scale_factor_.width_,
+            in_vol.shape().depth_), 0);
         for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
         {
             for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
@@ -49,7 +49,7 @@ protected:
                 for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
-                    out_vol.set(z, y, x, in_vol.get(z, y_in, x_in));
+                    out_vol.set(y, x, z, in_vol.get(y_in, x_in, z));
                 }
             }
         }

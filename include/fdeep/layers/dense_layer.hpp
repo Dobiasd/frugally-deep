@@ -17,7 +17,7 @@
 namespace fdeep { namespace internal
 {
 
-// Takes a single stack volume (shape3(n, 1, 1)) as input.
+// Takes a single stack volume (shape3(1, 1, n)) as input.
 class dense_layer : public layer
 {
 public:
@@ -25,7 +25,7 @@ public:
         const float_vec& weights, const float_vec& bias)
     {
         assertion(weights.size() % bias.size() == 0, "invalid params");
-        return eigen_mat_from_values(n_in + 1, bias.size(),
+        return eigen_row_major_mat_from_values(n_in + 1, bias.size(),
             fplus::append(weights, bias));
     }
     dense_layer(const std::string& name, std::size_t units,
@@ -49,8 +49,8 @@ protected:
         const auto bias_padded_input = bias_pad_input(input);
         const auto result = bias_padded_input * params_;
         assertion(result.rows() == 1, "invalid result size");
-        return {tensor3(shape3(static_cast<std::size_t>(result.cols()), 1, 1),
-            eigen_mat_to_values(result))};
+        return {tensor3(shape3(1, 1, static_cast<std::size_t>(result.cols())),
+            eigen_row_major_mat_to_values(result))};
     }
     static RowMajorMatrixXf bias_pad_input(const tensor3& input)
     {
@@ -59,7 +59,7 @@ protected:
         RowMajorMatrixXf m(1, input.shape().depth_ + 1);
         for (std::size_t z = 0; z < input.shape().depth_; ++z)
         {
-            m(0, static_cast<EigenIndex>(z)) = input.get(tensor3_pos(z, 0, 0));
+            m(0, static_cast<EigenIndex>(z)) = input.get(tensor3_pos(0, 0, z));
         }
         m(0, static_cast<EigenIndex>(input.shape().depth_)) = 1;
         return m;

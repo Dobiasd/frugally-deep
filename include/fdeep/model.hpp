@@ -31,7 +31,7 @@ public:
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
                 "The model takes " + show_shape3s_variable(get_input_shapes()) +
-                " but you provided: " + show_shape3s(input_shapes));
+                " but provided was: " + show_shape3s(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
         return outputs;
     }

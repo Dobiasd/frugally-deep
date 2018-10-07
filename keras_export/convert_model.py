@@ -30,39 +30,31 @@ def write_text_file(path, text):
         print(text, file=text_file)
 
 
-def arr3_to_channels_first_format(arr):
-    """Convert a 3-tensor from channel_last to channels_first format,
-    i.e. HWC (TensorFlow format) to CHW (frugally-deep format)."""
-    assert len(arr.shape) == 3
-    assert K.image_data_format() == 'channels_last'
-    return np.swapaxes(np.swapaxes(arr, 2, 1), 1, 0)
-
-
 def arr_as_arr3(arr):
     """Convert a n-tensor to a 3-tensor"""
     depth = len(arr.shape)
     if depth == 1:
-        return arr.reshape(arr.shape[0], 1, 1)
+        return arr.reshape(1, 1, arr.shape[0])
     if depth == 2:
-        return arr3_to_channels_first_format(arr.reshape(1, arr.shape[0], arr.shape[1]))
+        return arr.reshape(1, arr.shape[0], arr.shape[1])
     if depth == 3:
-        return arr3_to_channels_first_format(arr)
+        return arr
     if depth == 4 and arr.shape[0] in [None, 1]:
-        return arr3_to_channels_first_format(arr.reshape(arr.shape[1:]))
+        return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')
 
 
-def get_layer_input_shape_as_channel_first_shape3(layer):
+def get_layer_input_shape_shape3(layer):
     """Convert a keras shape to an fdeep shape"""
     shape = layer.input_shape[1:]
     depth = len(shape)
     if depth == 1:
-        return (shape[0], 1, 1)
+        return (1, 1, shape[0])
     if depth == 2:
-        return (shape[1], 1, shape[0])
+        return (1, shape[0], shape[1])
     if depth == 3:
-        return (shape[2], shape[0], shape[1])
+        return shape
     else:
         raise ValueError('invalid number of dimensions')
 
@@ -155,13 +147,20 @@ def encode_floats(arr):
 
 def prepare_filter_weights_conv_2d(weights):
     """Change dimension order of 2d filter weights to the one used in fdeep"""
-    return np.swapaxes(np.swapaxes(np.swapaxes(
-        weights, 0, 2), 1, 3), 0, 1).flatten()
+    assert len(weights.shape) == 4
+    return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 3, 0]).flatten()
+
+
+def prepare_filter_weights_slice_conv_2d(weights):
+    """Change dimension order of 2d filter weights to the one used in fdeep"""
+    assert len(weights.shape) == 4
+    return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 0, 3]).flatten()
 
 
 def prepare_filter_weights_conv_1d(weights):
     """Change dimension order of 1d filter weights to the one used in fdeep"""
-    return np.swapaxes(weights, 0, 2).flatten()
+    assert len(weights.shape) == 3
+    return np.moveaxis(weights, [0, 1, 2], [1, 2, 0]).flatten()
 
 
 def show_conv_1d_layer(layer):
@@ -227,7 +226,7 @@ def show_separable_conv_2d_layer(layer):
     assert len(weights[1].shape) == 4
 
     # probably incorrect for depth_multiplier > 1?
-    slice_weights = prepare_filter_weights_conv_2d(weights[0])
+    slice_weights = prepare_filter_weights_slice_conv_2d(weights[0])
     stack_weights = prepare_filter_weights_conv_2d(weights[1])
 
     assert layer.padding in ['valid', 'same']
@@ -251,7 +250,7 @@ def show_depthwise_conv_2d_layer(layer):
     assert len(weights[0].shape) == 4
 
     # probably incorrect for depth_multiplier > 1?
-    slice_weights = prepare_filter_weights_conv_2d(weights[0])
+    slice_weights = prepare_filter_weights_slice_conv_2d(weights[0])
 
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
@@ -318,14 +317,7 @@ def show_prelu_layer(layer):
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1
-    if len(weights[0].shape) == 3:
-        weights_flat = np.swapaxes(np.swapaxes(weights[0], 2, 1), 1, 0).flatten()
-    elif len(weights[0].shape) == 2:
-        weights_flat = np.swapaxes(weights[0], 1, 0).flatten()
-    elif len(weights[0].shape) == 1:
-        weights_flat = weights[0].flatten()
-    else:
-        assert False
+    weights_flat = weights[0].flatten()
     result = {
         'alpha': encode_floats(weights_flat)
     }
@@ -525,7 +517,7 @@ def convert(in_path, out_path):
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
     json_output['average_pooling_2d_same_offset'] =\
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
-    json_output['input_shapes'] = list(map(get_layer_input_shape_as_channel_first_shape3, get_model_input_layers(model)))
+    json_output['input_shapes'] = list(map(get_layer_input_shape_shape3, get_model_input_layers(model)))
     json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
 

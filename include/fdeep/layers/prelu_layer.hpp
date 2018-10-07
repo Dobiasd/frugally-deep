@@ -38,8 +38,8 @@ protected:
         std::size_t shift = 0;
         for (std::size_t i = 0; i < shared_axes_.size(); ++i)
         {
-            if ((shared_axes_[i] == 1 && input[0].shape().height_ == 1) ||
-                (shared_axes_[i] == 2 && input[0].shape().width_ == 1))
+            if ((shared_axes_[i] == 1 && input[0].shape().width_ == 1) ||
+                (shared_axes_[i] == 2 && input[0].shape().depth_ == 1))
             {
                 shift++;
             }
@@ -50,7 +50,7 @@ protected:
         const bool width_shared = fplus::is_elem_of(2, shared_axes_shifted);
         const bool channels_shared = fplus::is_elem_of(3, shared_axes_shifted);
         const size_t width = width_shared ? 1 : input[0].shape().width_;
-        const size_t height = height_shared ? 1 : input[0].shape().height_;
+        const size_t depth = channels_shared ? 1 : input[0].shape().depth_;
 
         fdeep::tensor3 out(input[0].shape(), 1.0f);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
@@ -59,19 +59,21 @@ protected:
             {
                 for (std::size_t x = 0; x < out.shape().width_; ++x)
                 {
-                    if (input[0].get(z, y, x) > 0)
+                    if (input[0].get(y, x, z) > 0)
                     {
-                        out.set(z, y, x, input[0].get(z, y, x));
+                        out.set(y, x, z, input[0].get(y, x, z));
                     }
                     else
                     {
                         const size_t y_temp = height_shared ? 0 : y;
                         const size_t x_temp = width_shared ? 0 : x;
                         const size_t z_temp = channels_shared ? 0 : z;
-                        const size_t pos = z_temp * height * width +
-                            y_temp * width + x_temp;
-                        out.set(z, y, x, (*alpha_)[pos] *
-                            input[0].get(z, y, x));
+                        const size_t pos =
+                            y_temp * width * depth +
+                            x_temp * depth +
+                            z_temp;
+                        out.set(y, x, z, (*alpha_)[pos] *
+                            input[0].get(y, x, z));
                     }
                 }
             }

@@ -31,10 +31,10 @@ protected:
             {
                 for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
-                    val += in.getyxz(y, x, z);
+                    val += in.get_yxz(y, x, z);
                 }
             }
-            out.setyxz(0, 0, z, val /
+            out.set_yxz(0, 0, z, val /
                 static_cast<float_type>(in.shape().without_depth().area()));
         }
         return out;

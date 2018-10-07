@@ -51,7 +51,7 @@ public:
     {
         return (*values_)[idx(pos)];
     }
-    float_type getyxz(std::size_t y, std::size_t x, std::size_t z) const
+    float_type get_yxz(std::size_t y, std::size_t x, std::size_t z) const
     {
         return get(tensor3_pos_yxz(y, x, z));
     }
@@ -70,7 +70,7 @@ public:
     {
         (*values_)[idx(pos)] = value;
     }
-    void setyxz(std::size_t y, std::size_t x, std::size_t z, float_type value)
+    void set_yxz(std::size_t y, std::size_t x, std::size_t z, float_type value)
     {
         set(tensor3_pos_yxz(y, x, z), value);
     }
@@ -135,7 +135,7 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
         {
             for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
-                m.setyxz(y, x, z, ms[z].get(y, x));
+                m.set_yxz(y, x, z, ms[z].get(y, x));
             }
         }
     }
@@ -157,7 +157,7 @@ inline std::vector<tensor2> tensor3_to_tensor_2_depth_slices(const tensor3& m)
         {
             for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
-                ms[z].set(y, x, m.getyxz(y, x, z));
+                ms[z].set(y, x, m.get_yxz(y, x, z));
             }
         }
     }
@@ -183,7 +183,7 @@ inline std::pair<tensor3_pos_yxz, tensor3_pos_yxz> tensor3_min_max_pos(
         {
             for (std::size_t x = 0; x < vol.shape().width_; ++x)
             {
-                auto current_value = vol.getyxz(y, x, z);
+                auto current_value = vol.get_yxz(y, x, z);
                 if (current_value > value_max)
                 {
                     result_max = tensor3_pos_yxz(y, x, z);
@@ -217,7 +217,7 @@ inline tensor3 tensor3_swap_depth_and_height(const tensor3& in)
         {
             for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
-                result.setyxz(z, x, y, in.getyxz(y, x, z));
+                result.set_yxz(z, x, y, in.get_yxz(y, x, z));
             }
         }
     }
@@ -236,7 +236,7 @@ inline tensor3 tensor3_swap_depth_and_width(const tensor3& in)
         {
             for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
-                result.setyxz(y, z, x, in.getyxz(y, x, z));
+                result.set_yxz(y, z, x, in.get_yxz(y, x, z));
             }
         }
     }
@@ -310,7 +310,7 @@ inline tensor3 flatten_tensor3(const tensor3& vol)
         {
             for (std::size_t z = 0; z < vol.shape().depth_; ++z)
             {
-                values.push_back(vol.getyxz(y, x, z));
+                values.push_back(vol.get_yxz(y, x, z));
             }
         }
     }
@@ -332,7 +332,7 @@ inline tensor3 pad_tensor3(float_type val,
         {
             for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
-                result.setyxz(y + top_pad, x + left_pad, z, in.getyxz(y, x, z));
+                result.set_yxz(y + top_pad, x + left_pad, z, in.get_yxz(y, x, z));
             }
         }
     }
@@ -354,7 +354,7 @@ inline tensor3 crop_tensor3(
         {
             for (std::size_t x = 0; x < result.shape().width_; ++x)
             {
-                result.setyxz(y, x, z, in.getyxz(y + top_crop, x + left_crop, z));
+                result.set_yxz(y, x, z, in.get_yxz(y + top_crop, x + left_crop, z));
             }
         }
     }
@@ -375,11 +375,11 @@ inline tensor3 dilate_tensor3(const shape_hw& dilation_rate, const tensor3& in)
         {
             for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
-                result.setyxz(
+                result.set_yxz(
                     y * dilation_rate.height_,
                     x * dilation_rate.width_,
                     z,
-                    in.getyxz(y, x, z));
+                    in.get_yxz(y, x, z));
             }
         }
     }

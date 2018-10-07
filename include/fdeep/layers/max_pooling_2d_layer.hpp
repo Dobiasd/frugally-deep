@@ -55,7 +55,7 @@ FDEEP_FORCE_INLINE tensor3 max_pool_2d(
                         val = std::max(val, current);
                     }
                 }
-                out.setyxz(y, x, z, val);
+                out.set_yxz(y, x, z, val);
             }
         }
     }

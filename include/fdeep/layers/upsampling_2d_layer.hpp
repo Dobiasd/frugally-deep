@@ -49,7 +49,7 @@ protected:
                 for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
-                    out_vol.setyxz(y, x, z, in_vol.getyxz(y_in, x_in, z));
+                    out_vol.set_yxz(y, x, z, in_vol.get_yxz(y_in, x_in, z));
                 }
             }
         }

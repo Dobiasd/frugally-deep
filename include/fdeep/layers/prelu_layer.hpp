@@ -38,8 +38,8 @@ protected:
         std::size_t shift = 0;
         for (std::size_t i = 0; i < shared_axes_.size(); ++i)
         {
-            if ((shared_axes_[i] == 1 && input[0].shape().width_ == 1) ||
-                (shared_axes_[i] == 2 && input[0].shape().depth_ == 1))
+            if ((shared_axes_[i] == 1 && input[0].shape().height_ == 1) ||
+                (shared_axes_[i] == 2 && input[0].shape().width_ == 1))
             {
                 shift++;
             }

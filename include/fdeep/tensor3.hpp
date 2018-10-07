@@ -135,7 +135,7 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
         {
             for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
-                m.set_yxz(y, x, z, ms[z].get(y, x));
+                m.set_yxz(y, x, z, ms[z].get_yx(y, x));
             }
         }
     }
@@ -157,7 +157,7 @@ inline std::vector<tensor2> tensor3_to_tensor_2_depth_slices(const tensor3& m)
         {
             for (std::size_t x = 0; x < m.shape().width_; ++x)
             {
-                ms[z].set(y, x, m.get_yxz(y, x, z));
+                ms[z].set_yx(y, x, m.get_yxz(y, x, z));
             }
         }
     }

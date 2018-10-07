@@ -48,15 +48,7 @@ public:
     {
         return (*values_)[idx(pos)];
     }
-    const float_type& get(std::size_t y, std::size_t x) const
-    {
-        return get(tensor2_pos_yx(y, x));
-    }
-    float_type& get(const tensor2_pos_yx& pos)
-    {
-        return (*values_)[idx(pos)];
-    }
-    float_type& get(std::size_t y, std::size_t x)
+    const float_type& get_yx(std::size_t y, std::size_t x) const
     {
         return get(tensor2_pos_yx(y, x));
     }
@@ -64,7 +56,7 @@ public:
     {
         (*values_)[idx(pos)] = value;
     }
-    void set(std::size_t y, std::size_t x, float_type value)
+    void set_yx(std::size_t y, std::size_t x, float_type value)
     {
         set(tensor2_pos_yx(y, x), value);
     }

@@ -16,7 +16,7 @@ from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import SeparableConv2D, Conv2DTranspose, DepthwiseConv2D
+from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
 from keras import backend as K

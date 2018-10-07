@@ -32,7 +32,6 @@
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
-#include "fdeep/layers/conv_2d_transpose_layer.hpp"
 #include "fdeep/layers/cropping_2d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
@@ -292,46 +291,6 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
         padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
         padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         dilation_rate, weights, bias);
-}
-
-inline layer_ptr create_conv_2d_transpose_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    const std::string padding_str = data["config"]["padding"];
-    const auto pad_type = create_padding(padding_str);
-
-    const shape_hw strides = create_shape_hw(data["config"]["strides"]);
-
-    const auto filter_count = create_size_t(data["config"]["filters"]);
-    float_vec bias(filter_count, 0);
-    const bool use_bias = data["config"]["use_bias"];
-    if (use_bias)
-        bias = decode_floats(get_param(name, "bias"));
-    assertion(bias.size() == filter_count, "size of bias does not match");
-
-    const float_vec weights = decode_floats(get_param(name, "weights"));
-    const shape_hw kernel_size = create_shape_hw(data["config"]["kernel_size"]);
-    assertion(weights.size() % kernel_size.area() == 0,
-        "invalid number of weights");
-    const std::size_t filter_depths =
-        weights.size() / (kernel_size.area() * filter_count);
-    const shape_hwc filter_shape(
-        kernel_size.height_, kernel_size.width_, filter_depths);
-
-    const bool padding_valid_uses_offset_depth_1 =
-        get_global_param("conv2d_valid_offset_depth_1");
-    const bool padding_same_uses_offset_depth_1 =
-        get_global_param("conv2d_same_offset_depth_1");
-    const bool padding_valid_uses_offset_depth_2 =
-        get_global_param("conv2d_valid_offset_depth_2");
-    const bool padding_same_uses_offset_depth_2 =
-        get_global_param("conv2d_same_offset_depth_2");
-    return std::make_shared<conv_2d_transpose_layer>(name,
-        filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
-        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
-        weights, bias);
 }
 
 inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
@@ -852,7 +811,6 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Model", create_model_layer},
             {"Conv1D", create_conv_2d_layer},
             {"Conv2D", create_conv_2d_layer},
-            //{"Conv2DTranspose", create_conv_2d_transpose_layer},
             {"SeparableConv1D", create_separable_conv_2D_layer},
             {"SeparableConv2D", create_separable_conv_2D_layer},
             {"DepthwiseConv2D", create_depthwise_conv_2D_layer},

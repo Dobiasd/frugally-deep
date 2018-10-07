@@ -239,15 +239,4 @@ inline tensor3 convolve(
         filter_mat, in_padded);
 }
 
-inline tensor3 convolve_transpose(
-    const shape_hw&,
-    const padding&,
-    bool,
-    const std::vector<filter>&,
-    const tensor3&)
-{
-    raise_error("convolve_transpose not yet implemented");
-    return tensor3(shape_hwc(0, 0, 0), 0);
-}
-
 } } // namespace fdeep, namespace internal

@@ -66,14 +66,14 @@ protected:
             {
                 for (std::size_t x = 0; x < output.shape().width_; ++x)
                 {
-                    float_type val = input.get(y, x, z);
+                    float_type val = input.getyxz(y, x, z);
                     val -= moving_mean_[z];
                     if (use_gamma)
                         val *= gamma_[z];
                     val /= denom;
                     if (use_beta)
                         val += beta_[z];
-                    output.set(y, x, z, val);
+                    output.setyxz(y, x, z, val);
                 }
             }
         }

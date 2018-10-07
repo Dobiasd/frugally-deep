@@ -25,13 +25,13 @@ public:
     tensor3s predict(const tensor3s& inputs) const
     {
         const auto input_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor3, shape, shape3),
+            fplus_c_mem_fn_t(tensor3, shape, shape_hwc),
             inputs);
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape3s_variable(get_input_shapes()) +
-                " but provided was: " + show_shape3s(input_shapes));
+                "The model takes " + show_shape_hwcs_variable(get_input_shapes()) +
+                " but provided was: " + show_shape_hwcs(input_shapes));
         const auto outputs = model_layer_->apply(inputs);
         return outputs;
     }
@@ -83,26 +83,26 @@ public:
         const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.volume() == 1,
             "invalid output shape");
-        return outputs.front().get(0, 0, 0);
+        return outputs.front().getyxz(0, 0, 0);
     }
 
-    const std::vector<shape3_variable>& get_input_shapes() const
+    const std::vector<shape_hwc_variable>& get_input_shapes() const
     {
         return input_shapes_;
     }
 
-    const std::vector<shape3> get_dummy_input_shapes() const
+    const std::vector<shape_hwc> get_dummy_input_shapes() const
     {
         return fplus::transform(
-            fplus::bind_1st_of_2(internal::make_shape3_with,
-                                 shape3(42, 42, 42)),
+            fplus::bind_1st_of_2(internal::make_shape_hwc_with,
+                                 shape_hwc(42, 42, 42)),
             get_input_shapes());
     }
 
     // Returns zero-filled tensors with the models input shapes.
     tensor3s generate_dummy_inputs() const
     {
-        return fplus::transform([](const shape3& shape) -> tensor3
+        return fplus::transform([](const shape_hwc& shape) -> tensor3
         {
             return tensor3(shape, 0);
         }, get_dummy_input_shapes());
@@ -119,14 +119,14 @@ public:
 
 private:
     model(const internal::layer_ptr& model_layer,
-        const std::vector<shape3_variable>& input_shapes) :
+        const std::vector<shape_hwc_variable>& input_shapes) :
             input_shapes_(input_shapes),
             model_layer_(model_layer) {}
 
     friend model read_model(std::istream&, bool,
         const std::function<void(std::string)>&, float_type);
 
-    std::vector<shape3_variable> input_shapes_;
+    std::vector<shape_hwc_variable> input_shapes_;
     internal::layer_ptr model_layer_;
 };
 
@@ -201,7 +201,7 @@ inline model read_model(std::istream& model_file_stream,
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"]),
-        internal::create_shape3s_variable(json_data["input_shapes"]));
+        internal::create_shape_hwcs_variable(json_data["input_shapes"]));
 
     if (verify)
     {

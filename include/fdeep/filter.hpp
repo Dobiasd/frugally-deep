@@ -9,7 +9,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/tensor3.hpp"
-#include "fdeep/shape3.hpp"
+#include "fdeep/shape_hwc.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -24,7 +24,7 @@ public:
     filter(const tensor3& m, float_type bias) : m_(m), bias_(bias)
     {
     }
-    const shape3& shape() const
+    const shape_hwc& shape() const
     {
         return m_.shape();
     }
@@ -36,9 +36,9 @@ public:
     {
         return m_;
     }
-    float_type get(std::size_t y, size_t x, std::size_t z) const
+    float_type getyxz(std::size_t y, size_t x, std::size_t z) const
     {
-        return m_.get(y, x, z);
+        return m_.getyxz(y, x, z);
     }
     float_type get_bias() const
     {
@@ -58,15 +58,15 @@ private:
 
 typedef std::vector<filter> filter_vec;
 
-inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
+inline filter dilate_filter(const shape_hw& dilation_rate, const filter& undilated)
 {
     return filter(dilate_tensor3(dilation_rate, undilated.get_tensor3()),
         undilated.get_bias());
 }
 
 inline filter_vec generate_filters(
-    const shape2& dilation_rate,
-    const shape3& filter_shape, std::size_t k,
+    const shape_hw& dilation_rate,
+    const shape_hwc& filter_shape, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
     filter_vec filters(k, filter(tensor3(filter_shape, 0), 0));

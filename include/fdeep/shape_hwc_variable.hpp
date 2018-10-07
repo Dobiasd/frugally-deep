@@ -8,8 +8,8 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2_variable.hpp"
-#include "fdeep/shape2.hpp"
+#include "fdeep/shape_hw_variable.hpp"
+#include "fdeep/shape_hw.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -20,10 +20,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape3_variable
+class shape_hwc_variable
 {
 public:
-    explicit shape3_variable(
+    explicit shape_hwc_variable(
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
@@ -33,9 +33,9 @@ public:
     {
     }
 
-    shape2_variable without_depth() const
+    shape_hw_variable without_depth() const
     {
-        return shape2_variable(height_, width_);
+        return shape_hw_variable(height_, width_);
     }
 
     fplus::maybe<std::size_t> height_;
@@ -43,7 +43,7 @@ public:
     fplus::maybe<std::size_t> depth_;
 };
 
-inline bool operator == (const shape3_variable& lhs, const shape3_variable& rhs)
+inline bool operator == (const shape_hwc_variable& lhs, const shape_hwc_variable& rhs)
 {
     return
         lhs.height_ == rhs.height_ &&
@@ -51,16 +51,16 @@ inline bool operator == (const shape3_variable& lhs, const shape3_variable& rhs)
         lhs.depth_ == rhs.depth_;
 }
 
-inline bool operator != (const shape3_variable& lhs, const shape3_variable& rhs)
+inline bool operator != (const shape_hwc_variable& lhs, const shape_hwc_variable& rhs)
 {
     return !(lhs == rhs);
 }
 
 } // namespace internal
 
-using shape3_variable = internal::shape3_variable;
+using shape_hwc_variable = internal::shape_hwc_variable;
 
-inline std::string show_shape3_variable(const shape3_variable& s)
+inline std::string show_shape_hwc_variable(const shape_hwc_variable& s)
 {
     const std::vector<fplus::maybe<std::size_t>> dimensions =
         {s.height_, s.width_, s.depth_};
@@ -69,10 +69,10 @@ inline std::string show_shape3_variable(const shape3_variable& s)
     return fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
 }
 
-inline std::string show_shape3s_variable(
-    const std::vector<shape3_variable>& shapes)
+inline std::string show_shape_hwcs_variable(
+    const std::vector<shape_hwc_variable>& shapes)
 {
-    return fplus::show_cont(fplus::transform(show_shape3_variable, shapes));
+    return fplus::show_cont(fplus::transform(show_shape_hwc_variable, shapes));
 }
 
 } // namespace fdeep

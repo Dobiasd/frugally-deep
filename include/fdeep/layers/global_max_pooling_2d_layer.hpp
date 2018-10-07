@@ -25,7 +25,7 @@ public:
 protected:
     tensor3 pool(const tensor3& in) const override
     {
-        tensor3 out(shape3(1, 1, in.shape().depth_), 0);
+        tensor3 out(shape_hwc(1, 1, in.shape().depth_), 0);
         for (std::size_t z = 0; z < out.shape().depth_; ++z)
         {
             float_type val = std::numeric_limits<float_type>::lowest();
@@ -33,10 +33,10 @@ protected:
             {
                 for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
-                    val = std::max(val, in.get(y, x, z));
+                    val = std::max(val, in.getyxz(y, x, z));
                 }
             }
-            out.set(0, 0, z, val);
+            out.setyxz(0, 0, z, val);
         }
         return out;
     }

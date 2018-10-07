@@ -17,7 +17,7 @@
 namespace fdeep { namespace internal
 {
 
-// Takes a single stack volume (shape3(1, 1, n)) as input.
+// Takes a single stack volume (shape_hwc(1, 1, n)) as input.
 class dense_layer : public layer
 {
 public:
@@ -49,7 +49,7 @@ protected:
         const auto bias_padded_input = bias_pad_input(input);
         const auto result = bias_padded_input * params_;
         assertion(result.rows() == 1, "invalid result size");
-        return {tensor3(shape3(1, 1, static_cast<std::size_t>(result.cols())),
+        return {tensor3(shape_hwc(1, 1, static_cast<std::size_t>(result.cols())),
             eigen_row_major_mat_to_values(result))};
     }
     static RowMajorMatrixXf bias_pad_input(const tensor3& input)
@@ -59,7 +59,7 @@ protected:
         RowMajorMatrixXf m(1, input.shape().depth_ + 1);
         for (std::size_t z = 0; z < input.shape().depth_; ++z)
         {
-            m(0, static_cast<EigenIndex>(z)) = input.get(tensor3_pos(0, 0, z));
+            m(0, static_cast<EigenIndex>(z)) = input.get(tensor3_pos_yxz(0, 0, z));
         }
         m(0, static_cast<EigenIndex>(input.shape().depth_)) = 1;
         return m;

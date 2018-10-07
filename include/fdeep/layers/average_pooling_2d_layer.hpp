@@ -24,8 +24,8 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
     const float_type invalid = std::numeric_limits<float_type>::lowest();
 
     const auto conv_cfg = preprocess_convolution(
-        shape2(pool_height, pool_width),
-        shape2(strides_y, strides_x),
+        shape_hw(pool_height, pool_width),
+        shape_hw(strides_y, strides_x),
         pad_type, use_offset, in.shape());
 
     int pad_top_int = static_cast<int>(conv_cfg.pad_top_);
@@ -35,7 +35,7 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    tensor3 out(shape3(out_height, out_width, in.shape().depth_), 0);
+    tensor3 out(shape_hwc(out_height, out_width, in.shape().depth_), 0);
     for (std::size_t z = 0; z < out.shape().depth_; ++z)
     {
         for (std::size_t y = 0; y < out.shape().height_; ++y)
@@ -59,7 +59,7 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
                         }
                     }
                 }
-                out.set(y, x, z, val / static_cast<float_type>(divisor));
+                out.setyxz(y, x, z, val / static_cast<float_type>(divisor));
             }
         }
     }
@@ -70,7 +70,7 @@ class average_pooling_2d_layer : public pooling_2d_layer
 {
 public:
     explicit average_pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, padding p,
+        const shape_hw& pool_size, const shape_hw& strides, padding p,
         bool padding_valid_uses_offset, bool padding_same_uses_offset) :
         pooling_2d_layer(name, pool_size, strides, p,
             padding_valid_uses_offset, padding_same_uses_offset)
@@ -79,9 +79,9 @@ public:
 protected:
     tensor3 pool(const tensor3& in) const override
     {
-        if (pool_size_ == shape2(2, 2) && strides_ == shape2(2, 2))
+        if (pool_size_ == shape_hw(2, 2) && strides_ == shape_hw(2, 2))
             return average_pool_2d(2, 2, 2, 2, padding_, use_offset(), in);
-        else if (pool_size_ == shape2(4, 4) && strides_ == shape2(4, 4))
+        else if (pool_size_ == shape_hw(4, 4) && strides_ == shape_hw(4, 4))
             return average_pool_2d(4, 4, 4, 4, padding_, use_offset(), in);
         else
             return average_pool_2d(

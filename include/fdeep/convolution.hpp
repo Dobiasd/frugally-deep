@@ -21,7 +21,7 @@ namespace fdeep { namespace internal
 struct im2col_filter_matrix
 {
     ColMajorMatrixXf mat_;
-    shape3 filter_shape_;
+    shape_hwc filter_shape_;
     std::size_t filter_count_;
 };
 
@@ -29,7 +29,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::vector<filter>& filters)
 {
     assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(filter, shape, shape3), filters),
+        fplus_c_mem_fn_t(filter, shape, shape_hwc), filters),
         "all filters must have the same shape");
 
     const std::size_t fy = filters.front().shape().height_;
@@ -48,7 +48,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
             {
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_y, b_x++) = filter.get(yf, xf, zf);
+                    b(b_y, b_x++) = filter.getyxz(yf, xf, zf);
                 }
             }
         }
@@ -94,7 +94,7 @@ inline tensor3 convolve_im2col(
                 {
                     for (std::size_t zf = 0; zf < fz; ++zf)
                     {
-                        a(a_y++, a_x) = in_padded.get(
+                        a(a_y++, a_x) = in_padded.getyxz(
                                 offset_y + strides_y * y + yf,
                                 offset_x + strides_x * x + xf,
                                 zf);
@@ -126,7 +126,7 @@ inline tensor3 convolve_im2col(
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
     out_mat_map.noalias() = filter_mat.mat_ * a;
 
-    return tensor3(shape3(out_height, out_width, out_depth), res_vec);
+    return tensor3(shape_hwc(out_height, out_width, out_depth), res_vec);
 }
 
 enum class padding { valid, same };
@@ -144,11 +144,11 @@ struct convolution_config
 };
 
 inline convolution_config preprocess_convolution(
-    const shape2& filter_shape,
-    const shape2& strides,
+    const shape_hw& filter_shape,
+    const shape_hw& strides,
     padding pad_type,
     bool use_offset,
-    const shape3& input_shape)
+    const shape_hwc& input_shape)
 {
     // https://www.tensorflow.org/api_guides/python/nn#Convolution
     const int filter_height = static_cast<int>(filter_shape.height_);
@@ -210,7 +210,7 @@ inline convolution_config preprocess_convolution(
 }
 
 inline tensor3 convolve(
-    const shape2& strides,
+    const shape_hw& strides,
     const padding& pad_type,
     bool use_offset,
     const im2col_filter_matrix& filter_mat,
@@ -240,14 +240,14 @@ inline tensor3 convolve(
 }
 
 inline tensor3 convolve_transpose(
-    const shape2&,
+    const shape_hw&,
     const padding&,
     bool,
     const std::vector<filter>&,
     const tensor3&)
 {
     raise_error("convolve_transpose not yet implemented");
-    return tensor3(shape3(0, 0, 0), 0);
+    return tensor3(shape_hwc(0, 0, 0), 0);
 }
 
 } } // namespace fdeep, namespace internal

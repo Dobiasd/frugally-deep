@@ -45,10 +45,10 @@ class lstm_layer : public layer
     {
         const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor3, shape, shape_hwc), inputs);
 
-        // ensure that tensor3 shape is (1, n, 1) when using multiple tensor3s elements as seq_len
+        // ensure that tensor3 shape is (1, 1, n) when using multiple tensor3s elements as seq_len
         if (inputs.size() > 1)
         {
-            assertion(inputs.front().shape().height_ == 1 && inputs.front().shape().depth_ == 1,
+            assertion(inputs.front().shape().height_ == 1 && inputs.front().shape().width_ == 1,
                       "height and width dimension must be 1, but shape is '" + show_shape_hwcs(input_shapes) + "'");
         }
         else
@@ -142,7 +142,7 @@ class lstm_layer : public layer
         if (multi_inputs)
         {
             n_timesteps = inputs.size();
-            n_features = inputs.front().shape().width_;
+            n_features = inputs.front().shape().depth_;
         }
         else
         {
@@ -157,7 +157,7 @@ class lstm_layer : public layer
         {
             for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
                 for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs[a_t].get_yxz(0, a_f, 0);
+                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs[a_t].get_yxz(0, 0, a_f);
         }
         else
         {

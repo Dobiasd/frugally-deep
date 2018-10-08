@@ -810,11 +810,11 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
 
     RowMajorMatrixXf bias(1, units * 4);
     if (use_bias)
-        bias = eigen_mat_from_values(1, units * 4, decode_floats(get_param(name, "bias")));
+        bias = eigen_row_major_mat_from_values(1, units * 4, decode_floats(get_param(name, "bias")));
 
     const float_vec W = decode_floats(get_param(name, "weights"));
-    const RowMajorMatrixXf weights = eigen_mat_from_values(W.size() / (units * 4), units * 4, W);
-    const RowMajorMatrixXf recurrent_weights = eigen_mat_from_values(units, units * 4, decode_floats(get_param(name, "recurrent_weights")));
+    const RowMajorMatrixXf weights = eigen_row_major_mat_from_values(W.size() / (units * 4), units * 4, W);
+    const RowMajorMatrixXf recurrent_weights = eigen_row_major_mat_from_values(units, units * 4, decode_floats(get_param(name, "recurrent_weights")));
     const bool return_sequences = data["config"]["return_sequences"];
 
     return std::make_shared<lstm_layer>(name, units, unit_activation,

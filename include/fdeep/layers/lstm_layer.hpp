@@ -53,8 +53,8 @@ class lstm_layer : public layer
         }
         else
         {
-            assertion(inputs.front().shape().height_ == 1,
-                      "height dimension must be 1, but shape is '" + show_shape3s(input_shapes) + "'");
+            assertion(inputs.front().shape().width_ == 1,
+                      "width dimension must be 1, but shape is '" + show_shape3s(input_shapes) + "'");
         }
 
         return lstm_impl(inputs, W_, U_, bias_, activation_, recurrent_activation_);
@@ -146,8 +146,8 @@ class lstm_layer : public layer
         }
         else
         {
-            n_timesteps = inputs.front().shape().width_;
-            n_features = inputs.front().shape().depth_;
+            n_timesteps = inputs.front().shape().depth_;
+            n_features = inputs.front().shape().height_;
         }
 
         RowMajorMatrixXf in(n_timesteps, n_features);
@@ -163,7 +163,7 @@ class lstm_layer : public layer
         {
             for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
                 for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs.front().get(a_f, 0, a_t);
+                    in(EigenIndex(a_t), EigenIndex(a_f)) = inputs.front().get(a_t, a_f, 0);
         }
 
         RowMajorMatrixXf X = in * W;
@@ -189,7 +189,7 @@ class lstm_layer : public layer
         if (multi_inputs)
             lstm_result = {};
         else if (return_sequences_)
-            lstm_result = {tensor3(shape3(n_units_, 1, n_timesteps), float_type(0))};
+            lstm_result = {tensor3(shape3(n_timesteps, n_units_, 1), float_type(0))};
         else
             lstm_result = {tensor3(shape3(n_units_, 1, 1), float_type(0))};
 
@@ -217,7 +217,7 @@ class lstm_layer : public layer
             {
                 if (return_sequences_)
                     for (EigenIndex idx = 0; idx < n; ++idx)
-                        lstm_result.front().set(std::size_t(idx), 0, std::size_t(k), h(idx));
+                        lstm_result.front().set(, std::size_t(k), std::size_t(idx), 0, h(idx));
                 else if (k == EigenIndex(n_timesteps) - 1)
                     for (EigenIndex idx = 0; idx < n; ++idx)
                         lstm_result.front().set(std::size_t(idx), 0, 0, h(idx));

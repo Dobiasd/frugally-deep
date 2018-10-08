@@ -22,7 +22,7 @@ class upsampling_2d_layer : public layer
 {
 public:
     explicit upsampling_2d_layer(const std::string& name,
-        const shape2& scale_factor) :
+        const shape_hw& scale_factor) :
     layer(name),
     scale_factor_(scale_factor)
     {
@@ -34,13 +34,13 @@ protected:
         const auto& input = inputs.front();
         return {upsampling2d(input)};
     }
-    shape2 scale_factor_;
+    shape_hw scale_factor_;
     tensor3 upsampling2d(const tensor3& in_vol) const
     {
-        tensor3 out_vol(shape3(
-            in_vol.shape().depth_,
+        tensor3 out_vol(shape_hwc(
             in_vol.shape().height_ * scale_factor_.height_,
-            in_vol.shape().width_ * scale_factor_.width_), 0);
+            in_vol.shape().width_ * scale_factor_.width_,
+            in_vol.shape().depth_), 0);
         for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
         {
             for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
@@ -49,7 +49,7 @@ protected:
                 for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
-                    out_vol.set(z, y, x, in_vol.get(z, y_in, x_in));
+                    out_vol.set_yxz(y, x, z, in_vol.get_yxz(y_in, x_in, z));
                 }
             }
         }

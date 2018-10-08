@@ -18,9 +18,9 @@ class reshape_layer : public layer
 {
 public:
     explicit reshape_layer(const std::string& name,
-        const std::vector<int>& target_shape_channel_last)
+        const std::vector<int>& target_shape)
         : layer(name),
-        target_shape_channel_last_(target_shape_channel_last)
+        target_shape_(target_shape)
     {
     }
 protected:
@@ -28,9 +28,9 @@ protected:
     {
         assertion(input.size() == 1,
             "reshape layer needs exactly one input tensor");
-        return {reshape_tensor3(input[0], target_shape_channel_last_)};
+        return {reshape_tensor3(input[0], target_shape_)};
     }
-    std::vector<int> target_shape_channel_last_;
+    std::vector<int> target_shape_;
 };
 
 } } // namespace fdeep, namespace internal

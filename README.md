@@ -144,7 +144,7 @@ int main()
 {
     const auto model = fdeep::load_model("fdeep_model.json");
     const auto result = model.predict(
-        {fdeep::tensor3(fdeep::shape3(4, 1, 1), {1, 2, 3, 4})});
+        {fdeep::tensor3(fdeep::shape_hwc(1, 1, 4), {1, 2, 3, 4})});
     std::cout << fdeep::show_tensor3s(result) << std::endl;
 }
 ```
@@ -164,18 +164,18 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.96 s |        0.26 s |
-| `DenseNet169`     |     1.17 s |        0.28 s |
-| `DenseNet201`     |     1.50 s |        0.35 s |
-| `InceptionV3`     |     0.71 s |        0.35 s |
-| `MobileNet`       |     0.34 s |        0.06 s |
-| `MobileNetV2`     |     0.40 s |        0.06 s |
-| `NASNetLarge`     |     4.22 s |        2.40 s |
-| `NASNetMobile`    |     0.34 s |        0.16 s |
-| `ResNet50`        |     0.73 s |        0.22 s |
-| `VGG16`           |     0.66 s |        0.82 s |
-| `VGG19`           |     0.82 s |        0.98 s |
-| `Xception`        |     1.50 s |        0.56 s |
+| `DenseNet121`     |     0.96 s |        0.38 s |
+| `DenseNet169`     |     1.17 s |        0.42 s |
+| `DenseNet201`     |     1.50 s |        0.53 s |
+| `InceptionV3`     |     0.71 s |        0.46 s |
+| `MobileNet`       |     0.34 s |        0.17 s |
+| `MobileNetV2`     |     0.40 s |        0.17 s |
+| `NASNetLarge`     |     4.22 s |        5.11 s |
+| `NASNetMobile`    |     0.34 s |        0.38 s |
+| `ResNet50`        |     0.73 s |        0.31 s |
+| `VGG16`           |     0.66 s |        0.93 s |
+| `VGG19`           |     0.82 s |        1.01 s |
+| `Xception`        |     1.50 s |        1.38 s |
 
 Keras version: `2.2.2`
 
@@ -193,7 +193,7 @@ Guides for different ways to install frugally-deep can be found in [`INSTALL.md`
 Internals
 ---------
 
-frugally-deep uses `channels_first` (`depth/channels, height, width`) as its `image_data_format` internally. `convert_model.py` takes care of all necessary conversions.
+frugally-deep uses `channels_last` (`height, width, depth/channels`) as its `image_data_format` internally.
 From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
 
 In case you would like to use `double` instead of `float` for all calculations, simply do this:

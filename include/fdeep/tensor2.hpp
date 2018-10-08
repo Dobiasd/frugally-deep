@@ -8,8 +8,8 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2.hpp"
-#include "fdeep/tensor2_pos.hpp"
+#include "fdeep/shape_hw.hpp"
+#include "fdeep/tensor2_pos_yx.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -26,49 +26,41 @@ namespace fdeep { namespace internal
 class tensor2
 {
 public:
-    tensor2(const shape2& shape, const shared_float_vec& values) :
+    tensor2(const shape_hw& shape, const shared_float_vec& values) :
         shape_(shape),
         values_(values)
     {
         assertion(shape.area() == values->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, float_vec&& values) :
+    tensor2(const shape_hw& shape, float_vec&& values) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(std::move(values)))
     {
         assertion(shape.area() == values_->size(), "invalid number of values");
     }
-    tensor2(const shape2& shape, float_type value) :
+    tensor2(const shape_hw& shape, float_type value) :
         shape_(shape),
         values_(fplus::make_shared_ref<float_vec>(shape.area(), value))
     {
     }
 
-    const float_type& get(const tensor2_pos& pos) const
+    const float_type& get(const tensor2_pos_yx& pos) const
     {
         return (*values_)[idx(pos)];
     }
-    const float_type& get(std::size_t y, std::size_t x) const
+    const float_type& get_yx(std::size_t y, std::size_t x) const
     {
-        return get(tensor2_pos(y, x));
+        return get(tensor2_pos_yx(y, x));
     }
-    float_type& get(const tensor2_pos& pos)
-    {
-        return (*values_)[idx(pos)];
-    }
-    float_type& get(std::size_t y, std::size_t x)
-    {
-        return get(tensor2_pos(y, x));
-    }
-    void set(const tensor2_pos& pos, float_type value)
+    void set(const tensor2_pos_yx& pos, float_type value)
     {
         (*values_)[idx(pos)] = value;
     }
-    void set(std::size_t y, std::size_t x, float_type value)
+    void set_yx(std::size_t y, std::size_t x, float_type value)
     {
-        set(tensor2_pos(y, x), value);
+        set(tensor2_pos_yx(y, x), value);
     }
-    const shape2& shape() const
+    const shape_hw& shape() const
     {
         return shape_;
     }
@@ -78,13 +70,13 @@ public:
     }
 
 private:
-    std::size_t idx(const tensor2_pos& pos) const
+    std::size_t idx(const tensor2_pos_yx& pos) const
     {
         return
             pos.y_ * shape().width_ +
             pos.x_;
     };
-    shape2 shape_;
+    shape_hw shape_;
     shared_float_vec values_;
 };
 
@@ -126,7 +118,7 @@ inline tensor2 divide_tensor2_elems(const tensor2& m, float_type x)
     }, *m.as_vector()));
 }
 
-inline shared_float_vec eigen_mat_to_values(const RowMajorMatrixXf& m)
+inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
 {
     shared_float_vec result = fplus::make_shared_ref<float_vec>();
     result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
@@ -134,8 +126,8 @@ inline shared_float_vec eigen_mat_to_values(const RowMajorMatrixXf& m)
     return result;
 }
 
-inline RowMajorMatrixXf eigen_mat_from_values(std::size_t height, std::size_t width,
-    const float_vec& values)
+inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_vec& values)
 {
     assertion(height * width == values.size(), "invalid shape");
     RowMajorMatrixXf m(height, width);

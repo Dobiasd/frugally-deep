@@ -15,10 +15,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape2_variable
+class shape_hw_variable
 {
 public:
-    explicit shape2_variable(
+    explicit shape_hw_variable(
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width) :
             height_(height),
@@ -30,7 +30,7 @@ public:
     fplus::maybe<std::size_t> width_;
 };
 
-inline bool operator == (const shape2_variable& lhs, const shape2_variable& rhs)
+inline bool operator == (const shape_hw_variable& lhs, const shape_hw_variable& rhs)
 {
     return
         lhs.height_ == rhs.height_ &&

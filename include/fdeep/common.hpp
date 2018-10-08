@@ -80,6 +80,7 @@ inline void assertion(bool cond, const std::string& error)
 typedef std::vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
+using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 } } // namespace fdeep, namespace internal

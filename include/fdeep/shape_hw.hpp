@@ -15,10 +15,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape2
+class shape_hw
 {
 public:
-    explicit shape2(
+    explicit shape_hw(
         std::size_t height,
         std::size_t width) :
             height_(height),
@@ -34,7 +34,7 @@ public:
     std::size_t width_;
 };
 
-inline bool operator == (const shape2& lhs, const shape2& rhs)
+inline bool operator == (const shape_hw& lhs, const shape_hw& rhs)
 {
     return
         lhs.height_ == rhs.height_ &&

@@ -19,6 +19,7 @@
 #include "fdeep/shape_hw_variable.hpp"
 #include "fdeep/shape_hwc.hpp"
 #include "fdeep/shape_hwc_variable.hpp"
+#include "fdeep/recurrent_ops.hpp"
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_2d_layer.hpp"

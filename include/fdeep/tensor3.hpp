@@ -129,11 +129,11 @@ inline tensor3 tensor3_from_depth_slices(const std::vector<tensor2>& ms)
     std::size_t height = ms.front().shape().height_;
     std::size_t width = ms.front().shape().width_;
     tensor3 m(shape_hwc(height, width, ms.size()), 0);
-    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < m.shape().height_; ++y)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < m.shape().width_; ++x)
+            for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
                 m.set_yxz(y, x, z, ms[z].get_yx(y, x));
             }
@@ -151,11 +151,11 @@ inline std::vector<tensor2> tensor3_to_tensor_2_depth_slices(const tensor3& m)
         ms.push_back(tensor2(shape_hw(m.shape().height_, m.shape().width_), 0));
     }
 
-    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+    for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < m.shape().height_; ++y)
+        for (std::size_t x = 0; x < m.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < m.shape().width_; ++x)
+            for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
                 ms[z].set_yx(y, x, m.get_yxz(y, x, z));
             }
@@ -177,11 +177,11 @@ inline std::pair<tensor3_pos_yxz, tensor3_pos_yxz> tensor3_min_max_pos(
     tensor3_pos_yxz result_max(0, 0, 0);
     float_type value_max = std::numeric_limits<float_type>::lowest();
     float_type value_min = std::numeric_limits<float_type>::max();
-    for (std::size_t z = 0; z < vol.shape().depth_; ++z)
+    for (std::size_t y = 0; y < vol.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < vol.shape().height_; ++y)
+        for (std::size_t x = 0; x < vol.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < vol.shape().width_; ++x)
+            for (std::size_t z = 0; z < vol.shape().depth_; ++z)
             {
                 auto current_value = vol.get_yxz(y, x, z);
                 if (current_value > value_max)
@@ -211,11 +211,11 @@ inline tensor3 tensor3_swap_depth_and_height(const tensor3& in)
         in.shape().depth_,
         in.shape().width_,
         in.shape().height_), 0);
-    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
                 result.set_yxz(z, x, y, in.get_yxz(y, x, z));
             }
@@ -230,11 +230,11 @@ inline tensor3 tensor3_swap_depth_and_width(const tensor3& in)
         in.shape().height_,
         in.shape().depth_,
         in.shape().width_), 0);
-    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
                 result.set_yxz(y, z, x, in.get_yxz(y, x, z));
             }
@@ -326,11 +326,11 @@ inline tensor3 pad_tensor3(float_type val,
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,
         in.shape().depth_), val);
-    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
                 result.set_yxz(y + top_pad, x + left_pad, z, in.get_yxz(y, x, z));
             }
@@ -348,11 +348,11 @@ inline tensor3 crop_tensor3(
         in.shape().height_ - (top_crop + bottom_crop),
         in.shape().width_ - (left_crop + right_crop),
         in.shape().depth_), 0);
-    for (std::size_t z = 0; z < result.shape().depth_; ++z)
+    for (std::size_t y = 0; y < result.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < result.shape().height_; ++y)
+        for (std::size_t x = 0; x < result.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < result.shape().width_; ++x)
+            for (std::size_t z = 0; z < result.shape().depth_; ++z)
             {
                 result.set_yxz(y, x, z, in.get_yxz(y + top_crop, x + left_crop, z));
             }
@@ -369,11 +369,11 @@ inline tensor3 dilate_tensor3(const shape_hw& dilation_rate, const tensor3& in)
     }
 
     tensor3 result(dilate_shape_hwc(dilation_rate, in.shape()), 0);
-    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+    for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < in.shape().height_; ++y)
+        for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < in.shape().width_; ++x)
+            for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
                 result.set_yxz(
                     y * dilation_rate.height_,

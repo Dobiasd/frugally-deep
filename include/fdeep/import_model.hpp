@@ -899,11 +899,11 @@ inline void check_test_outputs(float_type epsilon,
         const auto& output = outputs[i];
         const auto& target = targets[i];
         assertion(output.shape() == target.shape(), "wrong output size");
-        for (std::size_t z = 0; z < output.shape().depth_; ++z)
+        for (std::size_t y = 0; y < output.shape().height_; ++y)
         {
-            for (std::size_t y = 0; y < output.shape().height_; ++y)
+            for (std::size_t x = 0; x < output.shape().width_; ++x)
             {
-                for (std::size_t x = 0; x < output.shape().width_; ++x)
+                for (std::size_t z = 0; z < output.shape().depth_; ++z)
                 {
                     if (!fplus::is_in_closed_interval_around(epsilon,
                         target.get_yxz(y, x, z), output.get_yxz(y, x, z)))

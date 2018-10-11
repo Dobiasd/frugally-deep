@@ -167,18 +167,18 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.96 s |        0.38 s |
-| `DenseNet169`     |     1.17 s |        0.42 s |
-| `DenseNet201`     |     1.50 s |        0.53 s |
-| `InceptionV3`     |     0.71 s |        0.46 s |
-| `MobileNet`       |     0.34 s |        0.17 s |
-| `MobileNetV2`     |     0.40 s |        0.17 s |
-| `NASNetLarge`     |     4.22 s |        5.11 s |
+| `DenseNet121`     |     0.96 s |        0.32 s |
+| `DenseNet169`     |     1.17 s |        0.35 s |
+| `DenseNet201`     |     1.50 s |        0.46 s |
+| `InceptionV3`     |     0.71 s |        0.38 s |
+| `MobileNet`       |     0.34 s |        0.16 s |
+| `MobileNetV2`     |     0.40 s |        0.16 s |
+| `NASNetLarge`     |     4.22 s |        4.73 s |
 | `NASNetMobile`    |     0.34 s |        0.38 s |
-| `ResNet50`        |     0.73 s |        0.31 s |
-| `VGG16`           |     0.66 s |        0.93 s |
-| `VGG19`           |     0.82 s |        1.01 s |
-| `Xception`        |     1.50 s |        1.38 s |
+| `ResNet50`        |     0.73 s |        0.27 s |
+| `VGG16`           |     0.66 s |        0.78 s |
+| `VGG19`           |     0.82 s |        0.97 s |
+| `Xception`        |     1.50 s |        1.20 s |
 
 Keras version: `2.2.2`
 

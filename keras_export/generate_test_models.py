@@ -19,7 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
-from keras.layers import LSTM
+from keras.layers import LSTM, Bidirectional
 from keras import backend as K
 
 __author__ = "Tobias Hermann"

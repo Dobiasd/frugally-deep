@@ -151,10 +151,13 @@ int main()
 
 When using `convert_model.py` a test case (input and corresponding output values) is generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as in Keras.
 
-In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided ([cimg example](https://gist.github.com/Dobiasd/21651861b73042762126e8eea52d9974), [opencv example](https://gist.github.com/Dobiasd/3140cfd9f539b6adb346e0b4a0ce157b), [tensor3_to_cv_mat.cpp](https://gist.github.com/Dobiasd/7ef20a0ad47d3f8dc1654a0ca5d1c77c)).
-In case you want to convert an `Eigen::Matrix` to `fdeep::tensor3`, have a look at the following two examples: [copy values](https://gist.github.com/Dobiasd/966334bb867d170b334c8374e635cb9b), [reuse memory](https://gist.github.com/Dobiasd/2852c81adbd57a57e89d2d0385cc4c06).
-If you have a normal `std::vector` with values and want to use it, check out [this explanation](https://gist.github.com/Dobiasd/8f41ef8bf4198ab535060a78b53f2008).
 
+### Some integration examples
+
+* In order to convert images to `fdeep::tensor3` the convenience function `tensor3_from_bytes` is provided ([cimg example](https://gist.github.com/Dobiasd/21651861b73042762126e8eea52d9974), [opencv example](https://gist.github.com/Dobiasd/3140cfd9f539b6adb346e0b4a0ce157b), [tensor3_to_cv_mat.cpp](https://gist.github.com/Dobiasd/7ef20a0ad47d3f8dc1654a0ca5d1c77c)).
+* In case you want to convert an `Eigen::Matrix` to `fdeep::tensor3`, have a look at the following two examples: [copy values](https://gist.github.com/Dobiasd/966334bb867d170b334c8374e635cb9b), [reuse memory](https://gist.github.com/Dobiasd/2852c81adbd57a57e89d2d0385cc4c06).
+* If you have a normal `std::vector` with values and want to use it, check out [this explanation](https://gist.github.com/Dobiasd/8f41ef8bf4198ab535060a78b53f2008).
+* [This gist](https://gist.github.com/Dobiasd/d75a957308f6a4874beddee0a812109b) explains the reasoning behind models with multiple tensors as output and/or input.
 
 
 Performance
@@ -164,18 +167,18 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.96 s |        0.38 s |
-| `DenseNet169`     |     1.17 s |        0.42 s |
-| `DenseNet201`     |     1.50 s |        0.53 s |
-| `InceptionV3`     |     0.71 s |        0.46 s |
-| `MobileNet`       |     0.34 s |        0.17 s |
-| `MobileNetV2`     |     0.40 s |        0.17 s |
-| `NASNetLarge`     |     4.22 s |        5.11 s |
+| `DenseNet121`     |     0.96 s |        0.32 s |
+| `DenseNet169`     |     1.17 s |        0.35 s |
+| `DenseNet201`     |     1.50 s |        0.46 s |
+| `InceptionV3`     |     0.71 s |        0.38 s |
+| `MobileNet`       |     0.34 s |        0.16 s |
+| `MobileNetV2`     |     0.40 s |        0.16 s |
+| `NASNetLarge`     |     4.22 s |        4.73 s |
 | `NASNetMobile`    |     0.34 s |        0.38 s |
-| `ResNet50`        |     0.73 s |        0.31 s |
-| `VGG16`           |     0.66 s |        0.93 s |
-| `VGG19`           |     0.82 s |        1.01 s |
-| `Xception`        |     1.50 s |        1.38 s |
+| `ResNet50`        |     0.73 s |        0.27 s |
+| `VGG16`           |     0.66 s |        0.78 s |
+| `VGG19`           |     0.82 s |        0.97 s |
+| `Xception`        |     1.50 s |        1.20 s |
 
 Keras version: `2.2.2`
 

@@ -36,11 +36,11 @@ FDEEP_FORCE_INLINE tensor3 average_pool_2d(
     const std::size_t out_width = conv_cfg.out_width_;
 
     tensor3 out(shape_hwc(out_height, out_width, in.shape().depth_), 0);
-    for (std::size_t z = 0; z < out.shape().depth_; ++z)
+    for (std::size_t y = 0; y < out.shape().height_; ++y)
     {
-        for (std::size_t y = 0; y < out.shape().height_; ++y)
+        for (std::size_t x = 0; x < out.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < out.shape().width_; ++x)
+            for (std::size_t z = 0; z < out.shape().depth_; ++z)
             {
                 float_type val = 0;
                 std::size_t divisor = 0;

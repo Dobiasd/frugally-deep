@@ -53,11 +53,11 @@ protected:
         const size_t depth = channels_shared ? 1 : input[0].shape().depth_;
 
         fdeep::tensor3 out(input[0].shape(), 1.0f);
-        for (std::size_t z = 0; z < out.shape().depth_; ++z)
+        for (std::size_t y = 0; y < out.shape().height_; ++y)
         {
-            for (std::size_t y = 0; y < out.shape().height_; ++y)
+            for (std::size_t x = 0; x < out.shape().width_; ++x)
             {
-                for (std::size_t x = 0; x < out.shape().width_; ++x)
+                for (std::size_t z = 0; z < out.shape().depth_; ++z)
                 {
                     if (input[0].get_yxz(y, x, z) > 0)
                     {

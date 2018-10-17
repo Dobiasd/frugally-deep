@@ -921,7 +921,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     if (type != "Activation" &&
         json_obj_has_member(data["config"], "activation")
         && type != "LSTM"
-        && type != "Bidirectional"))
+        && type != "Bidirectional")
     {
         result->set_activation(
             create_activation_layer_type_name(get_param, get_global_param, data,

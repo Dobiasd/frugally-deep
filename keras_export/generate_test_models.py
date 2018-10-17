@@ -138,7 +138,7 @@ def get_test_model_recurrent():
     input_shapes = [
         (17, 4),
         (1, 10),
-        (5, 10)
+        (20, 40)
     ]
 
     outputs = []
@@ -147,17 +147,17 @@ def get_test_model_recurrent():
 
     inp = PReLU()(inputs[0])
 
-    lstm = LSTM(units=4,
+    lstm = Bidirectional(LSTM(units=4,
                 return_sequences=True,
                 bias_initializer='random_uniform',  # default is zero use random to test computation
                 activation='tanh',
-                recurrent_activation='relu')(inp)
+                recurrent_activation='relu'), merge_mode='concat')(inp)
 
-    lstm2 = LSTM(units=6,
+    lstm2 = Bidirectional(LSTM(units=6,
                  return_sequences=True,
                  bias_initializer='random_uniform',
                  activation='elu',
-                 recurrent_activation='hard_sigmoid')(lstm)
+                 recurrent_activation='hard_sigmoid'), merge_mode='sum')(lstm)
 
     lstm3 = LSTM(units=10,
                  return_sequences=False,
@@ -167,21 +167,21 @@ def get_test_model_recurrent():
 
     outputs.append(lstm3)
 
-    conv1 = (Conv1D(1, 1, activation='sigmoid'))(inputs[1])
+    conv1 = (Conv1D(2, 1, activation='sigmoid'))(inputs[1])
     lstm4 = LSTM(units=15,
                 return_sequences=False,
-                bias_initializer='random_uniform',  # default is zero use random to test computation
+                bias_initializer='random_uniform',
                 activation='tanh',
                 recurrent_activation='elu')(conv1)
 
     dense = (Dense(23, activation='sigmoid'))(lstm4)
     outputs.append(dense)
 
-    lstm5 = LSTM(units=6,
+    lstm5 = Bidirectional(LSTM(units=6,
                  return_sequences=True,
                  bias_initializer='random_uniform',
-                 activation='elu',
-                 recurrent_activation='selu')(inputs[2])
+                 activation='tanh',
+                 recurrent_activation='sigmoid'), merge_mode='ave')(inputs[2])
 
     outputs.append(lstm5)
 
@@ -195,7 +195,6 @@ def get_test_model_recurrent():
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
     return model
-
 
 def get_test_model_variable():
     """Returns a small model for variably shaped input tensors."""

@@ -317,6 +317,26 @@ def show_lstm_layer(layer):
 
     return result
 
+def show_bidirectional_layer(layer):
+    """Serialize Bidirectional layer to dict"""
+    forward_weights = layer.forward_layer.get_weights()
+    assert len(forward_weights) == 2 or len(forward_weights) == 3
+
+    backward_weights = layer.backward_layer.get_weights()
+    assert len(backward_weights) == 2 or len(backward_weights) == 3
+
+    result = {'forward_weights': encode_floats(forward_weights[0]),
+              'forward_recurrent_weights': encode_floats(forward_weights[1]),
+              'backward_weights': encode_floats(backward_weights[0]),
+              'backward_recurrent_weights': encode_floats(backward_weights[1])}
+
+    if len(forward_weights) == 3:
+        result['forward_bias'] = encode_floats(forward_weights[2])
+    if len(backward_weights) == 3:
+        result['backward_bias'] = encode_floats(backward_weights[2])
+
+    return result
+
 def get_dict_keys(d):
     """Return keys of a dictionary"""
     return [key for key in d]
@@ -352,7 +372,8 @@ def get_all_weights(model):
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
         'PReLU': show_prelu_layer,
-        'LSTM': show_lstm_layer
+        'LSTM': show_lstm_layer,
+        'Bidirectional': show_bidirectional_layer
     }
     result = {}
     layers = model.layers

@@ -822,15 +822,53 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
                                         weights, recurrent_weights, bias);
 }
 
+inline layer_ptr create_bidirectional_layer(const get_param_f &get_param,
+                                            const get_global_param_f &,
+                                            const nlohmann::json &data,
+                                            const std::string &name)
+{
+    const std::string merge_mode = data["config"]["merge_mode"];
+    const std::size_t units = data["config"]["layer"]["config"]["units"];
+    const std::string unit_activation = data["config"]["layer"]["config"]["activation"];
+    const std::string recurrent_activation = data["config"]["layer"]["config"]["recurrent_activation"];
+    const bool use_bias = data["config"]["layer"]["config"]["use_bias"];
+    const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
+
+    RowMajorMatrixXf forward_bias(1, units * 4);
+    RowMajorMatrixXf backward_bias(1, units * 4);
+
+    if (use_bias)
+    {
+        forward_bias = eigen_row_major_mat_from_values(1, units * 4, decode_floats(get_param(name, "forward_bias")));
+        backward_bias = eigen_row_major_mat_from_values(1, units * 4, decode_floats(get_param(name, "backward_bias")));
+    }
+
+    const float_vec W_forward = decode_floats(get_param(name, "forward_weights"));
+    const float_vec W_backward = decode_floats(get_param(name, "backward_weights"));
+    const RowMajorMatrixXf forward_weights = eigen_row_major_mat_from_values(W_forward.size() / (units * 4), units * 4, W_forward);
+    const RowMajorMatrixXf backward_weights = eigen_row_major_mat_from_values(W_backward.size() / (units * 4), units * 4, W_backward);
+
+    const RowMajorMatrixXf forward_recurrent_weights = eigen_row_major_mat_from_values(units, units * 4, decode_floats(get_param(name, "forward_recurrent_weights")));
+    const RowMajorMatrixXf backward_recurrent_weights = eigen_row_major_mat_from_values(units, units * 4, decode_floats(get_param(name, "backward_recurrent_weights")));
+
+    const bool return_sequences = data["config"]["layer"]["config"]["return_sequences"];
+
+    return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
+                                                 recurrent_activation, wrapped_layer_type,
+                                                 use_bias, return_sequences,
+                                                 forward_weights, forward_recurrent_weights, forward_bias,
+                                                 backward_weights, backward_recurrent_weights, backward_bias);
+}
+
 inline layer_ptr create_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data)
 {
     const std::string name = data["name"];
 
     const std::unordered_map<std::string,
-            std::function<layer_ptr(const get_param_f&,
-                const get_global_param_f&, const nlohmann::json&,
-                const std::string&)>>
+                             std::function<layer_ptr(const get_param_f &,
+                                                     const get_global_param_f &, const nlohmann::json &,
+                                                     const std::string &)>>
         creators = {
             {"Model", create_model_layer},
             {"Conv1D", create_conv_2d_layer},
@@ -842,7 +880,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},
             {"LeakyReLU", create_leaky_relu_layer_isolated},
-            {"PReLU", create_prelu_layer },
+            {"PReLU", create_prelu_layer},
             {"ELU", create_elu_layer_isolated},
             {"ReLU", create_relu_layer_isolated},
             {"MaxPooling1D", create_max_pooling_2d_layer},
@@ -869,7 +907,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
             {"Reshape", create_reshape_layer},
-            {"LSTM", create_lstm_layer}
+            {"LSTM", create_lstm_layer},
+            {"Bidirectional", create_bidirectional_layer},
         };
 
     const std::string type = data["class_name"];
@@ -881,7 +920,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
 
     if (type != "Activation" &&
         json_obj_has_member(data["config"], "activation")
-        && type != "LSTM")
+        && type != "LSTM"
+        && type != "Bidirectional"))
     {
         result->set_activation(
             create_activation_layer_type_name(get_param, get_global_param, data,

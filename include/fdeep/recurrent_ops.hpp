@@ -180,5 +180,25 @@ inline tensor3s lstm_impl(const tensor3s &inputs,
 
     return lstm_result;
 }
-    
+
+inline tensor3s reverse_time_series_in_tensor3s(const tensor3s &ts)
+{
+    tensor3s result = {};
+    for (std::size_t i = 0; i < ts.size(); ++i)
+    {
+        tensor3 reversed = tensor3(ts.front().shape(), float_type(0.0));
+        std::size_t n = 0;
+        for (std::size_t x = ts.front().shape().width_; x-- > 0;)
+        {
+            for (std::size_t z = 0; z < ts.front().shape().depth_; ++z)
+                reversed.set_yxz(0, n, z, ts[i].get_yxz(0, x, z));
+
+            n++;
+        }
+
+        result.push_back(reversed);
+    }
+    return result;
+}
+
 } } // namespace fdeep, namespace internal

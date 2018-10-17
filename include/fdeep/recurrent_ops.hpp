@@ -12,32 +12,32 @@
 namespace fdeep { namespace internal
 {
 
-static float_type linear_activation(float_type x)
+float_type linear_activation(float_type x)
 {
     return x;
 }
 
-static float_type tanh_activation(float_type x)
+float_type tanh_activation(float_type x)
 {
     return std::tanh(x);
 }
 
-static float_type sigmoid_activation(float_type x)
+float_type sigmoid_activation(float_type x)
 {
     return 1 / (1 + std::exp(-x));
 }
 
-static float_type hard_sigmoid_activation(float_type x)
+float_type hard_sigmoid_activation(float_type x)
 {
     return static_cast<float_type>(std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
 }
 
-static float_type relu_activation(float_type x)
+float_type relu_activation(float_type x)
 {
     return std::max<float_type>(x, 0);
 }
 
-static float_type selu_activation(float_type x)
+float_type selu_activation(float_type x)
 {
     const float_type alpha =
     static_cast<float_type>(1.6732632423543772848170429916717);
@@ -46,7 +46,7 @@ static float_type selu_activation(float_type x)
     return scale * (x >= 0 ? x : alpha * (std::exp(x) - 1));
 }
 
-static float_type elu_activation(float_type x)
+float_type elu_activation(float_type x)
 {
     return x >= 0 ? x : std::exp(x) - 1;
 }

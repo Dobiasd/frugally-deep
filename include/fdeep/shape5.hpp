@@ -42,11 +42,23 @@ public:
         return size_dim_5_ * size_dim_4_ * height_ * width_ * depth_;
     }
 
-    shape2 without_depth() const
+    void assert_is_shape_2() const
+    {
+        assertion(
+            size_dim_5_ == 1 && size_dim_4_ == 1 && depth_ == 1,
+            "Only height and width may be not equal 1.");
+    }
+
+    void assert_is_shape_3() const
     {
         assertion(
             size_dim_5_ == 1 && size_dim_4_ == 1,
-            "Only last three dimensions may be non-zero.");
+            "Only height, width and depth may be not equal 1.");
+    }
+
+    shape2 without_depth() const
+    {
+        assert_is_shape_3();
         return shape2(height_, width_);
     }
 

@@ -10,8 +10,6 @@
 
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
-#include "fdeep/tensor2.hpp"
-#include "fdeep/tensor2_pos.hpp"
 #include "fdeep/tensor5.hpp"
 #include "fdeep/tensor5_pos.hpp"
 #include "fdeep/node.hpp"

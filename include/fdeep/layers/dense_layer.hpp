@@ -8,7 +8,7 @@
 
 #include "fdeep/layers/layer.hpp"
 
-#include "fdeep/tensor2.hpp"
+#include "fdeep/tensor5.hpp"
 
 #include <fplus/fplus.hpp>
 

@@ -8,7 +8,6 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/tensor2.hpp"
 #include "fdeep/tensor5_pos.hpp"
 #include "fdeep/shape5.hpp"
 
@@ -122,12 +121,16 @@ tensor5 transform_tensor5(F f, const tensor5& m)
     return tensor5(m.shape(), fplus::transform(f, *m.as_vector()));
 }
 
-inline tensor5 tensor5_from_depth_slices(const std::vector<tensor2>& ms)
+inline tensor5 tensor5_from_depth_slices(const std::vector<tensor5>& ms)
 {
-    assertion(!ms.empty(), "no tensor2s");
+    assertion(!ms.empty(), "no slices given");
     assertion(
-        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor2, shape, shape2), ms),
-        "all tensor2s must have the same size");
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor5, shape, shape5), ms),
+        "all slices must have the same size");
+    for (const auto& m : ms)
+    {
+        m.shape().assert_is_shape_2();
+    }
     std::size_t height = ms.front().shape().height_;
     std::size_t width = ms.front().shape().width_;
     tensor5 m(shape5(1, 1, height, width, ms.size()), 0);
@@ -137,20 +140,21 @@ inline tensor5 tensor5_from_depth_slices(const std::vector<tensor2>& ms)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                m.set_yxz(y, x, z, ms[z].get_yx(y, x));
+                m.set_yxz(y, x, z, ms[z].get_yxz(y, x, 0));
             }
         }
     }
     return m;
 }
 
-inline std::vector<tensor2> tensor5_to_tensor_2_depth_slices(const tensor5& m)
+inline std::vector<tensor5> tensor5_to_depth_slices(const tensor5& m)
 {
-    std::vector<tensor2> ms;
+    std::vector<tensor5> ms;
     ms.reserve(m.shape().depth_);
     for (std::size_t i = 0; i < m.shape().depth_; ++i)
     {
-        ms.push_back(tensor2(shape2(m.shape().height_, m.shape().width_), 0));
+        ms.push_back(tensor5(shape5(1, 1,
+            m.shape().height_, m.shape().width_, 1), 0));
     }
 
     for (std::size_t y = 0; y < m.shape().height_; ++y)
@@ -159,17 +163,11 @@ inline std::vector<tensor2> tensor5_to_tensor_2_depth_slices(const tensor5& m)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                ms[z].set_yx(y, x, m.get_yxz(y, x, z));
+                ms[z].set_yxz(y, x, 0, m.get_yxz(y, x, z));
             }
         }
     }
     return ms;
-}
-
-inline tensor5 tensor2_to_tensor5(const tensor2& m)
-{
-    return tensor5(shape5(1, 1, m.shape().height_, m.shape().width_, 1),
-        m.as_vector());
 }
 
 inline std::pair<tensor5_pos, tensor5_pos> tensor5_min_max_pos(
@@ -483,6 +481,23 @@ inline tensor5 max_tensor5s(const tensor5s& ts)
         result_values.push_back(max_val);
     }
     return tensor5(ts.front().shape(), std::move(result_values));
+}
+
+inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_vec& values)
+{
+    assertion(height * width == values.size(), "invalid shape");
+    RowMajorMatrixXf m(height, width);
+    std::memcpy(m.data(), values.data(), values.size() * sizeof(float_type));
+    return m;
+}
+
+inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
+{
+    shared_float_vec result = fplus::make_shared_ref<float_vec>();
+    result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
+    std::memcpy(result->data(), m.data(), result->size() * sizeof(float_type));
+    return result;
 }
 
 } // namespace internal

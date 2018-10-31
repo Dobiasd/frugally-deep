@@ -87,6 +87,9 @@ def get_test_model_small():
     outputs.append(Flatten()(inputs[7]))
     outputs.append(Flatten()(inputs[8]))
 
+    outputs.append(Activation('sigmoid')(inputs[7]))
+    outputs.append(Activation('sigmoid')(inputs[8]))
+
     # same as axis=-1
     outputs.append(Concatenate()([inputs[4], inputs[5]]))
     outputs.append(Concatenate(axis=3)([inputs[4], inputs[5]]))

@@ -26,9 +26,9 @@ protected:
     {
         return x >= 0 ? x : alpha * (std::exp(x) - 1);
     }
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
-        return transform_tensor3(
+        return transform_tensor5(
             fplus::bind_1st_of_2(activation_function, alpha_),
             in_vol);
     }

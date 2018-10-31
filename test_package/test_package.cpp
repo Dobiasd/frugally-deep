@@ -3,6 +3,6 @@
 
 int main()
 {
-    const fdeep::tensor3 t(fdeep::shape_hwc(1, 1, 4), {1, 2, 3, 4});
-    std::cout << fdeep::show_tensor3(t) << std::endl;
+    const fdeep::tensor5 t(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4});
+    std::cout << fdeep::show_tensor5(t) << std::endl;
 }

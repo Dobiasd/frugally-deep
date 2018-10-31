@@ -22,22 +22,22 @@ class upsampling_2d_layer : public layer
 {
 public:
     explicit upsampling_2d_layer(const std::string& name,
-        const shape_hw& scale_factor) :
+        const shape2& scale_factor) :
     layer(name),
     scale_factor_(scale_factor)
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override final
+    tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
         return {upsampling2d(input)};
     }
-    shape_hw scale_factor_;
-    tensor3 upsampling2d(const tensor3& in_vol) const
+    shape2 scale_factor_;
+    tensor5 upsampling2d(const tensor5& in_vol) const
     {
-        tensor3 out_vol(shape_hwc(
+        tensor5 out_vol(shape5(1, 1,
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);

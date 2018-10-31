@@ -12,8 +12,8 @@ TEST_CASE("test_model_small_test, load_model")
 {
     const auto model = fdeep::load_model("../test_model_small.json",
         true, fdeep::cout_logger, static_cast<fdeep::float_type>(0.00001));
-    const auto multi_inputs = fplus::generate<std::vector<fdeep::tensor3s>>(
-        [&]() -> fdeep::tensor3s {return model.generate_dummy_inputs();},
+    const auto multi_inputs = fplus::generate<std::vector<fdeep::tensor5s>>(
+        [&]() -> fdeep::tensor5s {return model.generate_dummy_inputs();},
         10);
     model.predict_multi(multi_inputs, false);
     model.predict_multi(multi_inputs, true);

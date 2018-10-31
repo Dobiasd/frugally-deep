@@ -21,7 +21,7 @@ namespace fdeep { namespace internal
 struct im2col_filter_matrix
 {
     ColMajorMatrixXf mat_;
-    shape_hwc filter_shape_;
+    shape5 filter_shape_;
     std::size_t filter_count_;
 };
 
@@ -29,7 +29,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::vector<filter>& filters)
 {
     assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(filter, shape, shape_hwc), filters),
+        fplus_c_mem_fn_t(filter, shape, shape5), filters),
         "all filters must have the same shape");
 
     const std::size_t fy = filters.front().shape().height_;
@@ -68,7 +68,7 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
 // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
 // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-inline tensor3 convolve_im2col(
+inline tensor5 convolve_im2col(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
@@ -76,7 +76,7 @@ inline tensor3 convolve_im2col(
     std::size_t offset_y,
     std::size_t offset_x,
     const im2col_filter_matrix& filter_mat,
-    const tensor3& in_padded)
+    const tensor5& in_padded)
 {
     const auto fy = filter_mat.filter_shape_.height_;
     const auto fx = filter_mat.filter_shape_.width_;
@@ -126,7 +126,7 @@ inline tensor3 convolve_im2col(
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
     out_mat_map.noalias() = filter_mat.mat_ * a;
 
-    return tensor3(shape_hwc(out_height, out_width, out_depth), res_vec);
+    return tensor5(shape5(1, 1, out_height, out_width, out_depth), res_vec);
 }
 
 enum class padding { valid, same };
@@ -144,11 +144,11 @@ struct convolution_config
 };
 
 inline convolution_config preprocess_convolution(
-    const shape_hw& filter_shape,
-    const shape_hw& strides,
+    const shape2& filter_shape,
+    const shape2& strides,
     padding pad_type,
     bool use_offset,
-    const shape_hwc& input_shape)
+    const shape5& input_shape)
 {
     // https://www.tensorflow.org/api_guides/python/nn#Convolution
     const int filter_height = static_cast<int>(filter_shape.height_);
@@ -209,12 +209,12 @@ inline convolution_config preprocess_convolution(
         out_height_size_t, out_width_size_t};
 }
 
-inline tensor3 convolve(
-    const shape_hw& strides,
+inline tensor5 convolve(
+    const shape2& strides,
     const padding& pad_type,
     bool use_offset,
     const im2col_filter_matrix& filter_mat,
-    const tensor3& input)
+    const tensor5& input)
 {
     assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
         "invalid filter depth");
@@ -228,7 +228,7 @@ inline tensor3 convolve(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    const auto in_padded = pad_tensor3(0,
+    const auto in_padded = pad_tensor5(0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 

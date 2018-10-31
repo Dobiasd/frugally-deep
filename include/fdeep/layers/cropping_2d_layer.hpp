@@ -29,11 +29,11 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        return {crop_tensor3(top_crop_, bottom_crop_, left_crop_, right_crop_,
+        return {crop_tensor5(top_crop_, bottom_crop_, left_crop_, right_crop_,
             input)};
     }
     std::size_t top_crop_;

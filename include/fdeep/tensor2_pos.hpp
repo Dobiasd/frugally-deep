@@ -15,10 +15,10 @@
 namespace fdeep { namespace internal
 {
 
-class tensor2_pos_yx
+class tensor2_pos
 {
 public:
-    explicit tensor2_pos_yx(
+    explicit tensor2_pos(
         std::size_t y,
         std::size_t x) :
             y_(y),

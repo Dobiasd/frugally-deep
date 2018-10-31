@@ -35,9 +35,9 @@ protected:
             ") for concatenate layer.");
         return 0;
     }
-    tensor3s apply_impl(const tensor3s& input) const override
+    tensor5s apply_impl(const tensor5s& input) const override
     {
-        return {concatenate_tensor3s(input, axis_)};
+        return {concatenate_tensor5s(input, axis_)};
     }
     std::int32_t axis_;
 };

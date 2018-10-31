@@ -61,9 +61,9 @@
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
-#include "fdeep/shape_hwc.hpp"
-#include "fdeep/shape_hwc_variable.hpp"
-#include "fdeep/tensor3.hpp"
+#include "fdeep/shape5.hpp"
+#include "fdeep/shape5_variable.hpp"
+#include "fdeep/tensor5.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -90,54 +90,95 @@ inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
     return fplus::just(result);
 }
 
-inline shape_hwc_variable create_shape_hwc_variable(const nlohmann::json& data)
+inline shape5_variable create_shape5_variable(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape_hwc_variable needs to be an array");
+    assertion(data.is_array(), "shape5_variable needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return shape_hwc_variable(fplus::nothing<std::size_t>(), fplus::nothing<std::size_t>(), create_maybe_size_t(data[0]));
+        return shape5_variable(
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            create_maybe_size_t(data[0]));
     if (data.size() == 2)
-        return shape_hwc_variable(fplus::nothing<std::size_t>(), create_maybe_size_t(data[0]), create_maybe_size_t(data[1]));
+        return shape5_variable(
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            create_maybe_size_t(data[0]),
+            create_maybe_size_t(data[1]));
     if (data.size() == 3)
-        return shape_hwc_variable(create_maybe_size_t(data[0]), create_maybe_size_t(data[1]), create_maybe_size_t(data[2]));
+        return shape5_variable(
+            fplus::nothing<std::size_t>(),
+            fplus::nothing<std::size_t>(),
+            create_maybe_size_t(data[0]),
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]));
     if (data.size() == 4)
-        return shape_hwc_variable(create_maybe_size_t(data[1]), create_maybe_size_t(data[2]), create_maybe_size_t(data[3]));
-    raise_error("shape_hwc_variable needs 1, 2 or 3 dimensions");
-    return shape_hwc_variable(
+        return shape5_variable(
+            fplus::nothing<std::size_t>(),
+            create_maybe_size_t(data[0]),
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]),
+            create_maybe_size_t(data[3]));
+    if (data.size() == 5)
+        return shape5_variable(
+            create_maybe_size_t(data[0]),
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]),
+            create_maybe_size_t(data[3]),
+            create_maybe_size_t(data[4]));
+     if (data.size() == 6) // todo: is this needed?
+        return shape5_variable(
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]),
+            create_maybe_size_t(data[3]),
+            create_maybe_size_t(data[4]),
+            create_maybe_size_t(data[5]));
+
+    raise_error("shape5_variable needs 1, 2, 3, 4 or 5 dimensions");
+    return shape5_variable(
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>()); // Should never be called
 }
 
-inline shape_hwc create_shape_hwc(const nlohmann::json& data)
+inline shape5 create_shape5(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape_hwc needs to be an array");
+    assertion(data.is_array(), "shape5 needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return shape_hwc(0, 0, data[0]);
+        return shape5(1, 1, 1, 1, data[0]);
     if (data.size() == 2)
-        return shape_hwc(0, data[0], data[1]);
+        return shape5(1, 1, 1, data[0], data[1]);
     if (data.size() == 3)
-        return shape_hwc(data[0], data[1], data[2]);
-    raise_error("shape_hwc needs 1, 2 or 3 dimensions");
-    return shape_hwc(0, 0, 0); // Should never be called
+        return shape5(1, 1, data[0], data[1], data[2]);
+    if (data.size() == 4)
+        return shape5(1, data[0], data[1], data[2], data[3]);
+    if (data.size() == 5)
+        return shape5(data[0], data[1], data[2], data[3], data[4]);
+    raise_error("shape5 needs 1, 2, 3, 4 or 5 dimensions");
+    return shape5(0, 0, 0, 0, 0); // Should never be called
 }
 
-inline shape_hw create_shape_hw(const nlohmann::json& data)
+inline shape2 create_shape2(const nlohmann::json& data)
 {
     if (data.is_array())
     {
         assertion(data.size() == 1 || data.size() == 2,
-            "invalid number of dimensions in shape_hw");
+            "invalid number of dimensions in shape2");
         if (data.size() == 1)
-            return shape_hw(1, data[0]);
+            return shape2(1, data[0]);
         else
-            return shape_hw(data[0], data[1]);
+            return shape2(data[0], data[1]);
     }
     else
     {
         const std::size_t width = data;
-        return shape_hw(1, width);
+        return shape2(1, width);
     }
 }
 
@@ -181,10 +222,10 @@ inline float_vec decode_floats(const nlohmann::json& data)
     return out;
 }
 
-inline tensor3 create_tensor3(const nlohmann::json& data)
+inline tensor5 create_tensor5(const nlohmann::json& data)
 {
-    const shape_hwc shape = create_shape_hwc(data["shape"]);
-    return tensor3(shape, decode_floats(data["values"]));
+    const shape5 shape = create_shape5(data["shape"]);
+    return tensor5(shape, decode_floats(data["values"]));
 }
 
 template <typename T, typename F>
@@ -196,9 +237,9 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
         return fplus::singleton_seq(f(data));
 }
 
-inline std::vector<shape_hwc_variable> create_shape_hwcs_variable(const nlohmann::json& data)
+inline std::vector<shape5_variable> create_shape5s_variable(const nlohmann::json& data)
 {
-    return create_vector<shape_hwc_variable>(create_shape_hwc_variable, data);
+    return create_vector<shape5_variable>(create_shape5_variable, data);
 }
 
 inline node_connection create_node_connection(const nlohmann::json& data)
@@ -259,8 +300,8 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
 
-    const shape_hw strides = create_shape_hw(data["config"]["strides"]);
-    const shape_hw dilation_rate = create_shape_hw(data["config"]["dilation_rate"]);
+    const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
     const auto filter_count = create_size_t(data["config"]["filters"]);
     float_vec bias(filter_count, 0);
@@ -270,12 +311,12 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     assertion(bias.size() == filter_count, "size of bias does not match");
 
     const float_vec weights = decode_floats(get_param(name, "weights"));
-    const shape_hw kernel_size = create_shape_hw(data["config"]["kernel_size"]);
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
-    const shape_hwc filter_shape(
+    const shape5 filter_shape(1, 1,
         kernel_size.height_, kernel_size.width_, filter_depths);
 
     const bool padding_valid_uses_offset_depth_1 =
@@ -300,8 +341,8 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
 
-    const shape_hw strides = create_shape_hw(data["config"]["strides"]);
-    const shape_hw dilation_rate = create_shape_hw(data["config"]["dilation_rate"]);
+    const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
     const auto filter_count = create_size_t(data["config"]["filters"]);
     float_vec bias(filter_count, 0);
@@ -314,7 +355,7 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
         get_param(name, "slice_weights"));
     const float_vec stack_weights = decode_floats(
         get_param(name, "stack_weights"));
-    const shape_hw kernel_size = create_shape_hw(data["config"]["kernel_size"]);
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     assertion(stack_weights.size() % filter_count == 0,
@@ -323,7 +364,7 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    const shape_hwc filter_shape(kernel_size.height_, kernel_size.width_, 1);
+    const shape5 filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
     const bool padding_valid_uses_offset_depth_1 =
         get_global_param("separable_conv2d_valid_offset_depth_1");
@@ -347,16 +388,16 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
 
-    const shape_hw strides = create_shape_hw(data["config"]["strides"]);
-    const shape_hw dilation_rate = create_shape_hw(data["config"]["dilation_rate"]);
+    const shape2 strides = create_shape2(data["config"]["strides"]);
+    const shape2 dilation_rate = create_shape2(data["config"]["dilation_rate"]);
 
     const float_vec slice_weights = decode_floats(
         get_param(name, "slice_weights"));
-    const shape_hw kernel_size = create_shape_hw(data["config"]["kernel_size"]);
+    const shape2 kernel_size = create_shape2(data["config"]["kernel_size"]);
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
-    const shape_hwc filter_shape(kernel_size.height_, kernel_size.width_, 1);
+    const shape5 filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
     const std::size_t filter_count = input_depth;
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
@@ -384,7 +425,7 @@ inline layer_ptr create_input_layer(
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
-    const auto input_shape = create_shape_hwc_variable(data["config"]["batch_input_shape"]);
+    const auto input_shape = create_shape5_variable(data["config"]["batch_input_shape"]);
     return std::make_shared<input_layer>(name, input_shape);
 }
 
@@ -418,8 +459,8 @@ inline layer_ptr create_max_pooling_2d_layer(
     const get_param_f&, const get_global_param_f& get_global_param,
     const nlohmann::json& data, const std::string& name)
 {
-    const auto pool_size = create_shape_hw(data["config"]["pool_size"]);
-    const auto strides = create_shape_hw(data["config"]["strides"]);
+    const auto pool_size = create_shape2(data["config"]["pool_size"]);
+    const auto strides = create_shape2(data["config"]["strides"]);
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
@@ -436,8 +477,8 @@ inline layer_ptr create_average_pooling_2d_layer(
     const get_param_f&, const get_global_param_f& get_global_param,
     const nlohmann::json& data, const std::string& name)
 {
-    const auto pool_size = create_shape_hw(data["config"]["pool_size"]);
-    const auto strides = create_shape_hw(data["config"]["strides"]);
+    const auto pool_size = create_shape2(data["config"]["pool_size"]);
+    const auto strides = create_shape2(data["config"]["strides"]);
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
@@ -468,7 +509,7 @@ inline layer_ptr create_upsampling_2d_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto scale_factor = create_shape_hw(data["config"]["size"]);
+    const auto scale_factor = create_shape2(data["config"]["size"]);
     return std::make_shared<upsampling_2d_layer>(name, scale_factor);
 }
 
@@ -869,8 +910,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
 
 struct test_case
 {
-    tensor3s input_;
-    tensor3s output_;
+    tensor5s input_;
+    tensor5s output_;
 };
 
 using test_cases = std::vector<test_case>;
@@ -880,8 +921,8 @@ inline test_case load_test_case(const nlohmann::json& data)
     assertion(data["inputs"].is_array(), "test needs inputs");
     assertion(data["outputs"].is_array(), "test needs outputs");
     return {
-        create_vector<tensor3>(create_tensor3, data["inputs"]),
-        create_vector<tensor3>(create_tensor3, data["outputs"])
+        create_vector<tensor5>(create_tensor5, data["inputs"]),
+        create_vector<tensor5>(create_tensor5, data["outputs"])
     };
 }
 
@@ -891,7 +932,7 @@ inline test_cases load_test_cases(const nlohmann::json& data)
 }
 
 inline void check_test_outputs(float_type epsilon,
-    const tensor3s& outputs, const tensor3s& targets)
+    const tensor5s& outputs, const tensor5s& targets)
 {
     assertion(outputs.size() == targets.size(), "invalid output count");
     for (std::size_t i = 0; i < outputs.size(); ++i)

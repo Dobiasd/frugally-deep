@@ -8,7 +8,7 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/tensor3.hpp"
+#include "fdeep/tensor5.hpp"
 
 #include "fdeep/layers/layer.hpp"
 
@@ -37,7 +37,7 @@ public:
             "layer names must be unique");
     }
 
-    tensor3 get_output(const layer_ptrs& layers, output_dict& output_cache,
+    tensor5 get_output(const layer_ptrs& layers, output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const override
     {
         // https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
@@ -47,7 +47,7 @@ public:
     }
 
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         output_dict output_cache;
 
@@ -63,7 +63,7 @@ protected:
         }
 
         const auto get_output = [this, &output_cache]
-            (const node_connection& conn) -> tensor3
+            (const node_connection& conn) -> tensor5
         {
             return get_layer(layers_, conn.layer_id_)->get_output(
                 layers_, output_cache, conn.node_idx_, conn.tensor_idx_);

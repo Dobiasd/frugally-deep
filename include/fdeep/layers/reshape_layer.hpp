@@ -24,11 +24,11 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& input) const override
+    tensor5s apply_impl(const tensor5s& input) const override
     {
         assertion(input.size() == 1,
             "reshape layer needs exactly one input tensor");
-        return {reshape_tensor3(input[0], target_shape_)};
+        return {reshape_tensor5(input[0], target_shape_)};
     }
     std::vector<int> target_shape_;
 };

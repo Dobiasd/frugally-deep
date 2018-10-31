@@ -26,9 +26,9 @@ protected:
     {
         return 1 / (1 + std::exp(-x));
     }
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
-        return transform_tensor3(activation_function, in_vol);
+        return transform_tensor5(activation_function, in_vol);
     }
 };
 

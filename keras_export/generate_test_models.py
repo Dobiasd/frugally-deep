@@ -35,6 +35,10 @@ def replace_none_with(value, shape):
 
 def get_shape_for_random_data(data_size, shape):
     """Include size of data to generate into shape."""
+    if len(shape) == 5:
+        return (data_size, shape[0], shape[1], shape[2], shape[3], shape[4])
+    if len(shape) == 4:
+        return (data_size, shape[0], shape[1], shape[2], shape[3])
     if len(shape) == 3:
         return (data_size, shape[0], shape[1], shape[2])
     if len(shape) == 2:
@@ -72,11 +76,16 @@ def get_test_model_small():
         (2, 3, 5),
         (2, 3, 5),
         (32, 32, 3),
+        (2, 3, 4, 5),
+        (2, 3, 4, 5, 6),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Flatten()(inputs[7]))
+    outputs.append(Flatten()(inputs[8]))
 
     # same as axis=-1
     outputs.append(Concatenate()([inputs[4], inputs[5]]))

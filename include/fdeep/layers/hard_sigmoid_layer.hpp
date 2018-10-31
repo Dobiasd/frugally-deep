@@ -27,9 +27,9 @@ protected:
         return static_cast<float_type>(
             std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
     };
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
-        return transform_tensor3(activation_function, in_vol);
+        return transform_tensor5(activation_function, in_vol);
     }
 };
 

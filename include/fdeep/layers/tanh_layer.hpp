@@ -21,13 +21,13 @@ public:
     {
     }
 protected:
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
         const auto activation_function = [](float_type x) -> float_type
         {
             return std::tanh(x);
         };
-        return transform_tensor3(activation_function, in_vol);
+        return transform_tensor5(activation_function, in_vol);
     }
 };
 

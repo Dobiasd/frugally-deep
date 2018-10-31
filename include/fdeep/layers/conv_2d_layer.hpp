@@ -8,8 +8,8 @@
 
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
-#include "fdeep/shape_hw.hpp"
-#include "fdeep/shape_hwc.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/shape5.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -25,13 +25,13 @@ class conv_2d_layer : public layer
 {
 public:
     explicit conv_2d_layer(
-            const std::string& name, const shape_hwc& filter_shape,
-            std::size_t k, const shape_hw& strides, padding p,
+            const std::string& name, const shape5& filter_shape,
+            std::size_t k, const shape2& strides, padding p,
             bool padding_valid_offset_depth_1,
             bool padding_same_offset_depth_1,
             bool padding_valid_offset_depth_2,
             bool padding_same_offset_depth_2,
-            const shape_hw& dilation_rate,
+            const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_im2col_filter_matrix(
@@ -48,7 +48,7 @@ public:
         assertion(strides.area() > 0, "invalid strides");
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
         const bool use_offset = inputs.front().shape().depth_ == 1 ?
@@ -60,7 +60,7 @@ protected:
             filters_, inputs.front())};
     }
     im2col_filter_matrix filters_;
-    shape_hw strides_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;
     bool padding_same_offset_depth_1_;

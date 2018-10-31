@@ -16,21 +16,21 @@ namespace fdeep { namespace internal
 class input_layer : public layer
 {
 public:
-    explicit input_layer(const std::string& name, const shape_hwc_variable& input_shape)
+    explicit input_layer(const std::string& name, const shape5_variable& input_shape)
         : layer(name), input_shape_(input_shape), output_()
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "need exactly one input");
         assertion(inputs.front().shape() == input_shape_, "invalid input size");
         return inputs;
     }
-    shape_hwc_variable input_shape_;
+    shape5_variable input_shape_;
 
     // provide initial tensor for computation
-    mutable fplus::maybe<tensor3> output_;
+    mutable fplus::maybe<tensor5> output_;
 };
 
 } } // namespace fdeep, namespace internal

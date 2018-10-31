@@ -22,13 +22,13 @@ public:
     }
 protected:
     float_type alpha_;
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
         auto activation_function = [this](float_type x) -> float_type
         {
             return x > 0 ? x : alpha_ * x;
         };
-        return transform_tensor3(activation_function, in_vol);
+        return transform_tensor5(activation_function, in_vol);
     }
 };
 

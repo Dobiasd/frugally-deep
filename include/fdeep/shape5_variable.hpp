@@ -54,7 +54,7 @@ public:
         assertion(
             size_dim_5_ == fplus::just<std::size_t>(1) &&
             size_dim_4_ == fplus::just<std::size_t>(1),
-            "Only last three dimensions may be non-zero.");
+            "Only height, width and depth may be not equal 1.");
         return shape2_variable(height_, width_);
     }
 

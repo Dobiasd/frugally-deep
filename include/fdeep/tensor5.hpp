@@ -77,10 +77,6 @@ public:
     {
         return shape_;
     }
-    const shape2 size_without_depth() const
-    {
-        return shape().without_depth();
-    }
     std::size_t depth() const
     {
         return shape().depth_;

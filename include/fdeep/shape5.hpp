@@ -81,7 +81,8 @@ inline shape5 make_shape5_with(
         fplus::just_with_default(default_shape.depth_, shape.depth_));
 }
 
-inline bool operator == (const shape5& lhs, const shape5_variable& rhs)
+inline bool shape5_equals_shape5_variable(
+    const shape5& lhs, const shape5_variable& rhs)
 {
     return
         (rhs.size_dim_5_.is_nothing() || lhs.size_dim_5_ == rhs.size_dim_5_.unsafe_get_just()) &&
@@ -91,14 +92,15 @@ inline bool operator == (const shape5& lhs, const shape5_variable& rhs)
         (rhs.depth_.is_nothing() || lhs.depth_ == rhs.depth_.unsafe_get_just());
 }
 
+inline bool operator == (const shape5& lhs, const shape5_variable& rhs)
+{
+    return shape5_equals_shape5_variable(lhs, rhs);
+}
+
 inline bool operator == (const std::vector<shape5>& lhss,
     const std::vector<shape5_variable>& rhss)
 {
-    return fplus::all(fplus::zip_with(
-        [](const shape5& lhs, const shape5_variable& rhs) -> bool
-        {
-            return lhs == rhs;
-        },
+    return fplus::all(fplus::zip_with(shape5_equals_shape5_variable,
         lhss, rhss));
 }
 
@@ -110,11 +112,6 @@ inline bool operator == (const shape5& lhs, const shape5& rhs)
         lhs.height_ == rhs.height_ &&
         lhs.width_ == rhs.width_ &&
         lhs.depth_ == rhs.depth_;
-}
-
-inline bool operator != (const shape5& lhs, const shape5& rhs)
-{
-    return !(lhs == rhs);
 }
 
 inline shape5 dilate_shape5(

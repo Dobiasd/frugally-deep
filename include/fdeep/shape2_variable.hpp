@@ -30,11 +30,4 @@ public:
     fplus::maybe<std::size_t> width_;
 };
 
-inline bool operator == (const shape2_variable& lhs, const shape2_variable& rhs)
-{
-    return
-        lhs.height_ == rhs.height_ &&
-        lhs.width_ == rhs.width_;
-}
-
 } } // namespace fdeep, namespace internal

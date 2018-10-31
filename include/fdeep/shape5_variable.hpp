@@ -37,27 +37,6 @@ public:
     {
     }
 
-    explicit shape5_variable(
-        fplus::maybe<std::size_t> height,
-        fplus::maybe<std::size_t> width,
-        fplus::maybe<std::size_t> depth) :
-            size_dim_5_(fplus::just<std::size_t>(1)),
-            size_dim_4_(fplus::just<std::size_t>(1)),
-            height_(height),
-            width_(width),
-            depth_(depth)
-    {
-    }
-
-    shape2_variable without_depth() const
-    {
-        assertion(
-            size_dim_5_ == fplus::just<std::size_t>(1) &&
-            size_dim_4_ == fplus::just<std::size_t>(1),
-            "Only height, width and depth may be not equal 1.");
-        return shape2_variable(height_, width_);
-    }
-
     fplus::maybe<std::size_t> size_dim_5_;
     fplus::maybe<std::size_t> size_dim_4_;
     fplus::maybe<std::size_t> height_;

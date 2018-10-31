@@ -39,14 +39,4 @@ public:
     std::size_t z_;
 };
 
-inline bool operator == (const tensor5_pos& lhs, const tensor5_pos& rhs)
-{
-    return
-        lhs.pos_dim_5_ == rhs.pos_dim_5_ &&
-        lhs.pos_dim_4_ == rhs.pos_dim_4_ &&
-        lhs.y_ == rhs.y_ &&
-        lhs.x_ == rhs.x_ &&
-        lhs.z_ == rhs.z_;
-}
-
 } } // namespace fdeep, namespace internal

@@ -84,6 +84,13 @@ def get_test_model_small():
 
     outputs = []
 
+    outputs.append(Dense(3)(inputs[2]))
+    outputs.append(Dense(3)(inputs[0]))
+    outputs.append(Dense(3)(inputs[1]))
+    outputs.append(Dense(3)(inputs[7]))
+
+    outputs.append(Flatten()(inputs[0]))
+    outputs.append(Flatten()(inputs[1]))
     outputs.append(Flatten()(inputs[7]))
     outputs.append(Flatten()(inputs[8]))
 
@@ -222,10 +229,19 @@ def get_test_model_full():
         (17, 1),
         (17, 4),
         (2, 3),
+        (2, 3, 4, 5),
+        (2, 3, 4, 5, 6),
     ]
+
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Flatten()(inputs[3]))
+    outputs.append(Flatten()(inputs[4]))
+    outputs.append(Flatten()(inputs[5]))
+    outputs.append(Flatten()(inputs[9]))
+    outputs.append(Flatten()(inputs[10]))
 
     for inp in inputs[6:8]:
         for padding in ['valid', 'same']:

@@ -44,25 +44,49 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         auto input = inputs.front();
-        assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
-            "input not flattened");
-        const auto bias_padded_input = bias_pad_input(input);
-        const auto result = bias_padded_input * params_;
-        assertion(result.rows() == 1, "invalid result size");
-        return {tensor5(shape5(1, 1, 1, 1, static_cast<std::size_t>(result.cols())),
-            eigen_row_major_mat_to_values(result))};
-    }
-    static RowMajorMatrixXf bias_pad_input(const tensor5& input)
-    {
-        assertion(input.shape().width_ == 1 && input.shape().height_ == 1,
-            "tensor not flattened");
-        RowMajorMatrixXf m(1, input.shape().depth_ + 1);
-        for (std::size_t z = 0; z < input.shape().depth_; ++z)
+        // According to the Keras documentation
+        // https://keras.io/layers/core/#dense
+        // "if the input to the layer has a rank greater than 2,
+        // then it is flattened prior to the initial dot product with kernel."
+        // But this seems to not be the case.
+        // Otherwise the following would need to be done:
+        // if (input.shape().get_not_one_dimension_count() > 1)
+        // {
+        //     input = flatten_tensor5(input);
+        // }
+        const auto input_parts = fplus::split_every(
+            input.shape().depth_, *input.as_vector());
+
+        float_vec result_values;
+        for (const auto& input_part : input_parts)
         {
-            m(0, static_cast<EigenIndex>(z)) =
-                input.get(tensor5_pos(0, 0, 0, 0, z));
+            assertion(input_part.size() == n_in_, "Invalid input value count.");
+            const auto bias_padded_input = bias_pad_input(input_part);
+            const auto result = bias_padded_input * params_;
+            assertion(result.rows() == 1, "invalid result size.");
+            result_values = fplus::append(
+                std::move(result_values),
+                *eigen_row_major_mat_to_values(result));
         }
-        m(0, static_cast<EigenIndex>(input.shape().depth_)) = 1;
+        assertion(result_values.size() % n_out_ == 0,
+            "Invalid number of output values.");
+        const fdeep::shared_float_vec shared_result_values(fplus::make_shared_ref<fdeep::float_vec>(result_values));
+        return {tensor5(shape5(
+            input.shape().size_dim_5_,
+            input.shape().size_dim_4_,
+            input.shape().height_,
+            input.shape().width_,
+            n_out_),
+            shared_result_values)};
+    }
+    static RowMajorMatrixXf bias_pad_input(const float_vec& input)
+    {
+        RowMajorMatrixXf m(1, input.size() + 1);
+        for (std::size_t z = 0; z < input.size(); ++z)
+        {
+            m(0, static_cast<EigenIndex>(z)) = input[z];
+        }
+        m(0, static_cast<EigenIndex>(input.size())) = 1;
         return m;
     }
     std::size_t n_in_;

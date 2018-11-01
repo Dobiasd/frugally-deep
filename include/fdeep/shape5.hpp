@@ -56,6 +56,17 @@ public:
             "Only height, width and depth may be not equal 1.");
     }
 
+    std::size_t get_not_one_dimension_count() const
+    {
+        std::size_t non_one_count = 0;
+        if (size_dim_5_ != 1) ++non_one_count;
+        if (size_dim_4_ != 1) ++non_one_count;
+        if (height_ != 1) ++non_one_count;
+        if (width_ != 1) ++non_one_count;
+        if (depth_ != 1) ++non_one_count;
+        return non_one_count;
+    }
+
     shape2 without_depth() const
     {
         assert_is_shape_3();

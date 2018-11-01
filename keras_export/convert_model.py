@@ -277,20 +277,8 @@ def show_batch_normalization_layer(layer):
     return result
 
 
-def is_flat_shape(shape):
-    """Check if only one dimension of shape is > 1"""
-    if shape[0] != None:
-        return False
-    if len(shape) == 2:
-        return True
-    if len(shape) == 3:
-        return False
-    return shape[1] == 1 and shape[2] == 1
-
-
 def show_dense_layer(layer):
     """Serialize dense layer to dict"""
-    assert is_flat_shape(layer.input_shape)
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 2

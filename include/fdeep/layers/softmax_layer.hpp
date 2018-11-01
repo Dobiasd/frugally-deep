@@ -41,7 +41,7 @@ protected:
                 float_type sum = 0.0f;
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    sum += output.get_yxz(y, x, z_class);
+                    sum += output.get(0, 0, y, x, z_class);
                 }
                 assertion(sum != 0 && !std::isinf(sum), "Invalid divisor in softmax layer. Try using\n"
                                                         "#define FDEEP_FLOAT_TYPE double\n"
@@ -51,7 +51,7 @@ protected:
                 // Divide the unnormalized values of each pixel by the stacks sum.
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    output.set_yxz(y, x, z_class, output.get_yxz(y, x, z_class) / sum);
+                    output.set(0, 0, y, x, z_class, output.get(0, 0, y, x, z_class) / sum);
                 }
             }
         }

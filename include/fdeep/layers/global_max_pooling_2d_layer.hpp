@@ -33,10 +33,10 @@ protected:
             {
                 for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
-                    val = std::max(val, in.get_yxz(y, x, z));
+                    val = std::max(val, in.get(0, 0, y, x, z));
                 }
             }
-            out.set_yxz(0, 0, z, val);
+            out.set(0, 0, 0, 0, z, val);
         }
         return out;
     }

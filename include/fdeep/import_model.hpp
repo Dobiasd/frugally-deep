@@ -947,7 +947,7 @@ inline void check_test_outputs(float_type epsilon,
                 for (std::size_t z = 0; z < output.shape().depth_; ++z)
                 {
                     if (!fplus::is_in_closed_interval_around(epsilon,
-                        target.get_yxz(y, x, z), output.get_yxz(y, x, z)))
+                        target.get(0, 0, y, x, z), output.get(0, 0, y, x, z)))
                     {
                         const std::string msg =
                             std::string("test failed: ") +
@@ -956,8 +956,8 @@ inline void check_test_outputs(float_type epsilon,
                             fplus::show(y) + "," +
                             fplus::show(x) + "," +
                             fplus::show(z) + " " +
-                            "value=" + fplus::show(output.get_yxz(y, x, z)) + " "
-                            "target=" + fplus::show(target.get_yxz(y, x, z));
+                            "value=" + fplus::show(output.get(0, 0, y, x, z)) + " "
+                            "target=" + fplus::show(target.get(0, 0, y, x, z));
                         internal::raise_error(msg);
                     }
                 }

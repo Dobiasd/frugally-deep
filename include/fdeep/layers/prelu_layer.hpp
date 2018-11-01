@@ -59,9 +59,9 @@ protected:
             {
                 for (std::size_t z = 0; z < out.shape().depth_; ++z)
                 {
-                    if (input[0].get_yxz(y, x, z) > 0)
+                    if (input[0].get(0, 0, y, x, z) > 0)
                     {
-                        out.set_yxz(y, x, z, input[0].get_yxz(y, x, z));
+                        out.set(0, 0, y, x, z, input[0].get(0, 0, y, x, z));
                     }
                     else
                     {
@@ -72,8 +72,8 @@ protected:
                             y_temp * width * depth +
                             x_temp * depth +
                             z_temp;
-                        out.set_yxz(y, x, z, (*alpha_)[pos] *
-                            input[0].get_yxz(y, x, z));
+                        out.set(0, 0, y, x, z, (*alpha_)[pos] *
+                            input[0].get(0, 0, y, x, z));
                     }
                 }
             }

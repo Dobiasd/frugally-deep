@@ -50,9 +50,10 @@ public:
     {
         return (*values_)[idx(pos)];
     }
-    float_type get_yxz(std::size_t y, std::size_t x, std::size_t z) const
+    float_type get(std::size_t pos_dim_5, std::size_t pos_dim_4,
+        std::size_t y, std::size_t x, std::size_t z) const
     {
-        return get(tensor5_pos(0, 0, y, x, z));
+        return get(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z));
     }
     float_type get_x_y_padded(float_type pad_value,
         int y, int x, std::size_t z) const
@@ -69,9 +70,10 @@ public:
     {
         (*values_)[idx(pos)] = value;
     }
-    void set_yxz(std::size_t y, std::size_t x, std::size_t z, float_type value)
+    void set(std::size_t pos_dim_5, std::size_t pos_dim_4,
+        std::size_t y, std::size_t x, std::size_t z, float_type value)
     {
-        set(tensor5_pos(0, 0, y, x, z), value);
+        set(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z), value);
     }
     const shape5& shape() const
     {
@@ -136,7 +138,7 @@ inline tensor5 tensor5_from_depth_slices(const std::vector<tensor5>& ms)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                m.set_yxz(y, x, z, ms[z].get_yxz(y, x, 0));
+                m.set(0, 0, y, x, z, ms[z].get(0, 0, y, x, 0));
             }
         }
     }
@@ -159,7 +161,7 @@ inline std::vector<tensor5> tensor5_to_depth_slices(const tensor5& m)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                ms[z].set_yxz(y, x, 0, m.get_yxz(y, x, z));
+                ms[z].set(0, 0, y, x, 0, m.get(0, 0, y, x, z));
             }
         }
     }
@@ -179,7 +181,7 @@ inline std::pair<tensor5_pos, tensor5_pos> tensor5_min_max_pos(
         {
             for (std::size_t z = 0; z < vol.shape().depth_; ++z)
             {
-                auto current_value = vol.get_yxz(y, x, z);
+                auto current_value = vol.get(0, 0, y, x, z);
                 if (current_value > value_max)
                 {
                     result_max = tensor5_pos(0, 0, y, x, z);
@@ -213,7 +215,7 @@ inline tensor5 tensor5_swap_depth_and_height(const tensor5& in)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set_yxz(z, x, y, in.get_yxz(y, x, z));
+                result.set(0, 0, z, x, y, in.get(0, 0, y, x, z));
             }
         }
     }
@@ -232,7 +234,7 @@ inline tensor5 tensor5_swap_depth_and_width(const tensor5& in)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set_yxz(y, z, x, in.get_yxz(y, x, z));
+                result.set(0, 0, y, z, x, in.get(0, 0, y, x, z));
             }
         }
     }
@@ -316,7 +318,7 @@ inline tensor5 pad_tensor5(float_type val,
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set_yxz(y + top_pad, x + left_pad, z, in.get_yxz(y, x, z));
+                result.set(0, 0, y + top_pad, x + left_pad, z, in.get(0, 0, y, x, z));
             }
         }
     }
@@ -338,7 +340,7 @@ inline tensor5 crop_tensor5(
         {
             for (std::size_t z = 0; z < result.shape().depth_; ++z)
             {
-                result.set_yxz(y, x, z, in.get_yxz(y + top_crop, x + left_crop, z));
+                result.set(0, 0, y, x, z, in.get(0, 0, y + top_crop, x + left_crop, z));
             }
         }
     }
@@ -359,11 +361,11 @@ inline tensor5 dilate_tensor5(const shape2& dilation_rate, const tensor5& in)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set_yxz(
+                result.set(0, 0,
                     y * dilation_rate.height_,
                     x * dilation_rate.width_,
                     z,
-                    in.get_yxz(y, x, z));
+                    in.get(0, 0, y, x, z));
             }
         }
     }

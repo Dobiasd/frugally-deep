@@ -55,7 +55,7 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
                         val = std::max(val, current);
                     }
                 }
-                out.set_yxz(y, x, z, val);
+                out.set(0, 0, y, x, z, val);
             }
         }
     }

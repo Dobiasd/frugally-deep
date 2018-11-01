@@ -48,7 +48,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
             {
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_y, b_x++) = filter.get_yxz(yf, xf, zf);
+                    b(b_y, b_x++) = filter.get(yf, xf, zf);
                 }
             }
         }
@@ -94,7 +94,7 @@ inline tensor5 convolve_im2col(
                 {
                     for (std::size_t zf = 0; zf < fz; ++zf)
                     {
-                        a(a_y++, a_x) = in_padded.get_yxz(
+                        a(a_y++, a_x) = in_padded.get(0, 0,
                                 offset_y + strides_y * y + yf,
                                 offset_x + strides_x * x + xf,
                                 zf);

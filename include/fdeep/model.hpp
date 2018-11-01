@@ -83,7 +83,7 @@ public:
         const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.volume() == 1,
             "invalid output shape");
-        return outputs.front().get_yxz(0, 0, 0);
+        return outputs.front().get(0, 0, 0, 0, 0);
     }
 
     const std::vector<shape5_variable>& get_input_shapes() const

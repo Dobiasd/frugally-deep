@@ -59,7 +59,7 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
                         }
                     }
                 }
-                out.set_yxz(y, x, z, val / static_cast<float_type>(divisor));
+                out.set(0, 0, y, x, z, val / static_cast<float_type>(divisor));
             }
         }
     }

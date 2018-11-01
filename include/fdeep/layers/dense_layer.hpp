@@ -7,7 +7,6 @@
 #pragma once
 
 #include "fdeep/layers/layer.hpp"
-
 #include "fdeep/tensor5.hpp"
 
 #include <fplus/fplus.hpp>
@@ -49,6 +48,7 @@ protected:
         // "if the input to the layer has a rank greater than 2,
         // then it is flattened prior to the initial dot product with kernel."
         // But this seems to not be the case.
+        // Instead it does this: https://stackoverflow.com/a/43237727/1866775
         // Otherwise the following would need to be done:
         // if (input.shape().get_not_one_dimension_count() > 1)
         // {
@@ -57,27 +57,29 @@ protected:
         const auto input_parts = fplus::split_every(
             input.shape().depth_, *input.as_vector());
 
-        float_vec result_values;
-        for (const auto& input_part : input_parts)
-        {
-            assertion(input_part.size() == n_in_, "Invalid input value count.");
-            const auto bias_padded_input = bias_pad_input(input_part);
-            const auto result = bias_padded_input * params_;
-            assertion(result.rows() == 1, "invalid result size.");
-            result_values = fplus::append(
-                std::move(result_values),
-                *eigen_row_major_mat_to_values(result));
-        }
+        const auto result_value_vectors = fplus::transform(
+            [this](const auto& input_part) -> float_vec
+            {
+                assertion(input_part.size() == n_in_,
+                    "Invalid input value count.");
+                const auto bias_padded_input = bias_pad_input(input_part);
+                const auto result = bias_padded_input * params_;
+                assertion(result.rows() == 1, "invalid result size.");
+                return *eigen_row_major_mat_to_values(result);
+            },
+            input_parts);
+
+        const auto result_values = fplus::concat(result_value_vectors);
         assertion(result_values.size() % n_out_ == 0,
             "Invalid number of output values.");
-        const fdeep::shared_float_vec shared_result_values(fplus::make_shared_ref<fdeep::float_vec>(result_values));
+
         return {tensor5(shape5(
             input.shape().size_dim_5_,
             input.shape().size_dim_4_,
             input.shape().height_,
             input.shape().width_,
             n_out_),
-            shared_result_values)};
+            fplus::make_shared_ref<fdeep::float_vec>(result_values))};
     }
     static RowMajorMatrixXf bias_pad_input(const float_vec& input)
     {

@@ -23,6 +23,9 @@ namespace fdeep { namespace internal
 class shape5
 {
 public:
+    // The outer (left-most) dimensions are not used for batch prediction.
+    // If you like to do multiple forward passes on a model at once,
+    // use fdeep::model::predict_multi instead.
     explicit shape5(
         std::size_t size_dim_5,
         std::size_t size_dim_4,

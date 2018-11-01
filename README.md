@@ -100,7 +100,7 @@ Layer types typically used in image recognition/generation are supported, making
 `TimeDistributed`,
 `Upsampling3D`,
 `any custom layers`,
-`None` as input/output shape
+`temporal` models
 
 
 Usage

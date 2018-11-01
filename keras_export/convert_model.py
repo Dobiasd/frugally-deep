@@ -43,7 +43,7 @@ def arr_as_arr5(arr):
         return arr.reshape(1, arr.shape[0], arr.shape[1], arr.shape[2], arr.shape[3])
     if depth == 5:
         return arr
-    if depth == 6 and arr.shape[0] in [None, 1]:
+    if depth == 6 and arr.shape[0] in [None, 1]: # todo: Is this still needed?
         return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')
@@ -107,8 +107,10 @@ def replace_none_with(value, shape):
 def gen_test_data(model):
     """Generate data for model verification test."""
 
-    def set_shape_idx_0_to_1(shape):
+    def set_shape_idx_0_to_1_if_none(shape):
         """Change first element in tuple to 1."""
+        if shape[0] is not None:
+            return shape
         shape_lst = list(shape)
         shape_lst[0] = 1
         shape = tuple(shape_lst)
@@ -117,8 +119,8 @@ def gen_test_data(model):
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
         return np.random.normal(
-            size=set_shape_idx_0_to_1(replace_none_with(42, \
-                layer.input_shape))).astype(np.float32)
+            size=replace_none_with(42, set_shape_idx_0_to_1_if_none(
+                layer.batch_input_shape))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 

@@ -81,7 +81,7 @@ protected:
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
             
-            const tensor5 result_backward_reversed = reverse_time_series_in_tensor5(result_backward.front());
+        const tensor5 result_backward_reversed = reverse_time_series_in_tensor5(result_backward.front());
         
         if (merge_mode_ == "concat")
         {

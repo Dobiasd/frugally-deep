@@ -15,19 +15,19 @@
 namespace fdeep { namespace internal
 {
 
-class tensor2_pos_yx
+class shape2_variable
 {
 public:
-    explicit tensor2_pos_yx(
-        std::size_t y,
-        std::size_t x) :
-            y_(y),
-            x_(x)
+    explicit shape2_variable(
+        fplus::maybe<std::size_t> height,
+        fplus::maybe<std::size_t> width) :
+            height_(height),
+            width_(width)
     {
     }
 
-    std::size_t y_;
-    std::size_t x_;
+    fplus::maybe<std::size_t> height_;
+    fplus::maybe<std::size_t> width_;
 };
 
 } } // namespace fdeep, namespace internal

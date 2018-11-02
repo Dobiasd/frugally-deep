@@ -8,8 +8,8 @@
 
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
-#include "fdeep/shape_hw.hpp"
-#include "fdeep/shape_hwc.hpp"
+#include "fdeep/shape2.hpp"
+#include "fdeep/shape5.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -27,13 +27,13 @@ class separable_conv_2d_layer : public layer
 public:
     explicit separable_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
-            const shape_hwc& filter_shape,
-            std::size_t k, const shape_hw& strides, padding p,
+            const shape5& filter_shape,
+            std::size_t k, const shape2& strides, padding p,
             bool padding_valid_offset_depth_1,
             bool padding_same_offset_depth_1,
             bool padding_valid_offset_depth_2,
             bool padding_same_offset_depth_2,
-            const shape_hw& dilation_rate,
+            const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
             const float_vec& bias_0,
@@ -43,8 +43,8 @@ public:
             generate_filters(dilation_rate, filter_shape,
                 input_depth, depthwise_weights, bias_0))),
         filters_pointwise_(generate_im2col_filter_matrix(
-            generate_filters(shape_hw(1, 1),
-                shape_hwc(1, 1, input_depth), k, pointwise_weights, bias))),
+            generate_filters(shape2(1, 1),
+                shape5(1, 1, 1, 1, input_depth), k, pointwise_weights, bias))),
         strides_(strides),
         padding_(p),
         padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
@@ -59,11 +59,11 @@ public:
             "invalid number of filters");
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
 
-        const auto input_slices = tensor3_to_tensor_2_depth_slices(inputs.front());
+        const auto input_slices = tensor5_to_depth_slices(inputs.front());
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");
@@ -75,27 +75,27 @@ protected:
             (padding_ == padding::same && padding_same_offset_depth_2_));
 
         const auto convolve_slice =
-            [&](const tensor2& slice, const im2col_filter_matrix& f) -> tensor3
+            [&](const tensor5& slice, const im2col_filter_matrix& f) -> tensor5
         {
             assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_,
-                use_offset, f, tensor2_to_tensor3(slice));
+                use_offset, f, slice);
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
         };
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid depthwise filter count");
-        const auto temp = concatenate_tensor3s_depth(fplus::zip_with(
+        const auto temp = concatenate_tensor5s_depth(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        return {convolve(shape_hw(1, 1), padding::valid, false,
+        return {convolve(shape2(1, 1), padding::valid, false,
             filters_pointwise_, temp)};
     }
 
     std::vector<im2col_filter_matrix> filters_depthwise_;
     im2col_filter_matrix filters_pointwise_;
-    shape_hw strides_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_offset_depth_1_;
     bool padding_same_offset_depth_1_;

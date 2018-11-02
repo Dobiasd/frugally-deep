@@ -30,36 +30,44 @@ def write_text_file(path, text):
         print(text, file=text_file)
 
 
-def arr_as_arr3(arr):
-    """Convert a n-tensor to a 3-tensor"""
+def arr_as_arr5(arr):
+    """Convert an n-tensor to a 5-tensor"""
     depth = len(arr.shape)
     if depth == 1:
-        return arr.reshape(1, 1, arr.shape[0])
+        return arr.reshape(1, 1, 1, 1, arr.shape[0])
     if depth == 2:
-        return arr.reshape(1, arr.shape[0], arr.shape[1])
+        return arr.reshape(1, 1, 1, arr.shape[0], arr.shape[1])
     if depth == 3:
+        return arr.reshape(1, 1, arr.shape[0], arr.shape[1], arr.shape[2])
+    if depth == 4:
+        return arr.reshape(1, arr.shape[0], arr.shape[1], arr.shape[2], arr.shape[3])
+    if depth == 5:
         return arr
-    if depth == 4 and arr.shape[0] in [None, 1]:
+    if depth == 6 and arr.shape[0] in [None, 1]: # todo: Is this still needed?
         return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')
 
 
-def get_layer_input_shape_shape3(layer):
+def get_layer_input_shape_shape5(layer):
     """Convert a keras shape to an fdeep shape"""
     shape = layer.input_shape[1:]
     depth = len(shape)
     if depth == 1:
-        return (1, 1, shape[0])
+        return (1, 1, 1, 1, shape[0])
     if depth == 2:
-        return (1, shape[0], shape[1])
+        return (1, 1, 1, shape[0], shape[1])
     if depth == 3:
+        return (1, 1, shape[0], shape[1], shape[2])
+    if depth == 4:
+        return (1, shape[0], shape[1], shape[2], shape[3])
+    if depth == 5:
         return shape
     else:
         raise ValueError('invalid number of dimensions')
 
 
-def show_tensor3(tens):
+def show_tensor5(tens):
     """Serialize 3-tensor to a dict"""
     values = tens.flatten()
     return {
@@ -68,9 +76,9 @@ def show_tensor3(tens):
     }
 
 
-def show_test_data_as_3tensor(arr):
+def show_test_data_as_tensor5(arr):
     """Serialize model test data"""
-    return show_tensor3(arr_as_arr3(arr))
+    return show_tensor5(arr_as_arr5(arr))
 
 
 def get_model_input_layers(model):
@@ -99,8 +107,10 @@ def replace_none_with(value, shape):
 def gen_test_data(model):
     """Generate data for model verification test."""
 
-    def set_shape_idx_0_to_1(shape):
+    def set_shape_idx_0_to_1_if_none(shape):
         """Change first element in tuple to 1."""
+        if shape[0] is not None:
+            return shape
         shape_lst = list(shape)
         shape_lst[0] = 1
         shape = tuple(shape_lst)
@@ -109,8 +119,8 @@ def gen_test_data(model):
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
         return np.random.normal(
-            size=set_shape_idx_0_to_1(replace_none_with(42, \
-                layer.input_shape))).astype(np.float32)
+            size=replace_none_with(42, set_shape_idx_0_to_1_if_none(
+                layer.batch_input_shape))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -128,8 +138,8 @@ def gen_test_data(model):
     print('Forward pass took {} s on average.'.format(duration_avg))
 
     return {
-        'inputs': list(map(show_test_data_as_3tensor, data_in)),
-        'outputs': list(map(show_test_data_as_3tensor, data_out))
+        'inputs': list(map(show_test_data_as_tensor5, data_in)),
+        'outputs': list(map(show_test_data_as_tensor5, data_out))
     }
 
 
@@ -269,20 +279,8 @@ def show_batch_normalization_layer(layer):
     return result
 
 
-def is_flat_shape(shape):
-    """Check if only one dimension of shape is > 1"""
-    if shape[0] != None:
-        return False
-    if len(shape) == 2:
-        return True
-    if len(shape) == 3:
-        return False
-    return shape[1] == 1 and shape[2] == 1
-
-
 def show_dense_layer(layer):
     """Serialize dense layer to dict"""
-    assert is_flat_shape(layer.input_shape)
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 2
@@ -488,9 +486,9 @@ def check_operation_offset(depth, eval_f, padding):
     return result == [1, 4]
 
 
-def get_shapes(tensor3s):
+def get_shapes(tensor5s):
     """Return shapes of a list of tensors"""
-    return [t['shape'] for t in tensor3s]
+    return [t['shape'] for t in tensor5s]
 
 
 def convert(in_path, out_path):
@@ -532,7 +530,7 @@ def convert(in_path, out_path):
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
     json_output['average_pooling_2d_same_offset'] =\
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
-    json_output['input_shapes'] = list(map(get_layer_input_shape_shape3, get_model_input_layers(model)))
+    json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
     json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
 

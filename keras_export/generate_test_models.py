@@ -19,7 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
-from keras.layers import LSTM, Bidirectional
+from keras.layers import LSTM, Bidirectional, TimeDistributed
 from keras import backend as K
 
 __author__ = "Tobias Hermann"
@@ -36,6 +36,10 @@ def replace_none_with(value, shape):
 
 def get_shape_for_random_data(data_size, shape):
     """Include size of data to generate into shape."""
+    if len(shape) == 5:
+        return (data_size, shape[0], shape[1], shape[2], shape[3], shape[4])
+    if len(shape) == 4:
+        return (data_size, shape[0], shape[1], shape[2], shape[3])
     if len(shape) == 3:
         return (data_size, shape[0], shape[1], shape[2])
     if len(shape) == 2:
@@ -73,12 +77,27 @@ def get_test_model_small():
         (2, 3, 5),
         (2, 3, 5),
         (32, 32, 3),
-        (10, 5),
-    ]
+        (2, 3, 4, 5),
+        (2, 3, 4, 5, 6),
+        ]
+
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Dense(3)(inputs[2]))
+    outputs.append(Dense(3)(inputs[0]))
+    outputs.append(Dense(3)(inputs[1]))
+    outputs.append(Dense(3)(inputs[7]))
+
+    outputs.append(Flatten()(inputs[0]))
+    outputs.append(Flatten()(inputs[1]))
+    outputs.append(Flatten()(inputs[7]))
+    outputs.append(Flatten()(inputs[8]))
+
+    outputs.append(Activation('sigmoid')(inputs[7]))
+    outputs.append(Activation('sigmoid')(inputs[8]))
 
     # same as axis=-1
     outputs.append(Concatenate()([inputs[4], inputs[5]]))
@@ -103,13 +122,14 @@ def get_test_model_small():
     outputs.append(PReLU()(LSTM(units=16,
                             activation='tanh',
                             recurrent_activation='hard_sigmoid',
-                            return_sequences=True)(inputs[7])))
+                            return_sequences=True)(inputs[0])))
 
     outputs.append(GlobalMaxPooling2D()(inputs[1]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[0]))
 
-    outputs.append(Conv1D(2, 3)(inputs[0]))
+    #outputs.append(Conv1D(2, 3)(inputs[0]))
+    outputs.append(TimeDistributed(Conv1D(2, 3))(inputs[1]))
 
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(center=False)(inputs[0]))
@@ -138,7 +158,8 @@ def get_test_model_recurrent():
     input_shapes = [
         (17, 4),
         (1, 10),
-        (20, 40)
+        (20, 40),
+        (6, 7, 10, 3)
     ]
 
     outputs = []
@@ -177,11 +198,13 @@ def get_test_model_recurrent():
     dense = (Dense(23, activation='sigmoid'))(lstm4)
     outputs.append(dense)
 
+    time_dist_1 = TimeDistributed(Conv2D(2, (3, 3), use_bias=True))(inputs[3])
+    flatten_1 = TimeDistributed(Flatten())(time_dist_1)
     lstm5 = Bidirectional(LSTM(units=6,
                  return_sequences=True,
                  bias_initializer='random_uniform',
                  activation='tanh',
-                 recurrent_activation='sigmoid'), merge_mode='ave')(inputs[2])
+                 recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1)
 
     outputs.append(lstm5)
 
@@ -195,6 +218,7 @@ def get_test_model_recurrent():
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
     return model
+
 
 def get_test_model_variable():
     """Returns a small model for variably shaped input tensors."""
@@ -278,10 +302,19 @@ def get_test_model_full():
         (17, 1),
         (17, 4),
         (2, 3),
+        (2, 3, 4, 5),
+        (2, 3, 4, 5, 6),
     ]
+
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Flatten()(inputs[3]))
+    outputs.append(Flatten()(inputs[4]))
+    outputs.append(Flatten()(inputs[5]))
+    outputs.append(Flatten()(inputs[9]))
+    outputs.append(Flatten()(inputs[10]))
 
     for inp in inputs[6:8]:
         for padding in ['valid', 'same']:

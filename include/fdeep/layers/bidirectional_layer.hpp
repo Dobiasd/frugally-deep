@@ -53,45 +53,51 @@ public:
     }
     
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override final
-    { 
-        tensor3s result_forward = {};
-        tensor3s result_backward = {};
-        tensor3s bidirectional_result = {};
+    tensor5s apply_impl(const tensor5s& inputs) const override final
+    {
+        const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor5, shape, shape5), inputs);
         
-        const tensor3s inputs_reversed = reverse_time_series_in_tensor3s(inputs);
+        // ensure that tensor5 shape is (1, 1, 1, seq_len, n_features)
+        assertion(inputs.front().shape().size_dim_5_ == 1
+                  && inputs.front().shape().size_dim_4_ == 1
+                  && inputs.front().shape().height_ == 1,
+                  "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
+        
+        const auto input = inputs.front();
+        
+        tensor5s result_forward = {};
+        tensor5s result_backward = {};
+        tensor5s bidirectional_result = {};
+        
+        const tensor5 input_reversed = reverse_time_series_in_tensor5(input);
         
         if (wrapped_layer_type_ == "LSTM")
         {
-            result_forward = lstm_impl(inputs, n_units_, use_bias_, return_sequences_,
+            result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_,
                                                   W_forward_, U_forward_, bias_forward_, activation_, recurrent_activation_);
-            result_backward = lstm_impl(inputs_reversed, n_units_, use_bias_, return_sequences_,
+            result_backward = lstm_impl(input_reversed, n_units_, use_bias_, return_sequences_,
                                                    W_backward_, U_backward_, bias_backward_, activation_, recurrent_activation_);
         }
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
             
-        const tensor3s result_backward_reversed = reverse_time_series_in_tensor3s(result_backward);
+            const tensor5 result_backward_reversed = reverse_time_series_in_tensor5(result_backward.front());
         
         if (merge_mode_ == "concat")
         {
-            for (std::size_t i = 0; i < result_forward.size(); ++i)
-                bidirectional_result.push_back(concatenate_tensor3s_depth({result_forward[i], result_backward_reversed[i]}));
+            bidirectional_result = {concatenate_tensor5s_depth({result_forward.front(), result_backward_reversed})};
         }
         else if (merge_mode_ == "sum")
         {
-            for (std::size_t i = 0; i < result_forward.size(); ++i)
-                bidirectional_result.push_back(sum_tensor3s({result_forward[i], result_backward_reversed[i]}));
+            bidirectional_result = {sum_tensor5s({result_forward.front(), result_backward_reversed})};
         }
         else if (merge_mode_ == "mul")
         {
-            for (std::size_t i = 0; i < result_forward.size(); ++i)
-                bidirectional_result.push_back(multiply_tensor3s({result_forward[i], result_backward_reversed[i]}));
+            bidirectional_result = {multiply_tensor5s({result_forward.front(), result_backward_reversed})};
         }
         else if (merge_mode_ == "ave")
         {
-            for (std::size_t i = 0; i < result_forward.size(); ++i)
-                bidirectional_result.push_back(average_tensor3s({result_forward[i], result_backward_reversed[i]}));
+            bidirectional_result = {average_tensor5s({result_forward.front(), result_backward_reversed})};
         }
         else
             raise_error("merge mode '" + merge_mode_ + "' not valid");

@@ -15,30 +15,31 @@
 namespace fdeep { namespace internal
 {
 
-class tensor3_pos_yxz
+class tensor5_pos
 {
 public:
-    explicit tensor3_pos_yxz(
+    // The dimensions are right-aligned (left-padded) compared to Keras.
+    // I.e., if you have a position (or shape) of (a, b) in Keras
+    // it corresponds to (0, 0, 0, a, b) in frugally-deep.
+    explicit tensor5_pos(
+        std::size_t pos_dim_5,
+        std::size_t pos_dim_4,
         std::size_t y,
         std::size_t x,
         std::size_t z) :
+            pos_dim_5_(pos_dim_5),
+            pos_dim_4_(pos_dim_4),
             y_(y),
             x_(x),
             z_(z)
     {
     }
 
+    std::size_t pos_dim_5_;
+    std::size_t pos_dim_4_;
     std::size_t y_;
     std::size_t x_;
     std::size_t z_;
 };
-
-inline bool operator == (const tensor3_pos_yxz& lhs, const tensor3_pos_yxz& rhs)
-{
-    return
-        lhs.y_ == rhs.y_ &&
-        lhs.x_ == rhs.x_ &&
-        lhs.z_ == rhs.z_;
-}
 
 } } // namespace fdeep, namespace internal

@@ -39,7 +39,7 @@ protected:
     float_vec gamma_;
     float_type epsilon_;
 
-    tensor3 apply_to_slices(const tensor3& input) const
+    tensor5 apply_to_slices(const tensor5& input) const
     {
         assertion(moving_mean_.size() == input.shape().depth_,
             "invalid beta");
@@ -58,7 +58,7 @@ protected:
             assertion(beta_.size() == input.shape().depth_, "invalid beta");
         }
 
-        tensor3 output(input.shape(), 0);
+        tensor5 output(input.shape(), 0);
         for (std::size_t z = 0; z < output.shape().depth_; ++z)
         {
             const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
@@ -66,21 +66,21 @@ protected:
             {
                 for (std::size_t x = 0; x < output.shape().width_; ++x)
                 {
-                    float_type val = input.get_yxz(y, x, z);
+                    float_type val = input.get(0, 0, y, x, z);
                     val -= moving_mean_[z];
                     if (use_gamma)
                         val *= gamma_[z];
                     val /= denom;
                     if (use_beta)
                         val += beta_[z];
-                    output.set_yxz(y, x, z, val);
+                    output.set(0, 0, y, x, z, val);
                 }
             }
         }
         return output;
     }
 
-    tensor3s apply_impl(const tensor3s& inputs) const override
+    tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();

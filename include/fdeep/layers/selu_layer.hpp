@@ -26,13 +26,13 @@ protected:
         static_cast<float_type>(1.6732632423543772848170429916717);
     const float_type scale_ =
         static_cast<float_type>(1.0507009873554804934193349852946);
-    tensor3 transform_input(const tensor3& in_vol) const override
+    tensor5 transform_input(const tensor5& in_vol) const override
     {
         auto activation_function = [this](float_type x) -> float_type
         {
             return scale_ * (x >= 0 ? x : alpha_ * (std::exp(x) - 1));
         };
-        return transform_tensor3(activation_function, in_vol);
+        return transform_tensor5(activation_function, in_vol);
     }
 };
 

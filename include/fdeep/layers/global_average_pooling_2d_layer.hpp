@@ -21,9 +21,9 @@ public:
     {
     }
 protected:
-    tensor3 pool(const tensor3& in) const override
+    tensor5 pool(const tensor5& in) const override
     {
-        tensor3 out(shape_hwc(1, 1, in.shape().depth_), 0);
+        tensor5 out(shape5(1, 1, 1, 1, in.shape().depth_), 0);
         for (std::size_t z = 0; z < in.shape().depth_; ++z)
         {
             float_type val = 0;
@@ -31,10 +31,10 @@ protected:
             {
                 for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
-                    val += in.get_yxz(y, x, z);
+                    val += in.get(0, 0, y, x, z);
                 }
             }
-            out.set_yxz(0, 0, z, val /
+            out.set(0, 0, 0, 0, z, val /
                 static_cast<float_type>(in.shape().without_depth().area()));
         }
         return out;

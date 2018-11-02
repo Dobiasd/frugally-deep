@@ -24,7 +24,7 @@ class pooling_2d_layer : public layer
 {
 public:
     explicit pooling_2d_layer(const std::string& name,
-        const shape_hw& pool_size, const shape_hw& strides, padding p,
+        const shape2& pool_size, const shape2& strides, padding p,
         bool padding_valid_uses_offset, bool padding_same_uses_offset) :
         layer(name),
         pool_size_(pool_size),
@@ -35,7 +35,7 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override final
+    tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
@@ -49,10 +49,10 @@ protected:
             (padding_ == padding::same && padding_same_uses_offset_);
     }
 
-    virtual tensor3 pool(const tensor3& input) const = 0;
+    virtual tensor5 pool(const tensor5& input) const = 0;
 
-    shape_hw pool_size_;
-    shape_hw strides_;
+    shape2 pool_size_;
+    shape2 strides_;
     padding padding_;
     bool padding_valid_uses_offset_;
     bool padding_same_uses_offset_;

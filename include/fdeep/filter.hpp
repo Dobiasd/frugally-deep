@@ -8,8 +8,8 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/tensor3.hpp"
-#include "fdeep/shape_hwc.hpp"
+#include "fdeep/tensor5.hpp"
+#include "fdeep/shape5.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -21,10 +21,10 @@ namespace fdeep { namespace internal
 class filter
 {
 public:
-    filter(const tensor3& m, float_type bias) : m_(m), bias_(bias)
+    filter(const tensor5& m, float_type bias) : m_(m), bias_(bias)
     {
     }
-    const shape_hwc& shape() const
+    const shape5& shape() const
     {
         return m_.shape();
     }
@@ -32,13 +32,13 @@ public:
     {
         return m_.shape().volume();
     }
-    const tensor3& get_tensor3() const
+    const tensor5& get_tensor5() const
     {
         return m_;
     }
-    float_type get_yxz(std::size_t y, size_t x, std::size_t z) const
+    float_type get(std::size_t y, size_t x, std::size_t z) const
     {
-        return m_.get_yxz(y, x, z);
+        return m_.get(0, 0, y, x, z);
     }
     float_type get_bias() const
     {
@@ -48,28 +48,28 @@ public:
     {
         assertion(weights.size() == m_.shape().volume(),
             "invalid parameter count");
-        m_ = tensor3(m_.shape(), float_vec(weights));
+        m_ = tensor5(m_.shape(), float_vec(weights));
         bias_ = bias;
     }
 private:
-    tensor3 m_;
+    tensor5 m_;
     float_type bias_;
 };
 
 typedef std::vector<filter> filter_vec;
 
-inline filter dilate_filter(const shape_hw& dilation_rate, const filter& undilated)
+inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
 {
-    return filter(dilate_tensor3(dilation_rate, undilated.get_tensor3()),
+    return filter(dilate_tensor5(dilation_rate, undilated.get_tensor5()),
         undilated.get_bias());
 }
 
 inline filter_vec generate_filters(
-    const shape_hw& dilation_rate,
-    const shape_hwc& filter_shape, std::size_t k,
+    const shape2& dilation_rate,
+    const shape5& filter_shape, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
-    filter_vec filters(k, filter(tensor3(filter_shape, 0), 0));
+    filter_vec filters(k, filter(tensor5(filter_shape, 0), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(

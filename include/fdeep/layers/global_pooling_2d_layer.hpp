@@ -27,13 +27,13 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& inputs) const override final
+    tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
         return {pool(input)};
     }
-    virtual tensor3 pool(const tensor3& input) const = 0;
+    virtual tensor5 pool(const tensor5& input) const = 0;
 };
 
 } } // namespace fdeep, namespace internal

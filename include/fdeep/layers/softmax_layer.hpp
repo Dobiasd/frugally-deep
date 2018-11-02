@@ -21,14 +21,14 @@ public:
     {
     }
 protected:
-    tensor3 transform_input(const tensor3& input) const override
+    tensor5 transform_input(const tensor5& input) const override
     {
         // Get unnormalized values of exponent function.
         const auto ex = [this](float_type x) -> float_type
         {
             return std::exp(x);
         };
-        auto output = transform_tensor3(ex, input);
+        auto output = transform_tensor5(ex, input);
 
         // Softmax function is applied along channel dimension.
         for (size_t y = 0; y < input.shape().height_; ++y)
@@ -41,7 +41,7 @@ protected:
                 float_type sum = 0.0f;
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    sum += output.get_yxz(y, x, z_class);
+                    sum += output.get(0, 0, y, x, z_class);
                 }
                 assertion(sum != 0 && !std::isinf(sum), "Invalid divisor in softmax layer. Try using\n"
                                                         "#define FDEEP_FLOAT_TYPE double\n"
@@ -51,7 +51,7 @@ protected:
                 // Divide the unnormalized values of each pixel by the stacks sum.
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    output.set_yxz(y, x, z_class, output.get_yxz(y, x, z_class) / sum);
+                    output.set(0, 0, y, x, z_class, output.get(0, 0, y, x, z_class) / sum);
                 }
             }
         }

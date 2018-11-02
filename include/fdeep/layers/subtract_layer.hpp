@@ -21,11 +21,11 @@ public:
     {
     }
 protected:
-    tensor3s apply_impl(const tensor3s& input) const override
+    tensor5s apply_impl(const tensor5s& input) const override
     {
         assertion(input.size() == 2,
             "subtract layer needs exactly two input tensors");
-        return {subtract_tensor3(input[0], input[1])};
+        return {subtract_tensor5(input[0], input[1])};
     }
 };
 

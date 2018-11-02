@@ -72,7 +72,7 @@ std::function<float_type(float_type)> get_activation_func(const std::string& act
     return {}; //should never be called
 }
 
-inline tensor3s lstm_impl(const tensor3s &inputs,
+inline tensor5s lstm_impl(const tensor5& input,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -88,37 +88,16 @@ inline tensor3s lstm_impl(const tensor3s &inputs,
     h.setZero();
     c.setZero();
 
-    std::size_t n_timesteps;
-    std::size_t n_features;
-
-    const bool multi_inputs = inputs.size() > 1;
-
-    if (multi_inputs)
-    {
-        n_timesteps = inputs.size();
-        n_features = inputs.front().shape().depth_;
-    }
-    else
-    {
-        n_timesteps = inputs.front().shape().width_;
-        n_features = inputs.front().shape().depth_;
-    }
+    std::size_t n_timesteps = input.shape().width_;
+    std::size_t n_features = input.shape().depth_;
 
     RowMajorMatrixXf in(n_timesteps, n_features);
 
     // write input to eigen matrix
-    if (multi_inputs)
-    {
-        for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-            for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-                in(EigenIndex(a_t), EigenIndex(a_f)) = inputs[a_t].get_yxz(0, 0, a_f);
-    }
-    else
-    {
-        for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-            for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-                in(EigenIndex(a_t), EigenIndex(a_f)) = inputs.front().get_yxz(0, a_t, a_f);
-    }
+
+    for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
+        for (std::size_t a_f = 0; a_f < n_features; ++a_f)
+            in(EigenIndex(a_t), EigenIndex(a_f)) = input.get(0, 0, 0, a_t, a_f);
 
     RowMajorMatrixXf X = in * W;
 
@@ -138,14 +117,12 @@ inline tensor3s lstm_impl(const tensor3s &inputs,
     // computing LSTM output
     const EigenIndex n = EigenIndex(n_units);
 
-    tensor3s lstm_result;
+    tensor5s lstm_result;
 
-    if (multi_inputs)
-        lstm_result = {};
-    else if (return_sequences)
-        lstm_result = {tensor3(shape_hwc(1, n_timesteps, n_units), float_type(0))};
+    if (return_sequences)
+        lstm_result = {tensor5(shape5(1, 1, 1, n_timesteps, n_units), float_type(0))};
     else
-        lstm_result = {tensor3(shape_hwc(1, 1, n_units), float_type(0))};
+        lstm_result = {tensor5(shape5(1, 1, 1, 1, n_units), float_type(0))};
 
     for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
     {
@@ -160,45 +137,31 @@ inline tensor3s lstm_impl(const tensor3s &inputs,
         c = f.array() * c.array() + i.array() * c_pre.array();
         h = o.array() * c.unaryExpr(act_func).array();
 
-        if (multi_inputs)
-        {
-            if (return_sequences)
-                lstm_result.push_back(tensor3(shape_hwc(1, 1, n_units), eigen_row_major_mat_to_values(h)));
-            else if (k == EigenIndex(n_timesteps) - 1)
-                lstm_result = {tensor3(shape_hwc(1, 1, n_units), eigen_row_major_mat_to_values(h))};
+        if (return_sequences)
+            for (EigenIndex idx = 0; idx < n; ++idx)
+                lstm_result.front().set(0, 0, 0, std::size_t(k), std::size_t(idx), h(idx));
+        else if (k == EigenIndex(n_timesteps) - 1)
+            for (EigenIndex idx = 0; idx < n; ++idx)
+                lstm_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
         }
-        else
-        {
-            if (return_sequences)
-                for (EigenIndex idx = 0; idx < n; ++idx)
-                    lstm_result.front().set_yxz(0, std::size_t(k), std::size_t(idx), h(idx));
-            else if (k == EigenIndex(n_timesteps) - 1)
-                for (EigenIndex idx = 0; idx < n; ++idx)
-                    lstm_result.front().set_yxz(0, 0, std::size_t(idx), h(idx));
-        }
-    }
+    
 
     return lstm_result;
 }
-
-inline tensor3s reverse_time_series_in_tensor3s(const tensor3s &ts)
-{
-    tensor3s result = {};
-    for (std::size_t i = 0; i < ts.size(); ++i)
+    
+inline tensor5 reverse_time_series_in_tensor5(const tensor5& ts)
     {
-        tensor3 reversed = tensor3(ts.front().shape(), float_type(0.0));
-        std::size_t n = 0;
-        for (std::size_t x = ts.front().shape().width_; x-- > 0;)
-        {
-            for (std::size_t z = 0; z < ts.front().shape().depth_; ++z)
-                reversed.set_yxz(0, n, z, ts[i].get_yxz(0, x, z));
-
-            n++;
-        }
-
-        result.push_back(reversed);
+            tensor5 reversed = tensor5(ts.shape(), float_type(0.0));
+            std::size_t n = 0;
+            for (std::size_t x =  ts.shape().width_; x-- > 0; )
+            {
+                for (std::size_t z = 0; z < ts.shape().depth_; ++z )
+                    reversed.set(0, 0, 0, n, z ,ts.get(0, 0, 0, x, z));
+                
+                n++;
+            }
+        
+        return reversed;
     }
-    return result;
-}
-
+    
 } } // namespace fdeep, namespace internal

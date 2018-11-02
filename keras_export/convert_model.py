@@ -335,6 +335,60 @@ def show_bidirectional_layer(layer):
 
     return result
 
+def show_time_distributed_layer(layer):
+    show_layer_functions = {
+        'Conv1D': show_conv_1d_layer,
+        'Conv2D': show_conv_2d_layer,
+        'SeparableConv2D': show_separable_conv_2d_layer,
+        'DepthwiseConv2D': show_depthwise_conv_2d_layer,
+        'BatchNormalization': show_batch_normalization_layer,
+        'Dense': show_dense_layer,
+        'PReLU': show_prelu_layer,
+        'LSTM': show_lstm_layer,
+        'Bidirectional': show_bidirectional_layer,
+    }
+
+    config = layer.get_config()
+    class_name = config['layer']['class_name']
+
+    if class_name in show_layer_functions:
+
+        layer_function = show_layer_functions[class_name]
+        attributes = dir(layer.layer)
+
+        class Copied(object):
+            pass
+
+        copied = Copied()
+
+        if len(layer.input_shape) == 3:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2])
+        elif len(layer.input_shape) == 4:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3])
+        elif len(layer.input_shape) == 5:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4])
+        elif len(layer.input_shape) == 6:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4], layer.input_shape[5])
+        else:
+            raise Exception('Wrong input shape')
+
+        for attr in attributes:
+            try:
+                if attr != 'input_shape' and attr != '__class__':
+                    setattr(copied, attr, getattr(layer.layer, attr))
+                elif attr == 'input_shape':
+                    setattr(copied, 'input_shape', input_shape_new)
+            except:
+                continue
+
+        setattr(copied, "output_shape", getattr(layer, "output_shape"))
+
+        return layer_function(copied)
+
+    else:
+        return None
+
+
 def get_dict_keys(d):
     """Return keys of a dictionary"""
     return [key for key in d]
@@ -371,7 +425,8 @@ def get_all_weights(model):
         'Dense': show_dense_layer,
         'PReLU': show_prelu_layer,
         'LSTM': show_lstm_layer,
-        'Bidirectional': show_bidirectional_layer
+        'Bidirectional': show_bidirectional_layer,
+        'TimeDistributed': show_time_distributed_layer
     }
     result = {}
     layers = model.layers
@@ -388,8 +443,14 @@ def get_all_weights(model):
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
-            if show_func:
+            if show_func and show_func(layer) != None:
                 result[name] = show_func(layer)
+            if show_func and layer_type == 'TimeDistributed':
+                if name not in result:
+                    result[name] = {}
+
+                result[name]['td_input_len'] = encode_floats(np.array([len(layer.input_shape) - 1], dtype=np.float32))
+                result[name]['td_output_len'] = encode_floats(np.array([len(layer.output_shape) - 1], dtype=np.float32))
     return result
 
 

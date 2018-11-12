@@ -303,6 +303,95 @@ def show_prelu_layer(layer):
     }
     return result
 
+def show_lstm_layer(layer):
+    """Serialize LSTM layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 2 or len(weights) == 3
+    result = {'weights': encode_floats(weights[0]),
+              'recurrent_weights': encode_floats(weights[1])}
+
+    if len(weights) == 3:
+        result['bias'] = encode_floats(weights[2])
+
+    return result
+
+def show_bidirectional_layer(layer):
+    """Serialize Bidirectional layer to dict"""
+    forward_weights = layer.forward_layer.get_weights()
+    assert len(forward_weights) == 2 or len(forward_weights) == 3
+
+    backward_weights = layer.backward_layer.get_weights()
+    assert len(backward_weights) == 2 or len(backward_weights) == 3
+
+    result = {'forward_weights': encode_floats(forward_weights[0]),
+              'forward_recurrent_weights': encode_floats(forward_weights[1]),
+              'backward_weights': encode_floats(backward_weights[0]),
+              'backward_recurrent_weights': encode_floats(backward_weights[1])}
+
+    if len(forward_weights) == 3:
+        result['forward_bias'] = encode_floats(forward_weights[2])
+    if len(backward_weights) == 3:
+        result['backward_bias'] = encode_floats(backward_weights[2])
+
+    return result
+
+def get_layer_functions_dict():
+    return {
+        'Conv1D': show_conv_1d_layer,
+        'Conv2D': show_conv_2d_layer,
+        'SeparableConv2D': show_separable_conv_2d_layer,
+        'DepthwiseConv2D': show_depthwise_conv_2d_layer,
+        'BatchNormalization': show_batch_normalization_layer,
+        'Dense': show_dense_layer,
+        'PReLU': show_prelu_layer,
+        'LSTM': show_lstm_layer,
+        'Bidirectional': show_bidirectional_layer,
+        'TimeDistributed': show_time_distributed_layer
+    }
+
+def show_time_distributed_layer(layer):
+    show_layer_functions = get_layer_functions_dict()
+    config = layer.get_config()
+    class_name = config['layer']['class_name']
+
+    if class_name in show_layer_functions:
+
+        if len(layer.input_shape) == 3:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2])
+        elif len(layer.input_shape) == 4:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3])
+        elif len(layer.input_shape) == 5:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4])
+        elif len(layer.input_shape) == 6:
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4], layer.input_shape[5])
+        else:
+            raise Exception('Wrong input shape')
+
+        layer_function = show_layer_functions[class_name]
+        attributes = dir(layer.layer)
+
+        class Copied_layer(object):
+            pass
+
+        copied_layer = Copied_layer()
+
+        for attr in attributes:
+            try:
+                if attr != 'input_shape' and attr != '__class__':
+                    setattr(copied_layer, attr, getattr(layer.layer, attr))
+                elif attr == 'input_shape':
+                    setattr(copied_layer, 'input_shape', input_shape_new)
+            except:
+                continue
+
+        setattr(copied_layer, "output_shape", getattr(layer, "output_shape"))
+
+        return layer_function(copied_layer)
+
+    else:
+        return None
+
+
 def get_dict_keys(d):
     """Return keys of a dictionary"""
     return [key for key in d]
@@ -330,15 +419,7 @@ def is_ascii(some_string):
 
 def get_all_weights(model):
     """Serialize all weights of the models layers"""
-    show_layer_functions = {
-        'Conv1D': show_conv_1d_layer,
-        'Conv2D': show_conv_2d_layer,
-        'SeparableConv2D': show_separable_conv_2d_layer,
-        'DepthwiseConv2D': show_depthwise_conv_2d_layer,
-        'BatchNormalization': show_batch_normalization_layer,
-        'Dense': show_dense_layer,
-        'PReLU': show_prelu_layer
-    }
+    show_layer_functions = get_layer_functions_dict()
     result = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
@@ -354,8 +435,14 @@ def get_all_weights(model):
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
-            if show_func:
+            if show_func and show_func(layer) != None:
                 result[name] = show_func(layer)
+            if show_func and layer_type == 'TimeDistributed':
+                if name not in result:
+                    result[name] = {}
+
+                result[name]['td_input_len'] = encode_floats(np.array([len(layer.input_shape) - 1], dtype=np.float32))
+                result[name]['td_output_len'] = encode_floats(np.array([len(layer.output_shape) - 1], dtype=np.float32))
     return result
 
 

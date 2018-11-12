@@ -19,6 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
+from keras.layers import LSTM, Bidirectional, TimeDistributed
 from keras import backend as K
 
 __author__ = "Tobias Hermann"
@@ -78,7 +79,8 @@ def get_test_model_small():
         (32, 32, 3),
         (2, 3, 4, 5),
         (2, 3, 4, 5, 6),
-    ]
+        ]
+
 
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -117,12 +119,16 @@ def get_test_model_small():
 
     outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
                                   activation='elu')(inputs[6])))
+    outputs.append(PReLU()(LSTM(units=16,
+                            activation='tanh',
+                            recurrent_activation='hard_sigmoid',
+                            return_sequences=True)(inputs[0])))
 
     outputs.append(GlobalMaxPooling2D()(inputs[1]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[0]))
 
-    outputs.append(Conv1D(2, 3)(inputs[0]))
+    outputs.append(TimeDistributed(Conv1D(2, 3))(inputs[1]))
 
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(center=False)(inputs[0]))
@@ -136,6 +142,74 @@ def get_test_model_small():
     outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+def get_test_model_recurrent():
+    """Returns a minimalistic test model for recurrent layers."""
+    input_shapes = [
+        (17, 4),
+        (1, 10),
+        (20, 40),
+        (6, 7, 10, 3)
+    ]
+
+    outputs = []
+
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    inp = PReLU()(inputs[0])
+
+    lstm = Bidirectional(LSTM(units=4,
+                return_sequences=True,
+                bias_initializer='random_uniform',  # default is zero use random to test computation
+                activation='tanh',
+                recurrent_activation='relu'), merge_mode='concat')(inp)
+
+    lstm2 = Bidirectional(LSTM(units=6,
+                 return_sequences=True,
+                 bias_initializer='random_uniform',
+                 activation='elu',
+                 recurrent_activation='hard_sigmoid'), merge_mode='sum')(lstm)
+
+    lstm3 = LSTM(units=10,
+                 return_sequences=False,
+                 bias_initializer='random_uniform',
+                 activation='selu',
+                 recurrent_activation='sigmoid')(lstm2)
+
+    outputs.append(lstm3)
+
+    conv1 = (Conv1D(2, 1, activation='sigmoid'))(inputs[1])
+    lstm4 = LSTM(units=15,
+                return_sequences=False,
+                bias_initializer='random_uniform',
+                activation='tanh',
+                recurrent_activation='elu')(conv1)
+
+    dense = (Dense(23, activation='sigmoid'))(lstm4)
+    outputs.append(dense)
+
+    time_dist_1 = TimeDistributed(Conv2D(2, (3, 3), use_bias=True))(inputs[3])
+    flatten_1 = TimeDistributed(Flatten())(time_dist_1)
+
+    outputs.append(Bidirectional(LSTM(units=6,
+                 return_sequences=True,
+                 bias_initializer='random_uniform',
+                 activation='tanh',
+                 recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1))
+
+    outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
+    outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -462,6 +536,7 @@ def main():
 
         get_model_functions = {
             'small': get_test_model_small,
+            'recurrent': get_test_model_recurrent,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
             'full': get_test_model_full

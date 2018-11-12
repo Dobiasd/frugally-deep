@@ -168,6 +168,130 @@ inline std::vector<tensor5> tensor5_to_depth_slices(const tensor5& m)
     return ms;
 }
 
+inline tensor5s tensor5_to_tensor5s_width_slices(const tensor5& m)
+{
+    tensor5s ms;
+    ms.reserve(m.shape().width_);
+    for (std::size_t i = 0; i < m.shape().width_; ++i)
+    {
+        ms.push_back(tensor5(shape5(m.shape().size_dim_5_,
+                                    m.shape().size_dim_4_,
+                                    m.shape().height_,
+                                    1,
+                                    m.shape().depth_), 0));
+    }
+    for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < m.shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < m.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < m.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+                    {
+                        ms[x].set(tensor5_pos(dim5, dim4, y, 0, z), m.get(tensor5_pos(dim5, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return ms;
+}
+
+inline tensor5s tensor5_to_tensor5s_height_slices(const tensor5& m)
+{
+    tensor5s ms;
+    ms.reserve(m.shape().height_);
+    for (std::size_t i = 0; i < m.shape().height_; ++i)
+    {
+        ms.push_back(tensor5(shape5(m.shape().size_dim_5_,
+                                    m.shape().size_dim_4_,
+                                    1,
+                                    m.shape().width_,
+                                    m.shape().depth_), 0));
+    }
+    for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < m.shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < m.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < m.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+                    {
+                        ms[y].set(tensor5_pos(dim5, dim4, 0, x, z), m.get(tensor5_pos(dim5, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return ms;
+}
+
+inline tensor5s tensor5_to_tensor5s_dim4_slices(const tensor5& m)
+{
+    tensor5s ms;
+    ms.reserve(m.shape().size_dim_4_);
+    for (std::size_t i = 0; i < m.shape().size_dim_4_; ++i)
+    {
+        ms.push_back(tensor5(shape5(m.shape().size_dim_5_,
+                                    1,
+                                    m.shape().height_,
+                                    m.shape().width_,
+                                    m.shape().depth_), 0));
+    }
+    for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < m.shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < m.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < m.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+                    {
+                        ms[dim4].set(tensor5_pos(dim5, 0, y, x, z), m.get(tensor5_pos(dim5, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return ms;
+}
+
+inline tensor5s tensor5_to_tensor5s_dim5_slices(const tensor5& m)
+{
+    tensor5s ms;
+    ms.reserve(m.shape().size_dim_5_);
+    for (std::size_t i = 0; i < m.shape().size_dim_5_; ++i)
+    {
+        ms.push_back(tensor5(shape5(1,
+                                    m.shape().size_dim_4_,
+                                    m.shape().height_,
+                                    m.shape().width_,
+                                    m.shape().depth_), 0));
+    }
+    for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < m.shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < m.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < m.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+                    {
+                        ms[dim5].set(tensor5_pos(0, dim4, y, x, z), m.get(tensor5_pos(dim5, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return ms;
+}
+
 inline std::pair<tensor5_pos, tensor5_pos> tensor5_min_max_pos(
     const tensor5& vol)
 {
@@ -241,6 +365,58 @@ inline tensor5 tensor5_swap_depth_and_width(const tensor5& in)
     return result;
 }
 
+inline tensor5 concatenate_tensor5s_dim4(const tensor5s& in)
+{
+    tensor5 result(shape5(in.front().shape().size_dim_5_,
+                          in.size(),
+                          in.front().shape().height_,
+                          in.front().shape().width_,
+                          in.front().shape().depth_), 0);
+    for (std::size_t dim5 = 0; dim5 < in.front().shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < in.size(); ++dim4)
+        {
+            for (std::size_t y = 0; y < in.front().shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < in.front().shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < in.front().shape().depth_; ++z)
+                    {
+                        result.set(tensor5_pos(dim5, dim4, y, x, z), in[dim4].get(tensor5_pos(dim5, 0, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+inline tensor5 concatenate_tensor5s_dim5(const tensor5s& in)
+{
+    tensor5 result(shape5(in.size(),
+                          in.front().shape().size_dim_4_,
+                          in.front().shape().height_,
+                          in.front().shape().width_,
+                          in.front().shape().depth_), 0);
+    for (std::size_t dim5 = 0; dim5 < in.size(); ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < in.front().shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < in.front().shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < in.front().shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < in.front().shape().depth_; ++z)
+                    {
+                        result.set(tensor5_pos(dim5, dim4, y, x, z), in[dim5].get(tensor5_pos(0, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
 inline tensor5 concatenate_tensor5s_height(const tensor5s& ts)
 {
     assertion(fplus::all_the_same_on(
@@ -292,6 +468,14 @@ inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
     if (axis == 2)
     {
         return concatenate_tensor5s_width(ts);
+    }
+    if (axis == 3)
+    {
+        return concatenate_tensor5s_dim4(ts);
+    }
+    if (axis == 4)
+    {
+        return concatenate_tensor5s_dim5(ts);
     }
     assertion(axis == 0, "Invalid axis (" + std::to_string(axis) +
         ") for tensor concatenation.");

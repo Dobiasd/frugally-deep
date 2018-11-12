@@ -17,6 +17,7 @@
 #include "fdeep/shape2_variable.hpp"
 #include "fdeep/shape5.hpp"
 #include "fdeep/shape5_variable.hpp"
+#include "fdeep/recurrent_ops.hpp"
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_2d_layer.hpp"
@@ -52,6 +53,9 @@
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
+#include "fdeep/layers/lstm_layer.hpp"
+#include "fdeep/layers/bidirectional_layer.hpp"
+#include "fdeep/layers/time_distributed_layer.hpp"
 
 #include "fdeep/import_model.hpp"
 

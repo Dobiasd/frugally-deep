@@ -51,8 +51,11 @@ make && sudo make install
 cd ../..
 
 # build unit tests
+cd frugally-deep
+mkdir -p build && cd build
 cmake -DFDEEP_BUILD_UNITTEST=ON ..
 make unittest
+cd ../..
 ```
 
 Or if you would like to test exhaustively (and have plenty of time):

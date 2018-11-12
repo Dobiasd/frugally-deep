@@ -76,12 +76,15 @@ inline tensor5s lstm_impl(const tensor5& input,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
-                          const RowMajorMatrixXf& W,
-                          const RowMajorMatrixXf& U,
-                          const RowMajorMatrixXf& bias,
+                          const float_vec& weights,
+                          const float_vec& recurrent_weights,
+                          const float_vec& bias,
                           const std::string& activation,
                           const std::string& recurrent_activation)
 {
+    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
+    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
+    
     // initialize cell output states h, and cell memory states c for t-1 with zeros
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
@@ -105,7 +108,7 @@ inline tensor5s lstm_impl(const tensor5& input,
     {
         // define eigen vector type to be able to use broadcasting
         typedef Eigen::Matrix<float_type, 1, Eigen::Dynamic> Vector_Xf;
-        Vector_Xf b = bias;
+        Vector_Xf b = eigen_row_major_mat_from_values(1, n_units * 4, bias);
 
         X.rowwise() += b;
     }

@@ -26,17 +26,17 @@ class lstm_layer : public layer
                         const std::string& recurrent_activation,
                         const bool use_bias,
                         const bool return_sequences,
-                        const RowMajorMatrixXf& W,
-                        const RowMajorMatrixXf& U,
-                        const RowMajorMatrixXf& bias)
+                        const float_vec& weights,
+                        const float_vec& recurrent_weights,
+                        const float_vec& bias)
         : layer(name),
           n_units_(n_units),
           activation_(activation),
           recurrent_activation_(recurrent_activation),
           use_bias_(use_bias),
           return_sequences_(return_sequences),
-          W_(W),
-          U_(U),
+          weights_(weights),
+          recurrent_weights_(recurrent_weights),
           bias_(bias)
     {
     }
@@ -54,7 +54,7 @@ class lstm_layer : public layer
 
         const auto input = inputs.front();
 
-        return lstm_impl(input, n_units_, use_bias_, return_sequences_, W_, U_, bias_, activation_, recurrent_activation_);
+        return lstm_impl(input, n_units_, use_bias_, return_sequences_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
 
     const std::size_t n_units_;
@@ -62,9 +62,9 @@ class lstm_layer : public layer
     const std::string recurrent_activation_;
     const bool use_bias_;
     const bool return_sequences_;
-    const RowMajorMatrixXf W_;
-    const RowMajorMatrixXf U_;
-    const RowMajorMatrixXf bias_;
+    const float_vec weights_;
+    const float_vec recurrent_weights_;
+    const float_vec bias_;
 };
 
 } // namespace internal

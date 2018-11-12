@@ -28,12 +28,12 @@ public:
                         const std::string& wrapped_layer_type,
                         const bool use_bias,
                         const bool return_sequences,
-                        const RowMajorMatrixXf& W_forward,
-                        const RowMajorMatrixXf& U_forward,
-                        const RowMajorMatrixXf& bias_forward,
-                        const RowMajorMatrixXf& W_backward,
-                        const RowMajorMatrixXf& U_backward,
-                        const RowMajorMatrixXf& bias_backward
+                        const float_vec& forward_weights,
+                        const float_vec& forward_recurrent_weights,
+                        const float_vec& bias_forward,
+                        const float_vec& backward_weights,
+                        const float_vec& backward_recurrent_weights,
+                        const float_vec& bias_backward
                         )
         : layer(name),
         merge_mode_(merge_mode),
@@ -43,11 +43,11 @@ public:
         wrapped_layer_type_(wrapped_layer_type),
         use_bias_(use_bias),
         return_sequences_(return_sequences),
-        W_forward_(W_forward),
-        U_forward_(U_forward),
+        forward_weights_(forward_weights),
+        forward_recurrent_weights_(forward_recurrent_weights),
         bias_forward_(bias_forward),
-        W_backward_(W_backward),
-        U_backward_(U_backward),
+        backward_weights_(backward_weights),
+        backward_recurrent_weights_(backward_recurrent_weights),
         bias_backward_(bias_backward)
     {
     }
@@ -74,9 +74,11 @@ protected:
         if (wrapped_layer_type_ == "LSTM")
         {
             result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_,
-                                                  W_forward_, U_forward_, bias_forward_, activation_, recurrent_activation_);
+                                       forward_weights_, forward_recurrent_weights_,
+                                       bias_forward_, activation_, recurrent_activation_);
             result_backward = lstm_impl(input_reversed, n_units_, use_bias_, return_sequences_,
-                                                   W_backward_, U_backward_, bias_backward_, activation_, recurrent_activation_);
+                                        backward_weights_, backward_recurrent_weights_,
+                                        bias_backward_, activation_, recurrent_activation_);
         }
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
@@ -112,12 +114,12 @@ protected:
     const std::string wrapped_layer_type_;
     const bool use_bias_;
     const bool return_sequences_;
-    const RowMajorMatrixXf W_forward_;
-    const RowMajorMatrixXf U_forward_;
-    const RowMajorMatrixXf bias_forward_;
-    const RowMajorMatrixXf W_backward_;
-    const RowMajorMatrixXf U_backward_;
-    const RowMajorMatrixXf bias_backward_;
+    const float_vec forward_weights_;
+    const float_vec forward_recurrent_weights_;
+    const float_vec bias_forward_;
+    const float_vec backward_weights_;
+    const float_vec backward_recurrent_weights_;
+    const float_vec bias_backward_;
 };
 
 } // namespace internal

@@ -852,13 +852,12 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
     const std::string recurrent_activation = data["config"]["recurrent_activation"];
     const bool use_bias = data["config"]["use_bias"];
 
-    RowMajorMatrixXf bias(1, units * 4);
+    float_vec bias;
     if (use_bias)
-        bias = eigen_row_major_mat_from_values(1, units * 4, decode_floats(get_param(name, "bias")));
+        bias = decode_floats(get_param(name, "bias"));
 
-    const float_vec W = decode_floats(get_param(name, "weights"));
-    const RowMajorMatrixXf weights = eigen_row_major_mat_from_values(W.size() / (units * 4), units * 4, W);
-    const RowMajorMatrixXf recurrent_weights = eigen_row_major_mat_from_values(units, units * 4, decode_floats(get_param(name, "recurrent_weights")));
+    const float_vec weights = decode_floats(get_param(name, "weights"));
+    const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
     const bool return_sequences = data["config"]["return_sequences"];
 
     return std::make_shared<lstm_layer>(name, units, unit_activation,
@@ -878,22 +877,20 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     const bool use_bias = data["config"]["layer"]["config"]["use_bias"];
     const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
     
-    RowMajorMatrixXf forward_bias(1, units * 4);
-    RowMajorMatrixXf backward_bias(1, units * 4);
+    float_vec forward_bias;
+    float_vec backward_bias;
     
     if (use_bias)
     {
-        forward_bias = eigen_row_major_mat_from_values(1, units * 4 ,decode_floats(get_param(name, "forward_bias")));
-        backward_bias = eigen_row_major_mat_from_values(1, units * 4 ,decode_floats(get_param(name, "backward_bias")));
+        forward_bias = decode_floats(get_param(name, "forward_bias"));
+        backward_bias = decode_floats(get_param(name, "backward_bias"));
     }
     
-    const float_vec W_forward = decode_floats(get_param(name, "forward_weights"));
-    const float_vec W_backward = decode_floats(get_param(name, "backward_weights"));
-    const RowMajorMatrixXf forward_weights = eigen_row_major_mat_from_values(W_forward.size() / (units*4), units*4, W_forward);
-    const RowMajorMatrixXf backward_weights = eigen_row_major_mat_from_values(W_backward.size() / (units*4), units*4, W_backward);
+    const float_vec forward_weights = decode_floats(get_param(name, "forward_weights"));
+    const float_vec backward_weights = decode_floats(get_param(name, "backward_weights"));
     
-    const RowMajorMatrixXf forward_recurrent_weights = eigen_row_major_mat_from_values(units, units*4, decode_floats(get_param(name, "forward_recurrent_weights")));
-    const RowMajorMatrixXf backward_recurrent_weights = eigen_row_major_mat_from_values(units, units*4, decode_floats(get_param(name, "backward_recurrent_weights")));
+    const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
+    const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
     
     const bool return_sequences = data["config"]["layer"]["config"]["return_sequences"];
     

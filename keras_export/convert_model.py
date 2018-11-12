@@ -335,8 +335,8 @@ def show_bidirectional_layer(layer):
 
     return result
 
-def show_time_distributed_layer(layer):
-    show_layer_functions = {
+def get_layer_functions_dict():
+    return {
         'Conv1D': show_conv_1d_layer,
         'Conv2D': show_conv_2d_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,
@@ -346,20 +346,15 @@ def show_time_distributed_layer(layer):
         'PReLU': show_prelu_layer,
         'LSTM': show_lstm_layer,
         'Bidirectional': show_bidirectional_layer,
+        'TimeDistributed': show_time_distributed_layer
     }
 
+def show_time_distributed_layer(layer):
+    show_layer_functions = get_layer_functions_dict()
     config = layer.get_config()
     class_name = config['layer']['class_name']
 
     if class_name in show_layer_functions:
-
-        layer_function = show_layer_functions[class_name]
-        attributes = dir(layer.layer)
-
-        class Copied(object):
-            pass
-
-        copied = Copied()
 
         if len(layer.input_shape) == 3:
             input_shape_new = (layer.input_shape[0], layer.input_shape[2])
@@ -372,18 +367,26 @@ def show_time_distributed_layer(layer):
         else:
             raise Exception('Wrong input shape')
 
+        layer_function = show_layer_functions[class_name]
+        attributes = dir(layer.layer)
+
+        class Copied_layer(object):
+            pass
+
+        copied_layer = Copied_layer()
+
         for attr in attributes:
             try:
                 if attr != 'input_shape' and attr != '__class__':
-                    setattr(copied, attr, getattr(layer.layer, attr))
+                    setattr(copied_layer, attr, getattr(layer.layer, attr))
                 elif attr == 'input_shape':
-                    setattr(copied, 'input_shape', input_shape_new)
+                    setattr(copied_layer, 'input_shape', input_shape_new)
             except:
                 continue
 
-        setattr(copied, "output_shape", getattr(layer, "output_shape"))
+        setattr(copied_layer, "output_shape", getattr(layer, "output_shape"))
 
-        return layer_function(copied)
+        return layer_function(copied_layer)
 
     else:
         return None
@@ -416,18 +419,7 @@ def is_ascii(some_string):
 
 def get_all_weights(model):
     """Serialize all weights of the models layers"""
-    show_layer_functions = {
-        'Conv1D': show_conv_1d_layer,
-        'Conv2D': show_conv_2d_layer,
-        'SeparableConv2D': show_separable_conv_2d_layer,
-        'DepthwiseConv2D': show_depthwise_conv_2d_layer,
-        'BatchNormalization': show_batch_normalization_layer,
-        'Dense': show_dense_layer,
-        'PReLU': show_prelu_layer,
-        'LSTM': show_lstm_layer,
-        'Bidirectional': show_bidirectional_layer,
-        'TimeDistributed': show_time_distributed_layer
-    }
+    show_layer_functions = get_layer_functions_dict()
     result = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'

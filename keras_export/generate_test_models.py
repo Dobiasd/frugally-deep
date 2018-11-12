@@ -128,7 +128,6 @@ def get_test_model_small():
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[0]))
 
-    #outputs.append(Conv1D(2, 3)(inputs[0]))
     outputs.append(TimeDistributed(Conv1D(2, 3))(inputs[1]))
 
     outputs.append(BatchNormalization()(inputs[0]))
@@ -200,13 +199,15 @@ def get_test_model_recurrent():
 
     time_dist_1 = TimeDistributed(Conv2D(2, (3, 3), use_bias=True))(inputs[3])
     flatten_1 = TimeDistributed(Flatten())(time_dist_1)
-    lstm5 = Bidirectional(LSTM(units=6,
+
+    outputs.append(Bidirectional(LSTM(units=6,
                  return_sequences=True,
                  bias_initializer='random_uniform',
                  activation='tanh',
-                 recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1)
+                 recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1))
 
-    outputs.append(lstm5)
+    outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
+    outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')

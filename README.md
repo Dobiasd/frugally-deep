@@ -45,6 +45,7 @@ Layer types typically used in image recognition/generation are supported, making
 
 * `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`
 * `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
+* `Bidirectional`, `LSTM`, `TimeDistributed`
 * `Conv1D/2D`, `SeparableConv2D`
 * `Cropping1D/2D`, `ZeroPadding1D/2D`
 * `BatchNormalization`, `Dense`, `Dropout`, `Flatten`
@@ -69,7 +70,6 @@ Layer types typically used in image recognition/generation are supported, making
 `ActivityRegularization`,
 `AlphaDropout`,
 `AveragePooling3D`,
-`Bidirectional`,
 `Conv2DTranspose`,
 `Conv3D`,
 `ConvLSTM2D`,
@@ -86,7 +86,6 @@ Layer types typically used in image recognition/generation are supported, making
 `Lambda`,
 `LocallyConnected1D`,
 `LocallyConnected2D`,
-`LSTM`,
 `LSTMCell`,
 `Masking`,
 `MaxPooling3D`,
@@ -97,7 +96,6 @@ Layer types typically used in image recognition/generation are supported, making
 `SimpleRNNCell`,
 `StackedRNNCells`,
 `ThresholdedReLU`,
-`TimeDistributed`,
 `Upsampling3D`,
 `any custom layers`,
 `temporal` models

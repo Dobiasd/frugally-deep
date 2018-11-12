@@ -51,8 +51,11 @@ make && sudo make install
 cd ../..
 
 # build unit tests
+cd frugally-deep
+mkdir -p build && cd build
 cmake -DFDEEP_BUILD_UNITTEST=ON ..
 make unittest
+cd ../..
 ```
 
 Or if you would like to test exhaustively (and have plenty of time):
@@ -68,7 +71,7 @@ Just add a *conanfile.txt* with frugally-deep as a requirement and chose the gen
 
 ```
 [requires]
-frugally-deep/v0.5.4-p0@dobiasd/stable
+frugally-deep/v0.6.0-p0@dobiasd/stable
 
 [generators]
 cmake

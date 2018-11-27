@@ -180,9 +180,10 @@ inline tensor5s gru_impl(const tensor5& input,
     const std::size_t n_timesteps = input.shape().width_;
     const std::size_t n_features = input.shape().depth_;
 
+    const EigenIndex n = EigenIndex(n_units);
     const RowMajorMatrix<Dynamic, Dynamic> W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
     const RowMajorMatrix<Dynamic, Dynamic> U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
-    const RowMajorMatrix<2, Dynamic> B = use_bias ? eigen_row_major_mat_from_values(2, n_units * 3, bias) : RowMajorMatrix<2, Dynamic>::Zero(2, n_units * 3);
+    const RowMajorMatrix<2, Dynamic> B = use_bias ? eigen_row_major_mat_from_values(2, n_units * 3, bias) : RowMajorMatrix<2, Dynamic>::Zero(2, n * 3);
 
     // initialize cell output states h
     RowVector<Dynamic> h(1, n_units);
@@ -204,8 +205,6 @@ inline tensor5s gru_impl(const tensor5& input,
     auto act_func_recurrent = get_activation_func(recurrent_activation);
 
     // computing GRU output
-    const EigenIndex n = EigenIndex(n_units);
-
     tensor5s gru_result;
 
     if (return_sequences)

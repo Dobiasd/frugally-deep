@@ -104,8 +104,11 @@ def replace_none_with(value, shape):
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
-def gen_test_data(model):
+def gen_test_data(model, random_fn=None):
     """Generate data for model verification test."""
+
+    if not random_fn:
+        random_fn = np.random.normal
 
     def set_shape_idx_0_to_1_if_none(shape):
         """Change first element in tuple to 1."""
@@ -118,7 +121,7 @@ def gen_test_data(model):
 
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
-        return np.random.normal(
+        return random_fn(
             size=replace_none_with(42, set_shape_idx_0_to_1_if_none(
                 layer.batch_input_shape))).astype(np.float32)
 
@@ -303,6 +306,15 @@ def show_prelu_layer(layer):
     }
     return result
 
+def show_embedding_layer(layer):
+    """Serialize Embedding layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1
+    result = {
+        'weights': encode_floats(weights[0])
+    }
+    return result
+
 def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
     weights = layer.get_weights()
@@ -344,6 +356,7 @@ def get_layer_functions_dict():
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
         'PReLU': show_prelu_layer,
+        'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer
@@ -560,7 +573,16 @@ def convert(in_path, out_path):
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)
-    test_data = gen_test_data(model)
+
+    random_fn = None
+
+    # use random integers as input for models with embedding layers
+    for layer in model.layers:
+        if isinstance(layer, keras.layers.Embedding):
+            random_fn = lambda size: np.random.randint(0, layer.input_dim, size)
+            break
+
+    test_data = gen_test_data(model, random_fn)
 
     json_output = {}
     json_output['architecture'] = json.loads(model.to_json())

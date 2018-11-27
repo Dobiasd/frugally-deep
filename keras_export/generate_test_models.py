@@ -19,6 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
+from keras.layers import Embedding
 from keras.layers import LSTM, Bidirectional, TimeDistributed
 from keras import backend as K
 
@@ -58,6 +59,18 @@ def generate_random_data(data_size, shape):
 def generate_input_data(data_size, input_shapes):
     """Random input data for training."""
     return [generate_random_data(data_size, input_shape)
+            for input_shape in input_shapes]
+
+
+def generate_integer_random_data(data_size, low, high, shape):
+    """Random data for training."""
+    return np.random.randint(
+        low=low, high=high, size=get_shape_for_random_data(data_size, replace_none_with(42, shape)))
+
+
+def generate_integer_input_data(data_size, low, high, input_shapes):
+    """Random input data for training."""
+    return [generate_integer_random_data(data_size, low, high, input_shape)
             for input_shape in input_shapes]
 
 
@@ -147,6 +160,40 @@ def get_test_model_small():
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+def get_test_model_embedding():
+    """Returns a minimalistic test model for the embedding layer."""
+
+    input_dim = 1023  # maximum integer value in input data
+    input_shapes = [
+        (100,),  # must be single-element tuple (for sequence length)
+        (1000,)
+    ]
+    output_dims = [8,3]  # embedding dimension
+
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+    for k in range(0, len(input_shapes)):
+        embedding = Embedding(input_dim=input_dim, output_dim=output_dims[k])(inputs[k])
+        lstm = LSTM(
+            units=4,
+            recurrent_activation='sigmoid',
+            return_sequences=False
+        )(embedding)
+
+        outputs.append(lstm)
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_integer_input_data(training_data_size, 0, input_dim, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
@@ -536,6 +583,7 @@ def main():
 
         get_model_functions = {
             'small': get_test_model_small,
+            'embedding': get_test_model_embedding,
             'recurrent': get_test_model_recurrent,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,

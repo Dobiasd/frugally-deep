@@ -85,13 +85,13 @@ namespace fdeep { namespace internal
 {
 
 template<typename KeyT, typename ValueT>
-ValueT json_object_get(const nlohmann::json& data, KeyT&& key, ValueT&& value)
+ValueT json_object_get(const nlohmann::json& data, KeyT&& key, ValueT&& default_value)
 {
     auto&& it = data.find(key);
     if (it != data.end())
         return *it;
     else
-        return value;
+        return default_value;
 }
 
 inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)

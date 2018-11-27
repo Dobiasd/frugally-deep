@@ -117,11 +117,6 @@ public:
         return stopwatch.elapsed();
     }
 
-    const std::string& name() const
-    {
-        return model_layer_->name_;
-    }
-
 private:
     model(const internal::layer_ptr& model_layer,
         const std::vector<shape5_variable>& input_shapes) :

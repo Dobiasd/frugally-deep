@@ -12,32 +12,46 @@
 namespace fdeep { namespace internal
 {
 
-float_type linear_activation(float_type x)
+using Eigen::Dynamic;
+
+template<int Rows, int Cols>
+using ColMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::ColMajor>;
+
+template<int Rows, int Cols>
+using RowMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::RowMajor>;
+
+template<int Count>
+using ColVector = Eigen::Matrix<float_type, Count, 1>;
+
+template<int Count>
+using RowVector = Eigen::Matrix<float_type, 1, Count>;
+
+inline float_type linear_activation(float_type x)
 {
     return x;
 }
 
-float_type tanh_activation(float_type x)
+inline float_type tanh_activation(float_type x)
 {
     return std::tanh(x);
 }
 
-float_type sigmoid_activation(float_type x)
+inline float_type sigmoid_activation(float_type x)
 {
     return 1 / (1 + std::exp(-x));
 }
 
-float_type hard_sigmoid_activation(float_type x)
+inline float_type hard_sigmoid_activation(float_type x)
 {
     return static_cast<float_type>(std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
 }
 
-float_type relu_activation(float_type x)
+inline float_type relu_activation(float_type x)
 {
     return std::max<float_type>(x, 0);
 }
 
-float_type selu_activation(float_type x)
+inline float_type selu_activation(float_type x)
 {
     const float_type alpha =
     static_cast<float_type>(1.6732632423543772848170429916717);
@@ -46,12 +60,12 @@ float_type selu_activation(float_type x)
     return scale * (x >= 0 ? x : alpha * (std::exp(x) - 1));
 }
 
-float_type elu_activation(float_type x)
+inline float_type elu_activation(float_type x)
 {
     return x >= 0 ? x : std::exp(x) - 1;
 }
 
-std::function<float_type(float_type)> get_activation_func(const std::string& activation_func_name)
+inline std::function<float_type(float_type)> get_activation_func(const std::string& activation_func_name)
 {
     if (activation_func_name == "linear")
         return linear_activation;
@@ -151,7 +165,109 @@ inline tensor5s lstm_impl(const tensor5& input,
 
     return lstm_result;
 }
-    
+
+inline tensor5s gru_impl(const tensor5& input,
+    const std::size_t n_units,
+    const bool use_bias,
+    const bool reset_after,
+    const bool return_sequences,
+    const float_vec& weights,
+    const float_vec& recurrent_weights,
+    const float_vec& bias,
+    const std::string& activation,
+    const std::string& recurrent_activation)
+{
+    const std::size_t n_timesteps = input.shape().width_;
+    const std::size_t n_features = input.shape().depth_;
+
+    const RowMajorMatrix<Dynamic, Dynamic> W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
+    const RowMajorMatrix<Dynamic, Dynamic> U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
+    const RowMajorMatrix<2, Dynamic> B = use_bias ? eigen_row_major_mat_from_values(2, n_units * 3, bias) : RowMajorMatrix<2, Dynamic>::Zero(2, n_units * 3);
+
+    // initialize cell output states h
+    RowVector<Dynamic> h(1, n_units);
+    h.setZero();
+
+    // write input to eigen matrix of shape (timesteps, n_features)
+    RowMajorMatrix<Dynamic, Dynamic> x(n_timesteps, n_features);
+
+    for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
+        for (std::size_t a_f = 0; a_f < n_features; ++a_f)
+            x(EigenIndex(a_t), EigenIndex(a_f)) = input.get(0, 0, 0, a_t, a_f);
+
+    // kernel applied to inputs (with bias), produces shape (timesteps, n_units * 3)
+    RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
+    Wx.rowwise() += B.row(0);
+
+    // get activation functions
+    auto act_func = get_activation_func(activation);
+    auto act_func_recurrent = get_activation_func(recurrent_activation);
+
+    // computing GRU output
+    const EigenIndex n = EigenIndex(n_units);
+
+    tensor5s gru_result;
+
+    if (return_sequences)
+        gru_result = { tensor5(shape5(1, 1, 1, n_timesteps, n_units), float_type(0)) };
+    else
+        gru_result = { tensor5(shape5(1, 1, 1, 1, n_units), float_type(0)) };
+
+    for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
+    {
+        RowVector<Dynamic> r;
+        RowVector<Dynamic> z;
+        RowVector<Dynamic> m;
+
+        // in the formulae below, the following notations are used:
+        // A b       matrix product
+        // a o b     Hadamard (element-wise) product
+        // x         input vector
+        // h         state vector
+        // W_{x,a}   block of the kernel weight matrix corresponding to "a"
+        // W_{h,a}   block of the recurrent kernel weight matrix corresponding to "a"
+        // b_{x,a}   part of the kernel bias vector corresponding to "a"
+        // b_{h,a}   part of the recurrent kernel bias corresponding to "a"
+        // z         update gate vector
+        // r         reset gate vector
+
+        if (reset_after)
+        {
+            // recurrent kernel applied to timestep (with bias), produces shape (1, n_units * 3)
+            RowMajorMatrix<1, Dynamic> Uh = h * U;
+            Uh += B.row(1);
+
+            // z = sigmoid(W_{x,z} x + b_{i,z} + W_{h,z} h + b_{h,z})
+            z = (Wx.block(k, 0 * n, 1, n) + Uh.block(0, 0 * n, 1, n)).unaryExpr(act_func_recurrent);
+            // r = sigmoid(W_{x,r} x + b_{i,r} + W_{h,r} h + b_{h,r})
+            r = (Wx.block(k, 1 * n, 1, n) + Uh.block(0, 1 * n, 1, n)).unaryExpr(act_func_recurrent);
+            // m = tanh(W_{x,m} x + b_{i,m} + r * (W_{h,m} h + b_{h,m}))
+            m = (Wx.block(k, 2 * n, 1, n) + (r.array() * Uh.block(0, 2 * n, 1, n).array()).matrix()).unaryExpr(act_func);
+        }
+        else
+        {
+            // z = sigmoid(W_{x,z} x + b_{x,z} + W_{h,z} h + b_{h,z})
+            z = (Wx.block(k, 0 * n, 1, n) + h * U.block(0, 0 * n, n, n) + B.block(1, 0 * n, 1, n)).unaryExpr(act_func_recurrent);
+            // r = sigmoid(W_{x,r} x + b_{x,r} + W_{h,r} h + b_{h,r})
+            r = (Wx.block(k, 1 * n, 1, n) + h * U.block(0, 1 * n, n, n) + B.block(1, 1 * n, 1, n)).unaryExpr(act_func_recurrent);
+            // m = tanh(W_{x,m} x + b_{x,m} + W_{h,m} (r o h) + b_{h,m}))
+            m = (Wx.block(k, 2 * n, 1, n) + (r.array() * h.array()).matrix() * U.block(0, 2 * n, n, n) + B.block(1, 2 * n, 1, n)).unaryExpr(act_func);
+        }
+
+        // output vector: h' = (1 - z) o m + z o h
+        h = ((1 - z.array()) * m.array() + z.array() * h.array()).matrix();
+
+        if (return_sequences)
+            for (EigenIndex idx = 0; idx < n; ++idx)
+                gru_result.front().set(0, 0, 0, std::size_t(k), std::size_t(idx), h(idx));
+        else if (k == EigenIndex(n_timesteps) - 1)
+            for (EigenIndex idx = 0; idx < n; ++idx)
+                gru_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
+    }
+
+    return gru_result;
+}
+
 inline tensor5 reverse_time_series_in_tensor5(const tensor5& ts)
     {
             tensor5 reversed = tensor5(ts.shape(), float_type(0.0));

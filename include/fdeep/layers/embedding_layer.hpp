@@ -52,7 +52,7 @@ class embedding_layer : public layer
             {
                 std::size_t index = static_cast<std::size_t>(input.get(0, 0, 0, 0, i));
                 assertion(index < input_dim_, "vocabulary item indices must all be strictly less than the value of input_dim");
-                it = std::copy_n(weights_.begin() + (index * output_dim_), output_dim_, it);
+                it = std::copy_n(weights_.cbegin() + static_cast<float_vec::const_iterator::difference_type>(index * output_dim_), output_dim_, it);
             }
 
             results.push_back(tensor5(shape5(1, 1, 1, sequence_len, output_dim_), std::move(output_vec)));

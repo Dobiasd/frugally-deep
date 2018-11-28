@@ -210,14 +210,12 @@ def get_test_model_recurrent():
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
 
     # Gated Recurrent Unit layer
-    gru1 = Bidirectional(
-        GRU(
+    gru1 = GRU(
             units=4,
             recurrent_activation='relu',
             reset_after=True,
             return_sequences=True,
-            use_bias=False
-        )
+            use_bias=True
     )(inp)
     gru2 = Bidirectional(
         GRU(
@@ -233,7 +231,7 @@ def get_test_model_recurrent():
             recurrent_activation='sigmoid',
             reset_after=True,
             return_sequences=False,
-            use_bias=False
+            use_bias=True
     )(gru2)
     outputs.append(gru3)
 

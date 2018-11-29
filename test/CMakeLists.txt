@@ -83,6 +83,7 @@ macro(_add_test _NAME _DEPENDS)
 endmacro()
 
 _add_test(test_model_small_test test_model_small.json)
+_add_test(test_model_embedding_test test_model_embedding.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
 _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)

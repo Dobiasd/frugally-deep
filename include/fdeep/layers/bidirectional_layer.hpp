@@ -27,6 +27,7 @@ public:
                         const std::string& recurrent_activation,
                         const std::string& wrapped_layer_type,
                         const bool use_bias,
+                        const bool reset_after,
                         const bool return_sequences,
                         const float_vec& forward_weights,
                         const float_vec& forward_recurrent_weights,
@@ -42,6 +43,7 @@ public:
         recurrent_activation_(recurrent_activation),
         wrapped_layer_type_(wrapped_layer_type),
         use_bias_(use_bias),
+        reset_after_(reset_after),
         return_sequences_(return_sequences),
         forward_weights_(forward_weights),
         forward_recurrent_weights_(forward_recurrent_weights),
@@ -80,6 +82,15 @@ protected:
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
         }
+        else if (wrapped_layer_type_ == "GRU")
+        {
+            result_forward = gru_impl(input, n_units_, use_bias_, reset_after_, return_sequences_,
+                                      forward_weights_, forward_recurrent_weights_,
+                                      bias_forward_, activation_, recurrent_activation_);
+            result_backward = gru_impl(input_reversed, n_units_, use_bias_, reset_after_, return_sequences_,
+                                       backward_weights_, backward_recurrent_weights_,
+                                       bias_backward_, activation_, recurrent_activation_);
+        }
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
             
@@ -113,6 +124,7 @@ protected:
     const std::string recurrent_activation_;
     const std::string wrapped_layer_type_;
     const bool use_bias_;
+    const bool reset_after_;
     const bool return_sequences_;
     const float_vec forward_weights_;
     const float_vec forward_recurrent_weights_;

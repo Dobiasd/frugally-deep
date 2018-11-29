@@ -45,6 +45,7 @@
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
+#include "fdeep/layers/gru_layer.hpp"
 #include "fdeep/layers/prelu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
@@ -82,6 +83,16 @@
 
 namespace fdeep { namespace internal
 {
+
+template<typename KeyT, typename ValueT>
+ValueT json_object_get(const nlohmann::json& data, KeyT&& key, ValueT&& default_value)
+{
+    auto&& it = data.find(key);
+    if (it != data.end())
+        return *it;
+    else
+        return default_value;
+}
 
 inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
 {
@@ -864,7 +875,33 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
                                         recurrent_activation, use_bias, return_sequences,
                                         weights, recurrent_weights, bias);
 }
+
+inline layer_ptr create_gru_layer(const get_param_f &get_param,
+                                  const get_global_param_f &,
+                                  const nlohmann::json &data,
+                                  const std::string &name)
+{
+    const std::size_t units = data["config"]["units"];
+    const std::string unit_activation = data["config"]["activation"];
+    const std::string recurrent_activation = data["config"]["recurrent_activation"];
+    const bool use_bias = data["config"]["use_bias"];
+
+    float_vec bias;
+    if (use_bias)
+        bias = decode_floats(get_param(name, "bias"));
+
+    const float_vec weights = decode_floats(get_param(name, "weights"));
+    const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+
+    auto&& config = data["config"];
+    const bool reset_after = json_object_get(config, "reset_after", false);
+    const bool return_sequences = json_object_get(config, "return_sequences", false);
     
+    return std::make_shared<gru_layer>(name, units, unit_activation,
+                                       recurrent_activation, use_bias, reset_after, return_sequences,
+                                       weights, recurrent_weights, bias);
+}
+
 inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
                                             const get_global_param_f&,
                                             const nlohmann::json& data,
@@ -892,11 +929,13 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
     const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
     
-    const bool return_sequences = data["config"]["layer"]["config"]["return_sequences"];
+    auto&& layer_config = data["config"]["layer"]["config"];
+    const bool reset_after = json_object_get(layer_config, "reset_after", false);
+    const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
     
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
                                                  recurrent_activation, wrapped_layer_type,
-                                                 use_bias, return_sequences,
+                                                 use_bias, reset_after, return_sequences,
                                                  forward_weights, forward_recurrent_weights, forward_bias,
                                                  backward_weights, backward_recurrent_weights, backward_bias);
 }
@@ -966,6 +1005,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Activation", create_activation_layer},
             {"Reshape", create_reshape_layer},
             {"LSTM", create_lstm_layer},
+            {"GRU", create_gru_layer},
             {"Bidirectional", create_bidirectional_layer},
             {"TimeDistributed", create_time_distributed_layer},
         };
@@ -979,6 +1019,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
 
     if (type != "Activation" &&
         json_obj_has_member(data["config"], "activation")
+        && type != "GRU"
         && type != "LSTM"
         && type != "Bidirectional")
     {

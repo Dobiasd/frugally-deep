@@ -54,6 +54,7 @@
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
+#include "fdeep/layers/gru_layer.hpp"
 #include "fdeep/layers/bidirectional_layer.hpp"
 #include "fdeep/layers/time_distributed_layer.hpp"
 

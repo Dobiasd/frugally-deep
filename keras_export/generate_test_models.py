@@ -20,7 +20,8 @@ from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import LeakyReLU, ELU, PReLU
 from keras.layers import BatchNormalization, Concatenate
 from keras.layers import Embedding
-from keras.layers import LSTM, Bidirectional, TimeDistributed
+from keras.layers import LSTM, GRU
+from keras.layers import Bidirectional, TimeDistributed
 from keras import backend as K
 
 __author__ = "Tobias Hermann"
@@ -255,6 +256,32 @@ def get_test_model_recurrent():
 
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
+
+    # Gated Recurrent Unit layer
+    gru1 = GRU(
+            units=4,
+            recurrent_activation='relu',
+            reset_after=True,
+            return_sequences=True,
+            use_bias=True
+    )(inp)
+    gru2 = Bidirectional(
+        GRU(
+            units=6,
+            recurrent_activation='hard_sigmoid',
+            reset_after=False,
+            return_sequences=True,
+            use_bias=False
+        )
+    )(gru1)
+    gru3 = GRU(
+            units=10,
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            return_sequences=False,
+            use_bias=True
+    )(gru2)
+    outputs.append(gru3)
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')

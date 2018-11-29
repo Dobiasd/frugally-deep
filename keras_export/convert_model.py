@@ -121,9 +121,12 @@ def gen_test_data(model, random_fn=None):
 
     def generate_input_data(layer):
         """Random data fitting the input shape of a layer."""
+        try:
+            shape = layer.batch_input_shape
+        except AttributeError:
+            shape = layer.input_shape
         return random_fn(
-            size=replace_none_with(42, set_shape_idx_0_to_1_if_none(
-                layer.batch_input_shape))).astype(np.float32)
+            size=replace_none_with(42, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -327,6 +330,18 @@ def show_lstm_layer(layer):
 
     return result
 
+def show_gru_layer(layer):
+    """Serialize GRU layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 2 or len(weights) == 3
+    result = {'weights': encode_floats(weights[0]),
+              'recurrent_weights': encode_floats(weights[1])}
+
+    if len(weights) == 3:
+        result['bias'] = encode_floats(weights[2])
+
+    return result
+
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""
     forward_weights = layer.forward_layer.get_weights()
@@ -358,6 +373,7 @@ def get_layer_functions_dict():
         'PReLU': show_prelu_layer,
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
+        'GRU': show_gru_layer,
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer
     }
@@ -448,8 +464,11 @@ def get_all_weights(model):
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
-            if show_func and show_func(layer) != None:
-                result[name] = show_func(layer)
+            shown_layer = None
+            if show_func:
+                shown_layer = show_func(layer)
+            if shown_layer:
+                result[name] = shown_layer
             if show_func and layer_type == 'TimeDistributed':
                 if name not in result:
                     result[name] = {}

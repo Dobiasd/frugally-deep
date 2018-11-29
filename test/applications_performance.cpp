@@ -12,6 +12,7 @@ int main()
         "test_model_small.json",
         "test_model_variable.json",
         "test_model_sequential.json",
+        "test_model_recurrent.json",
         "test_model_full.json",
         "densenet121.json",
         "densenet169.json",

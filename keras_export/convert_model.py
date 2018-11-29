@@ -451,8 +451,11 @@ def get_all_weights(model):
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
-            if show_func and show_func(layer) != None:
-                result[name] = show_func(layer)
+            shown_layer = None
+            if show_func:
+                shown_layer = show_func(layer)
+            if shown_layer:
+                result[name] = shown_layer
             if show_func and layer_type == 'TimeDistributed':
                 if name not in result:
                     result[name] = {}

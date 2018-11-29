@@ -8,6 +8,10 @@ add_custom_command ( OUTPUT test_model_small.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py small test_model_small.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_embedding.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_recurrent.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -33,6 +37,11 @@ add_custom_command ( OUTPUT readme_example_model.h5
 add_custom_command ( OUTPUT test_model_small.json
                      DEPENDS test_model_small.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_small.h5 test_model_small.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_embedding.json
+                     DEPENDS test_model_embedding.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.h5 test_model_embedding.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_recurrent.json
@@ -74,6 +83,7 @@ macro(_add_test _NAME _DEPENDS)
 endmacro()
 
 _add_test(test_model_small_test test_model_small.json)
+_add_test(test_model_embedding_test test_model_embedding.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
 _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
@@ -86,6 +96,7 @@ _add_test(readme_example_main readme_example_model.json)
 if(FDEEP_BUILD_FULL_TEST)
   add_custom_target(unittest
     COMMAND test_model_small_test
+    COMMAND test_model_embedding_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
@@ -99,6 +110,7 @@ if(FDEEP_BUILD_FULL_TEST)
 else()
   add_custom_target(unittest
     COMMAND test_model_small_test
+    COMMAND test_model_embedding_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test

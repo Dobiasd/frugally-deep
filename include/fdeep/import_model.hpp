@@ -44,6 +44,7 @@
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
+#include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
 #include "fdeep/layers/gru_layer.hpp"
 #include "fdeep/layers/prelu_layer.hpp"
@@ -853,6 +854,18 @@ inline nodes create_nodes(const nlohmann::json& data)
     return fplus::transform(create_node, inbound_nodes_data);
 }
 
+inline layer_ptr create_embedding_layer(const get_param_f &get_param,
+                                        const get_global_param_f &,
+                                        const nlohmann::json &data,
+                                        const std::string &name)
+{
+    const std::size_t input_dim = data["config"]["input_dim"];
+    const std::size_t output_dim = data["config"]["output_dim"];
+    const float_vec weights = decode_floats(get_param(name, "weights"));
+
+    return std::make_shared<embedding_layer>(name, input_dim, output_dim, weights);
+}
+
 inline layer_ptr create_lstm_layer(const get_param_f &get_param,
                                    const get_global_param_f &,
                                    const nlohmann::json &data,
@@ -1004,6 +1017,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
             {"Reshape", create_reshape_layer},
+            {"Embedding", create_embedding_layer},
             {"LSTM", create_lstm_layer},
             {"GRU", create_gru_layer},
             {"Bidirectional", create_bidirectional_layer},

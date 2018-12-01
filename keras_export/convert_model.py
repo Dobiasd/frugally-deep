@@ -4,6 +4,7 @@
 
 import base64
 import datetime
+import hashlib
 import json
 import sys
 
@@ -576,6 +577,17 @@ def get_shapes(tensor5s):
     return [t['shape'] for t in tensor5s]
 
 
+def calculate_hash(model):
+    layers = model.layers
+    m = hashlib.sha256()
+    for layer in layers:
+        for weights in layer.get_weights():
+            assert isinstance(weights, np.ndarray)
+            m.update(weights.tobytes())
+        m.update(layer.name.encode('ascii'))
+    return m.hexdigest()
+
+
 def convert(in_path, out_path):
     """Convert any Keras model to the frugally-deep model format."""
 
@@ -627,6 +639,7 @@ def convert(in_path, out_path):
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
     json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
+    json_output['hash'] = calculate_hash(model)
 
     print('writing {}'.format(out_path))
     write_text_file(out_path, json.dumps(

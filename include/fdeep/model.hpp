@@ -122,17 +122,25 @@ public:
         return model_layer_->name_;
     }
 
+    const std::string& hash() const
+    {
+        return hash_;
+    }
+
 private:
     model(const internal::layer_ptr& model_layer,
-        const std::vector<shape5_variable>& input_shapes) :
+        const std::vector<shape5_variable>& input_shapes,
+        const std::string& hash) :
             input_shapes_(input_shapes),
-            model_layer_(model_layer) {}
+            model_layer_(model_layer),
+            hash_(hash) {}
 
     friend model read_model(std::istream&, bool,
         const std::function<void(std::string)>&, float_type);
 
     std::vector<shape5_variable> input_shapes_;
     internal::layer_ptr model_layer_;
+    std::string hash_;
 };
 
 // Write an std::string to std::cout.
@@ -206,7 +214,9 @@ inline model read_model(std::istream& model_file_stream,
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"]),
-        internal::create_shape5s_variable(json_data["input_shapes"]));
+        internal::create_shape5s_variable(json_data["input_shapes"]),
+        internal::json_object_get<std::string, std::string>(
+            json_data, "hash", ""));
 
     if (verify)
     {

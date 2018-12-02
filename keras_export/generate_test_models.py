@@ -259,7 +259,7 @@ def get_test_model_recurrent():
 
     # Gated Recurrent Unit layer
     gru1 = GRU(
-            units=4,
+            units=8,
             recurrent_activation='relu',
             reset_after=True,
             return_sequences=True,
@@ -267,21 +267,30 @@ def get_test_model_recurrent():
     )(inp)
     gru2 = Bidirectional(
         GRU(
-            units=6,
+            units=4,
             recurrent_activation='hard_sigmoid',
             reset_after=False,
             return_sequences=True,
-            use_bias=False
+            use_bias=True
         )
     )(gru1)
-    gru3 = GRU(
+    gru3 = Bidirectional(
+        GRU(
+            units=6,
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            return_sequences=True,
+            use_bias=False
+        )
+    )(gru2)
+    gru4 = GRU(
             units=10,
             recurrent_activation='sigmoid',
             reset_after=True,
             return_sequences=False,
-            use_bias=True
-    )(gru2)
-    outputs.append(gru3)
+            use_bias=False
+    )(gru3)
+    outputs.append(gru4)
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')

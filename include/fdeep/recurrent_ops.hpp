@@ -180,10 +180,24 @@ inline tensor5s gru_impl(const tensor5& input,
     const std::size_t n_timesteps = input.shape().width_;
     const std::size_t n_features = input.shape().depth_;
 
+    // weight matrices
     const EigenIndex n = EigenIndex(n_units);
     const RowMajorMatrix<Dynamic, Dynamic> W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
     const RowMajorMatrix<Dynamic, Dynamic> U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
-    const RowMajorMatrix<2, Dynamic> B = use_bias ? eigen_row_major_mat_from_values(2, n_units * 3, bias) : RowMajorMatrix<2, Dynamic>::Zero(2, n * 3);
+
+    // kernel bias
+    RowVector<Dynamic> b_x(n_units * 3);
+    if (use_bias && bias.size() >= 1 * n_units * 3)
+        std::copy_n(bias.cbegin(), n_units * 3, b_x.data());
+    else
+        b_x.setZero();
+
+    // recurrent kernel bias
+    RowVector<Dynamic> b_h(n_units * 3);
+    if (use_bias && bias.size() >= 2 * n_units * 3)
+        std::copy_n(bias.cbegin() + static_cast<float_vec::const_iterator::difference_type>(n_units * 3), n_units * 3, b_h.data());
+    else
+        b_h.setZero();
 
     // initialize cell output states h
     RowVector<Dynamic> h(1, n_units);
@@ -198,7 +212,7 @@ inline tensor5s gru_impl(const tensor5& input,
 
     // kernel applied to inputs (with bias), produces shape (timesteps, n_units * 3)
     RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
-    Wx.rowwise() += B.row(0);
+    Wx.rowwise() += b_x;
 
     // get activation functions
     auto act_func = get_activation_func(activation);
@@ -234,7 +248,7 @@ inline tensor5s gru_impl(const tensor5& input,
         {
             // recurrent kernel applied to timestep (with bias), produces shape (1, n_units * 3)
             RowMajorMatrix<1, Dynamic> Uh = h * U;
-            Uh += B.row(1);
+            Uh += b_h;
 
             // z = sigmoid(W_{x,z} x + b_{i,z} + W_{h,z} h + b_{h,z})
             z = (Wx.block(k, 0 * n, 1, n) + Uh.block(0, 0 * n, 1, n)).unaryExpr(act_func_recurrent);
@@ -246,11 +260,11 @@ inline tensor5s gru_impl(const tensor5& input,
         else
         {
             // z = sigmoid(W_{x,z} x + b_{x,z} + W_{h,z} h + b_{h,z})
-            z = (Wx.block(k, 0 * n, 1, n) + h * U.block(0, 0 * n, n, n) + B.block(1, 0 * n, 1, n)).unaryExpr(act_func_recurrent);
+            z = (Wx.block(k, 0 * n, 1, n) + h * U.block(0, 0 * n, n, n) + b_h.block(0, 0 * n, 1, n)).unaryExpr(act_func_recurrent);
             // r = sigmoid(W_{x,r} x + b_{x,r} + W_{h,r} h + b_{h,r})
-            r = (Wx.block(k, 1 * n, 1, n) + h * U.block(0, 1 * n, n, n) + B.block(1, 1 * n, 1, n)).unaryExpr(act_func_recurrent);
+            r = (Wx.block(k, 1 * n, 1, n) + h * U.block(0, 1 * n, n, n) + b_h.block(0, 1 * n, 1, n)).unaryExpr(act_func_recurrent);
             // m = tanh(W_{x,m} x + b_{x,m} + W_{h,m} (r o h) + b_{h,m}))
-            m = (Wx.block(k, 2 * n, 1, n) + (r.array() * h.array()).matrix() * U.block(0, 2 * n, n, n) + B.block(1, 2 * n, 1, n)).unaryExpr(act_func);
+            m = (Wx.block(k, 2 * n, 1, n) + (r.array() * h.array()).matrix() * U.block(0, 2 * n, n, n) + b_h.block(0, 2 * n, 1, n)).unaryExpr(act_func);
         }
 
         // output vector: h' = (1 - z) o m + z o h

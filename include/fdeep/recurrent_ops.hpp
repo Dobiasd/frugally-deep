@@ -188,14 +188,14 @@ inline tensor5s gru_impl(const tensor5& input,
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);
     if (use_bias && bias.size() >= 1 * n_units * 3)
-        std::copy_n(bias.begin(), n_units * 3, b_x.begin());
+        std::copy_n(bias.cbegin(), n_units * 3, b_x.begin());
     else
         b_x.setZero();
 
     // recurrent kernel bias
     RowVector<Dynamic> b_h(n_units * 3);
     if (use_bias && bias.size() >= 2 * n_units * 3)
-        std::copy_n(bias.begin() + (n_units * 3), n_units * 3, b_h.begin());
+        std::copy_n(bias.cbegin() + static_cast<float_vec::const_iterator::difference_type>(n_units * 3), n_units * 3, b_h.begin());
     else
         b_h.setZero();
 

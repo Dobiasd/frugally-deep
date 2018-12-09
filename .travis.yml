@@ -42,6 +42,7 @@ install:
   # Eigen
   - git clone https://github.com/eigenteam/eigen-git-mirror
   - cd eigen-git-mirror
+  - git checkout tags/3.3.5
   - mkdir -p build && cd build && cmake .. && make && sudo make install
   - sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ../..

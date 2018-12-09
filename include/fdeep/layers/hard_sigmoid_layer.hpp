@@ -7,6 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/activation_layer.hpp"
+#include "fdeep/recurrent_ops.hpp"
 
 #include <algorithm>
 #include <string>
@@ -22,14 +23,9 @@ public:
     {
     }
 protected:
-    static float_type activation_function(float_type x)
-    {
-        return static_cast<float_type>(
-            std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
-    };
     tensor5 transform_input(const tensor5& in_vol) const override
     {
-        return transform_tensor5(activation_function, in_vol);
+        return transform_tensor5(hard_sigmoid_activation, in_vol);
     }
 };
 

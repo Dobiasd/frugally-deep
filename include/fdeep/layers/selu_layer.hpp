@@ -7,6 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/activation_layer.hpp"
+#include "fdeep/recurrent_ops.hpp"
 
 #include <string>
 
@@ -28,11 +29,7 @@ protected:
         static_cast<float_type>(1.0507009873554804934193349852946);
     tensor5 transform_input(const tensor5& in_vol) const override
     {
-        auto activation_function = [this](float_type x) -> float_type
-        {
-            return scale_ * (x >= 0 ? x : alpha_ * (std::exp(x) - 1));
-        };
-        return transform_tensor5(activation_function, in_vol);
+        return transform_tensor5(selu_activation, in_vol);
     }
 };
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/activation_layer.hpp"
+#include "fdeep/recurrent_ops.hpp"
 
 #include <string>
 
@@ -23,11 +24,7 @@ public:
 protected:
     tensor5 transform_input(const tensor5& in_vol) const override
     {
-        const auto activation_function = [](float_type x) -> float_type
-        {
-            return std::tanh(x);
-        };
-        return transform_tensor5(activation_function, in_vol);
+        return transform_tensor5(tanh_activation, in_vol);
     }
 };
 

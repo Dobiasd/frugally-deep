@@ -154,6 +154,7 @@ When using `convert_model.py` a test case (input and corresponding output values
 * In case you want to convert an `Eigen::Matrix` to `fdeep::tensor5`, have a look at the following two examples: [copy values](https://gist.github.com/Dobiasd/966334bb867d170b334c8374e635cb9b), [reuse memory](https://gist.github.com/Dobiasd/2852c81adbd57a57e89d2d0385cc4c06).
 * If you have a normal `std::vector` with values and want to use it, check out [this explanation](https://gist.github.com/Dobiasd/8f41ef8bf4198ab535060a78b53f2008).
 * [This gist](https://gist.github.com/Dobiasd/d75a957308f6a4874beddee0a812109b) explains the reasoning behind models with multiple tensors as output and/or input.
+* Here is an example of [using a model with multiple input tensors](https://gist.github.com/Dobiasd/14a3e233725a16bb7c86ca6f4d81a825).
 
 
 Performance

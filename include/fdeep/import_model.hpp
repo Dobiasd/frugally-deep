@@ -47,6 +47,7 @@
 #include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
 #include "fdeep/layers/gru_layer.hpp"
+#include "fdeep/layers/permute_layer.hpp"
 #include "fdeep/layers/prelu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
@@ -839,6 +840,15 @@ inline layer_ptr create_activation_layer(
         data, type, name);
 }
 
+inline layer_ptr create_permute_layer(
+    const get_param_f&, const get_global_param_f&,
+    const nlohmann::json& data, const std::string& name)
+{
+    const auto dims = create_vector<std::size_t>(create_size_t,
+        data["config"]["dims"]);
+    return std::make_shared<permute_layer>(name, dims);
+}
+
 inline node create_node(const nlohmann::json& inbound_nodes_data)
 {
     assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
@@ -909,7 +919,7 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     auto&& config = data["config"];
     const bool reset_after = json_object_get(config, "reset_after", false);
     const bool return_sequences = json_object_get(config, "return_sequences", false);
-    
+
     return std::make_shared<gru_layer>(name, units, unit_activation,
                                        recurrent_activation, use_bias, reset_after, return_sequences,
                                        weights, recurrent_weights, bias);
@@ -926,33 +936,33 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     const std::string recurrent_activation = data["config"]["layer"]["config"]["recurrent_activation"];
     const bool use_bias = data["config"]["layer"]["config"]["use_bias"];
     const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
-    
+
     float_vec forward_bias;
     float_vec backward_bias;
-    
+
     if (use_bias)
     {
         forward_bias = decode_floats(get_param(name, "forward_bias"));
         backward_bias = decode_floats(get_param(name, "backward_bias"));
     }
-    
+
     const float_vec forward_weights = decode_floats(get_param(name, "forward_weights"));
     const float_vec backward_weights = decode_floats(get_param(name, "backward_weights"));
-    
+
     const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
     const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
-    
+
     auto&& layer_config = data["config"]["layer"]["config"];
     const bool reset_after = json_object_get(layer_config, "reset_after", false);
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
-    
+
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
                                                  recurrent_activation, wrapped_layer_type,
                                                  use_bias, reset_after, return_sequences,
                                                  forward_weights, forward_recurrent_weights, forward_bias,
                                                  backward_weights, backward_recurrent_weights, backward_bias);
 }
-    
+
 inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
                                    const get_global_param_f& get_global_param,
                                    const nlohmann::json& data,
@@ -966,7 +976,7 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 
     layer_ptr inner_layer = create_layer(get_param, get_global_param, data_inner_layer);
-    
+
     return std::make_shared<time_distributed_layer>(name, inner_layer, td_input_len, td_output_len);
 }
 
@@ -990,6 +1000,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"BatchNormalization", create_batch_normalization_layer},
             {"Dropout", create_dropout_layer},
             {"LeakyReLU", create_leaky_relu_layer_isolated},
+            {"Permute", create_permute_layer },
             {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
             {"ReLU", create_relu_layer_isolated},

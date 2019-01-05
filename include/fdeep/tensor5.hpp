@@ -509,6 +509,60 @@ inline tensor5 pad_tensor5(float_type val,
     return result;
 }
 
+inline void check_permute_tensor5_dims(const std::vector<std::size_t>& dims)
+{
+    assertion(
+        fplus::minimum(dims) >= 1 &&
+        fplus::maximum(dims) <= 5 &&
+        fplus::size_of_cont(fplus::nub(dims)) == fplus::size_of_cont(dims),
+        "Invalid dims for permute_tensor5.");
+}
+
+inline tensor5 permute_tensor5(const tensor5& in,
+    const std::vector<std::size_t>& dims_raw)
+{
+    check_permute_tensor5_dims(dims_raw);
+
+    const std::size_t offset = 5 - dims_raw.size();
+    const auto dims = fplus::append(
+        fplus::numbers<std::size_t>(0, offset),
+        fplus::transform(fplus::add_to(offset - 1), dims_raw));
+
+    shape5 out_shape = in.shape();
+    for (std::size_t i = 0; i < 5; ++i)
+    {
+        out_shape = change_shape5_dimension_by_index(out_shape, i,
+            get_shape5_dimension_by_index(in.shape(), dims[i]));
+    }
+
+    tensor5 out(out_shape, 0);
+
+    for (std::size_t dim5 = 0; dim5 < in.shape().size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < in.shape().size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < in.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < in.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+                    {
+                        const tensor5_pos in_pos(dim5, dim4, y, x, z);
+                        tensor5_pos out_pos = in_pos;
+                        for (std::size_t i = 0; i < 5; ++i)
+                        {
+                            out_pos = change_tensor5_pos_dimension_by_index(out_pos, i,
+                                get_tensor5_pos_dimension_by_index(in_pos, dims[i]));
+                        }
+                        out.set(out_pos, in.get(in_pos));
+                    }
+                }
+            }
+        }
+    }
+    return out;
+}
+
 inline tensor5 crop_tensor5(
     std::size_t top_crop, std::size_t bottom_crop,
     std::size_t left_crop, std::size_t right_crop,

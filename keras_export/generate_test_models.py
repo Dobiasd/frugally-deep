@@ -17,7 +17,7 @@ from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
-from keras.layers import LeakyReLU, ELU, PReLU
+from keras.layers import LeakyReLU, ELU, PReLU, Permute
 from keras.layers import BatchNormalization, Concatenate
 from keras.layers import Embedding
 from keras.layers import LSTM, GRU
@@ -99,6 +99,10 @@ def get_test_model_small():
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Permute((2, 1))(inputs[0]))
+    outputs.append(Permute((3, 2, 1))(inputs[1]))
+    outputs.append(Permute((4, 2, 1, 5, 3))(inputs[8]))
 
     outputs.append(Dense(3)(inputs[2]))
     outputs.append(Dense(3)(inputs[0]))

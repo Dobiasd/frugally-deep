@@ -141,6 +141,42 @@ inline shape5 dilate_shape5(
     return shape5(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
 }
 
+inline std::size_t get_shape5_dimension_by_index(const shape5& s,
+    const std::size_t idx)
+{
+    if (idx == 0)
+        return s.size_dim_5_;
+    if (idx == 1)
+        return s.size_dim_4_;
+    if (idx == 2)
+        return s.height_;
+    if (idx == 3)
+        return s.width_;
+    if (idx == 4)
+        return s.depth_;
+    raise_error("Invalid shape5 index.");
+    return 0;
+}
+
+inline shape5 change_shape5_dimension_by_index(const shape5& in,
+    const std::size_t idx, const std::size_t dim)
+{
+    shape5 out = in;
+    if (idx == 0)
+        out.size_dim_5_ = dim;
+    else if (idx == 1)
+        out.size_dim_4_ = dim;
+    else if (idx == 2)
+        out.height_ = dim;
+    else if (idx == 3)
+        out.width_ = dim;
+    else if (idx == 4)
+        out.depth_ = dim;
+    else
+        raise_error("Invalid shape5 index.");
+    return out;
+}
+
 } // namespace internal
 
 using shape5 = internal::shape5;

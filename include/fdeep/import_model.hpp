@@ -1033,6 +1033,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"GRU", create_gru_layer},
             {"Bidirectional", create_bidirectional_layer},
             {"TimeDistributed", create_time_distributed_layer},
+            {"Softmax", create_softmax_layer},
         };
 
     const std::string type = data["class_name"];

@@ -727,7 +727,8 @@ inline activation_layer_ptr create_relu_layer(
 {
     float_type max_value = std::numeric_limits<float_type>::max();
     if (json_obj_has_member(data, "config") &&
-        json_obj_has_member(data["config"], "max_value"))
+        json_obj_has_member(data["config"], "max_value") &&
+        !data["config"]["max_value"].is_null())
     {
         max_value = data["config"]["max_value"];
     }

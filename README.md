@@ -48,7 +48,9 @@ Layer types typically used in image recognition/generation are supported, making
 * `Bidirectional`, `Embedding`, `GRU`, `LSTM`, `TimeDistributed`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
 * `Cropping1D/2D`, `ZeroPadding1D/2D`
-* `BatchNormalization`, `Dense`, `Dropout`, `Flatten`
+* `BatchNormalization`, `Dense`, `Flatten`
+* `Dropout`, `AlphaDropout`, `GaussianDropout`
+* `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
 * `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
@@ -68,7 +70,6 @@ Layer types typically used in image recognition/generation are supported, making
 
 ### Currently not supported are the following:
 `ActivityRegularization`,
-`AlphaDropout`,
 `AveragePooling3D`,
 `Conv2DTranspose`,
 `Conv3D`,
@@ -77,7 +78,6 @@ Layer types typically used in image recognition/generation are supported, making
 `CuDNNLSTM`,
 `Cropping3D`,
 `Dot`,
-`GaussianDropout`,
 `GaussianNoise`,
 `GRUCell`,
 `Lambda`,

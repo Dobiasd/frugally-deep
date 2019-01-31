@@ -49,6 +49,7 @@ install:
   # Doctest
   - git clone https://github.com/onqtam/doctest
   - cd doctest
+  - git checkout tags/1.2.9
   - mkdir -p build && cd build && cmake .. && make && sudo make install
   - cd ../..
   # json

@@ -37,7 +37,14 @@ Would you like to build/train a model using Keras/Python? And would you like run
 * works out of-the-box also when compiled into a 32-bit executable. (Of course 64 bit is fine too.)
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
 * but is quite fast on one CPU core [compared to TensorFlow](#performance).
+Use the following:
 
+#define FDEEP_FLOAT_TYPE double
+#include <fdeep/fdeep.hpp>
+
+See: https://github.com/Dobiasd/frugally-deep#internals
+
+However the difference of the Hu Moments between these geometrical shapes should usually be a lot bigger than the epsilon of 32-bit-floating-point precision. So I suspect your model has another problems. But that too is outside of the responsibility of me as the maintainer of frugally-deep.
 
 ### Supported layer types
 
@@ -190,8 +197,8 @@ Guides for different ways to install frugally-deep can be found in [`INSTALL.md`
 Internals
 ---------
 
-frugally-deep uses `channels_last` (`height, width, depth/channels`) as its `image_data_format` internally.
-From then on everything is handled as a float32 tensor with rank 3. Dense layers for example take its input flattened to a shape of `(n, 1, 1)`. This is also the shape you will receive as the output of a final `softmax` layer for example.
+frugally-deep uses `channels_last` (`height, width, depth/channels`) as its `image_data_format` internally, as does TensorFlow.
+Everything is handled as a float-32 tensor with rank 5.
 
 In case you would like to use `double` instead of `float` for all calculations, simply do this:
 ```cpp

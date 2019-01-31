@@ -37,14 +37,7 @@ Would you like to build/train a model using Keras/Python? And would you like run
 * works out of-the-box also when compiled into a 32-bit executable. (Of course 64 bit is fine too.)
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
 * but is quite fast on one CPU core [compared to TensorFlow](#performance).
-Use the following:
 
-#define FDEEP_FLOAT_TYPE double
-#include <fdeep/fdeep.hpp>
-
-See: https://github.com/Dobiasd/frugally-deep#internals
-
-However the difference of the Hu Moments between these geometrical shapes should usually be a lot bigger than the epsilon of 32-bit-floating-point precision. So I suspect your model has another problems. But that too is outside of the responsibility of me as the maintainer of frugally-deep.
 
 ### Supported layer types
 

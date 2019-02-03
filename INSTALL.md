@@ -45,6 +45,7 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 # install doctest
 git clone https://github.com/onqtam/doctest.git
 cd doctest
+git checkout tags/1.2.9
 mkdir -p build && cd build
 cmake -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF ..
 make && sudo make install

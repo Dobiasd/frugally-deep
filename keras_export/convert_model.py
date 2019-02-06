@@ -127,7 +127,7 @@ def gen_test_data(model, random_fn=None):
         except AttributeError:
             shape = layer.input_shape
         return random_fn(
-            size=replace_none_with(42, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
+            size=replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 

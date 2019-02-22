@@ -2,27 +2,25 @@
 """Generate a test model for frugally-deep.
 """
 
-import numbers
 import sys
 
-import numpy as np
-
 import keras
-from keras.models import Model, load_model, Sequential
-from keras.layers import Input, Dense, Dropout, Flatten, Activation
+import numpy as np
+from keras import backend as K
+from keras.layers import BatchNormalization, Concatenate
+from keras.layers import Bidirectional, TimeDistributed
 from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from keras.layers import Conv2D, ZeroPadding2D, Cropping2D
-from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
-from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from keras.layers import Embedding
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import SeparableConv2D, DepthwiseConv2D
-from keras.layers import LeakyReLU, ELU, PReLU, Permute
-from keras.layers import BatchNormalization, Concatenate
-from keras.layers import Embedding
+from keras.layers import Input, Dense, Dropout, Flatten, Activation
 from keras.layers import LSTM, GRU
-from keras.layers import Bidirectional, TimeDistributed
-from keras import backend as K
+from keras.layers import LeakyReLU, ELU, PReLU, Permute
+from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
+from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from keras.layers import SeparableConv2D, DepthwiseConv2D
+from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -69,10 +67,10 @@ def generate_integer_random_data(data_size, low, high, shape):
         low=low, high=high, size=get_shape_for_random_data(data_size, replace_none_with(42, shape)))
 
 
-def generate_integer_input_data(data_size, low, high, input_shapes):
+def generate_integer_input_data(data_size, low, highs, input_shapes):
     """Random input data for training."""
     return [generate_integer_random_data(data_size, low, high, input_shape)
-            for input_shape in input_shapes]
+            for high, input_shape in zip(highs, input_shapes)]
 
 
 def generate_output_data(data_size, outputs):
@@ -93,8 +91,7 @@ def get_test_model_small():
         (32, 32, 3),
         (2, 3, 4, 5),
         (2, 3, 4, 5, 6),
-        ]
-
+    ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
@@ -138,9 +135,9 @@ def get_test_model_small():
     outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
                                   activation='elu')(inputs[6])))
     outputs.append(PReLU()(LSTM(units=16,
-                            activation='tanh',
-                            recurrent_activation='hard_sigmoid',
-                            return_sequences=True)(inputs[0])))
+                                activation='tanh',
+                                recurrent_activation='hard_sigmoid',
+                                return_sequences=True)(inputs[0])))
 
     outputs.append(GlobalMaxPooling2D()(inputs[1]))
     outputs.append(MaxPooling2D()(inputs[1]))
@@ -170,21 +167,26 @@ def get_test_model_small():
     model.fit(data_in, data_out, epochs=10)
     return model
 
+
 def get_test_model_embedding():
     """Returns a minimalistic test model for the embedding layer."""
 
-    input_dim = 1023  # maximum integer value in input data
+    input_dims = [
+        1023,  # maximum integer value in input data
+        255
+    ]
     input_shapes = [
         (100,),  # must be single-element tuple (for sequence length)
         (1000,)
     ]
-    output_dims = [8,3]  # embedding dimension
+    assert len(input_dims) == len(input_shapes)
+    output_dims = [8, 3]  # embedding dimension
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
     for k in range(0, len(input_shapes)):
-        embedding = Embedding(input_dim=input_dim, output_dim=output_dims[k])(inputs[k])
+        embedding = Embedding(input_dim=input_dims[k], output_dim=output_dims[k])(inputs[k])
         lstm = LSTM(
             units=4,
             recurrent_activation='sigmoid',
@@ -198,11 +200,12 @@ def get_test_model_embedding():
 
     # fit to dummy data
     training_data_size = 1
-    data_in = generate_integer_input_data(training_data_size, 0, input_dim, input_shapes)
+    data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
     return model
+
 
 def get_test_model_recurrent():
     """Returns a minimalistic test model for recurrent layers."""
@@ -220,16 +223,16 @@ def get_test_model_recurrent():
     inp = PReLU()(inputs[0])
 
     lstm = Bidirectional(LSTM(units=4,
-                return_sequences=True,
-                bias_initializer='random_uniform',  # default is zero use random to test computation
-                activation='tanh',
-                recurrent_activation='relu'), merge_mode='concat')(inp)
+                              return_sequences=True,
+                              bias_initializer='random_uniform',  # default is zero use random to test computation
+                              activation='tanh',
+                              recurrent_activation='relu'), merge_mode='concat')(inp)
 
     lstm2 = Bidirectional(LSTM(units=6,
-                 return_sequences=True,
-                 bias_initializer='random_uniform',
-                 activation='elu',
-                 recurrent_activation='hard_sigmoid'), merge_mode='sum')(lstm)
+                               return_sequences=True,
+                               bias_initializer='random_uniform',
+                               activation='elu',
+                               recurrent_activation='hard_sigmoid'), merge_mode='sum')(lstm)
 
     lstm3 = LSTM(units=10,
                  return_sequences=False,
@@ -241,10 +244,10 @@ def get_test_model_recurrent():
 
     conv1 = (Conv1D(2, 1, activation='sigmoid'))(inputs[1])
     lstm4 = LSTM(units=15,
-                return_sequences=False,
-                bias_initializer='random_uniform',
-                activation='tanh',
-                recurrent_activation='elu')(conv1)
+                 return_sequences=False,
+                 bias_initializer='random_uniform',
+                 activation='tanh',
+                 recurrent_activation='elu')(conv1)
 
     dense = (Dense(23, activation='sigmoid'))(lstm4)
     outputs.append(dense)
@@ -253,21 +256,21 @@ def get_test_model_recurrent():
     flatten_1 = TimeDistributed(Flatten())(time_dist_1)
 
     outputs.append(Bidirectional(LSTM(units=6,
-                 return_sequences=True,
-                 bias_initializer='random_uniform',
-                 activation='tanh',
-                 recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1))
+                                      return_sequences=True,
+                                      bias_initializer='random_uniform',
+                                      activation='tanh',
+                                      recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1))
 
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
 
     # Gated Recurrent Unit layer
     gru1 = GRU(
-            units=8,
-            recurrent_activation='relu',
-            reset_after=True,
-            return_sequences=True,
-            use_bias=True
+        units=8,
+        recurrent_activation='relu',
+        reset_after=True,
+        return_sequences=True,
+        use_bias=True
     )(inp)
     gru2 = Bidirectional(
         GRU(
@@ -288,11 +291,11 @@ def get_test_model_recurrent():
         )
     )(gru2)
     gru4 = GRU(
-            units=10,
-            recurrent_activation='sigmoid',
-            reset_after=True,
-            return_sequences=False,
-            use_bias=False
+        units=10,
+        recurrent_activation='sigmoid',
+        reset_after=True,
+        return_sequences=False,
+        use_bias=False
     )(gru3)
     outputs.append(gru4)
 
@@ -441,7 +444,7 @@ def get_test_model_full():
                                    dilation_rate=(d, 1))(inp))
                         outputs.append(
                             SeparableConv2D(out_channels, (h, 1), padding=padding,
-                                   dilation_rate=(d, 1))(inp))
+                                            dilation_rate=(d, 1))(inp))
                     for sy in range(1, 4):
                         outputs.append(
                             Conv2D(out_channels, (h, 1), strides=(1, sy),
@@ -466,7 +469,7 @@ def get_test_model_full():
                                    dilation_rate=(1, d))(inp))
                         outputs.append(
                             SeparableConv2D(out_channels, (1, w), padding=padding,
-                                   dilation_rate=(1, d))(inp))
+                                            dilation_rate=(1, d))(inp))
                     for sx in range(1, 4):
                         outputs.append(
                             Conv2D(out_channels, (1, w), strides=(sx, 1),
@@ -648,6 +651,7 @@ def main():
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
         print(model.summary())
+
 
 if __name__ == "__main__":
     main()

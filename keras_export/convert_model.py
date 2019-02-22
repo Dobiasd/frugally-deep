@@ -8,13 +8,11 @@ import hashlib
 import json
 import sys
 
-import numpy as np
-
 import keras
+import numpy as np
+from keras import backend as K
 from keras.layers import Input
 from keras.models import Model, load_model
-from keras import backend as K
-
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -44,7 +42,7 @@ def arr_as_arr5(arr):
         return arr.reshape(1, arr.shape[0], arr.shape[1], arr.shape[2], arr.shape[3])
     if depth == 5:
         return arr
-    if depth == 6 and arr.shape[0] in [None, 1]: # todo: Is this still needed?
+    if depth == 6 and arr.shape[0] in [None, 1]:  # todo: Is this still needed?
         return arr.reshape(arr.shape[1:])
     else:
         raise ValueError('invalid number of dimensions')
@@ -105,11 +103,8 @@ def replace_none_with(value, shape):
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
-def gen_test_data(model, random_fn=None):
+def gen_test_data(model):
     """Generate data for model verification test."""
-
-    if not random_fn:
-        random_fn = np.random.normal
 
     def set_shape_idx_0_to_1_if_none(shape):
         """Change first element in tuple to 1."""
@@ -120,12 +115,18 @@ def gen_test_data(model, random_fn=None):
         shape = tuple(shape_lst)
         return shape
 
-    def generate_input_data(layer):
+    def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
+
+        first_layer_connected_to_input = input_layer._outbound_nodes[0].outbound_layer
+        if isinstance(first_layer_connected_to_input, keras.layers.Embedding):
+            random_fn = lambda size: np.random.randint(0, first_layer_connected_to_input.input_dim, size)
+        else:
+            random_fn = np.random.normal
         try:
-            shape = layer.batch_input_shape
+            shape = input_layer.batch_input_shape
         except AttributeError:
-            shape = layer.input_shape
+            shape = input_layer.input_shape
         return random_fn(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
 
@@ -300,6 +301,7 @@ def show_dense_layer(layer):
         result['bias'] = encode_floats(bias)
     return result
 
+
 def show_prelu_layer(layer):
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
@@ -310,6 +312,7 @@ def show_prelu_layer(layer):
     }
     return result
 
+
 def show_embedding_layer(layer):
     """Serialize Embedding layer to dict"""
     weights = layer.get_weights()
@@ -318,6 +321,7 @@ def show_embedding_layer(layer):
         'weights': encode_floats(weights[0])
     }
     return result
+
 
 def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
@@ -331,6 +335,7 @@ def show_lstm_layer(layer):
 
     return result
 
+
 def show_gru_layer(layer):
     """Serialize GRU layer to dict"""
     weights = layer.get_weights()
@@ -342,6 +347,7 @@ def show_gru_layer(layer):
         result['bias'] = encode_floats(weights[2])
 
     return result
+
 
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""
@@ -363,6 +369,7 @@ def show_bidirectional_layer(layer):
 
     return result
 
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -379,6 +386,7 @@ def get_layer_functions_dict():
         'TimeDistributed': show_time_distributed_layer
     }
 
+
 def show_time_distributed_layer(layer):
     show_layer_functions = get_layer_functions_dict()
     config = layer.get_config()
@@ -393,7 +401,8 @@ def show_time_distributed_layer(layer):
         elif len(layer.input_shape) == 5:
             input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4])
         elif len(layer.input_shape) == 6:
-            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4], layer.input_shape[5])
+            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4],
+                               layer.input_shape[5])
         else:
             raise Exception('Wrong input shape')
 
@@ -496,7 +505,7 @@ def set_model_name(model, name):
     elif hasattr(model, '_name'):
         model._name = name
     else:
-        pass # Model has no name property.
+        pass  # Model has no name property.
 
 
 def convert_sequential_to_model(model):
@@ -534,7 +543,7 @@ def convert_sequential_to_model(model):
 def offset_conv2d_eval(depth, padding, x):
     """Perform a conv2d on x with a given padding"""
     kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-        dtype='float32')
+                        dtype='float32')
     return K.conv2d(x, kernel, strides=(3, 3), padding=padding)
 
 
@@ -543,7 +552,7 @@ def offset_sep_conv2d_eval(depth, padding, x):
     depthwise_kernel = K.variable(value=np.array([[[[1]] * depth]]),
                                   dtype='float32')
     pointwise_kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-        dtype='float32')
+                                  dtype='float32')
     return K.separable_conv2d(x, depthwise_kernel,
                               pointwise_kernel, strides=(3, 3), padding=padding)
 
@@ -605,36 +614,28 @@ def convert(in_path, out_path):
 
     model = convert_sequential_to_model(model)
 
-    random_fn = None
-
-    # use random integers as input for models with embedding layers
-    for layer in model.layers:
-        if isinstance(layer, keras.layers.Embedding):
-            random_fn = lambda size: np.random.randint(0, layer.input_dim, size)
-            break
-
-    test_data = gen_test_data(model, random_fn)
+    test_data = gen_test_data(model)
 
     json_output = {}
     json_output['architecture'] = json.loads(model.to_json())
 
     json_output['image_data_format'] = K.image_data_format()
     for depth in range(1, 3, 1):
-        json_output['conv2d_valid_offset_depth_' + str(depth)] =\
+        json_output['conv2d_valid_offset_depth_' + str(depth)] = \
             check_operation_offset(depth, offset_conv2d_eval, 'valid')
-        json_output['conv2d_same_offset_depth_' + str(depth)] =\
+        json_output['conv2d_same_offset_depth_' + str(depth)] = \
             check_operation_offset(depth, offset_conv2d_eval, 'same')
-        json_output['separable_conv2d_valid_offset_depth_' + str(depth)] =\
+        json_output['separable_conv2d_valid_offset_depth_' + str(depth)] = \
             check_operation_offset(depth, offset_sep_conv2d_eval, 'valid')
-        json_output['separable_conv2d_same_offset_depth_' + str(depth)] =\
+        json_output['separable_conv2d_same_offset_depth_' + str(depth)] = \
             check_operation_offset(depth, offset_sep_conv2d_eval, 'same')
-    json_output['max_pooling_2d_valid_offset'] =\
+    json_output['max_pooling_2d_valid_offset'] = \
         check_operation_offset(1, conv2d_offset_max_pool_eval, 'valid')
-    json_output['max_pooling_2d_same_offset'] =\
+    json_output['max_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_max_pool_eval, 'same')
-    json_output['average_pooling_2d_valid_offset'] =\
+    json_output['average_pooling_2d_valid_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
-    json_output['average_pooling_2d_same_offset'] =\
+    json_output['average_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
     json_output['tests'] = [test_data]

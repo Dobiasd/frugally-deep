@@ -117,10 +117,10 @@ def gen_test_data(model):
 
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
-
-        first_layer_connected_to_input = input_layer._outbound_nodes[0].outbound_layer
-        if isinstance(first_layer_connected_to_input, keras.layers.Embedding):
-            random_fn = lambda size: np.random.randint(0, first_layer_connected_to_input.input_dim, size)
+        if input_layer._outbound_nodes and isinstance(
+                input_layer._outbound_nodes[0].outbound_layer, keras.layers.Embedding):
+            random_fn = lambda size: np.random.randint(
+                0, input_layer._outbound_nodes[0].outbound_layer.input_dim, size)
         else:
             random_fn = np.random.normal
         try:

@@ -44,8 +44,7 @@ def arr_as_arr5(arr):
         return arr
     if depth == 6 and arr.shape[0] in [None, 1]:  # todo: Is this still needed?
         return arr.reshape(arr.shape[1:])
-    else:
-        raise ValueError('invalid number of dimensions')
+    raise ValueError('invalid number of dimensions')
 
 
 def get_layer_input_shape_shape5(layer):
@@ -62,8 +61,7 @@ def get_layer_input_shape_shape5(layer):
         return (1, shape[0], shape[1], shape[2], shape[3])
     if depth == 5:
         return shape
-    else:
-        raise ValueError('invalid number of dimensions')
+    raise ValueError('invalid number of dimensions')
 
 
 def show_tensor5(tens):
@@ -81,11 +79,12 @@ def show_test_data_as_tensor5(arr):
 
 
 def get_model_input_layers(model):
+    """Works for different Keras version."""
     if hasattr(model, '_input_layers'):
         return model._input_layers
-    elif hasattr(model, 'input_layers'):
+    if hasattr(model, 'input_layers'):
         return model.input_layers
-    assert False, "can not get (_)input_layers from model"
+    raise ValueError('can not get (_)input_layers from model')
 
 
 def measure_predict(model, data_in):
@@ -135,11 +134,11 @@ def gen_test_data(model):
     warm_up_runs = 3
     test_runs = 5
     data_out = None
-    for i in range(warm_up_runs):
+    for _ in range(warm_up_runs):
         measure_predict(model, data_in)
     duration_sum = 0
     print('Starting performance measurements.')
-    for i in range(test_runs):
+    for _ in range(test_runs):
         data_out, duration = measure_predict(model, data_in)
         duration_sum = duration_sum + duration
     duration_avg = duration_sum / test_runs
@@ -409,18 +408,18 @@ def show_time_distributed_layer(layer):
         layer_function = show_layer_functions[class_name]
         attributes = dir(layer.layer)
 
-        class Copied_layer(object):
+        class CopiedLayer:
             pass
 
-        copied_layer = Copied_layer()
+        copied_layer = CopiedLayer()
 
         for attr in attributes:
             try:
-                if attr != 'input_shape' and attr != '__class__':
+                if attr not in ['input_shape', '__class__']:
                     setattr(copied_layer, attr, getattr(layer.layer, attr))
                 elif attr == 'input_shape':
                     setattr(copied_layer, 'input_shape', input_shape_new)
-            except:
+            except Exception:
                 continue
 
         setattr(copied_layer, "output_shape", getattr(layer, "output_shape"))
@@ -492,10 +491,9 @@ def get_model_name(model):
     """Return .name or ._name or 'dummy_model_name'"""
     if hasattr(model, 'name'):
         return model.name
-    elif hasattr(model, '_name'):
+    if hasattr(model, '_name'):
         return model._name
-    else:
-        return 'dummy_model_name'
+    return 'dummy_model_name'
 
 
 def set_model_name(model, name):
@@ -517,7 +515,7 @@ def convert_sequential_to_model(model):
         elif hasattr(model, 'inbound_nodes'):
             inbound_nodes = model.inbound_nodes
         else:
-            assert False
+            raise ValueError('can not get (_)inbound_nodes from model')
         # Since Keras 2.2.0
         if model.model == model:
             input_layer = Input(batch_shape=model.layers[0].input_shape)
@@ -588,13 +586,13 @@ def get_shapes(tensor5s):
 
 def calculate_hash(model):
     layers = model.layers
-    m = hashlib.sha256()
+    hash_m = hashlib.sha256()
     for layer in layers:
         for weights in layer.get_weights():
             assert isinstance(weights, np.ndarray)
-            m.update(weights.tobytes())
-        m.update(layer.name.encode('ascii'))
-    return m.hexdigest()
+            hash_m.update(weights.tobytes())
+        hash_m.update(layer.name.encode('ascii'))
+    return hash_m.hexdigest()
 
 
 def convert(in_path, out_path):

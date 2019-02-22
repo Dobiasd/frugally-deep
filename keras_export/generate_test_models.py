@@ -46,7 +46,7 @@ def get_shape_for_random_data(data_size, shape):
         return (data_size, shape[0], shape[1])
     if len(shape) == 1:
         return (data_size, shape[0])
-    assert False
+    raise ValueError('can not get determine shape for random data')
 
 
 def generate_random_data(data_size, shape):

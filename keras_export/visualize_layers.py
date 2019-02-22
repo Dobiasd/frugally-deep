@@ -2,18 +2,13 @@
 """Generate images maximally activating filters/neurons of a given model.
 """
 
-import base64
 import datetime
-import json
-import struct
 import sys
 
 import numpy as np
-
-from scipy.misc import imsave
-
-from keras.models import load_model
 from keras import backend as K
+from keras.models import load_model
+from scipy.misc import imsave
 
 # based on: https://blog.keras.io/how-convolutional-neural-networks-see-the-world.html
 __author__ = "Francois Chollet, Tobias Hermann"
@@ -24,6 +19,7 @@ __email__ = "editgym@gmail.com"
 
 GRADIENT_ASCENT_STEPS = 24
 GRADIENT_ASCENT_STEP_SIZE = 1.
+
 
 def deprocess_image(x):
     """normalize tensor: center on 0., ensure std is 0.1"""
@@ -74,7 +70,7 @@ def process_conv_2d_layer(layer, input_img):
         input_img_data = np.random.random((1, img_width, img_height, img_chans))
 
         # run gradient ascent
-        for i in range(GRADIENT_ASCENT_STEPS):
+        for _ in range(GRADIENT_ASCENT_STEPS):
             loss_value, grads_value = iterate([input_img_data])
             input_img_data += grads_value * GRADIENT_ASCENT_STEP_SIZE
 
@@ -98,11 +94,11 @@ def is_ascii(some_string):
 def process_layers(model, out_dir):
     """Visualize all filters of all layers"""
     process_layer_functions = {
-        #'Conv1D': process_conv_1d_layer,
+        # 'Conv1D': process_conv_1d_layer,
         'Conv2D': process_conv_2d_layer,
-        #'Conv2DTranspose': process_conv_2d_transpose_layer,
-        #'SeparableConv2D': process_separable_conv_2d_layer,
-        #'Dense': process_dense_layer
+        # 'Conv2DTranspose': process_conv_2d_transpose_layer,
+        # 'SeparableConv2D': process_separable_conv_2d_layer,
+        # 'Dense': process_dense_layer
     }
     result = {}
     layers = model.layers
@@ -118,7 +114,7 @@ def process_layers(model, out_dir):
                 print('Processing layer {} ({} of {})'.format(
                     layer.name, i, len(layers)))
                 images_with_loss = process_func(layer, model.get_input_at(0))
-                for i, (image, loss) in enumerate(images_with_loss):
+                for _, (image, loss) in enumerate(images_with_loss):
                     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
                     if image.shape[-1] == 1:
                         image = image.reshape(image.shape[:-1])

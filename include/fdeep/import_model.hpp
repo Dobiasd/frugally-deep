@@ -96,6 +96,12 @@ ValueT json_object_get(const nlohmann::json& data, KeyT&& key, ValueT&& default_
         return default_value;
 }
 
+inline bool json_obj_has_member(const nlohmann::json& data,
+    const std::string& member_name)
+{
+    return data.is_object() && data.find(member_name) != data.end();
+}
+
 inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
 {
     if (data.is_null())
@@ -477,6 +483,7 @@ inline layer_ptr create_max_pooling_2d_layer(
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
+    const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
@@ -484,7 +491,7 @@ inline layer_ptr create_max_pooling_2d_layer(
     const bool padding_same_uses_offset =
         get_global_param("max_pooling_2d_same_offset");
     return std::make_shared<max_pooling_2d_layer>(name,
-        pool_size, strides, pad_type,
+        pool_size, strides, channels_first, pad_type,
         padding_valid_uses_offset,
         padding_same_uses_offset);
 }
@@ -495,30 +502,38 @@ inline layer_ptr create_average_pooling_2d_layer(
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
+    const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
+
     const auto pad_type = create_padding(padding_str);
     const bool padding_valid_uses_offset =
         get_global_param("average_pooling_2d_valid_offset");
     const bool padding_same_uses_offset =
         get_global_param("average_pooling_2d_same_offset");
     return std::make_shared<average_pooling_2d_layer>(name,
-        pool_size, strides, pad_type,
+        pool_size, strides, channels_first, pad_type,
         padding_valid_uses_offset,
         padding_same_uses_offset);
 }
 
 inline layer_ptr create_global_max_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    return std::make_shared<global_max_pooling_2d_layer>(name);
+    const bool channels_first = json_obj_has_member(data, "config")
+        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
+
+    return std::make_shared<global_max_pooling_2d_layer>(name, channels_first);
 }
 
 inline layer_ptr create_global_average_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    return std::make_shared<global_average_pooling_2d_layer>(name);
+    const bool channels_first = json_obj_has_member(data, "config")
+        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
+
+    return std::make_shared<global_average_pooling_2d_layer>(name, channels_first);
 }
 
 inline layer_ptr create_upsampling_2d_layer(
@@ -671,12 +686,6 @@ inline layer_ptr create_reshape_layer(
         fplus::fill_left(1, 3, target_shape);
 
     return std::make_shared<reshape_layer>(name, filled_shape);
-}
-
-inline bool json_obj_has_member(const nlohmann::json& data,
-    const std::string& member_name)
-{
-    return data.is_object() && data.find(member_name) != data.end();
 }
 
 inline activation_layer_ptr create_linear_layer(

@@ -16,20 +16,35 @@ namespace fdeep { namespace internal
 class global_average_pooling_2d_layer : public global_pooling_2d_layer
 {
 public:
-    explicit global_average_pooling_2d_layer(const std::string& name) :
-    global_pooling_2d_layer(name)
+    explicit global_average_pooling_2d_layer(const std::string& name, bool channels_first) :
+    global_pooling_2d_layer(name, channels_first)
     {
     }
 protected:
     tensor5 pool(const tensor5& in) const override
     {
-        tensor5 out(shape5(1, 1, 1, 1, in.shape().depth_), 0);
-        for (std::size_t z = 0; z < in.shape().depth_; ++z)
+        const std::size_t feature_count = channels_first_
+            ? in.shape().height_
+            : in.shape().depth_
+            ;
+
+        const std::size_t in_height = channels_first_
+            ? in.shape().width_
+            : in.shape().height_
+            ;
+
+        const std::size_t in_width = channels_first_
+            ? in.shape().depth_
+            : in.shape().width_
+            ;
+
+        tensor5 out(shape5(1, 1, 1, 1, feature_count), 0);
+        for (std::size_t z = 0; z < feature_count; ++z)
         {
             float_type val = 0;
-            for (std::size_t y = 0; y < in.shape().height_; ++y)
+            for (std::size_t y = 0; y < in_height; ++y)
             {
-                for (std::size_t x = 0; x < in.shape().width_; ++x)
+                for (std::size_t x = 0; x < in_width; ++x)
                 {
                     val += in.get(0, 0, y, x, z);
                 }

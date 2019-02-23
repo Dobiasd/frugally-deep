@@ -354,7 +354,9 @@ def get_test_model_sequential():
     model = Sequential()
     model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
     model.add(Conv2D(8, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Permute((3,1,2)))
+    model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_first"))
+    model.add(Permute((2,3,1)))
     model.add(Dropout(0.25))
 
     model.add(Conv2D(16, (3, 3), activation='elu'))

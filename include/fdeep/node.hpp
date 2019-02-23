@@ -54,7 +54,7 @@ public:
     tensor5s get_output(const layer_ptrs& layers, output_dict& output_cache,
         const layer& layer) const
     {
-        const auto get_input = [this, &output_cache, &layers]
+        const auto get_input = [&output_cache, &layers]
             (const node_connection& conn) -> tensor5
         {
             return get_layer_output(layers, output_cache,

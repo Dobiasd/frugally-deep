@@ -24,7 +24,7 @@ protected:
     tensor5 transform_input(const tensor5& input) const override
     {
         // Get unnormalized values of exponent function.
-        const auto ex = [this](float_type x) -> float_type
+        const auto ex = [](float_type x) -> float_type
         {
             return std::exp(x);
         };

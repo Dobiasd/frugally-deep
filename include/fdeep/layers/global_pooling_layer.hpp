@@ -19,11 +19,12 @@ namespace fdeep { namespace internal
 {
 
 // Abstract base class for global pooling layers
-class global_pooling_2d_layer : public layer
+class global_pooling_layer : public layer
 {
 public:
-    explicit global_pooling_2d_layer(const std::string& name) :
-        layer(name)
+    explicit global_pooling_layer(const std::string& name, bool channels_first) :
+        layer(name),
+        channels_first_(channels_first)
     {
     }
 protected:
@@ -34,6 +35,8 @@ protected:
         return {pool(input)};
     }
     virtual tensor5 pool(const tensor5& input) const = 0;
+
+    bool channels_first_;
 };
 
 } } // namespace fdeep, namespace internal

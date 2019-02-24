@@ -55,7 +55,7 @@ public:
     {
         return get(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z));
     }
-    float_type get_x_y_padded(float_type pad_value,
+    float_type get_y_x_padded(float_type pad_value,
         int y, int x, std::size_t z) const
     {
         if (y < 0 || y >= static_cast<int>(shape().height_) ||
@@ -63,8 +63,17 @@ public:
         {
             return pad_value;
         }
-        return get(tensor5_pos(0, 0,
-            static_cast<std::size_t>(y), static_cast<std::size_t>(x), z));
+        return get(tensor5_pos(0, 0, static_cast<std::size_t>(y), static_cast<std::size_t>(x), z));
+    }
+    float_type get_x_z_padded(float_type pad_value,
+        std::size_t y, int x, int z) const
+    {
+        if (x < 0 || x >= static_cast<int>(shape().width_) ||
+            z < 0 || z >= static_cast<int>(shape().depth_))
+        {
+            return pad_value;
+        }
+        return get(tensor5_pos(0, 0, y, static_cast<std::size_t>(x), static_cast<std::size_t>(z)));
     }
     void set(const tensor5_pos& pos, float_type value)
     {

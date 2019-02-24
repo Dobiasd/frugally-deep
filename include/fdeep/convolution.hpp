@@ -148,13 +148,14 @@ inline convolution_config preprocess_convolution(
     const shape2& strides,
     padding pad_type,
     bool use_offset,
-    const shape5& input_shape)
+    std::size_t input_shape_height,
+    std::size_t input_shape_width)
 {
     // https://www.tensorflow.org/api_guides/python/nn#Convolution
     const int filter_height = static_cast<int>(filter_shape.height_);
     const int filter_width = static_cast<int>(filter_shape.width_);
-    const int in_height = static_cast<int>(input_shape.height_);
-    const int in_width = static_cast<int>(input_shape.width_);
+    const int in_height = static_cast<int>(input_shape_height);
+    const int in_width = static_cast<int>(input_shape_width);
     const int strides_y = static_cast<int>(strides.height_);
     const int strides_x = static_cast<int>(strides.width_);
 
@@ -221,7 +222,7 @@ inline tensor5 convolve(
 
     const auto conv_cfg = preprocess_convolution(
         filter_mat.filter_shape_.without_depth(),
-        strides, pad_type, use_offset, input.shape());
+        strides, pad_type, use_offset, input.shape().height_, input.shape().width_);
 
     const std::size_t offset_y = conv_cfg.offset_y_;
     const std::size_t offset_x = conv_cfg.offset_x_;

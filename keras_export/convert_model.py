@@ -462,12 +462,16 @@ def get_all_weights(model):
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
-        if hasattr(layer, 'data_format'):
-            assert layer.data_format == 'channels_last'
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))
         else:
+            if hasattr(layer, 'data_format'):
+                if layer_type in ['AveragePooling1D','MaxPooling1D','AveragePooling2D','MaxPooling2D','GlobalAveragePooling1D','GlobalMaxPooling1D','GlobalAveragePooling2D','GlobalMaxPooling2D']:
+                    assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
+                else:
+                    assert layer.data_format == 'channels_last'
+
             show_func = show_layer_functions.get(layer_type, None)
             name = layer.name
             assert is_ascii(name)

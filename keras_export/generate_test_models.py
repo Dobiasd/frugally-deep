@@ -16,7 +16,8 @@ from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import Input, Dense, Dropout, Flatten, Activation
 from keras.layers import LSTM, GRU
-from keras.layers import LeakyReLU, ELU, PReLU, Permute
+from keras.layers import LeakyReLU, ELU, PReLU
+from keras.layers import Permute, Reshape
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import SeparableConv2D, DepthwiseConv2D
@@ -168,6 +169,58 @@ def get_test_model_small():
     return model
 
 
+def get_test_model_pooling():
+    """Returns a minimalistic test model for pooling layers."""
+
+    input_shapes = [  # volume must be a multiple of 12 for Reshape
+        (16, 18, 3),
+        (2, 3, 6),
+        (32, 32, 9),
+    ]
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+
+    # 1-dimensional
+    for input in inputs:
+        reshape = Reshape((-1, 12))(input)
+
+        # (batch_size, steps, features)
+        outputs.append(AveragePooling1D(data_format="channels_last")(reshape))
+        outputs.append(MaxPooling1D(data_format="channels_last")(reshape))
+        outputs.append(GlobalAveragePooling1D(data_format="channels_last")(reshape))
+        outputs.append(GlobalMaxPooling1D(data_format="channels_last")(reshape))
+
+        # (batch_size, features, steps)
+        outputs.append(GlobalAveragePooling1D(data_format="channels_first")(reshape))
+        outputs.append(GlobalMaxPooling1D(data_format="channels_first")(reshape))
+
+    # 2-dimensional
+    for input in inputs:
+        # (batch_size, rows, cols, channels)
+        outputs.append(AveragePooling2D(data_format="channels_last")(input))
+        outputs.append(MaxPooling2D(data_format="channels_last")(input))
+        outputs.append(GlobalAveragePooling2D(data_format="channels_last")(input))
+        outputs.append(GlobalMaxPooling2D(data_format="channels_last")(input))
+
+        # (batch_size, channels, rows, cols)
+        outputs.append(AveragePooling2D(data_format="channels_first")(input))
+        outputs.append(MaxPooling2D(data_format="channels_first")(input))
+        outputs.append(GlobalAveragePooling2D(data_format="channels_first")(input))
+        outputs.append(GlobalMaxPooling2D(data_format="channels_first")(input))
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_pooling')
+    model.compile(loss='mse', optimizer='adam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=1)
+    return model
+
+
 def get_test_model_embedding():
     """Returns a minimalistic test model for the embedding layer."""
 
@@ -196,14 +249,14 @@ def get_test_model_embedding():
         outputs.append(lstm)
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
-    model.compile(loss='mse', optimizer='nadam')
+    model.compile(loss='mse', optimizer='adam')
 
     # fit to dummy data
     training_data_size = 1
     data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
+    model.fit(data_in, data_out, epochs=1)
     return model
 
 
@@ -628,6 +681,7 @@ def main():
 
         get_model_functions = {
             'small': get_test_model_small,
+            'pooling': get_test_model_pooling,
             'embedding': get_test_model_embedding,
             'recurrent': get_test_model_recurrent,
             'variable': get_test_model_variable,

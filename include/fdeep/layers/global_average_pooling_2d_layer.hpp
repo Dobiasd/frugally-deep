@@ -6,18 +6,18 @@
 
 #pragma once
 
-#include "fdeep/layers/global_pooling_2d_layer.hpp"
+#include "fdeep/layers/global_pooling_layer.hpp"
 
 #include <string>
 
 namespace fdeep { namespace internal
 {
 
-class global_average_pooling_2d_layer : public global_pooling_2d_layer
+class global_average_pooling_2d_layer : public global_pooling_layer
 {
 public:
     explicit global_average_pooling_2d_layer(const std::string& name, bool channels_first) :
-    global_pooling_2d_layer(name, channels_first)
+    global_pooling_layer(name, channels_first)
     {
     }
 protected:
@@ -46,11 +46,13 @@ protected:
             {
                 for (std::size_t x = 0; x < in_width; ++x)
                 {
-                    val += in.get(0, 0, y, x, z);
+                    if (channels_first_)
+                        val += in.get(0, 0, z, y, x);
+                    else
+                        val += in.get(0, 0, y, x, z);
                 }
             }
-            out.set(0, 0, 0, 0, z, val /
-                static_cast<float_type>(in.shape().without_depth().area()));
+            out.set(0, 0, 0, 0, z, val / static_cast<float_type>(in_height * in_width));
         }
         return out;
     }

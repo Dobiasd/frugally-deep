@@ -5,7 +5,7 @@
 //  https://opensource.org/licenses/MIT)
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
+#include "doctest/doctest.h"
 #include <fdeep/fdeep.hpp>
 
 #define FDEEP_FLOAT_TYPE double

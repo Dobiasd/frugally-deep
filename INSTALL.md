@@ -45,9 +45,8 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 # install doctest
 git clone https://github.com/onqtam/doctest.git
 cd doctest
-git checkout tags/1.2.9
 mkdir -p build && cd build
-cmake -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF ..
+cmake .. -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF
 make && sudo make install
 cd ../..
 
@@ -85,7 +84,7 @@ $ conan install conanfile.txt
 ```
 
 ### Installation using the [Hunter CMake package manager](https://github.com/ruslo/hunter)
-The [First Step](https://docs.hunter.sh/en/latest/quick-start/boost-components.html#first-step) section of the [Hunter documentation](https://docs.hunter.sh/en/latest/index.html) shows how to get started. 
+The [First Step](https://docs.hunter.sh/en/latest/quick-start/boost-components.html#first-step) section of the [Hunter documentation](https://docs.hunter.sh/en/latest/index.html) shows how to get started.
 
 Since the version of the package on hunter is out of date, the procedure below covers installation using a locally hosted version of the repo (through submodules). A sample project using this to run VGG16 is available at https://github.com/kmader/fd_demo
 

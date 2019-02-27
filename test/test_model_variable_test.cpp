@@ -5,7 +5,7 @@
 //  https://opensource.org/licenses/MIT)
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
+#include "doctest/doctest.h"
 #include <fdeep/fdeep.hpp>
 
 TEST_CASE("test_model_variable_test, load_model")

@@ -85,17 +85,13 @@ $ conan install conanfile.txt
 ```
 
 ### Installation using the [Hunter CMake package manager](https://github.com/ruslo/hunter)
+The [First Step](https://docs.hunter.sh/en/latest/quick-start/boost-components.html#first-step) section of the [Hunter documentation](https://docs.hunter.sh/en/latest/index.html) shows how to get started. 
 
-The [First Step](https://docs.hunter.sh/en/latest/quick-start/boost-components.html#first-step) section of the [Hunter documentation](https://docs.hunter.sh/en/latest/index.html) shows how to get started.  The following is reproduced from the the [frugally-deep](https://docs.hunter.sh/en/latest/packages/pkg/frugally-deep.html?highlight=frugally-deep) package notes.
+Since the version of the package on hunter is out of date, the procedure below covers installation using a locally hosted version of the repo (through submodules). A sample project using this to run VGG16 is available at https://github.com/kmader/fd_demo
 
-First, add the `HunterGate` module to your project, i.e.:
+The basic idea is to use the standard hunter setup but to add a git submodule to your repository containing frugally-deep. Hunter will then use the code in that submodule to build the library (https://docs.hunter.sh/en/latest/user-guides/hunter-user/git-submodule.html?highlight=GIT_SUBMODULE).
 
-```
-mkdir -p cmake
-wget https://raw.githubusercontent.com/hunter-packages/gate/master/cmake/HunterGate.cmake -O cmake/HunterGate.cmake
-```
-
-You can then integrate `frugally-deep` (and other packages) based on the following `CMakeLists.txt` example:
+Your CMakeLists.txt should look something like
 
 ```
 cmake_minimum_required(VERSION 3.0) # minimum requirement for Hunter
@@ -104,6 +100,7 @@ include("cmake/HunterGate.cmake") # teach your project about Hunter (before proj
 HunterGate( # Latest release shown here: https://github.com/ruslo/hunter/releases
     URL "https://github.com/ruslo/hunter/archive/v0.20.17.tar.gz"
     SHA1 "d7d1d5446bbf20b78fa5ac1b52ecb67a01c3790e"
+    LOCAL # <----- load cmake/Hunter/config.cmake
 )
 
 project(sample-frugally-deep)
@@ -114,3 +111,19 @@ find_package(frugally-deep CONFIG REQUIRED)
 add_executable(foo foo.cpp)
 target_link_libraries(foo PUBLIC frugally-deep::fdeep) # add frugally-deep and dependencies (libs/includes/flags/definitions)
 ```
+
+You will then need to create a `cmake/` directory with the HunterGate script in it
+
+```bash
+mkdir -p cmake
+wget https://raw.githubusercontent.com/hunter-packages/gate/master/cmake/HunterGate.cmake -O cmake/HunterGate.cmake
+```
+
+Finally you will need a `Hunter/config.cmake` to link to the submodule
+
+```bash
+mkdir -p cmake/Hunter
+echo 'hunter_config(frugally-deep GIT_SUBMODULE "lib/frugally-deep")' > cmake/Hunter/config.cmake
+```
+
+

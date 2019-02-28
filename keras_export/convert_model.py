@@ -382,8 +382,16 @@ def get_layer_functions_dict():
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,
         'Bidirectional': show_bidirectional_layer,
-        'TimeDistributed': show_time_distributed_layer
+        'TimeDistributed': show_time_distributed_layer,
+        'UpSampling2D': check_upsampling_2d_layer
     }
+
+
+def check_upsampling_2d_layer(layer):
+    print(layer.get_config())
+    assert layer.get_config()['interpolation'] == 'nearest', \
+        'Only interpolation nearest is currently supported by frugally-deep.'
+    return None
 
 
 def show_time_distributed_layer(layer):
@@ -467,7 +475,9 @@ def get_all_weights(model):
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))
         else:
             if hasattr(layer, 'data_format'):
-                if layer_type in ['AveragePooling1D','MaxPooling1D','AveragePooling2D','MaxPooling2D','GlobalAveragePooling1D','GlobalMaxPooling1D','GlobalAveragePooling2D','GlobalMaxPooling2D']:
+                if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
+                                  'GlobalAveragePooling1D', 'GlobalMaxPooling1D', 'GlobalAveragePooling2D',
+                                  'GlobalMaxPooling2D']:
                     assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
                 else:
                     assert layer.data_format == 'channels_last'

@@ -348,6 +348,18 @@ def show_gru_layer(layer):
     return result
 
 
+def show_cudnn_gru_layer(layer):
+    """Serialize a GPU-trained GRU layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 3
+
+    result = {'weights': encode_floats(weights[0]),
+              'recurrent_weights': encode_floats(weights[1]),
+              'bias': encode_floats(weights[2])}
+
+    return result
+
+
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""
     forward_weights = layer.forward_layer.get_weights()
@@ -381,6 +393,7 @@ def get_layer_functions_dict():
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,
+        'CuDNNGRU': show_cudnn_gru_layer,
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer,
         'UpSampling2D': check_upsampling_2d_layer

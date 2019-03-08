@@ -728,13 +728,34 @@ inline tensor5 max_tensor5s(const tensor5s& ts)
     return tensor5(ts.front().shape(), std::move(result_values));
 }
 
+inline ColMajorMatrixXf eigen_col_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_type* values)
+{
+    ColMajorMatrixXf m(height, width);
+    std::memcpy(m.data(), values, height * width * sizeof(float_type));
+    return m;
+}
+
+inline ColMajorMatrixXf eigen_col_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_vec& values)
+{
+    assertion(height * width == values.size(), "invalid shape");
+    return eigen_col_major_mat_from_values(height, width, values.data());
+}
+
+inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
+    std::size_t width, const float_type* values)
+{
+    RowMajorMatrixXf m(height, width);
+    std::memcpy(m.data(), values, height * width * sizeof(float_type));
+    return m;
+}
+
 inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
     std::size_t width, const float_vec& values)
 {
     assertion(height * width == values.size(), "invalid shape");
-    RowMajorMatrixXf m(height, width);
-    std::memcpy(m.data(), values.data(), values.size() * sizeof(float_type));
-    return m;
+    return eigen_row_major_mat_from_values(height, width, values.data());
 }
 
 inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)

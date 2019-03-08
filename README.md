@@ -8,15 +8,17 @@
 
 frugally-deep
 =============
+
 **Use Keras models in C++ with ease**
 
 Table of contents
 -----------------
-  * [Introduction](#introduction)
-  * [Usage](#usage)
-  * [Performance](#performance)
-  * [Requirements and Installation](#requirements-and-installation)
-  * [FAQ](#faq)
+
+* [Introduction](#introduction)
+* [Usage](#usage)
+* [Performance](#performance)
+* [Requirements and Installation](#requirements-and-installation)
+* [FAQ](#faq)
 
 Introduction
 ------------
@@ -64,8 +66,8 @@ Layer types typically used in image recognition/generation are supported, making
 * variable input shapes
 * arbitrary complex model architectures / computational graphs
 
-
 ### Currently not supported are the following:
+
 `ActivityRegularization`,
 `AveragePooling3D`,
 `Conv2DTranspose`,
@@ -183,7 +185,6 @@ Disclaimer
 
 ----------
 The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](https://github.com/Dobiasd/frugally-deep/issues). Of course, [contributions](https://github.com/Dobiasd/frugally-deep/pulls) are also very welcome.
-
 
 License
 

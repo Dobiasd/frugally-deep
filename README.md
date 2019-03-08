@@ -16,6 +16,7 @@ Table of contents
   * [Usage](#usage)
   * [Performance](#performance)
   * [Requirements and Installation](#requirements-and-installation)
+  * [FAQ](#faq)
 
 Introduction
 ------------
@@ -173,12 +174,19 @@ A **C++14**-compatible compiler is needed. Compilers from these versions on are 
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 
+FAQ
+---
+
+See [`FAQ.md`](FAQ.md)
+
 Disclaimer
+
 ----------
 The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](https://github.com/Dobiasd/frugally-deep/issues). Of course, [contributions](https://github.com/Dobiasd/frugally-deep/pulls) are also very welcome.
 
 
 License
+
 -------
 Distributed under the MIT License.
 (See accompanying file [`LICENSE`](https://github.com/Dobiasd/frugally-deep/blob/master/LICENSE) or at

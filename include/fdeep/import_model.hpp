@@ -940,8 +940,12 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     auto&& config = data["config"];
     const std::size_t units = config["units"];
     const std::string unit_activation = json_object_get(config, "activation", std::string("tanh"));
-    const std::string recurrent_activation_default = data["class_name"] == "CuDNNGRU" ? "sigmoid" : "hard_sigmoid";
-    const std::string recurrent_activation = json_object_get(config, "recurrent_activation", recurrent_activation_default);
+    const std::string recurrent_activation = json_object_get(config,
+        "recurrent_activation",
+        data["class_name"] == "CuDNNGRU"
+            ? std::string("sigmoid")
+            : std::string("hard_sigmoid")
+    );
 
     const bool use_bias = json_object_get(config, "use_bias", true);
 
@@ -952,8 +956,10 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     const float_vec weights = decode_floats(get_param(name, "weights"));
     const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
 
-    const bool reset_after_default = data["class_name"] == "CuDNNGRU";
-    const bool reset_after = json_object_get(config, "reset_after", reset_after_default);
+    bool reset_after = json_object_get(config,
+        "reset_after",
+        data["class_name"] == "CuDNNGRU"
+    );
     const bool return_sequences = json_object_get(config, "return_sequences", false);
 
     return std::make_shared<gru_layer>(name, units, unit_activation,
@@ -971,8 +977,12 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     auto&& layer_config = layer["config"];
     const std::size_t units = layer_config["units"];
     const std::string unit_activation = json_object_get(layer_config, "activation", std::string("tanh"));
-    const std::string recurrent_activation_default = layer["class_name"] == "CuDNNGRU" || layer["class_name"] == "CuDNNLSTM"  ? "sigmoid" : "hard_sigmoid";
-    const std::string recurrent_activation = json_object_get(layer_config, "recurrent_activation", recurrent_activation_default);
+    const std::string recurrent_activation = json_object_get(layer_config,
+        "recurrent_activation",
+        layer["class_name"] == "CuDNNGRU" || layer["class_name"] == "CuDNNLSTM"
+            ? std::string("sigmoid")
+            : std::string("hard_sigmoid")
+    );
     const bool use_bias = json_object_get(layer_config, "use_bias", true);
     const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
 
@@ -991,8 +1001,10 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
     const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
 
-    const bool reset_after_default = layer["class_name"] == "CuDNNGRU";
-    const bool reset_after = json_object_get(layer_config, "reset_after", reset_after_default);
+    const bool reset_after = json_object_get(layer_config,
+        "reset_after",
+        layer["class_name"] == "CuDNNGRU"
+    );
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
 
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,

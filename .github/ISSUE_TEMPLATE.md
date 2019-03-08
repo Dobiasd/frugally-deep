@@ -1,7 +1,9 @@
-- If you have a model and you get unexpected errors when converting it for or when using it with frugally-deep, please upload and post a link to your model file (`.h5`). Make sure to first check if an update of TensorFlow and Keras to the latest versions already fixed the issue.
+- Before reporting an issue, please make sure you are using the latest versions of frugally-deep, TensorFlow and Keras.
 
-- In case the problem can be reproduced with just code, please create a [SSCCE](http://sscce.org/) from it.
+- Also check out the [FAQ](../FAQ.md). Maybe your problem/question is common and there already is a canonical answer for it.
 
-- If you are missing a feature (e.g. layer type) in frugally-deep and want to request its implementation, please let us know your use case as motivation. ;-)
+- If you have a model and you get unexpected errors when converting it for or when using it with frugally-deep, please upload and post a link to your model file (`.h5`).
 
-- Feel free to also submit any other feedback, suggestions or questions you might have.
+- Please try to make the problem reproducible by providing a [SSCCE](http://sscce.org/) as code.
+
+- Feel free to also submit any other feedback, suggestions or questions you might have. :)

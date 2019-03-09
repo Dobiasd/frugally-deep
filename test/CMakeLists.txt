@@ -20,6 +20,10 @@ add_custom_command ( OUTPUT test_model_recurrent.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_lstm.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm test_model_lstm.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_gru.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru test_model_gru.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -60,6 +64,11 @@ add_custom_command ( OUTPUT test_model_embedding.json
 add_custom_command ( OUTPUT test_model_recurrent.json
                      DEPENDS test_model_recurrent.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_recurrent.h5 test_model_recurrent.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_lstm.json
+                     DEPENDS test_model_lstm.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm.h5 test_model_lstm.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_gru.json
@@ -104,6 +113,7 @@ _add_test(test_model_small_test test_model_small.json)
 _add_test(test_model_pooling_test test_model_pooling.json)
 _add_test(test_model_embedding_test test_model_embedding.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
+_add_test(test_model_lstm_test test_model_lstm.json)
 _add_test(test_model_gru_test test_model_gru.json)
 _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
@@ -119,6 +129,7 @@ if(FDEEP_BUILD_FULL_TEST)
     COMMAND test_model_pooling_test
     COMMAND test_model_embedding_test
     COMMAND test_model_recurrent_test
+    COMMAND test_model_lstm_test
     COMMAND test_model_gru_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
@@ -135,6 +146,7 @@ else()
     COMMAND test_model_pooling_test
     COMMAND test_model_embedding_test
     COMMAND test_model_recurrent_test
+    COMMAND test_model_lstm_test
     COMMAND test_model_gru_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test

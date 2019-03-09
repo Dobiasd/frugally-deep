@@ -916,7 +916,12 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
     auto&& config = data["config"];
     const std::size_t units = config["units"];
     const std::string unit_activation = json_object_get(config, "activation", std::string("tanh"));
-    const std::string recurrent_activation = json_object_get(config, "recurrent_activation", std::string("sigmoid"));
+    const std::string recurrent_activation = json_object_get(config,
+        "recurrent_activation",
+        data["class_name"] == "CuDNNLSTM"
+            ? std::string("sigmoid")
+            : std::string("hard_sigmoid")
+    );
     const bool use_bias = json_object_get(config, "use_bias", true);
 
     float_vec bias;
@@ -975,16 +980,16 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     const std::string merge_mode = data["config"]["merge_mode"];
     auto&& layer = data["config"]["layer"];
     auto&& layer_config = layer["config"];
+    const std::string wrapped_layer_type = layer["class_name"];
     const std::size_t units = layer_config["units"];
     const std::string unit_activation = json_object_get(layer_config, "activation", std::string("tanh"));
     const std::string recurrent_activation = json_object_get(layer_config,
         "recurrent_activation",
-        layer["class_name"] == "CuDNNGRU" || layer["class_name"] == "CuDNNLSTM"
+        wrapped_layer_type == "CuDNNGRU" || wrapped_layer_type == "CuDNNLSTM"
             ? std::string("sigmoid")
             : std::string("hard_sigmoid")
     );
     const bool use_bias = json_object_get(layer_config, "use_bias", true);
-    const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
 
     float_vec forward_bias;
     float_vec backward_bias;
@@ -1003,7 +1008,7 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
 
     const bool reset_after = json_object_get(layer_config,
         "reset_after",
-        layer["class_name"] == "CuDNNGRU"
+        wrapped_layer_type == "CuDNNGRU"
     );
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
 

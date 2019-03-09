@@ -33,10 +33,30 @@ def transform_recurrent_kernel(kernel):
     return kernel.T
 
 
-def transform_kernels(kernels, transform_func):
-    """Transforms CuDNN kernel matrices (either LSTM or GRU) into the regular Keras format."""
-    n_gates = 3
+def transform_kernels(kernels, n_gates, transform_func):
+    """
+    Transforms CuDNN kernel matrices (either LSTM or GRU) into the regular Keras format.
+    
+    Parameters
+    ----------
+    kernels : numpy.ndarray
+        Composite matrix of input or recurrent kernels.
+    n_gates : int
+        Number of recurrent unit gates, 3 for GRU, 4 for LSTM.
+    transform_func: function(numpy.ndarray)
+        Function to apply to each input or recurrent kernel.
+
+    Returns
+    -------
+    numpy.ndarray
+        Transformed composite matrix of input or recurrent kernels in C-contiguous layout.
+    """
     return np.require(np.hstack([transform_func(kernel) for kernel in np.hsplit(kernels, n_gates)]), requirements='C')
+
+
+def transform_bias(bias):
+    """Transforms bias weights of an LSTM layer into the regular Keras format."""
+    return np.sum(np.split(bias, 2, axis=0), axis=0)
 
 
 def write_text_file(path, text):
@@ -364,13 +384,35 @@ def show_gru_layer(layer):
     return result
 
 
+def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
+    return transform_kernels(input_weights, n_gates, transform_input_kernel), transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
+
+
+def show_cudnn_lstm_layer(layer):
+    """Serialize a GPU-trained LSTM layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 3  # CuDNN LSTM always has a bias
+
+    n_gates = 4
+    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
+
+    result = {'weights': encode_floats(input_weights),
+              'recurrent_weights': encode_floats(recurrent_weights),
+              'bias': encode_floats(transform_bias(weights[2]))}
+
+    return result
+
+
 def show_cudnn_gru_layer(layer):
     """Serialize a GPU-trained GRU layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 3  # CuDNN GRU always has a bias
 
-    result = {'weights': encode_floats(transform_kernels(weights[0], transform_input_kernel)),
-              'recurrent_weights': encode_floats(transform_kernels(weights[1], transform_recurrent_kernel)),
+    n_gates = 3
+    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
+
+    result = {'weights': encode_floats(input_weights),
+              'recurrent_weights': encode_floats(recurrent_weights),
               'bias': encode_floats(weights[2])}
 
     return result
@@ -379,23 +421,35 @@ def show_cudnn_gru_layer(layer):
 def get_transform_func(layer):
     """Returns functions that can be applied to layer weights to transform them into the standard Keras format, if applicable."""
     if layer.__class__.__name__ in ['CuDNNGRU', 'CuDNNLSTM']:
-        input_transform_func = lambda kernels: transform_kernels(kernels, transform_input_kernel)
-        recurrent_transform_func = lambda kernels: transform_kernels(kernels, transform_recurrent_kernel)
+        if layer.__class__.__name__ == 'CuDNNGRU':
+            n_gates = 3
+        elif layer.__class__.__name__ == 'CuDNNLSTM':
+            n_gates = 4
+
+        input_transform_func = lambda kernels: transform_kernels(kernels, n_gates, transform_input_kernel)
+        recurrent_transform_func = lambda kernels: transform_kernels(kernels, n_gates, transform_recurrent_kernel)
     else:
         input_transform_func = lambda kernels: kernels
         recurrent_transform_func = lambda kernels: kernels
-    return input_transform_func, recurrent_transform_func
+
+    if layer.__class__.__name__ == 'CuDNNLSTM':
+        bias_transform_func = transform_bias
+    else:
+        bias_transform_func = lambda bias: bias
+
+    return input_transform_func, recurrent_transform_func, bias_transform_func
+
 
 
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""
     forward_weights = layer.forward_layer.get_weights()
     assert len(forward_weights) == 2 or len(forward_weights) == 3
-    forward_input_transform_func, forward_recurrent_transform_func = get_transform_func(layer.forward_layer)
+    forward_input_transform_func, forward_recurrent_transform_func, forward_bias_transform_func = get_transform_func(layer.forward_layer)
 
     backward_weights = layer.backward_layer.get_weights()
     assert len(backward_weights) == 2 or len(backward_weights) == 3
-    backward_input_transform_func, backward_recurrent_transform_func = get_transform_func(layer.backward_layer)
+    backward_input_transform_func, backward_recurrent_transform_func, backward_bias_transform_func = get_transform_func(layer.backward_layer)
 
     result = {'forward_weights': encode_floats(forward_input_transform_func(forward_weights[0])),
               'forward_recurrent_weights': encode_floats(forward_recurrent_transform_func(forward_weights[1])),
@@ -403,9 +457,9 @@ def show_bidirectional_layer(layer):
               'backward_recurrent_weights': encode_floats(backward_recurrent_transform_func(backward_weights[1]))}
 
     if len(forward_weights) == 3:
-        result['forward_bias'] = encode_floats(forward_weights[2])
+        result['forward_bias'] = encode_floats(forward_bias_transform_func(forward_weights[2]))
     if len(backward_weights) == 3:
-        result['backward_bias'] = encode_floats(backward_weights[2])
+        result['backward_bias'] = encode_floats(backward_bias_transform_func(backward_weights[2]))
 
     return result
 
@@ -422,6 +476,7 @@ def get_layer_functions_dict():
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,
+        'CuDNNLSTM': show_cudnn_lstm_layer,
         'CuDNNGRU': show_cudnn_gru_layer,
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer,

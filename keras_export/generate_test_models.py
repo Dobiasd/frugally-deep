@@ -337,6 +337,89 @@ def get_test_model_recurrent():
     return model
 
 
+def get_test_model_lstm():
+    """Returns a test model for Long Short-Term Memory (LSTM) layers."""
+
+    input_shapes = [
+        (17, 4),
+        (1, 10)
+    ]
+    inputs = [Input(shape=s) for s in input_shapes]
+    outputs = []
+
+    for input in inputs:    
+        lstm_sequences = LSTM(
+            units=8,
+            recurrent_activation='relu',
+            return_sequences=True
+        )(input)
+        lstm_regular = LSTM(
+            units=3,
+            recurrent_activation='sigmoid',
+            return_sequences=False
+        )(lstm_sequences)
+        outputs.append(lstm_regular)
+
+        lstm_bidi_sequences = Bidirectional(
+            LSTM(
+                units=4,
+                recurrent_activation='hard_sigmoid',
+                return_sequences=True
+            )
+        )(input)
+        lstm_bidi = Bidirectional(
+            LSTM(
+                units=6,
+                recurrent_activation='linear',
+                return_sequences=False
+            )
+        )(lstm_bidi_sequences)
+        outputs.append(lstm_bidi)
+
+        # CuDNN-enabled LSTM layers
+        if is_running_on_gpu():
+            # run GPU-enabled mode if GPU is available
+            lstm_gpu_regular = keras.layers.CuDNNLSTM(
+                units=3
+            )(input)
+
+            lstm_gpu_bidi = Bidirectional(
+                keras.layers.CuDNNLSTM(
+                    units=3
+                )
+            )(input)
+        else:
+            # fall back to equivalent regular LSTM for CPU-only mode
+            lstm_gpu_regular = LSTM(
+                units=3,
+                activation='tanh',
+                recurrent_activation='sigmoid',
+                use_bias=True
+            )(input)
+
+            lstm_gpu_bidi = Bidirectional(
+                LSTM(
+                    units=3,
+                    activation='tanh',
+                    recurrent_activation='sigmoid',
+                    use_bias=True
+                )
+            )(input)
+        outputs.append(lstm_gpu_regular)
+        outputs.append(lstm_gpu_bidi)
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+
 def get_test_model_gru():
     """Returns a test model for Gated Recurrent Unit (GRU) layers."""
 
@@ -750,6 +833,7 @@ def main():
             'pooling': get_test_model_pooling,
             'embedding': get_test_model_embedding,
             'recurrent': get_test_model_recurrent,
+            'lstm': get_test_model_lstm,
             'gru': get_test_model_gru,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,

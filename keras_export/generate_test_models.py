@@ -30,6 +30,14 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 
+def is_running_on_gpu():
+    """Returns if the neural network model runs on a GPU."""
+    try:
+        return len(keras.backend.tensorflow_backend._get_available_gpus()) > 0
+    except NameError:
+        return False
+
+
 def replace_none_with(value, shape):
     """Replace every None with a fixed value."""
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
@@ -317,42 +325,100 @@ def get_test_model_recurrent():
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
 
-    # Gated Recurrent Unit layer
-    gru1 = GRU(
-        units=8,
-        recurrent_activation='relu',
-        reset_after=True,
-        return_sequences=True,
-        use_bias=True
-    )(inp)
-    gru2 = Bidirectional(
-        GRU(
-            units=4,
-            recurrent_activation='hard_sigmoid',
-            reset_after=False,
-            return_sequences=True,
-            use_bias=True
-        )
-    )(gru1)
-    gru3 = Bidirectional(
-        GRU(
-            units=6,
-            recurrent_activation='sigmoid',
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+
+def get_test_model_gru():
+    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
+
+    input_shapes = [
+        (17, 4),
+        (1, 10)
+    ]
+    inputs = [Input(shape=s) for s in input_shapes]
+    outputs = []
+
+    for input in inputs:    
+        gru_sequences = GRU(
+            units=8,
+            recurrent_activation='relu',
             reset_after=True,
             return_sequences=True,
+            use_bias=True
+        )(input)
+        gru_regular = GRU(
+            units=3,
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            return_sequences=False,
             use_bias=False
-        )
-    )(gru2)
-    gru4 = GRU(
-        units=10,
-        recurrent_activation='sigmoid',
-        reset_after=True,
-        return_sequences=False,
-        use_bias=False
-    )(gru3)
-    outputs.append(gru4)
+        )(gru_sequences)
+        outputs.append(gru_regular)
 
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
+        gru_bidi_sequences = Bidirectional(
+            GRU(
+                units=4,
+                recurrent_activation='hard_sigmoid',
+                reset_after=False,
+                return_sequences=True,
+                use_bias=True
+            )
+        )(input)
+        gru_bidi = Bidirectional(
+            GRU(
+                units=6,
+                recurrent_activation='sigmoid',
+                reset_after=True,
+                return_sequences=False,
+                use_bias=False
+            )
+        )(gru_bidi_sequences)
+        outputs.append(gru_bidi)
+
+        # CuDNN-enabled GRU layers
+        if is_running_on_gpu():
+            # run GPU-enabled mode if GPU is available
+            gru_gpu_regular = keras.layers.CuDNNGRU(
+                units=3
+            )(input)
+
+            gru_gpu_bidi = Bidirectional(
+                keras.layers.CuDNNGRU(
+                    units=3
+                )
+            )(input)
+        else:
+            # fall back to equivalent regular GRU for CPU-only mode
+            gru_gpu_regular = GRU(
+                units=3,
+                activation='tanh',
+                recurrent_activation='sigmoid',
+                reset_after=True,
+                use_bias=True
+            )(input)
+
+            gru_gpu_bidi = Bidirectional(
+                GRU(
+                    units=3,
+                    activation='tanh',
+                    recurrent_activation='sigmoid',
+                    reset_after=True,
+                    use_bias=True
+                )
+            )(input)
+        outputs.append(gru_gpu_regular)
+        outputs.append(gru_gpu_bidi)
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -684,6 +750,7 @@ def main():
             'pooling': get_test_model_pooling,
             'embedding': get_test_model_embedding,
             'recurrent': get_test_model_recurrent,
+            'gru': get_test_model_gru,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
             'full': get_test_model_full

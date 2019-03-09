@@ -73,7 +73,7 @@ protected:
         
         const tensor5 input_reversed = reverse_time_series_in_tensor5(input);
         
-        if (wrapped_layer_type_ == "LSTM")
+        if (wrapped_layer_type_ == "LSTM" || wrapped_layer_type_ == "CuDNNLSTM")
         {
             result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_,
                                        forward_weights_, forward_recurrent_weights_,
@@ -82,7 +82,7 @@ protected:
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
         }
-        else if (wrapped_layer_type_ == "GRU")
+        else if (wrapped_layer_type_ == "GRU" || wrapped_layer_type_ == "CuDNNGRU")
         {
             result_forward = gru_impl(input, n_units_, use_bias_, reset_after_, return_sequences_,
                                       forward_weights_, forward_recurrent_weights_,

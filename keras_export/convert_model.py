@@ -27,9 +27,11 @@ def transform_input_kernel(kernel):
     """Transforms weights of a single CuDNN input kernel into the regular Keras format."""
     return kernel.T.reshape(kernel.shape, order='F')
 
+
 def transform_recurrent_kernel(kernel):
     """Transforms weights of a single CuDNN recurrent kernel into the regular Keras format."""
     return kernel.T
+
 
 def transform_kernels(kernels, transform_func):
     """Transforms CuDNN kernel matrices (either LSTM or GRU) into the regular Keras format."""
@@ -383,6 +385,7 @@ def get_transform_func(layer):
         input_transform_func = lambda kernels: kernels
         recurrent_transform_func = lambda kernels: kernels
     return input_transform_func, recurrent_transform_func
+
 
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""

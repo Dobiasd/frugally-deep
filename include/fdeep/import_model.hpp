@@ -916,7 +916,12 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
     auto&& config = data["config"];
     const std::size_t units = config["units"];
     const std::string unit_activation = json_object_get(config, "activation", std::string("tanh"));
-    const std::string recurrent_activation = json_object_get(config, "recurrent_activation", std::string("sigmoid"));
+    const std::string recurrent_activation = json_object_get(config,
+        "recurrent_activation",
+        data["class_name"] == "CuDNNLSTM"
+            ? std::string("sigmoid")
+            : std::string("hard_sigmoid")
+    );
     const bool use_bias = json_object_get(config, "use_bias", true);
 
     float_vec bias;

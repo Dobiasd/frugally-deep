@@ -49,7 +49,6 @@ def transform_kernels(kernels, n_gates, transform_func):
     numpy.ndarray
         Transformed composite matrix of input or recurrent kernels in C-contiguous layout.
     """
-    n_gates = 3
     return np.require(np.hstack([transform_func(kernel) for kernel in np.hsplit(kernels, n_gates)]), requirements='C')
 
 def transform_bias(bias):
@@ -385,21 +384,6 @@ def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
     return transform_kernels(input_weights, n_gates, transform_input_kernel), transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
 
 
-def show_cudnn_gru_layer(layer):
-    """Serialize a GPU-trained GRU layer to dict"""
-    weights = layer.get_weights()
-    assert len(weights) == 3  # CuDNN GRU always has a bias
-
-    n_gates = 3
-    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
-
-    result = {'weights': encode_floats(input_weights),
-              'recurrent_weights': encode_floats(recurrent_weights),
-              'bias': encode_floats(weights[2])}
-
-    return result
-
-
 def show_cudnn_lstm_layer(layer):
     """Serialize a GPU-trained LSTM layer to dict"""
     weights = layer.get_weights()
@@ -411,6 +395,21 @@ def show_cudnn_lstm_layer(layer):
     result = {'weights': encode_floats(input_weights),
               'recurrent_weights': encode_floats(recurrent_weights),
               'bias': encode_floats(transform_bias(weights[2]))}
+
+    return result
+
+
+def show_cudnn_gru_layer(layer):
+    """Serialize a GPU-trained GRU layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 3  # CuDNN GRU always has a bias
+
+    n_gates = 3
+    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
+
+    result = {'weights': encode_floats(input_weights),
+              'recurrent_weights': encode_floats(recurrent_weights),
+              'bias': encode_floats(weights[2])}
 
     return result
 

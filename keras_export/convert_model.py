@@ -385,7 +385,8 @@ def show_gru_layer(layer):
 
 
 def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
-    return transform_kernels(input_weights, n_gates, transform_input_kernel), transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
+    return transform_kernels(input_weights, n_gates, transform_input_kernel), \
+           transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
 
 
 def show_cudnn_lstm_layer(layer):
@@ -440,16 +441,17 @@ def get_transform_func(layer):
     return input_transform_func, recurrent_transform_func, bias_transform_func
 
 
-
 def show_bidirectional_layer(layer):
     """Serialize Bidirectional layer to dict"""
     forward_weights = layer.forward_layer.get_weights()
     assert len(forward_weights) == 2 or len(forward_weights) == 3
-    forward_input_transform_func, forward_recurrent_transform_func, forward_bias_transform_func = get_transform_func(layer.forward_layer)
+    forward_input_transform_func, forward_recurrent_transform_func, forward_bias_transform_func = get_transform_func(
+        layer.forward_layer)
 
     backward_weights = layer.backward_layer.get_weights()
     assert len(backward_weights) == 2 or len(backward_weights) == 3
-    backward_input_transform_func, backward_recurrent_transform_func, backward_bias_transform_func = get_transform_func(layer.backward_layer)
+    backward_input_transform_func, backward_recurrent_transform_func, backward_bias_transform_func = get_transform_func(
+        layer.backward_layer)
 
     result = {'forward_weights': encode_floats(forward_input_transform_func(forward_weights[0])),
               'forward_recurrent_weights': encode_floats(forward_recurrent_transform_func(forward_weights[1])),

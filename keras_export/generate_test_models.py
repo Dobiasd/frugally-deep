@@ -347,12 +347,12 @@ def get_test_model_lstm():
     inputs = [Input(shape=s) for s in input_shapes]
     outputs = []
 
-    for input in inputs:    
+    for inp in inputs:
         lstm_sequences = LSTM(
             units=8,
             recurrent_activation='relu',
             return_sequences=True
-        )(input)
+        )(inp)
         lstm_regular = LSTM(
             units=3,
             recurrent_activation='sigmoid',
@@ -366,7 +366,7 @@ def get_test_model_lstm():
                 recurrent_activation='hard_sigmoid',
                 return_sequences=True
             )
-        )(input)
+        )(inp)
         lstm_bidi = Bidirectional(
             LSTM(
                 units=6,
@@ -381,13 +381,13 @@ def get_test_model_lstm():
             # run GPU-enabled mode if GPU is available
             lstm_gpu_regular = keras.layers.CuDNNLSTM(
                 units=3
-            )(input)
+            )(inp)
 
             lstm_gpu_bidi = Bidirectional(
                 keras.layers.CuDNNLSTM(
                     units=3
                 )
-            )(input)
+            )(inp)
         else:
             # fall back to equivalent regular LSTM for CPU-only mode
             lstm_gpu_regular = LSTM(
@@ -395,7 +395,7 @@ def get_test_model_lstm():
                 activation='tanh',
                 recurrent_activation='sigmoid',
                 use_bias=True
-            )(input)
+            )(inp)
 
             lstm_gpu_bidi = Bidirectional(
                 LSTM(
@@ -404,7 +404,7 @@ def get_test_model_lstm():
                     recurrent_activation='sigmoid',
                     use_bias=True
                 )
-            )(input)
+            )(inp)
         outputs.append(lstm_gpu_regular)
         outputs.append(lstm_gpu_bidi)
 
@@ -430,14 +430,14 @@ def get_test_model_gru():
     inputs = [Input(shape=s) for s in input_shapes]
     outputs = []
 
-    for input in inputs:
+    for inp in inputs:
         gru_sequences = GRU(
             units=8,
             recurrent_activation='relu',
             reset_after=True,
             return_sequences=True,
             use_bias=True
-        )(input)
+        )(inp)
         gru_regular = GRU(
             units=3,
             recurrent_activation='sigmoid',
@@ -455,7 +455,7 @@ def get_test_model_gru():
                 return_sequences=True,
                 use_bias=True
             )
-        )(input)
+        )(inp)
         gru_bidi = Bidirectional(
             GRU(
                 units=6,
@@ -472,13 +472,13 @@ def get_test_model_gru():
             # run GPU-enabled mode if GPU is available
             gru_gpu_regular = keras.layers.CuDNNGRU(
                 units=3
-            )(input)
+            )(inp)
 
             gru_gpu_bidi = Bidirectional(
                 keras.layers.CuDNNGRU(
                     units=3
                 )
-            )(input)
+            )(inp)
         else:
             # fall back to equivalent regular GRU for CPU-only mode
             gru_gpu_regular = GRU(
@@ -487,7 +487,7 @@ def get_test_model_gru():
                 recurrent_activation='sigmoid',
                 reset_after=True,
                 use_bias=True
-            )(input)
+            )(inp)
 
             gru_gpu_bidi = Bidirectional(
                 GRU(
@@ -497,7 +497,7 @@ def get_test_model_gru():
                     reset_after=True,
                     use_bias=True
                 )
-            )(input)
+            )(inp)
         outputs.append(gru_gpu_regular)
         outputs.append(gru_gpu_bidi)
 

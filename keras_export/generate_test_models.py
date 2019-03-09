@@ -17,9 +17,9 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import Input, Dense, Dropout, Flatten, Activation
 from keras.layers import LSTM, GRU
 from keras.layers import LeakyReLU, ELU, PReLU
-from keras.layers import Permute, Reshape
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from keras.layers import Permute, Reshape
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.models import Model, load_model, Sequential
 
@@ -190,8 +190,8 @@ def get_test_model_pooling():
     outputs = []
 
     # 1-dimensional
-    for input in inputs:
-        reshape = Reshape((-1, 12))(input)
+    for inp in inputs:
+        reshape = Reshape((-1, 12))(inp)
 
         # (batch_size, steps, features)
         outputs.append(AveragePooling1D(data_format="channels_last")(reshape))
@@ -204,18 +204,18 @@ def get_test_model_pooling():
         outputs.append(GlobalMaxPooling1D(data_format="channels_first")(reshape))
 
     # 2-dimensional
-    for input in inputs:
+    for inp in inputs:
         # (batch_size, rows, cols, channels)
-        outputs.append(AveragePooling2D(data_format="channels_last")(input))
-        outputs.append(MaxPooling2D(data_format="channels_last")(input))
-        outputs.append(GlobalAveragePooling2D(data_format="channels_last")(input))
-        outputs.append(GlobalMaxPooling2D(data_format="channels_last")(input))
+        outputs.append(AveragePooling2D(data_format="channels_last")(inp))
+        outputs.append(MaxPooling2D(data_format="channels_last")(inp))
+        outputs.append(GlobalAveragePooling2D(data_format="channels_last")(inp))
+        outputs.append(GlobalMaxPooling2D(data_format="channels_last")(inp))
 
         # (batch_size, channels, rows, cols)
-        outputs.append(AveragePooling2D(data_format="channels_first")(input))
-        outputs.append(MaxPooling2D(data_format="channels_first")(input))
-        outputs.append(GlobalAveragePooling2D(data_format="channels_first")(input))
-        outputs.append(GlobalMaxPooling2D(data_format="channels_first")(input))
+        outputs.append(AveragePooling2D(data_format="channels_first")(inp))
+        outputs.append(MaxPooling2D(data_format="channels_first")(inp))
+        outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inp))
+        outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inp))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_pooling')
     model.compile(loss='mse', optimizer='adam')
@@ -430,7 +430,7 @@ def get_test_model_gru():
     inputs = [Input(shape=s) for s in input_shapes]
     outputs = []
 
-    for input in inputs:    
+    for input in inputs:
         gru_sequences = GRU(
             units=8,
             recurrent_activation='relu',
@@ -556,9 +556,9 @@ def get_test_model_sequential():
     model = Sequential()
     model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
     model.add(Conv2D(8, (3, 3), activation='relu'))
-    model.add(Permute((3,1,2)))
+    model.add(Permute((3, 1, 2)))
     model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_first"))
-    model.add(Permute((2,3,1)))
+    model.add(Permute((2, 3, 1)))
     model.add(Dropout(0.25))
 
     model.add(Conv2D(16, (3, 3), activation='elu'))

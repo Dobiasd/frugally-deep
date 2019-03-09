@@ -27,9 +27,11 @@ def transform_input_kernel(kernel):
     """Transforms weights of a single CuDNN input kernel into the regular Keras format."""
     return kernel.T.reshape(kernel.shape, order='F')
 
+
 def transform_recurrent_kernel(kernel):
     """Transforms weights of a single CuDNN recurrent kernel into the regular Keras format."""
     return kernel.T
+
 
 def transform_kernels(kernels, n_gates, transform_func):
     """
@@ -51,9 +53,11 @@ def transform_kernels(kernels, n_gates, transform_func):
     """
     return np.require(np.hstack([transform_func(kernel) for kernel in np.hsplit(kernels, n_gates)]), requirements='C')
 
+
 def transform_bias(bias):
     """Transforms bias weights of an LSTM layer into the regular Keras format."""
     return np.sum(np.split(bias, 2, axis=0), axis=0)
+
 
 def write_text_file(path, text):
     """Write a string to a file"""
@@ -434,6 +438,7 @@ def get_transform_func(layer):
         bias_transform_func = lambda bias: bias
 
     return input_transform_func, recurrent_transform_func, bias_transform_func
+
 
 
 def show_bidirectional_layer(layer):

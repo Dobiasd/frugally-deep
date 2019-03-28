@@ -36,7 +36,7 @@ def transform_recurrent_kernel(kernel):
 def transform_kernels(kernels, n_gates, transform_func):
     """
     Transforms CuDNN kernel matrices (either LSTM or GRU) into the regular Keras format.
-    
+
     Parameters
     ----------
     kernels : numpy.ndarray
@@ -708,7 +708,7 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
-def convert(in_path, out_path):
+def convert(in_path, out_path, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
 
     assert K.backend() == "tensorflow"
@@ -725,7 +725,7 @@ def convert(in_path, out_path):
 
     model = convert_sequential_to_model(model)
 
-    test_data = gen_test_data(model)
+    test_data = None if no_tests else gen_test_data(model)
 
     json_output = {}
     json_output['architecture'] = json.loads(model.to_json())
@@ -749,7 +749,8 @@ def convert(in_path, out_path):
     json_output['average_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
-    json_output['tests'] = [test_data]
+    if test_data:
+        json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
     json_output['hash'] = calculate_hash(model)
 
@@ -761,16 +762,24 @@ def convert(in_path, out_path):
 def main():
     """Parse command line and convert model."""
 
-    usage = 'usage: [Keras model in HDF5 format] [output path]'
+    usage = 'usage: [Keras model in HDF5 format] [output path] (--no-tests)'
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in [3, 4]:
         print(usage)
         sys.exit(1)
 
     in_path = sys.argv[1]
     out_path = sys.argv[2]
 
-    convert(in_path, out_path)
+    no_tests = False
+    if len(sys.argv) == 4:
+        if sys.argv[3] not in ['--no-tests']:
+            print(usage)
+            sys.exit(1)
+        if sys.argv[3] == '--no-tests':
+            no_tests = True
+
+    convert(in_path, out_path, no_tests)
 
 
 if __name__ == "__main__":

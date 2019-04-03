@@ -80,11 +80,8 @@ inline std::vector<std::uint8_t> Base64_decode(
     json_data_strs_char_prodiver&& encoded_string)
 {
     // Make sure string length is a multiple of 4
-    auto encoded_size = encoded_string.size();
-    while ((encoded_string.size() % 4) != 0)
-    {
-        ++encoded_size;
-    }
+    auto encoded_size = (encoded_string.size() + 3) & ~size_t(3);
+
     std::vector<std::uint8_t> ret;
     ret.reserve(3 * encoded_size / 4);
     for (size_t i = 0; i < encoded_size; i += 4)

@@ -136,7 +136,8 @@ private:
             hash_(hash) {}
 
     friend model read_model(std::istream&, bool,
-        const std::function<void(std::string)>&, float_type);
+        const std::function<void(std::string)>&, float_type,
+        const internal::layer_creators&);
 
     std::vector<shape5_variable> input_shapes_;
     internal::layer_ptr model_layer_;
@@ -155,7 +156,8 @@ inline void cout_logger(const std::string& str)
 inline model read_model(std::istream& model_file_stream,
     bool verify = true,
     const std::function<void(std::string)>& logger = cout_logger,
-    float_type verify_epsilon = static_cast<float_type>(0.0001))
+    float_type verify_epsilon = static_cast<float_type>(0.0001),
+    const internal::layer_creators& custom_layer_creators = internal::layer_creators())
 {
     const auto log = [&logger](const std::string& msg)
     {
@@ -213,7 +215,8 @@ inline model read_model(std::istream& model_file_stream,
 
     const model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
-        json_data["architecture"]["config"]["name"]),
+        json_data["architecture"]["config"]["name"],
+        custom_layer_creators),
         internal::create_shape5s_variable(json_data["input_shapes"]),
         internal::json_object_get<std::string, std::string>(
             json_data, "hash", ""));
@@ -245,10 +248,13 @@ inline model read_model(std::istream& model_file_stream,
 inline model read_model_from_string(const std::string& content,
     bool verify = true,
     const std::function<void(std::string)>& logger = cout_logger,
-    float_type verify_epsilon = static_cast<float_type>(0.0001))
+    float_type verify_epsilon = static_cast<float_type>(0.0001),
+    const internal::layer_creators& custom_layer_creators =
+        internal::layer_creators())
 {
     std::istringstream content_stream(content);
-    return read_model(content_stream, verify, logger, verify_epsilon);
+    return read_model(content_stream, verify, logger, verify_epsilon,
+        custom_layer_creators);
 }
 
 // Load and construct an fdeep::model from file.
@@ -256,12 +262,15 @@ inline model read_model_from_string(const std::string& content,
 inline model load_model(const std::string& file_path,
     bool verify = true,
     const std::function<void(std::string)>& logger = cout_logger,
-    float_type verify_epsilon = static_cast<float_type>(0.0001))
+    float_type verify_epsilon = static_cast<float_type>(0.0001),
+    const internal::layer_creators& custom_layer_creators =
+        internal::layer_creators())
 {
     fplus::stopwatch stopwatch;
     std::ifstream in_stream(file_path);
     internal::assertion(in_stream.good(), "Can not open " + file_path);
-    const auto model = read_model(in_stream, verify, logger, verify_epsilon);
+    const auto model = read_model(in_stream, verify, logger, verify_epsilon,
+    custom_layer_creators);
     if (logger)
     {
         const std::string additional_action = verify ? ", testing" : "";

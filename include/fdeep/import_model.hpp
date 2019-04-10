@@ -279,17 +279,40 @@ using get_param_f =
     std::function<nlohmann::json(const std::string&, const std::string&)>;
 using get_global_param_f = std::function<nlohmann::json(const std::string&)>;
 
+using layer_creators =
+    std::unordered_map<
+        std::string,
+        std::function<layer_ptr(
+            const get_param_f&,
+            const get_global_param_f&,
+            const nlohmann::json&,
+            const std::string&)>>;
+
+using wrapper_layer_creators =
+    std::unordered_map<
+        std::string,
+        std::function<layer_ptr(
+            const get_param_f&,
+            const get_global_param_f&,
+            const nlohmann::json&,
+            const std::string&,
+            const layer_creators&)>>;
+
 layer_ptr create_layer(const get_param_f&, const get_global_param_f&,
-    const nlohmann::json&);
+    const nlohmann::json&,
+    const layer_creators& custom_layer_creators);
 
 inline layer_ptr create_model_layer(const get_param_f& get_param,
     const get_global_param_f& get_global_param, const nlohmann::json& data,
-    const std::string& name)
+    const std::string& name, const layer_creators& custom_layer_creators)
 {
     assertion(data["config"]["layers"].is_array(), "missing layers array");
 
-    const auto layers = create_vector<layer_ptr>(
-        fplus::bind_1st_and_2nd_of_3(create_layer, get_param, get_global_param),
+    const auto make_layer = [&](const nlohmann::json& json)
+    {
+        return create_layer(get_param, get_global_param, json, custom_layer_creators);
+    };
+    const auto layers = create_vector<layer_ptr>(make_layer,
         data["config"]["layers"]);
 
     assertion(data["config"]["input_layers"].is_array(), "no input layers");
@@ -1022,7 +1045,8 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
 inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
                                    const get_global_param_f& get_global_param,
                                    const nlohmann::json& data,
-                                   const std::string& name)
+                                   const std::string& name,
+                                   const layer_creators& custom_layer_creators)
 {
     const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
     nlohmann::json data_inner_layer = data["config"]["layer"];
@@ -1031,22 +1055,18 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     const std::size_t td_input_len = std::size_t(decode_floats(get_param(name, "td_input_len")).front());
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 
-    layer_ptr inner_layer = create_layer(get_param, get_global_param, data_inner_layer);
+    layer_ptr inner_layer = create_layer(get_param, get_global_param, data_inner_layer, custom_layer_creators);
 
     return std::make_shared<time_distributed_layer>(name, inner_layer, td_input_len, td_output_len);
 }
 
 inline layer_ptr create_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data)
+    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const layer_creators& custom_layer_creators)
 {
     const std::string name = data["name"];
 
-    const std::unordered_map<std::string,
-            std::function<layer_ptr(const get_param_f&,
-                const get_global_param_f&, const nlohmann::json&,
-                const std::string&)>>
-        creators = {
-            {"Model", create_model_layer},
+    const layer_creators default_creators = {
             {"Conv1D", create_conv_2d_layer},
             {"Conv2D", create_conv_2d_layer},
             {"SeparableConv1D", create_separable_conv_2D_layer},
@@ -1095,31 +1115,46 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"GRU", create_gru_layer},
             {"CuDNNGRU", create_gru_layer},
             {"Bidirectional", create_bidirectional_layer},
-            {"TimeDistributed", create_time_distributed_layer},
             {"Softmax", create_softmax_layer},
         };
 
+    const wrapper_layer_creators wrapper_creators = {
+            {"Model", create_model_layer},
+            {"TimeDistributed", create_time_distributed_layer},
+    };
+
     const std::string type = data["class_name"];
 
-    auto result = fplus::throw_on_nothing(
-        error("unknown layer type: " + type),
-        fplus::get_from_map(creators, type))(
-            get_param, get_global_param, data, name);
-
-    if (type != "Activation" &&
-        json_obj_has_member(data["config"], "activation")
-        && type != "GRU"
-        && type != "LSTM"
-        && type != "Bidirectional")
+    if (fplus::map_contains(wrapper_creators, type))
     {
-        result->set_activation(
-            create_activation_layer_type_name(get_param, get_global_param, data,
-                data["config"]["activation"], ""));
+        auto result = fplus::get_from_map_unsafe(wrapper_creators, type)(
+            get_param, get_global_param, data, name, custom_layer_creators);
+        result->set_nodes(create_nodes(data));
+        return result;
     }
+    else
+    {
+        const auto creators = fplus::map_union(custom_layer_creators,
+            default_creators);
 
-    result->set_nodes(create_nodes(data));
+        auto result = fplus::throw_on_nothing(
+            error("unknown layer type: " + type),
+            fplus::get_from_map(creators, type))(
+                get_param, get_global_param, data, name);
 
-    return result;
+        if (type != "Activation" &&
+            json_obj_has_member(data["config"], "activation")
+            && type != "GRU"
+            && type != "LSTM"
+            && type != "Bidirectional")
+        {
+            result->set_activation(
+                create_activation_layer_type_name(get_param, get_global_param, data,
+                    data["config"]["activation"], ""));
+        }
+        result->set_nodes(create_nodes(data));
+        return result;
+    }
 }
 
 struct test_case

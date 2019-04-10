@@ -66,6 +66,7 @@ Layer types typically used in image recognition/generation are supported, making
 * shared layers
 * variable input shapes
 * arbitrary complex model architectures / computational graphs
+* lambda/custom layers (by passing custom factory functions to `load_model`)
 
 ### Currently not supported are the following:
 
@@ -78,7 +79,6 @@ Layer types typically used in image recognition/generation are supported, making
 `Dot`,
 `GaussianNoise`,
 `GRUCell`,
-`Lambda`,
 `LocallyConnected1D`,
 `LocallyConnected2D`,
 `LSTMCell`,
@@ -91,7 +91,6 @@ Layer types typically used in image recognition/generation are supported, making
 `StackedRNNCells`,
 `ThresholdedReLU`,
 `Upsampling3D`,
-`any custom layers`,
 `temporal` models
 
 Usage

@@ -138,6 +138,34 @@ def replace_none_with(value, shape):
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
+def are_embedding_layer_positions_ok_for_testing(model):
+    """
+    Test data can only be generated if all embeddings layers
+    are positioned directly behind the input nodes
+    """
+
+    def count_embedding_layers(model):
+        layers = model.layers
+        result = 0
+        for layer in layers:
+            if isinstance(layer, keras.layers.Embedding):
+                result += 1
+        layer_type = type(layer).__name__
+        if layer_type in ['Model', 'Sequential']:
+            result += count_embedding_layers(layer)
+        return result
+
+    def count_embedding_layers_at_input_nodes(model):
+        result = 0
+        for input_layer in get_model_input_layers(model):
+            if input_layer._outbound_nodes and isinstance(
+                    input_layer._outbound_nodes[0].outbound_layer, keras.layers.Embedding):
+                result += 1
+        return result
+
+    return count_embedding_layers(model) == count_embedding_layers_at_input_nodes(model)
+
+
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -164,6 +192,9 @@ def gen_test_data(model):
             shape = input_layer.input_shape
         return random_fn(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
+
+    assert are_embedding_layer_positions_ok_for_testing(
+        model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 

@@ -472,11 +472,11 @@ inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
 {
     if (axis == 1)
     {
-        return concatenate_tensor5s_width(ts);
+        return concatenate_tensor5s_height(ts);
     }
     if (axis == 2)
     {
-        return concatenate_tensor5s_height(ts);
+        return concatenate_tensor5s_width(ts);
     }
     if (axis == 3)
     {

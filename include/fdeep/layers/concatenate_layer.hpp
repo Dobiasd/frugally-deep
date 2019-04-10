@@ -16,8 +16,8 @@ namespace fdeep { namespace internal
 class concatenate_layer : public layer
 {
 public:
-    explicit concatenate_layer(const std::string& name, std::int32_t keras_axis)
-        : layer(name), axis_(keras_axis_to_fdeep_axis(keras_axis))
+    explicit concatenate_layer(const std::string& name, std::int32_t axis)
+        : layer(name), axis_(axis)
     {
     }
 protected:

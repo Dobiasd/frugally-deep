@@ -70,6 +70,19 @@ public:
         return non_one_count;
     }
 
+    std::size_t rank() const
+    {
+        if (size_dim_5_ > 1)
+            return 5;
+        if (size_dim_4_ > 1)
+            return 4;
+        if (height_ > 1)
+            return 3;
+        if (width_ > 1)
+            return 2;
+        return 1;
+    }
+
     shape2 without_depth() const
     {
         assert_is_shape_3();

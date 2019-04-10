@@ -34,7 +34,7 @@ public:
     {
         assertion(td_output_len_ > 1, "Wrong input dimension");
     }
-    
+
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override final
     {
@@ -66,7 +66,7 @@ protected:
         }
         else
             raise_error("invalid input dim for TimeDistributed");
-        
+
         if (td_output_len_ == 2)
             concat_axis = 2;
         else if (td_output_len_ == 3)
@@ -77,16 +77,33 @@ protected:
             concat_axis = 4;
         else
             raise_error("invalid output dim for TimeDistributed");
-        
+
         for (std::size_t i = 0; i < len_series; ++i)
         {
             const auto curr_result = inner_layer_->apply({slices[i]});
             result_time_step.push_back(curr_result.front());
         }
 
-        return {concatenate_tensor5s(result_time_step, concat_axis)};
+        if (concat_axis == 1)
+        {
+            return {concatenate_tensor5s_height(result_time_step)};
+        }
+        if (concat_axis == 2)
+        {
+            return {concatenate_tensor5s_width(result_time_step)};
+        }
+        if (concat_axis == 3)
+        {
+            return {concatenate_tensor5s_dim4(result_time_step)};
+        }
+        if (concat_axis == 4)
+        {
+            return {concatenate_tensor5s_dim5(result_time_step)};
+        }
+        raise_error("Invalid concat_axis in time_distributed_layer.");
+        return {};
     }
-    
+
     const layer_ptr inner_layer_;
     const std::size_t td_input_len_;
     const std::size_t td_output_len_;

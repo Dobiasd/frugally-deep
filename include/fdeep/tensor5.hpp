@@ -331,43 +331,130 @@ inline std::pair<tensor5_pos, tensor5_pos> tensor5_min_max_pos(
     return std::make_pair(result_min, result_max);
 }
 
+inline std::vector<std::vector<std::size_t>> get_tensors_shape_sizes(const tensor5s& ts)
+{
+    return {
+        fplus::transform([](const auto& t) { return t.shape().size_dim_5_; }, ts),
+        fplus::transform([](const auto& t) { return t.shape().size_dim_4_; }, ts),
+        fplus::transform([](const auto& t) { return t.shape().height_; }, ts),
+        fplus::transform([](const auto& t) { return t.shape().width_; }, ts),
+        fplus::transform([](const auto& t) { return t.shape().depth_; }, ts)
+    };
+}
+
 inline tensor5_pos tensor5_max_pos(const tensor5& vol)
 {
     return tensor5_min_max_pos(vol).second;
 }
 
-inline tensor5 tensor5_swap_depth_and_height(const tensor5& in)
+inline tensor5 concatenate_tensor5s_depth(const tensor5s& in)
 {
-    tensor5 result(shape5(1, 1,
-        in.shape().depth_,
-        in.shape().width_,
-        in.shape().height_), 0);
-    for (std::size_t y = 0; y < in.shape().height_; ++y)
+    const auto shape_sizes = get_tensors_shape_sizes(in);
+    assertion(
+        fplus::all_the_same(shape_sizes[0]) &&
+        fplus::all_the_same(shape_sizes[1]) &&
+        fplus::all_the_same(shape_sizes[2]) &&
+        fplus::all_the_same(shape_sizes[3]),
+        "Tensor shapes differ on wrong dimension.");
+
+    tensor5 result(shape5(in.front().shape().size_dim_5_,
+                          in.front().shape().size_dim_4_,
+                          in.front().shape().height_,
+                          in.front().shape().width_,
+                          fplus::sum(shape_sizes[4])), 0);
+    std::size_t out_dim1 = 0;
+    for (const auto& t: in)
     {
-        for (std::size_t x = 0; x < in.shape().width_; ++x)
+        for (std::size_t z = 0; z < t.shape().depth_; ++z, ++out_dim1)
         {
-            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            for (std::size_t dim5 = 0; dim5 < t.shape().size_dim_5_; ++dim5)
             {
-                result.set(0, 0, z, x, y, in.get(0, 0, y, x, z));
+                for (std::size_t dim4 = 0; dim4 < t.shape().size_dim_4_; ++dim4)
+                {
+                    for (std::size_t y = 0; y < t.shape().height_; ++y)
+                    {
+                        for (std::size_t x = 0; x < t.shape().width_; ++x)
+                        {
+                            result.set(tensor5_pos(dim5, dim4, y, x, out_dim1), t.get(tensor5_pos(dim5, dim4, y, x, z)));
+                        }
+                    }
+                }
             }
         }
     }
     return result;
 }
 
-inline tensor5 tensor5_swap_depth_and_width(const tensor5& in)
+inline tensor5 concatenate_tensor5s_width(const tensor5s& in)
 {
-    tensor5 result(shape5(1, 1,
-        in.shape().height_,
-        in.shape().depth_,
-        in.shape().width_), 0);
-    for (std::size_t y = 0; y < in.shape().height_; ++y)
+    const auto shape_sizes = get_tensors_shape_sizes(in);
+    assertion(
+        fplus::all_the_same(shape_sizes[0]) &&
+        fplus::all_the_same(shape_sizes[1]) &&
+        fplus::all_the_same(shape_sizes[2]) &&
+        fplus::all_the_same(shape_sizes[4]),
+        "Tensor shapes differ on wrong dimension.");
+
+    tensor5 result(shape5(in.front().shape().size_dim_5_,
+                          in.front().shape().size_dim_4_,
+                          in.front().shape().height_,
+                          fplus::sum(shape_sizes[3]),
+                          in.front().shape().depth_), 0);
+    std::size_t out_dim2 = 0;
+    for (const auto& t: in)
     {
-        for (std::size_t x = 0; x < in.shape().width_; ++x)
+        for (std::size_t x = 0; x < t.shape().width_; ++x, ++out_dim2)
         {
-            for (std::size_t z = 0; z < in.shape().depth_; ++z)
+            for (std::size_t dim5 = 0; dim5 < t.shape().size_dim_5_; ++dim5)
             {
-                result.set(0, 0, y, z, x, in.get(0, 0, y, x, z));
+                for (std::size_t dim4 = 0; dim4 < t.shape().size_dim_4_; ++dim4)
+                {
+                    for (std::size_t y = 0; y < t.shape().height_; ++y)
+                    {
+                        for (std::size_t z = 0; z < t.shape().depth_; ++z)
+                        {
+                            result.set(tensor5_pos(dim5, dim4, y, out_dim2, z), t.get(tensor5_pos(dim5, dim4, y, x, z)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+inline tensor5 concatenate_tensor5s_height(const tensor5s& in)
+{
+    const auto shape_sizes = get_tensors_shape_sizes(in);
+    assertion(
+        fplus::all_the_same(shape_sizes[0]) &&
+        fplus::all_the_same(shape_sizes[1]) &&
+        fplus::all_the_same(shape_sizes[3]) &&
+        fplus::all_the_same(shape_sizes[4]),
+        "Tensor shapes differ on wrong dimension.");
+
+    tensor5 result(shape5(in.front().shape().size_dim_5_,
+                          in.front().shape().size_dim_4_,
+                          fplus::sum(shape_sizes[2]),
+                          in.front().shape().width_,
+                          in.front().shape().depth_), 0);
+    std::size_t out_dim3 = 0;
+    for (const auto& t: in)
+    {
+        for (std::size_t y = 0; y < t.shape().height_; ++y, ++out_dim3)
+        {
+            for (std::size_t dim5 = 0; dim5 < t.shape().size_dim_5_; ++dim5)
+            {
+                for (std::size_t dim4 = 0; dim4 < t.shape().size_dim_4_; ++dim4)
+                {
+                    for (std::size_t x = 0; x < t.shape().width_; ++x)
+                    {
+                        for (std::size_t z = 0; z < t.shape().depth_; ++z)
+                        {
+                            result.set(tensor5_pos(dim5, dim4, out_dim3, x, z), t.get(tensor5_pos(dim5, dim4, y, x, z)));
+                        }
+                    }
+                }
             }
         }
     }
@@ -376,22 +463,34 @@ inline tensor5 tensor5_swap_depth_and_width(const tensor5& in)
 
 inline tensor5 concatenate_tensor5s_dim4(const tensor5s& in)
 {
+    const auto shape_sizes = get_tensors_shape_sizes(in);
+    assertion(
+        fplus::all_the_same(shape_sizes[0]) &&
+        fplus::all_the_same(shape_sizes[2]) &&
+        fplus::all_the_same(shape_sizes[3]) &&
+        fplus::all_the_same(shape_sizes[4]),
+        "Tensor shapes differ on wrong dimension.");
+
     tensor5 result(shape5(in.front().shape().size_dim_5_,
-                          in.size(),
+                          fplus::sum(shape_sizes[1]),
                           in.front().shape().height_,
                           in.front().shape().width_,
                           in.front().shape().depth_), 0);
-    for (std::size_t dim5 = 0; dim5 < in.front().shape().size_dim_5_; ++dim5)
+    std::size_t out_dim4 = 0;
+    for (const auto& t: in)
     {
-        for (std::size_t dim4 = 0; dim4 < in.size(); ++dim4)
+        for (std::size_t dim4 = 0; dim4 < t.shape().size_dim_4_; ++dim4, ++out_dim4)
         {
-            for (std::size_t y = 0; y < in.front().shape().height_; ++y)
+            for (std::size_t dim5 = 0; dim5 < t.shape().size_dim_5_; ++dim5)
             {
-                for (std::size_t x = 0; x < in.front().shape().width_; ++x)
+                for (std::size_t y = 0; y < t.shape().height_; ++y)
                 {
-                    for (std::size_t z = 0; z < in.front().shape().depth_; ++z)
+                    for (std::size_t x = 0; x < t.shape().width_; ++x)
                     {
-                        result.set(tensor5_pos(dim5, dim4, y, x, z), in[dim4].get(tensor5_pos(dim5, 0, y, x, z)));
+                        for (std::size_t z = 0; z < t.shape().depth_; ++z)
+                        {
+                            result.set(tensor5_pos(dim5, out_dim4, y, x, z), t.get(tensor5_pos(dim5, dim4, y, x, z)));
+                        }
                     }
                 }
             }
@@ -402,22 +501,34 @@ inline tensor5 concatenate_tensor5s_dim4(const tensor5s& in)
 
 inline tensor5 concatenate_tensor5s_dim5(const tensor5s& in)
 {
-    tensor5 result(shape5(in.size(),
+    const auto shape_sizes = get_tensors_shape_sizes(in);
+    assertion(
+        fplus::all_the_same(shape_sizes[1]) &&
+        fplus::all_the_same(shape_sizes[2]) &&
+        fplus::all_the_same(shape_sizes[3]) &&
+        fplus::all_the_same(shape_sizes[4]),
+        "Tensor shapes differ on wrong dimension.");
+
+    tensor5 result(shape5(fplus::sum(shape_sizes[0]),
                           in.front().shape().size_dim_4_,
                           in.front().shape().height_,
                           in.front().shape().width_,
                           in.front().shape().depth_), 0);
-    for (std::size_t dim5 = 0; dim5 < in.size(); ++dim5)
+    std::size_t out_dim5 = 0;
+    for (const auto& t: in)
     {
-        for (std::size_t dim4 = 0; dim4 < in.front().shape().size_dim_4_; ++dim4)
+        for (std::size_t dim5 = 0; dim5 < t.shape().size_dim_5_; ++dim5, ++out_dim5)
         {
-            for (std::size_t y = 0; y < in.front().shape().height_; ++y)
+            for (std::size_t dim4 = 0; dim4 < t.shape().size_dim_4_; ++dim4)
             {
-                for (std::size_t x = 0; x < in.front().shape().width_; ++x)
+                for (std::size_t y = 0; y < t.shape().height_; ++y)
                 {
-                    for (std::size_t z = 0; z < in.front().shape().depth_; ++z)
+                    for (std::size_t x = 0; x < t.shape().width_; ++x)
                     {
-                        result.set(tensor5_pos(dim5, dim4, y, x, z), in[dim5].get(tensor5_pos(0, dim4, y, x, z)));
+                        for (std::size_t z = 0; z < t.shape().depth_; ++z)
+                        {
+                            result.set(tensor5_pos(out_dim5, dim4, y, x, z), t.get(tensor5_pos(dim5, dim4, y, x, z)));
+                        }
                     }
                 }
             }
@@ -426,69 +537,37 @@ inline tensor5 concatenate_tensor5s_dim5(const tensor5s& in)
     return result;
 }
 
-inline tensor5 concatenate_tensor5s_height(const tensor5s& ts)
-{
-    assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(tensor5, width, std::size_t), ts),
-        "all tensors must have the same width");
-
-    assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(tensor5, depth, std::size_t), ts),
-        "all tensors must have the same depth");
-
-    assertion(!ts.empty(), "no tensors to concatenate");
-
-    const std::size_t height_sum = fplus::sum(fplus::transform(
-        fplus_c_mem_fn_t(tensor5, height, std::size_t), ts));
-
-    return tensor5(
-        shape5(1, 1,
-            height_sum,
-            ts.front().shape().width_,
-            ts.front().shape().depth_),
-        fplus::transform_and_concat([](const tensor5& t) -> float_vec
-        {
-            return *t.as_vector();
-        }, ts));
-}
-
-inline tensor5 concatenate_tensor5s_depth(const tensor5s& ts)
-{
-    return fplus::fwd::apply(ts,
-        fplus::fwd::transform(tensor5_swap_depth_and_height),
-        concatenate_tensor5s_height,
-        tensor5_swap_depth_and_height);
-}
-
-inline tensor5 concatenate_tensor5s_width(const tensor5s& ts)
-{
-    return fplus::fwd::apply(ts,
-        fplus::fwd::transform(tensor5_swap_depth_and_width),
-        concatenate_tensor5s_depth,
-        tensor5_swap_depth_and_width);
-}
-
 inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
 {
-    if (axis == 1)
+    const auto rank = ts.front().shape().rank();
+    if (axis < 0)
     {
-        return concatenate_tensor5s_height(ts);
+        axis = axis + static_cast<std::int32_t>(rank) + 1;
     }
-    if (axis == 2)
+    axis = axis - static_cast<std::int32_t>(rank) + 5;
+    if (axis == 5)
+    {
+        return concatenate_tensor5s_depth(ts);
+    }
+    if (axis == 4)
     {
         return concatenate_tensor5s_width(ts);
     }
     if (axis == 3)
     {
+        return concatenate_tensor5s_height(ts);
+    }
+    if (axis == 2)
+    {
         return concatenate_tensor5s_dim4(ts);
     }
-    if (axis == 4)
+    if (axis == 1)
     {
         return concatenate_tensor5s_dim5(ts);
     }
-    assertion(axis == 0, "Invalid axis (" + std::to_string(axis) +
+    raise_error("Invalid axis (" + std::to_string(axis) +
         ") for tensor concatenation.");
-    return concatenate_tensor5s_depth(ts);
+    return tensor5(shape5(0, 0, 0, 0, 0), 0);
 }
 
 inline tensor5 flatten_tensor5(const tensor5& vol)

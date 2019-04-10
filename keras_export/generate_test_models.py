@@ -91,79 +91,32 @@ def generate_output_data(data_size, outputs):
 def get_test_model_small():
     """Returns a minimalist test model."""
     input_shapes = [
-        (17, 4),
-        (16, 18, 3),
-        (8,),
-        (8,),
-        (2, 3, 5),
-        (2, 3, 5),
-        (32, 32, 3),
-        (2, 3, 4, 5),
         (2, 3, 4, 5, 6),
+        (2, 3, 4, 5, 6),
+        (7, 8, 9, 10),
+        (7, 8, 9, 10),
+        (11, 12, 13),
+        (11, 12, 13),
+        (14, 15),
+        (14, 15),
+        (16,),
+        (16,),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
 
-    outputs.append(Permute((2, 1))(inputs[0]))
-    outputs.append(Permute((3, 2, 1))(inputs[1]))
-    outputs.append(Permute((4, 2, 1, 5, 3))(inputs[8]))
-
-    outputs.append(Dense(3)(inputs[2]))
-    outputs.append(Dense(3)(inputs[0]))
-    outputs.append(Dense(3)(inputs[1]))
-    outputs.append(Dense(3)(inputs[7]))
-
-    outputs.append(Flatten()(inputs[0]))
-    outputs.append(Flatten()(inputs[1]))
-    outputs.append(Flatten()(inputs[7]))
-    outputs.append(Flatten()(inputs[8]))
-
-    outputs.append(Activation('sigmoid')(inputs[7]))
-    outputs.append(Activation('sigmoid')(inputs[8]))
-
-    # same as axis=-1
-    outputs.append(Concatenate()([inputs[4], inputs[5]]))
-    outputs.append(Concatenate(axis=3)([inputs[4], inputs[5]]))
-    # axis=0 does not make sense, since dimension 0 is the batch dimension
-    outputs.append(Concatenate(axis=1)([inputs[4], inputs[5]]))
-    outputs.append(Concatenate(axis=2)([inputs[4], inputs[5]]))
-
-    outputs.append(PReLU()(inputs[0]))
-    outputs.append(PReLU()(inputs[1]))
-    outputs.append(PReLU()(inputs[2]))
-    outputs.append(PReLU(shared_axes=[1, 2])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[1, 3])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[2, 3])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[1, 2, 3])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[1])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[2])(inputs[1]))
-    outputs.append(PReLU(shared_axes=[3])(inputs[1]))
-
-    outputs.append(PReLU()(Conv2D(8, (3, 3), padding='same',
-                                  activation='elu')(inputs[6])))
-    outputs.append(PReLU()(LSTM(units=16,
-                                activation='tanh',
-                                recurrent_activation='hard_sigmoid',
-                                return_sequences=True)(inputs[0])))
-
-    outputs.append(GlobalMaxPooling2D()(inputs[1]))
-    outputs.append(MaxPooling2D()(inputs[1]))
-    outputs.append(AveragePooling1D()(inputs[0]))
-
-    outputs.append(TimeDistributed(Conv1D(2, 3))(inputs[1]))
-
-    outputs.append(BatchNormalization()(inputs[0]))
-    outputs.append(BatchNormalization(center=False)(inputs[0]))
-    outputs.append(BatchNormalization(scale=False)(inputs[0]))
-
-    outputs.append(Conv2D(2, (3, 3), use_bias=True)(inputs[1]))
-    outputs.append(Conv2D(2, (3, 3), use_bias=False)(inputs[1]))
-    outputs.append(SeparableConv2D(2, (3, 3), use_bias=True)(inputs[1]))
-    outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[1]))
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[1]))
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[1]))
+    for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+        outputs.append(Concatenate(axis=axis)([inputs[0], inputs[1]]))
+    for axis in [-4, -3, -2, -1, 1, 2, 3, 4]:
+        outputs.append(Concatenate(axis=axis)([inputs[2], inputs[3]]))
+    for axis in [-3, -2, -1, 1, 2, 3]:
+        outputs.append(Concatenate(axis=axis)([inputs[4], inputs[5]]))
+    for axis in [-2, -1, 1, 2]:
+        outputs.append(Concatenate(axis=axis)([inputs[6], inputs[7]]))
+    for axis in [-1, 1]:
+        outputs.append(Concatenate(axis=axis)([inputs[8], inputs[9]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -599,6 +552,15 @@ def get_test_model_full():
         (2, 3),
         (2, 3, 4, 5),
         (2, 3, 4, 5, 6),
+        (2, 3, 4, 5, 6),
+        (7, 8, 9, 10),
+        (7, 8, 9, 10),
+        (11, 12, 13),
+        (11, 12, 13),
+        (14, 15),
+        (14, 15),
+        (16,),
+        (16,),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -610,6 +572,21 @@ def get_test_model_full():
     outputs.append(Flatten()(inputs[5]))
     outputs.append(Flatten()(inputs[9]))
     outputs.append(Flatten()(inputs[10]))
+
+    for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
+        outputs.append(Concatenate(axis=axis)([inputs[10], inputs[11]]))
+
+    for axis in [-4, -3, -2, -1, 1, 2, 3, 4]:
+        outputs.append(Concatenate(axis=axis)([inputs[12], inputs[13]]))
+
+    for axis in [-3, -2, -1, 1, 2, 3]:
+        outputs.append(Concatenate(axis=axis)([inputs[14], inputs[15]]))
+
+    for axis in [-2, -1, 1, 2]:
+        outputs.append(Concatenate(axis=axis)([inputs[16], inputs[17]]))
+
+    for axis in [-1, 1]:
+        outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))
 
     for inp in inputs[6:8]:
         for padding in ['valid', 'same']:

@@ -1153,7 +1153,9 @@ inline void check_test_outputs(float_type epsilon,
     {
         const auto& output = outputs[i];
         const auto& target = targets[i];
-        assertion(output.shape() == target.shape(), "wrong output size");
+        assertion(output.shape() == target.shape(),
+            "Wrong output size. Is " + show_shape5(output.shape()) +
+            ", should be " + show_shape5(target.shape()));
         for (std::size_t y = 0; y < output.shape().height_; ++y)
         {
             for (std::size_t x = 0; x < output.shape().width_; ++x)

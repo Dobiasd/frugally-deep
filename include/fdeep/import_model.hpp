@@ -80,7 +80,7 @@
 #include <limits>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -280,7 +280,7 @@ using get_param_f =
 using get_global_param_f = std::function<nlohmann::json(const std::string&)>;
 
 using layer_creators =
-    std::unordered_map<
+    std::map<
         std::string,
         std::function<layer_ptr(
             const get_param_f&,
@@ -289,7 +289,7 @@ using layer_creators =
             const std::string&)>>;
 
 using wrapper_layer_creators =
-    std::unordered_map<
+    std::map<
         std::string,
         std::function<layer_ptr(
             const get_param_f&,
@@ -864,7 +864,7 @@ inline activation_layer_ptr create_activation_layer_type_name(
     const nlohmann::json& data,
     const std::string& type, const std::string& name)
 {
-    const std::unordered_map<std::string,
+    const std::map<std::string,
             std::function<activation_layer_ptr(const get_param_f&,
                 const get_global_param_f&, const nlohmann::json&,
                 const std::string&)>>
@@ -1134,7 +1134,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     }
     else
     {
-        const auto creators = fplus::map_union(custom_layer_creators,
+        const layer_creators creators = fplus::map_union(custom_layer_creators,
             default_creators);
 
         auto result = fplus::throw_on_nothing(

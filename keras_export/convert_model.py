@@ -739,15 +739,8 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
-def convert(in_path, out_path, no_tests=False):
+def export_model(model, out_path, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
-
-    assert K.backend() == "tensorflow"
-    assert K.floatx() == "float32"
-    assert K.image_data_format() == 'channels_last'
-
-    print('loading {}'.format(in_path))
-    model = load_model(in_path)
 
     # Force creation of underlying functional model.
     # see: https://github.com/fchollet/keras/issues/8136
@@ -788,6 +781,18 @@ def convert(in_path, out_path, no_tests=False):
     print('writing {}'.format(out_path))
     write_text_file(out_path, json.dumps(
         json_output, allow_nan=False, indent=2, sort_keys=True))
+
+
+def convert(in_path, out_path, no_tests=False):
+    """Convert any (h5-)stored Keras model to the frugally-deep model format."""
+
+    assert K.backend() == "tensorflow"
+    assert K.floatx() == "float32"
+    assert K.image_data_format() == 'channels_last'
+
+    print('loading {}'.format(in_path))
+    model = load_model(in_path)
+    export_model(model, out_path, no_tests)
 
 
 def main():

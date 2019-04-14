@@ -739,7 +739,7 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
-def model_to_fdeep_json(model, out_path, no_tests=False):
+def model_to_fdeep_json(model, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
 
     # Force creation of underlying functional model.

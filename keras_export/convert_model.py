@@ -789,7 +789,7 @@ def convert(in_path, out_path, no_tests=False):
 
     print('loading {}'.format(in_path))
     model = load_model(in_path)
-    json_output = model_to_fdeep_json(model, out_path, no_tests)
+    json_output = model_to_fdeep_json(model, no_tests)
     print('writing {}'.format(out_path))
     write_text_file(out_path, json.dumps(
         json_output, allow_nan=False, indent=2, sort_keys=True))

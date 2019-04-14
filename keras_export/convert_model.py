@@ -739,7 +739,7 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
-def export_model(model, out_path, no_tests=False):
+def model_to_fdeep_json(model, out_path, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
 
     # Force creation of underlying functional model.
@@ -777,10 +777,7 @@ def export_model(model, out_path, no_tests=False):
         json_output['tests'] = [test_data]
     json_output['trainable_params'] = get_all_weights(model)
     json_output['hash'] = calculate_hash(model)
-
-    print('writing {}'.format(out_path))
-    write_text_file(out_path, json.dumps(
-        json_output, allow_nan=False, indent=2, sort_keys=True))
+    return json_output
 
 
 def convert(in_path, out_path, no_tests=False):
@@ -792,7 +789,10 @@ def convert(in_path, out_path, no_tests=False):
 
     print('loading {}'.format(in_path))
     model = load_model(in_path)
-    export_model(model, out_path, no_tests)
+    json_output = model_to_fdeep_json(model, out_path, no_tests)
+    print('writing {}'.format(out_path))
+    write_text_file(out_path, json.dumps(
+        json_output, allow_nan=False, indent=2, sort_keys=True))
 
 
 def main():

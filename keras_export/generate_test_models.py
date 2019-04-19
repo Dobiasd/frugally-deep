@@ -567,7 +567,6 @@ def get_test_model_full():
 
     outputs = []
 
-    outputs.append(Flatten()(inputs[3]))
     outputs.append(Flatten()(inputs[4]))
     outputs.append(Flatten()(inputs[5]))
     outputs.append(Flatten()(inputs[9]))

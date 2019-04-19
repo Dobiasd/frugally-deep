@@ -518,7 +518,6 @@ def get_layer_functions_dict():
 
 
 def check_upsampling_2d_layer(layer):
-    print(layer.get_config())
     assert layer.get_config()['interpolation'] == 'nearest', \
         'Only interpolation nearest is currently supported by frugally-deep.'
     return None

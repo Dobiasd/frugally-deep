@@ -150,22 +150,22 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.96 s |        0.32 s |
-| `DenseNet169`     |     1.17 s |        0.35 s |
-| `DenseNet201`     |     1.50 s |        0.46 s |
-| `InceptionV3`     |     0.71 s |        0.38 s |
-| `MobileNet`       |     0.34 s |        0.16 s |
-| `MobileNetV2`     |     0.40 s |        0.16 s |
-| `NASNetLarge`     |     4.22 s |        4.73 s |
-| `NASNetMobile`    |     0.34 s |        0.38 s |
-| `ResNet50`        |     0.73 s |        0.27 s |
-| `VGG16`           |     0.66 s |        0.78 s |
-| `VGG19`           |     0.82 s |        0.97 s |
-| `Xception`        |     1.50 s |        1.20 s |
+| `DenseNet121`     |     0.33 s |        0.30 s |
+| `DenseNet169`     |     0.39 s |        0.33 s |
+| `DenseNet201`     |     0.48 s |        0.43 s |
+| `InceptionV3`     |     0.35 s |        0.37 s |
+| `MobileNet`       |     0.11 s |        0.15 s |
+| `MobileNetV2`     |     0.13 s |        0.16 s |
+| `NASNetLarge`     |     2.03 s |        4.64 s |
+| `NASNetMobile`    |     0.18 s |        0.38 s |
+| `ResNet50`        |     0.32 s |        0.25 s |
+| `VGG16`           |     0.64 s |        0.80 s |
+| `VGG19`           |     0.78 s |        0.96 s |
+| `Xception`        |     0.65 s |        1.20 s |
 
-Keras version: `2.2.2`
+Keras version: `2.2.4`
 
-TensorFlow version: `1.10.1`
+TensorFlow version: `1.13.1`
 
 Requirements and Installation
 -----------------------------

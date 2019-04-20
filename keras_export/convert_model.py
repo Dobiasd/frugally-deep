@@ -210,7 +210,6 @@ def gen_test_data(model):
         duration_sum = duration_sum + duration
     duration_avg = duration_sum / test_runs
     print('Forward pass took {} s on average.'.format(duration_avg))
-
     return {
         'inputs': list(map(show_test_data_as_tensor5, data_in)),
         'outputs': list(map(show_test_data_as_tensor5, data_out))
@@ -751,8 +750,10 @@ def model_to_fdeep_json(model, no_tests=False):
     test_data = None if no_tests else gen_test_data(model)
 
     json_output = {}
+    print('Converting model architecture.')
     json_output['architecture'] = json.loads(model.to_json())
 
+    print('Determining Keras behaviour.')
     json_output['image_data_format'] = K.image_data_format()
     for depth in range(1, 3, 1):
         json_output['conv2d_valid_offset_depth_' + str(depth)] = \
@@ -772,10 +773,18 @@ def model_to_fdeep_json(model, no_tests=False):
     json_output['average_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
+
     if test_data:
         json_output['tests'] = [test_data]
+
+    print('Converting model weights.')
     json_output['trainable_params'] = get_all_weights(model)
+    print('Done converting model weights.')
+
+    print('Calculating model hash.')
     json_output['hash'] = calculate_hash(model)
+    print('Model conversion finished.')
+
     return json_output
 
 
@@ -799,6 +808,7 @@ def main():
 
     usage = 'usage: [Keras model in HDF5 format] [output path] (--no-tests)'
 
+    # todo: Use ArgumentParser instead.
     if len(sys.argv) not in [3, 4]:
         print(usage)
         sys.exit(1)

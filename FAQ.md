@@ -440,3 +440,14 @@ int main()
     const std::vector<float> vec = *tensor.as_vector();
 }
 ```
+
+Why are `Conv2DTranspose` layers not supported?
+-----------------------------------------------
+
+`UpSampling2D` layers seem to be the better alternative:
+https://distill.pub/2016/deconv-checkerboard/
+
+In case you are not in the position to change your model's
+architecture to use `UpSampling2D` instead of `Conv2DTranspose`,
+feel free to implement `Conv2DTranspose` in frugally-deep and
+submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)

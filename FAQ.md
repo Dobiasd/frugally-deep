@@ -451,3 +451,44 @@ In case you are not in the position to change your model's
 architecture to use `UpSampling2D` instead of `Conv2DTranspose`,
 feel free to implement `Conv2DTranspose` in frugally-deep and
 submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)
+
+How to use lambda/custom layers?
+--------------------------------
+
+`fdeep::load_model` has a `custom_layer_creators` parameter,
+which is of the following type:
+```cpp
+const std::unordered_map<
+    std::string,
+    std::function<layer_ptr(
+        const get_param_f&,
+        const get_global_param_f&,
+        const nlohmann::json&,
+        const std::string&)>>&
+```
+
+It is a dictionary, mapping layer names to custom factory functions.
+As an example for such a factory function for a simple layer type,
+please have a look at the definition of `fdeep::internal::create_add_layer`.
+
+So, you provide your own factory function,
+returning an `fdeep::internal::layer_ptr` (`std::shared_ptr<fdeep::layer>`).
+
+For the actual implementation of your layer, you need to create a new class,
+inheriting from `fdeep::internal::layer`.
+As an example, please have a look at the definition of the `add_layer` class.
+
+In summary, the work needed to inject support for a custom layer
+from user land, i.e., without modifying the actual library,
+looks as follows:
+- Create a new layer class, inheriting from `fdeep::layer`, like [so](https://github.com/Dobiasd/frugally-deep/blob/e3e1a6a2e011ef6255d6589a5ec0981c9d0ef1f9/include/fdeep/layers/add_layer.hpp#L16).
+- Create a new creator function for your layer type, like [so](https://github.com/Dobiasd/frugally-deep/blob/e3e1a6a2e011ef6255d6589a5ec0981c9d0ef1f9/include/fdeep/import_model.hpp#L594)
+- Pass a `custom_layer_creators` to `fdeep::load_model`, which maps layer names to your custom creators.
+
+In case your layer is trainable, i.e., you have some weights attached to it,
+that also need to be exported from the Python side of things,
+have a look into `convert_model.py` for how to extend the resulting
+model `.json` file with the parameters you need.
+
+Remark: This feature in general is still experimental and might be subject to
+change in the future, as the usage of namespace `fdeep::internal` indicates.

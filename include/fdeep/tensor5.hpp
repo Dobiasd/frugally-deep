@@ -844,8 +844,11 @@ inline std::string show_tensor5(const tensor5& t)
     const auto strs = fplus::transform(
         fplus::fwd::show_float_fill_left(' ', max_length, 4), xs);
     return fplus::show_cont(
-        fplus::split_every(t.shape().height_,
-            fplus::split_every(t.shape().width_, strs)));
+        fplus::split_every(t.shape().size_dim_5_,
+            fplus::split_every(t.shape().size_dim_4_,
+                fplus::split_every(t.shape().height_,
+                    fplus::split_every(t.shape().width_,
+                        fplus::split_every(t.shape().depth_, strs))))));
 }
 
 inline std::string show_tensor5s(const tensor5s& ts)

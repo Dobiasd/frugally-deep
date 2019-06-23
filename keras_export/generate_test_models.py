@@ -312,6 +312,14 @@ def get_test_model_lstm():
             return_sequences=False
         )(lstm_sequences)
         outputs.append(lstm_regular)
+        lstm_state, state_h, state_c = LSTM(
+            units=3,
+            recurrent_activation='sigmoid',
+            return_state=True
+        )(inp)
+        outputs.append(lstm_state)
+        outputs.append(state_h)
+        outputs.append(state_c)
 
         lstm_bidi_sequences = Bidirectional(
             LSTM(

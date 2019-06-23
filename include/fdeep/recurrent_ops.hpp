@@ -81,7 +81,7 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
         return selu_activation;
     else if (activation_func_name == "elu")
         return elu_activation;
-    
+
     raise_error("activation function '" + activation_func_name + "' not yet implemented");
     return {}; //should never be called
 }
@@ -90,6 +90,7 @@ inline tensor5s lstm_impl(const tensor5& input,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
+                          const bool return_state,
                           const float_vec& weights,
                           const float_vec& recurrent_weights,
                           const float_vec& bias,
@@ -98,7 +99,7 @@ inline tensor5s lstm_impl(const tensor5& input,
 {
     const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
     const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
-    
+
     // initialize cell output states h, and cell memory states c for t-1 with zeros
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
@@ -161,8 +162,17 @@ inline tensor5s lstm_impl(const tensor5& input,
             for (EigenIndex idx = 0; idx < n; ++idx)
                 lstm_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
         }
-    
 
+    if (return_state) {
+        auto state_h = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
+        auto state_c = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
+        for (EigenIndex idx = 0; idx < n; ++idx)
+            state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+        for (EigenIndex idx = 0; idx < n; ++idx)
+            state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
+        lstm_result.push_back(state_h);
+        lstm_result.push_back(state_c);
+    }
     return lstm_result;
 }
 
@@ -289,11 +299,11 @@ inline tensor5 reverse_time_series_in_tensor5(const tensor5& ts)
             {
                 for (std::size_t z = 0; z < ts.shape().depth_; ++z )
                     reversed.set(0, 0, 0, n, z ,ts.get(0, 0, 0, x, z));
-                
+
                 n++;
             }
-        
+
         return reversed;
     }
-    
+
 } } // namespace fdeep, namespace internal

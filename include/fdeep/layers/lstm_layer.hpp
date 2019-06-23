@@ -26,6 +26,7 @@ class lstm_layer : public layer
                         const std::string& recurrent_activation,
                         const bool use_bias,
                         const bool return_sequences,
+                        const bool return_state,
                         const float_vec& weights,
                         const float_vec& recurrent_weights,
                         const float_vec& bias)
@@ -35,6 +36,7 @@ class lstm_layer : public layer
           recurrent_activation_(recurrent_activation),
           use_bias_(use_bias),
           return_sequences_(return_sequences),
+          return_state_(return_state),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias)
@@ -54,7 +56,7 @@ class lstm_layer : public layer
 
         const auto input = inputs.front();
 
-        return lstm_impl(input, n_units_, use_bias_, return_sequences_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
+        return lstm_impl(input, n_units_, use_bias_, return_sequences_, return_state_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
 
     const std::size_t n_units_;
@@ -62,6 +64,7 @@ class lstm_layer : public layer
     const std::string recurrent_activation_;
     const bool use_bias_;
     const bool return_sequences_;
+    const bool return_state_;
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;

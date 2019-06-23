@@ -391,7 +391,6 @@ def show_embedding_layer(layer):
 def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
     weights = layer.get_weights()
-    assert not layer.return_state, 'LSTM layers with return_state are not supported.'
     assert len(weights) == 2 or len(weights) == 3
     result = {'weights': encode_floats(weights[0]),
               'recurrent_weights': encode_floats(weights[1])}

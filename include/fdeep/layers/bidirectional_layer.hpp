@@ -53,32 +53,32 @@ public:
         bias_backward_(bias_backward)
     {
     }
-    
+
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor5, shape, shape5), inputs);
-        
+
         // ensure that tensor5 shape is (1, 1, 1, seq_len, n_features)
         assertion(inputs.front().shape().size_dim_5_ == 1
                   && inputs.front().shape().size_dim_4_ == 1
                   && inputs.front().shape().height_ == 1,
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
-        
+
         const auto input = inputs.front();
-        
+
         tensor5s result_forward = {};
         tensor5s result_backward = {};
         tensor5s bidirectional_result = {};
-        
+
         const tensor5 input_reversed = reverse_time_series_in_tensor5(input);
-        
+
         if (wrapped_layer_type_ == "LSTM" || wrapped_layer_type_ == "CuDNNLSTM")
         {
-            result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_,
+            result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_, false,
                                        forward_weights_, forward_recurrent_weights_,
                                        bias_forward_, activation_, recurrent_activation_);
-            result_backward = lstm_impl(input_reversed, n_units_, use_bias_, return_sequences_,
+            result_backward = lstm_impl(input_reversed, n_units_, use_bias_, return_sequences_, false,
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
         }
@@ -93,9 +93,9 @@ protected:
         }
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
-            
+
         const tensor5 result_backward_reversed = reverse_time_series_in_tensor5(result_backward.front());
-        
+
         if (merge_mode_ == "concat")
         {
             bidirectional_result = {concatenate_tensor5s_depth({result_forward.front(), result_backward_reversed})};
@@ -114,10 +114,10 @@ protected:
         }
         else
             raise_error("merge mode '" + merge_mode_ + "' not valid");
-        
+
         return bidirectional_result;
     }
-    
+
     const std::string merge_mode_;
     const std::size_t n_units_;
     const std::string activation_;

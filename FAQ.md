@@ -452,8 +452,8 @@ architecture to use `UpSampling2D` instead of `Conv2DTranspose`,
 feel free to implement `Conv2DTranspose` in frugally-deep and
 submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)
 
-How to use lambda/custom layers?
---------------------------------
+How to use custom layers?
+-------------------------
 
 `fdeep::load_model` has a `custom_layer_creators` parameter,
 which is of the following type:

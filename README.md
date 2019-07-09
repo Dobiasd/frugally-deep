@@ -66,7 +66,7 @@ Layer types typically used in image recognition/generation are supported, making
 * shared layers
 * variable input shapes
 * arbitrary complex model architectures / computational graphs
-* lambda/custom layers (by passing custom factory functions to `load_model`)
+* custom layers (by passing custom factory functions to `load_model`)
 
 ### Currently not supported are the following:
 

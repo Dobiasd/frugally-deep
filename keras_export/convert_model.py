@@ -144,26 +144,26 @@ def are_embedding_layer_positions_ok_for_testing(model):
     are positioned directly behind the input nodes
     """
 
-    def count_embedding_layers(model):
+    def embedding_layer_names(model):
         layers = model.layers
-        result = 0
+        result = set()
         for layer in layers:
             if isinstance(layer, keras.layers.Embedding):
-                result += 1
+                result.add(layer.name)
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
-            result += count_embedding_layers(layer)
+            result.union(embedding_layer_names(layer))
         return result
 
-    def count_embedding_layers_at_input_nodes(model):
-        result = 0
+    def embedding_layer_names_at_input_nodes(model):
+        result = set()
         for input_layer in get_model_input_layers(model):
             if input_layer._outbound_nodes and isinstance(
                     input_layer._outbound_nodes[0].outbound_layer, keras.layers.Embedding):
-                result += 1
-        return result
+                result.add(input_layer._outbound_nodes[0].outbound_layer.name)
+        return set(result)
 
-    return count_embedding_layers(model) == count_embedding_layers_at_input_nodes(model)
+    return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
 
 
 def gen_test_data(model):

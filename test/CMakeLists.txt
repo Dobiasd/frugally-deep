@@ -16,6 +16,10 @@ add_custom_command ( OUTPUT test_model_embedding.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_convolutional.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py convolutional test_model_convolutional.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_recurrent.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -59,6 +63,11 @@ add_custom_command ( OUTPUT test_model_pooling.json
 add_custom_command ( OUTPUT test_model_embedding.json
                      DEPENDS test_model_embedding.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.h5 test_model_embedding.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_convolutional.json
+                     DEPENDS test_model_convolutional.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_convolutional.h5 test_model_convolutional.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_recurrent.json
@@ -112,6 +121,7 @@ endmacro()
 _add_test(test_model_small_test test_model_small.json)
 _add_test(test_model_pooling_test test_model_pooling.json)
 _add_test(test_model_embedding_test test_model_embedding.json)
+_add_test(test_model_convolutional_test test_model_convolutional.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
 _add_test(test_model_lstm_test test_model_lstm.json)
 _add_test(test_model_gru_test test_model_gru.json)
@@ -128,6 +138,7 @@ if(FDEEP_BUILD_FULL_TEST)
     COMMAND test_model_small_test
     COMMAND test_model_pooling_test
     COMMAND test_model_embedding_test
+    COMMAND test_model_convolutional_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_lstm_test
     COMMAND test_model_gru_test
@@ -145,6 +156,7 @@ else()
     COMMAND test_model_small_test
     COMMAND test_model_pooling_test
     COMMAND test_model_embedding_test
+    COMMAND test_model_convolutional_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_lstm_test
     COMMAND test_model_gru_test

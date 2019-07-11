@@ -221,6 +221,34 @@ def get_test_model_embedding():
     return model
 
 
+def get_test_model_convolutional():
+    """Returns a minimalistic test model for convolutional layers."""
+    input_shapes = [
+        (17, 4),
+        (6, 10),
+        (20, 40),
+    ]
+
+    inputs = [Input(shape=s) for s in input_shapes]
+    outputs = []
+
+    for inp in inputs:
+        for padding in ['same','valid','causal']:
+            conv = Conv1D(6, 3, padding=padding, activation='relu')(inp)
+            outputs.append(conv)
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_convolutional')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+
 def get_test_model_recurrent():
     """Returns a minimalistic test model for recurrent layers."""
     input_shapes = [
@@ -256,7 +284,7 @@ def get_test_model_recurrent():
 
     outputs.append(lstm3)
 
-    conv1 = (Conv1D(2, 1, activation='sigmoid'))(inputs[1])
+    conv1 = Conv1D(2, 1, activation='sigmoid')(inputs[1])
     lstm4 = LSTM(units=15,
                  return_sequences=False,
                  bias_initializer='random_uniform',
@@ -596,7 +624,7 @@ def get_test_model_full():
         outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))
 
     for inp in inputs[6:8]:
-        for padding in ['valid', 'same']:
+        for padding in ['valid', 'same', 'causal']:
             for s in range(1, 6):
                 for out_channels in [1, 2]:
                     for d in range(1, 4):
@@ -816,6 +844,7 @@ def main():
             'small': get_test_model_small,
             'pooling': get_test_model_pooling,
             'embedding': get_test_model_embedding,
+            'convolutional': get_test_model_convolutional,
             'recurrent': get_test_model_recurrent,
             'lstm': get_test_model_lstm,
             'gru': get_test_model_gru,

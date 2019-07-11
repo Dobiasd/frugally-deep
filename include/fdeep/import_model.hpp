@@ -95,7 +95,7 @@ ValueT json_object_get(const nlohmann::json& data, KeyT&& key, ValueT&& default_
     if (it != data.end())
         return *it;
     else
-        return default_value;
+        return std::forward<ValueT>(default_value);
 }
 
 inline bool json_obj_has_member(const nlohmann::json& data,
@@ -337,6 +337,7 @@ inline padding create_padding(const std::string& padding_str)
         fplus::choose<std::string, padding>({
         { std::string("valid"), padding::valid },
         { std::string("same"), padding::same },
+        { std::string("causal"), padding::causal },
     }, padding_str));
 }
 

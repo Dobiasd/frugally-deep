@@ -252,7 +252,7 @@ def show_conv_1d_layer(layer):
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 3
     weights_flat = prepare_filter_weights_conv_1d(weights[0])
-    assert layer.padding in ['valid', 'same']
+    assert layer.padding in ['valid', 'same', 'causal']
     assert len(layer.input_shape) == 3
     assert layer.input_shape[0] is None
     result = {

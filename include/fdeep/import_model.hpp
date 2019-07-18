@@ -587,7 +587,9 @@ inline layer_ptr create_upsampling_2d_layer(
     const std::string& name)
 {
     const auto scale_factor = create_shape2(data["config"]["size"]);
-    return std::make_shared<upsampling_2d_layer>(name, scale_factor);
+    const std::string interpolation = data["config"]["interpolation"];
+    return std::make_shared<upsampling_2d_layer>(
+        name, scale_factor, interpolation);
 }
 
 inline layer_ptr create_dense_layer(const get_param_f& get_param,

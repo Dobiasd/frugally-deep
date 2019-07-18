@@ -22,20 +22,37 @@ class upsampling_2d_layer : public layer
 {
 public:
     explicit upsampling_2d_layer(const std::string& name,
-        const shape2& scale_factor) :
+        const shape2& scale_factor, const std::string& interpolation) :
     layer(name),
-    scale_factor_(scale_factor)
+    scale_factor_(scale_factor),
+    interpolation_(interpolation)
     {
+        assertion(interpolation == "nearest" || interpolation == "bilinear",
+            "Invalid interpolation method: " + interpolation
+        );
     }
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
-        return {upsampling2d(input)};
+        if (interpolation_ == "nearest")
+        {
+            return {upsampling2d_nearest(input)};
+        }
+        else if (interpolation_ == "bilinear")
+        {
+            return {upsampling2d_bilinear(input)};
+        }
+        else
+        {
+            raise_error("Invalid interpolation method: " + interpolation_);
+            return inputs;
+        }
     }
     shape2 scale_factor_;
-    tensor5 upsampling2d(const tensor5& in_vol) const
+    std::string interpolation_;
+    tensor5 upsampling2d_nearest(const tensor5& in_vol) const
     {
         tensor5 out_vol(shape5(1, 1,
             in_vol.shape().height_ * scale_factor_.height_,
@@ -50,6 +67,49 @@ protected:
                 {
                     std::size_t x_in = x / scale_factor_.width_;
                     out_vol.set(0, 0, y, x, z, in_vol.get(0, 0, y_in, x_in, z));
+                }
+            }
+        }
+        return out_vol;
+    }
+    float_type get_interpolated_bilinearly(const tensor5& t,
+        std::size_t pos_dim_5, std::size_t pos_dim_4,
+        float_type y, float_type x, std::size_t z) const
+    {
+        std::size_t y_top = static_cast<std::size_t>(fplus::max(0, fplus::floor(y)));
+        std::size_t y_bottom = static_cast<std::size_t>(fplus::min(t.height() - 1, y_top + 1));
+        std::size_t x_left = static_cast<std::size_t>(fplus::max(0, fplus::floor(x)));
+        std::size_t x_right = static_cast<std::size_t>(fplus::min(t.width() - 1, x_left + 1));
+        const auto val_top_left = t.get(pos_dim_5, pos_dim_4, y_top, x_left, z);
+        const auto val_top_right = t.get(pos_dim_5, pos_dim_4, y_top, x_right, z);
+        const auto val_bottom_left = t.get(pos_dim_5, pos_dim_4, y_bottom, x_left, z);
+        const auto val_bottom_right = t.get(pos_dim_5, pos_dim_4, y_bottom, x_right, z);
+        const auto y_factor_top = static_cast<float_type>(y_bottom) - y;
+        const auto y_factor_bottom = 1.0 - y_factor_top;
+        const auto x_factor_left = static_cast<float_type>(x_right) - x;
+        const auto x_factor_right = 1.0 - x_factor_left;
+        return static_cast<float_type>(
+            y_factor_top * x_factor_left * val_top_left +
+            y_factor_top * x_factor_right * val_top_right +
+            y_factor_bottom * x_factor_left * val_bottom_left +
+            y_factor_bottom * x_factor_right * val_bottom_right);
+    }
+    tensor5 upsampling2d_bilinear(const tensor5& in_vol) const
+    {
+        tensor5 out_vol(shape5(1, 1,
+            in_vol.shape().height_ * scale_factor_.height_,
+            in_vol.shape().width_ * scale_factor_.width_,
+            in_vol.shape().depth_), 0);
+        for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+        {
+            for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+            {
+                float_type y_in = static_cast<float_type>(y) / static_cast<float_type>(scale_factor_.height_);
+                for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+                {
+                    float_type x_in = static_cast<float_type>(x) / static_cast<float_type>(scale_factor_.width_);
+                    out_vol.set(0, 0, y, x, z,
+                        get_interpolated_bilinearly(in_vol, 0, 0, y_in, x_in, z));
                 }
             }
         }

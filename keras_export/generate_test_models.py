@@ -118,6 +118,11 @@ def get_test_model_small():
     for axis in [-1, 1]:
         outputs.append(Concatenate(axis=axis)([inputs[8], inputs[9]]))
 
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
 
@@ -233,7 +238,7 @@ def get_test_model_convolutional():
     outputs = []
 
     for inp in inputs:
-        for padding in ['same','valid','causal']:
+        for padding in ['same', 'valid', 'causal']:
             conv = Conv1D(6, 3, padding=padding, activation='relu')(inp)
             outputs.append(conv)
 

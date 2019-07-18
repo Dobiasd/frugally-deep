@@ -511,15 +511,8 @@ def get_layer_functions_dict():
         'CuDNNLSTM': show_cudnn_lstm_layer,
         'CuDNNGRU': show_cudnn_gru_layer,
         'Bidirectional': show_bidirectional_layer,
-        'TimeDistributed': show_time_distributed_layer,
-        'UpSampling2D': check_upsampling_2d_layer
+        'TimeDistributed': show_time_distributed_layer
     }
-
-
-def check_upsampling_2d_layer(layer):
-    assert layer.get_config()['interpolation'] == 'nearest', \
-        'Only interpolation nearest is currently supported by frugally-deep.'
-    return None
 
 
 def show_time_distributed_layer(layer):

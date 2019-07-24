@@ -328,12 +328,15 @@ def get_test_model_lstm():
 
     input_shapes = [
         (17, 4),
-        (1, 10)
+        (1, 10),
+        (None, 4),
+        (12,),
+        (12,)
     ]
     inputs = [Input(shape=s) for s in input_shapes]
     outputs = []
 
-    for inp in inputs:
+    for inp in inputs[:2]:
         lstm_sequences = LSTM(
             units=8,
             recurrent_activation='relu',
@@ -401,6 +404,11 @@ def get_test_model_lstm():
             )(inp)
         outputs.append(lstm_gpu_regular)
         outputs.append(lstm_gpu_bidi)
+
+    outputs.extend(LSTM(units=12, return_sequences=True,
+                        return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
+    outputs.extend(LSTM(units=12, return_sequences=True,
+                        return_state=True)(inputs[2], initial_state=[inputs[3]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
     model.compile(loss='mse', optimizer='nadam')

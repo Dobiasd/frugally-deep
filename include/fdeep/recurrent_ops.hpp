@@ -87,6 +87,8 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
 }
 
 inline tensor5s lstm_impl(const tensor5& input,
+                          const fplus::maybe<tensor5>& initial_state_h,
+                          const fplus::maybe<tensor5>& initial_state_c,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -103,8 +105,14 @@ inline tensor5s lstm_impl(const tensor5& input,
     // initialize cell output states h, and cell memory states c for t-1 with zeros
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
-    h.setZero();
-    c.setZero();
+    if (initial_state_h.is_just())
+        h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.unsafe_get_just().as_vector());
+    else
+        h.setZero();
+    if (initial_state_c.is_just())
+        c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.unsafe_get_just().as_vector());
+    else
+        c.setZero();
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;

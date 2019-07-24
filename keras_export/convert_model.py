@@ -391,6 +391,8 @@ def show_embedding_layer(layer):
 def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
     weights = layer.get_weights()
+    if isinstance(layer.input, list):
+        assert len(layer.input) in [1, 2, 3]
     assert len(weights) == 2 or len(weights) == 3
     result = {'weights': encode_floats(weights[0]),
               'recurrent_weights': encode_floats(weights[1])}
@@ -422,6 +424,8 @@ def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
 def show_cudnn_lstm_layer(layer):
     """Serialize a GPU-trained LSTM layer to dict"""
     weights = layer.get_weights()
+    if isinstance(layer.input, list):
+        assert len(layer.input) in [1, 2, 3]
     assert len(weights) == 3  # CuDNN LSTM always has a bias
 
     n_gates = 4

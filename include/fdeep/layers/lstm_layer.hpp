@@ -55,8 +55,11 @@ class lstm_layer : public layer
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
-
-        return lstm_impl(input, n_units_, use_bias_, return_sequences_, return_state_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
+        const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
+        const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
+        return lstm_impl(input, initial_state_h, initial_state_c,
+            n_units_, use_bias_, return_sequences_, return_state_, weights_,
+            recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
 
     const std::size_t n_units_;

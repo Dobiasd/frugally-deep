@@ -66,6 +66,8 @@ protected:
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
+        const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
+        const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
 
         tensor5s result_forward = {};
         tensor5s result_backward = {};
@@ -75,10 +77,12 @@ protected:
 
         if (wrapped_layer_type_ == "LSTM" || wrapped_layer_type_ == "CuDNNLSTM")
         {
-            result_forward = lstm_impl(input, n_units_, use_bias_, return_sequences_, false,
+            result_forward = lstm_impl(input, initial_state_h, initial_state_c,
+                                       n_units_, use_bias_, return_sequences_, false,
                                        forward_weights_, forward_recurrent_weights_,
                                        bias_forward_, activation_, recurrent_activation_);
-            result_backward = lstm_impl(input_reversed, n_units_, use_bias_, return_sequences_, false,
+            result_backward = lstm_impl(input_reversed, initial_state_h, initial_state_c,
+                                        n_units_, use_bias_, return_sequences_, false,
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
         }

@@ -407,8 +407,6 @@ def get_test_model_lstm():
 
     outputs.extend(LSTM(units=12, return_sequences=True,
                         return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
-    outputs.extend(LSTM(units=12, return_sequences=True,
-                        return_state=True)(inputs[2], initial_state=[inputs[3]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
     model.compile(loss='mse', optimizer='nadam')

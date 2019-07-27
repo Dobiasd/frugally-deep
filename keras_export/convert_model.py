@@ -378,6 +378,13 @@ def show_prelu_layer(layer):
     return result
 
 
+def show_relu_layer(layer):
+    """Serialize relu layer to dict"""
+    assert layer.negative_slope == 0
+    assert layer.threshold == 0
+    return {}
+
+
 def show_embedding_layer(layer):
     """Serialize Embedding layer to dict"""
     weights = layer.get_weights()
@@ -390,6 +397,9 @@ def show_embedding_layer(layer):
 
 def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
+    assert not layer.go_backwards
+    assert not layer.unroll
+    assert not layer.stateful
     weights = layer.get_weights()
     if isinstance(layer.input, list):
         assert len(layer.input) in [1, 3]
@@ -405,6 +415,9 @@ def show_lstm_layer(layer):
 
 def show_gru_layer(layer):
     """Serialize GRU layer to dict"""
+    assert not layer.go_backwards
+    assert not layer.unroll
+    assert not layer.stateful
     weights = layer.get_weights()
     assert len(weights) == 2 or len(weights) == 3
     result = {'weights': encode_floats(weights[0]),
@@ -423,6 +436,7 @@ def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
 
 def show_cudnn_lstm_layer(layer):
     """Serialize a GPU-trained LSTM layer to dict"""
+    assert not layer.stateful
     weights = layer.get_weights()
     if isinstance(layer.input, list):
         assert len(layer.input) in [1, 3]
@@ -440,6 +454,7 @@ def show_cudnn_lstm_layer(layer):
 
 def show_cudnn_gru_layer(layer):
     """Serialize a GPU-trained GRU layer to dict"""
+    assert not layer.stateful
     weights = layer.get_weights()
     assert len(weights) == 3  # CuDNN GRU always has a bias
 
@@ -500,6 +515,17 @@ def show_bidirectional_layer(layer):
     return result
 
 
+def show_input_layer(layer):
+    """Serialize input layer to dict"""
+    assert not layer.sparse
+    return {}
+
+
+def show_softmax_layer(layer):
+    """Serialize softmax layer to dict"""
+    assert layer.axis == -1
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -509,13 +535,16 @@ def get_layer_functions_dict():
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
         'PReLU': show_prelu_layer,
+        'ReLU': show_relu_layer,
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,
         'CuDNNLSTM': show_cudnn_lstm_layer,
         'CuDNNGRU': show_cudnn_gru_layer,
         'Bidirectional': show_bidirectional_layer,
-        'TimeDistributed': show_time_distributed_layer
+        'TimeDistributed': show_time_distributed_layer,
+        'Input': show_input_layer,
+        'Softmax': show_softmax_layer
     }
 
 

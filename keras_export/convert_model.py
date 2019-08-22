@@ -83,21 +83,33 @@ def arr_as_arr5(arr):
     raise ValueError('invalid number of dimensions')
 
 
-def get_layer_input_shape_shape5(layer):
+def int_or_none(value):
+    """Leave None values as is, convert everything else to int"""
+    if value is None:
+        return value
+    return int(value)
+
+
+def keras_shape_to_fdeep_shape5(raw_shape):
     """Convert a keras shape to an fdeep shape"""
-    shape = layer.input_shape[1:]
+    shape = raw_shape[1:]
     depth = len(shape)
     if depth == 1:
-        return (1, 1, 1, 1, shape[0])
+        return (1, 1, 1, 1, int_or_none(shape[0]))
     if depth == 2:
-        return (1, 1, 1, shape[0], shape[1])
+        return (1, 1, 1, int_or_none(shape[0]), int_or_none(shape[1]))
     if depth == 3:
-        return (1, 1, shape[0], shape[1], shape[2])
+        return (1, 1, int_or_none(shape[0]), int_or_none(shape[1]), int_or_none(shape[2]))
     if depth == 4:
-        return (1, shape[0], shape[1], shape[2], shape[3])
+        return (1, int_or_none(shape[0]), int_or_none(shape[1]), int_or_none(shape[2]), int_or_none(shape[3]))
     if depth == 5:
         return shape
     raise ValueError('invalid number of dimensions')
+
+
+def get_layer_input_shape_shape5(layer):
+    """Convert layer input shape to an fdeep shape"""
+    return keras_shape_to_fdeep_shape5(layer.input_shape)
 
 
 def show_tensor5(tens):
@@ -763,6 +775,13 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
+def as_list(value_or_values):
+    """Leave lists untouched, convert non-list types to a singleton list"""
+    if isinstance(value_or_values, list):
+        return value_or_values
+    return [value_or_values]
+
+
 def model_to_fdeep_json(model, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
 
@@ -799,6 +818,7 @@ def model_to_fdeep_json(model, no_tests=False):
     json_output['average_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_shape5, as_list(model.output_shape)))
 
     if test_data:
         json_output['tests'] = [test_data]

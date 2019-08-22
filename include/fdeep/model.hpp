@@ -91,6 +91,11 @@ public:
         return input_shapes_;
     }
 
+    const std::vector<shape5_variable>& get_output_shapes() const
+    {
+        return output_shapes_;
+    }
+
     const std::vector<shape5> get_dummy_input_shapes() const
     {
         return fplus::transform(
@@ -130,8 +135,10 @@ public:
 private:
     model(const internal::layer_ptr& model_layer,
         const std::vector<shape5_variable>& input_shapes,
+        const std::vector<shape5_variable>& output_shapes,
         const std::string& hash) :
             input_shapes_(input_shapes),
+            output_shapes_(output_shapes),
             model_layer_(model_layer),
             hash_(hash) {}
 
@@ -140,6 +147,7 @@ private:
         const internal::layer_creators&);
 
     std::vector<shape5_variable> input_shapes_;
+    std::vector<shape5_variable> output_shapes_;
     internal::layer_ptr model_layer_;
     std::string hash_;
 };
@@ -218,6 +226,7 @@ inline model read_model(std::istream& model_file_stream,
         json_data["architecture"]["config"]["name"],
         custom_layer_creators),
         internal::create_shape5s_variable(json_data["input_shapes"]),
+        internal::create_shape5s_variable(json_data["output_shapes"]),
         internal::json_object_get<std::string, std::string>(
             json_data, "hash", ""));
 

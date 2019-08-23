@@ -495,7 +495,7 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
         name, moving_mean, moving_variance, beta, gamma, epsilon);
 }
 
-inline layer_ptr create_linear_layer(
+inline layer_ptr create_identity_layer(
     const get_param_f&, const get_global_param_f&, const nlohmann::json&,
     const std::string& name)
 {
@@ -1079,13 +1079,13 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"DepthwiseConv2D", create_depthwise_conv_2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
-            {"Dropout", create_linear_layer},
-            {"AlphaDropout", create_linear_layer},
-            {"GaussianDropout", create_linear_layer},
-            {"GaussianNoise", create_linear_layer},
-            {"SpatialDropout1D", create_linear_layer},
-            {"SpatialDropout2D", create_linear_layer},
-            {"SpatialDropout3D", create_linear_layer},
+            {"Dropout", create_identity_layer},
+            {"AlphaDropout", create_identity_layer},
+            {"GaussianDropout", create_identity_layer},
+            {"GaussianNoise", create_identity_layer},
+            {"SpatialDropout1D", create_identity_layer},
+            {"SpatialDropout2D", create_identity_layer},
+            {"SpatialDropout3D", create_identity_layer},
             {"LeakyReLU", create_leaky_relu_layer_isolated},
             {"Permute", create_permute_layer },
             {"PReLU", create_prelu_layer },

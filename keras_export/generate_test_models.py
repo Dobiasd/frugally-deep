@@ -101,6 +101,10 @@ def get_test_model_small():
         (14, 15),
         (16,),
         (16,),
+        (2,),
+        (1,),
+        (2,),
+        (1,),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -122,6 +126,12 @@ def get_test_model_small():
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+
+    outputs.append(keras.layers.Multiply()([inputs[10], inputs[11]]))
+    outputs.append(keras.layers.Multiply()([inputs[11], inputs[10]]))
+    outputs.append(keras.layers.Multiply()([inputs[11], inputs[13]]))
+    outputs.append(keras.layers.Multiply()([inputs[10], inputs[11], inputs[12]]))
+    outputs.append(keras.layers.Multiply()([inputs[11], inputs[12], inputs[13]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')

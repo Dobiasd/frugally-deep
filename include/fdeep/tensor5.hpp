@@ -122,6 +122,22 @@ private:
 typedef std::vector<tensor5> tensor5s;
 typedef std::vector<tensor5s> tensor5s_vec;
 
+bool is_singleton_value(const tensor5& t)
+{
+    return t.shape() == shape5(1, 1, 1, 1, 1);
+}
+
+float_type to_singleton_value(const tensor5& t)
+{
+    assertion(is_singleton_value(t), "Tensor must contain exactly one value.");
+    return t.get(tensor5_pos(0, 0, 0, 0, 0));
+}
+
+tensor5 from_singleton_value(float_type value)
+{
+    return tensor5(shape5(1, 1, 1, 1, 1), value);
+}
+
 template <typename F>
 tensor5 transform_tensor5(F f, const tensor5& m)
 {
@@ -747,9 +763,15 @@ inline tensor5 sum_tensor5s(const tensor5s& ts)
     return tensor5(ts.front().shape(), std::move(result_values));
 }
 
-inline tensor5 multiply_tensor5s(const tensor5s& ts)
+inline tensor5 multiply_tensor5s(const tensor5s& ts_all)
 {
-    assertion(!ts.empty(), "no tensor5s given");
+    assertion(!ts_all.empty(), "no tensor5s given");
+    const auto factors_and_tensors = fplus::partition(
+        is_singleton_value, ts_all);
+    auto ts = factors_and_tensors.second;
+    if (ts.empty()) {
+        ts.push_back(from_singleton_value(static_cast<float_type>(1)));
+    }
     assertion(
         fplus::all_the_same_on(fplus_c_mem_fn_t(tensor5, shape, shape5), ts),
         "all tensor5s must have the same size");
@@ -765,6 +787,12 @@ inline tensor5 multiply_tensor5s(const tensor5s& ts)
             product_val *= (*t_vals)[i];
         }
         result_values.push_back(product_val);
+    }
+    if (factors_and_tensors.first.size() > 0) {
+        const auto factor = fplus::product(
+            fplus::transform(to_singleton_value, factors_and_tensors.first));
+        result_values = fplus::transform(
+            fplus::multiply_with<float_type>(factor), result_values);
     }
     return tensor5(ts.front().shape(), std::move(result_values));
 }

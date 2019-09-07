@@ -34,8 +34,8 @@ Would you like to build/train a model using Keras/Python? And would you like run
 * re-implements a (small) subset of TensorFlow, i.e. the operations needed to support prediction.
 * results in a much smaller binary size than linking against TensorFlow.
 * works out of-the-box also when compiled into a 32-bit executable. (Of course 64 bit is fine too.)
-* utterly ignores even the most powerful GPU in your system and uses only one CPU core. ;-)
-* but is quite fast on one CPU core [compared to TensorFlow](#performance).
+* utterly ignores even the most powerful GPU in your system and uses only one CPU core per prediction. ;-)
+* but is quite fast on one CPU core [compared to TensorFlow](#performance), and you can run multiple predictions in parallel, thus utilizing as many CPUs are you like to improve the overall prediction throughput of your application/pipeline.
 
 
 ### Supported layer types
@@ -145,7 +145,7 @@ For more integration examples please have a look at the [FAQ](FAQ.md).
 Performance
 -----------
 
-Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a single core of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to disable the GPU and to only allow usage of one CPU.
+Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|

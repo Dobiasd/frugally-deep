@@ -105,6 +105,14 @@ def get_test_model_small():
         (1,),
         (2,),
         (1,),
+        (1, 3),
+        (1, 4),
+        (1, 1, 3),
+        (1, 1, 4),
+        (1, 1, 1, 3),
+        (1, 1, 1, 4),
+        (1, 1, 1, 1, 3),
+        (1, 1, 1, 1, 4),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -121,6 +129,14 @@ def get_test_model_small():
         outputs.append(Concatenate(axis=axis)([inputs[6], inputs[7]]))
     for axis in [-1, 1]:
         outputs.append(Concatenate(axis=axis)([inputs[8], inputs[9]]))
+    for axis in [-1, 2]:
+        outputs.append(Concatenate(axis=axis)([inputs[14], inputs[15]]))
+    for axis in [-1, 3]:
+        outputs.append(Concatenate(axis=axis)([inputs[16], inputs[17]]))
+    for axis in [-1, 4]:
+        outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))
+    for axis in [-1, 5]:
+        outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))
 
     outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))

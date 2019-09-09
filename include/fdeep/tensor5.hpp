@@ -560,7 +560,7 @@ inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
     {
         axis = axis + static_cast<std::int32_t>(rank) + 1;
     }
-    axis = axis - static_cast<std::int32_t>(rank) + 5;
+    axis = std::min(5, axis - static_cast<std::int32_t>(rank) + 5);
     if (axis == 5)
     {
         return concatenate_tensor5s_depth(ts);

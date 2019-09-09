@@ -122,18 +122,18 @@ private:
 typedef std::vector<tensor5> tensor5s;
 typedef std::vector<tensor5s> tensor5s_vec;
 
-bool is_singleton_value(const tensor5& t)
+inline bool is_singleton_value(const tensor5& t)
 {
     return t.shape() == shape5(1, 1, 1, 1, 1);
 }
 
-float_type to_singleton_value(const tensor5& t)
+inline float_type to_singleton_value(const tensor5& t)
 {
     assertion(is_singleton_value(t), "Tensor must contain exactly one value.");
     return t.get(tensor5_pos(0, 0, 0, 0, 0));
 }
 
-tensor5 from_singleton_value(float_type value)
+inline tensor5 from_singleton_value(float_type value)
 {
     return tensor5(shape5(1, 1, 1, 1, 1), value);
 }

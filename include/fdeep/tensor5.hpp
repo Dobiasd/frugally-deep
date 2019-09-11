@@ -887,6 +887,8 @@ inline std::string show_tensor5s(const tensor5s& ts)
 // Converts a memory block holding 8-bit values into a tensor5.
 // Data must be stored row-wise (and channels_last).
 // Scales the values from range [0, 255] into [low, high].
+// Example:
+//     With low = 0.0 and high = 1.0 every value is essentially divided by 255.
 // May be used to convert an image (bgr, rgba, gray, etc.) to a tensor5.
 inline tensor5 tensor5_from_bytes(const std::uint8_t* value_ptr,
     std::size_t height, std::size_t width, std::size_t channels,

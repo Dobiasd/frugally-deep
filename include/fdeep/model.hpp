@@ -73,13 +73,22 @@ public:
     // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensor5s& inputs) const
     {
+        return predict_class_with_confidence(inputs).first;
+    }
+
+    // Like predict_class,
+    // but also returns the value of the maximally activated output neuron.
+    std::pair<std::size_t, float_type>
+    predict_class_with_confidence(const tensor5s& inputs) const
+    {
         const tensor5s outputs = predict(inputs);
         internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
         const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.without_depth().area() == 1,
             "invalid output shape");
-        return internal::tensor5_max_pos(outputs.front()).z_;
+        const auto pos = internal::tensor5_max_pos(outputs.front());
+        return std::make_pair(pos.z_, outputs.front().get(pos));
     }
 
     // Convenience wrapper around predict for models with

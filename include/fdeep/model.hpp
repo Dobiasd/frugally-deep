@@ -152,6 +152,11 @@ public:
         return hash_;
     }
 
+    void reset_states() const
+    {
+        model_layer_->reset_states();
+    }
+
 private:
     model(const internal::layer_ptr& model_layer,
         const std::vector<shape5_variable>& input_shapes,
@@ -269,6 +274,7 @@ inline model read_model(std::istream& model_file_stream,
                 check_test_outputs(verify_epsilon, output, tests[i].output_);
             }
         }
+        full_model.reset_states();
     }
 
     return full_model;

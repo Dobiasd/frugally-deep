@@ -43,6 +43,14 @@ class lstm_layer : public layer
     {
     }
 
+    virtual void reset_states() const
+    {
+        if (is_stateful)
+        {
+            // todo: Do whatever is needed here.
+        }
+    }
+
   protected:
     tensor5s apply_impl(const tensor5s &inputs) const override final
     {
@@ -55,12 +63,20 @@ class lstm_layer : public layer
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
+        // todo: Do whatever is needed.
         const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
         const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
         return lstm_impl(input, initial_state_h, initial_state_c,
             n_units_, use_bias_, return_sequences_, return_state_, weights_,
             recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
+
+    // todo: We will deal with thread safety later.
+    // todo: Change however needed. This is just an example template.
+    mutable fplus::maybe<tensor5> state_h = fplus::maybe<tensor5>();
+    mutable fplus::maybe<tensor5> state_c = fplus::maybe<tensor5>();
+    // todo: Adjust whatever needed.
+    const bool is_stateful = false;
 
     const std::size_t n_units_;
     const std::string activation_;

@@ -45,6 +45,13 @@ public:
         assertion(node_idx < nodes_.size(), "invalid node index");
         return layer::get_output(layers, output_cache, node_idx, tensor_idx);
     }
+    void reset_states() const override
+    {
+        for (const auto& single_layer: layers_)
+        {
+            single_layer->reset_states();
+        }
+    }
 
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override

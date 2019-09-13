@@ -80,6 +80,12 @@ public:
         return outputs[tensor_idx];
     }
 
+    virtual void reset_states() const
+    {
+        // Stateful layers should override that function,
+        // and take care to reset their internal states if appropriate.
+    }
+
     std::string name_;
     nodes nodes_;
 

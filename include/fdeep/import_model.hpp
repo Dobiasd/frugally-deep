@@ -967,10 +967,12 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
     const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
     const bool return_sequences = config["return_sequences"];
     const bool return_state = config["return_state"];
+    const bool stateful = config["stateful"];
 
     return std::make_shared<lstm_layer>(name, units, unit_activation,
                                         recurrent_activation, use_bias,
                                         return_sequences, return_state,
+                                        stateful,
                                         weights, recurrent_weights, bias);
 }
 
@@ -990,6 +992,7 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     );
 
     const bool use_bias = json_object_get(config, "use_bias", true);
+    const bool stateful = config["stateful"];
 
     float_vec bias;
     if (use_bias)
@@ -1006,6 +1009,7 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
 
     return std::make_shared<gru_layer>(name, units, unit_activation,
                                        recurrent_activation, use_bias, reset_after, return_sequences,
+                                       stateful,
                                        weights, recurrent_weights, bias);
 }
 

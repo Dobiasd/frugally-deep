@@ -27,6 +27,7 @@ class gru_layer : public layer
                         const bool use_bias,
                         const bool reset_after,
                         const bool return_sequences,
+                        // todo: maybe add support for return_state
                         const bool stateful,
                         const float_vec& weights,
                         const float_vec& recurrent_weights,

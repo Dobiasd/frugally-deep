@@ -27,6 +27,7 @@ class lstm_layer : public layer
                         const bool use_bias,
                         const bool return_sequences,
                         const bool return_state,
+                        const bool stateful,
                         const float_vec& weights,
                         const float_vec& recurrent_weights,
                         const float_vec& bias)
@@ -37,6 +38,7 @@ class lstm_layer : public layer
           use_bias_(use_bias),
           return_sequences_(return_sequences),
           return_state_(return_state),
+          stateful_(stateful),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias)
@@ -45,7 +47,7 @@ class lstm_layer : public layer
 
     virtual void reset_states() const
     {
-        if (is_stateful)
+        if (stateful_)
         {
             // todo: Do whatever is needed here.
         }
@@ -75,8 +77,6 @@ class lstm_layer : public layer
     // todo: Change however needed. This is just an example template.
     mutable fplus::maybe<tensor5> state_h = fplus::maybe<tensor5>();
     mutable fplus::maybe<tensor5> state_c = fplus::maybe<tensor5>();
-    // todo: Adjust whatever needed.
-    const bool is_stateful = false;
 
     const std::size_t n_units_;
     const std::string activation_;
@@ -84,6 +84,7 @@ class lstm_layer : public layer
     const bool use_bias_;
     const bool return_sequences_;
     const bool return_state_;
+    const bool stateful_;
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;

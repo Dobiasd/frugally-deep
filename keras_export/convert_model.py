@@ -411,7 +411,6 @@ def show_lstm_layer(layer):
     """Serialize LSTM layer to dict"""
     assert not layer.go_backwards
     assert not layer.unroll
-    assert not layer.stateful
     weights = layer.get_weights()
     if isinstance(layer.input, list):
         assert len(layer.input) in [1, 3]
@@ -429,7 +428,6 @@ def show_gru_layer(layer):
     """Serialize GRU layer to dict"""
     assert not layer.go_backwards
     assert not layer.unroll
-    assert not layer.stateful
     weights = layer.get_weights()
     assert len(weights) == 2 or len(weights) == 3
     result = {'weights': encode_floats(weights[0]),
@@ -448,7 +446,6 @@ def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
 
 def show_cudnn_lstm_layer(layer):
     """Serialize a GPU-trained LSTM layer to dict"""
-    assert not layer.stateful
     weights = layer.get_weights()
     if isinstance(layer.input, list):
         assert len(layer.input) in [1, 3]
@@ -466,7 +463,6 @@ def show_cudnn_lstm_layer(layer):
 
 def show_cudnn_gru_layer(layer):
     """Serialize a GPU-trained GRU layer to dict"""
-    assert not layer.stateful
     weights = layer.get_weights()
     assert len(weights) == 3  # CuDNN GRU always has a bias
 

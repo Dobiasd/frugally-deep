@@ -27,6 +27,7 @@ class gru_layer : public layer
                         const bool use_bias,
                         const bool reset_after,
                         const bool return_sequences,
+                        const bool stateful,
                         const float_vec& weights,
                         const float_vec& recurrent_weights,
                         const float_vec& bias)
@@ -37,10 +38,19 @@ class gru_layer : public layer
           use_bias_(use_bias),
           reset_after_(reset_after),
           return_sequences_(return_sequences),
+          stateful_(stateful),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias)
     {
+    }
+
+    virtual void reset_states() const
+    {
+        if (stateful_)
+        {
+            // todo: Do whatever is needed here.
+        }
     }
 
   protected:
@@ -59,12 +69,18 @@ class gru_layer : public layer
         return gru_impl(input, n_units_, use_bias_, reset_after_, return_sequences_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
 
+    // todo: We will deal with thread safety later.
+    // todo: Change however needed. This is just an example template.
+    mutable fplus::maybe<tensor5> state_h = fplus::maybe<tensor5>();
+    mutable fplus::maybe<tensor5> state_c = fplus::maybe<tensor5>();
+
     const std::size_t n_units_;
     const std::string activation_;
     const std::string recurrent_activation_;
     const bool use_bias_;
     const bool reset_after_;
     const bool return_sequences_;
+    const bool stateful_;
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;

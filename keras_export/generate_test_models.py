@@ -550,18 +550,11 @@ def get_test_model_gru_stateful_optional(stateful):
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
-
-    model.summary()
-    plot_model(model, to_file= f'gru.png', show_shapes=True, show_layer_names=True)  
-
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
-    # print(f'data_in: {data_in}')
-    # print(f'data_out: {data_out}')
-
     model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
     return model
 

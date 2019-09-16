@@ -24,7 +24,7 @@ from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.models import Model, load_model, Sequential
 
 from keras.utils  import plot_model ### DEBUG: stateful
-
+import tensorflow as tf
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -906,52 +906,52 @@ def get_test_model_lstm_stateful():
     inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
     outputs = []
     for in_num, inp in enumerate(inputs[:2]):
-        stateful = (in_num+1)%2
+        stateful = bool( ( in_num + 1) % 2 )
         lstm_sequences = LSTM(
             stateful=stateful,
             units=8,
             recurrent_activation='relu',
             return_sequences=True,
-            name=f'lstm_sequences_{in_num}_st{stateful%2}'
+            name=f'lstm_sequences_{in_num}_st-{stateful}'
         )(inp)
-        stateful = (in_num+1)%3
+        stateful = bool( ( in_num ) % 2 )
         lstm_regular = LSTM(
             stateful=stateful,
             units=3,
             recurrent_activation='sigmoid',
             return_sequences=False,
-            name=f'lstm_regular_{in_num}_st{stateful%2}'
+            name=f'lstm_regular_{in_num}_st-{stateful}'
         )(lstm_sequences)
         outputs.append(lstm_regular)
-        stateful = (in_num+2)%3
+        stateful = bool( ( in_num + 1) % 2 )
         lstm_state, state_h, state_c = LSTM(
             stateful=stateful,
             units=3,
             recurrent_activation='sigmoid',
             return_state=True,
-            name=f'lstm_state_return_{in_num}_st{stateful%2}'
+            name=f'lstm_state_return_{in_num}_st-{stateful}'
         )(inp)
         outputs.append(lstm_state)
         outputs.append(state_h)
         outputs.append(state_c)
-        stateful = (in_num+0)%2
+        stateful = bool( ( in_num + 1) % 2 )
         lstm_bidi_sequences = Bidirectional(
             LSTM(
                 stateful=stateful,
                 units=4,
                 recurrent_activation='hard_sigmoid',
                 return_sequences=True,
-                name=f'bi-lstm_{in_num}_st{stateful%2}'
+                name=f'bi-lstm_{in_num}_st-{stateful}'
             )
         )(inp)
-        stateful = (in_num+1)%2
+        stateful = bool( ( in_num ) % 2 )        
         lstm_bidi = Bidirectional(
             LSTM(
                 stateful=stateful,
                 units=6,
                 recurrent_activation='linear',
                 return_sequences=False,
-                name=f'bi-lstm_{in_num}_st{stateful%2}'
+                name=f'bi-lstm_{in_num}_st-{stateful}'
             )
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
@@ -1010,6 +1010,7 @@ def main():
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
+        tf.logging.set_verbosity(tf.logging.ERROR)
 
         np.random.seed(0)
 

@@ -927,7 +927,7 @@ def get_test_model_lstm_stateful():
             units=8,
             recurrent_activation='relu',
             return_sequences=True,
-            name=f'lstm_sequences_{in_num}_st-{stateful}'
+            name='lstm_sequences_' + str(in_num) + '_st-' + str(stateful)
         )(inp)
         stateful = bool( ( in_num ) % 2 )
         lstm_regular = LSTM(
@@ -935,7 +935,7 @@ def get_test_model_lstm_stateful():
             units=3,
             recurrent_activation='sigmoid',
             return_sequences=False,
-            name=f'lstm_regular_{in_num}_st-{stateful}'
+            name='lstm_regular_' + str(in_num) + '_st-' + str(stateful)
         )(lstm_sequences)
         outputs.append(lstm_regular)
         stateful = bool( ( in_num + 1) % 2 )
@@ -944,7 +944,7 @@ def get_test_model_lstm_stateful():
             units=3,
             recurrent_activation='sigmoid',
             return_state=True,
-            name=f'lstm_state_return_{in_num}_st-{stateful}'
+            name='lstm_state_return_' + str(in_num) + '_st-' + str(stateful)
         )(inp)
         outputs.append(lstm_state)
         outputs.append(state_h)
@@ -956,7 +956,7 @@ def get_test_model_lstm_stateful():
                 units=4,
                 recurrent_activation='hard_sigmoid',
                 return_sequences=True,
-                name=f'bi-lstm_{in_num}_st-{stateful}'
+                name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
             )
         )(inp)
         stateful = bool( ( in_num ) % 2 )        
@@ -966,7 +966,7 @@ def get_test_model_lstm_stateful():
                 units=6,
                 recurrent_activation='linear',
                 return_sequences=False,
-                name=f'bi-lstm_{in_num}_st-{stateful}'
+                name='bi-lstm2_' + str(in_num) + '_st-' + str(stateful)
             )
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
@@ -1037,7 +1037,7 @@ def main():
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
         print(model.summary())
-        plot_model(model, to_file= f'{model_name}.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
+        plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
 
 
 

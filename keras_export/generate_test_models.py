@@ -448,19 +448,25 @@ def get_test_model_lstm():
     model.fit(data_in, data_out, epochs=10)
     return model
 
-
 def get_test_model_gru():
-    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
+    return get_test_model_gru_stateful_optional(False)
 
+def get_test_model_gru_stateful():
+    return get_test_model_gru_stateful_optional(True)
+
+def get_test_model_gru_stateful_optional(stateful):
+    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
     input_shapes = [
         (17, 4),
         (1, 10)
     ]
-    inputs = [Input(shape=s) for s in input_shapes]
+    stateful_batch_size = 1
+    inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
     outputs = []
 
     for inp in inputs:
         gru_sequences = GRU(
+            stateful=stateful,
             units=8,
             recurrent_activation='relu',
             reset_after=True,
@@ -468,6 +474,7 @@ def get_test_model_gru():
             use_bias=True
         )(inp)
         gru_regular = GRU(
+            stateful=stateful,
             units=3,
             recurrent_activation='sigmoid',
             reset_after=True,
@@ -478,6 +485,7 @@ def get_test_model_gru():
 
         gru_bidi_sequences = Bidirectional(
             GRU(
+                stateful=stateful,
                 units=4,
                 recurrent_activation='hard_sigmoid',
                 reset_after=False,
@@ -487,6 +495,7 @@ def get_test_model_gru():
         )(inp)
         gru_bidi = Bidirectional(
             GRU(
+                stateful=stateful,
                 units=6,
                 recurrent_activation='sigmoid',
                 reset_after=True,
@@ -500,17 +509,20 @@ def get_test_model_gru():
         if is_running_on_gpu():
             # run GPU-enabled mode if GPU is available
             gru_gpu_regular = keras.layers.CuDNNGRU(
-                units=3
+                stateful=stateful,
+                units=3, 
             )(inp)
 
             gru_gpu_bidi = Bidirectional(
                 keras.layers.CuDNNGRU(
-                    units=3
+                    stateful=stateful,
+                    units=3,
                 )
             )(inp)
         else:
             # fall back to equivalent regular GRU for CPU-only mode
             gru_gpu_regular = GRU(
+                stateful=stateful,
                 units=3,
                 activation='tanh',
                 recurrent_activation='sigmoid',
@@ -520,6 +532,7 @@ def get_test_model_gru():
 
             gru_gpu_bidi = Bidirectional(
                 GRU(
+                    stateful=stateful,
                     units=3,
                     activation='tanh',
                     recurrent_activation='sigmoid',
@@ -533,12 +546,18 @@ def get_test_model_gru():
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
 
+    model.summary()
+    plot_model(model, to_file= f'gru.png', show_shapes=True, show_layer_names=True)  
+
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
+    # print(f'data_in: {data_in}')
+    # print(f'data_out: {data_out}')
+
+    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
     return model
 
 
@@ -893,8 +912,6 @@ def get_debug_lstm_stateful():
 
 def get_test_model_lstm_stateful():
     stateful_batch_size = 1
-    # input_shapes = [(1,2), (None,4)]
-
     input_shapes = [
         (17, 4),
         (1, 10),
@@ -964,7 +981,6 @@ def get_test_model_lstm_stateful():
     outputs.extend(initial_state_not_stateful)
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(loss='mean_squared_error', optimizer='nadam')
-    model.summary()
 
     # fit to dummy data
     training_data_size = stateful_batch_size
@@ -1000,6 +1016,7 @@ def main():
             'sequential': get_test_model_sequential,
             'full': get_test_model_full,
             'lstm_stateful': get_test_model_lstm_stateful,
+            'gru_stateful': get_test_model_gru_stateful,
             'debug': get_debug_lstm_stateful  #### DEBUG stateful
         }
 

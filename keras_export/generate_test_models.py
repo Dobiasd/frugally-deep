@@ -23,7 +23,7 @@ from keras.layers import Permute, Reshape
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.models import Model, load_model, Sequential
 
-from keras.utils  import plot_model ### DEBUG: stateful
+# from keras.utils  import plot_model ### DEBUG: stateful
 import tensorflow as tf
 
 __author__ = "Tobias Hermann"
@@ -1037,7 +1037,7 @@ def main():
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
         print(model.summary())
-        plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
+        # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
 
 
 

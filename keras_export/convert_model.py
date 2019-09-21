@@ -700,6 +700,7 @@ def convert_sequential_to_model(model):
             input_layer = Input(batch_shape=model.layers[0].input_shape)
             prev_layer = input_layer
             for layer in model.layers:
+                layer._inbound_nodes = []
                 prev_layer = layer(prev_layer)
             funcmodel = Model([input_layer], [prev_layer])
             model = funcmodel

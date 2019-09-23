@@ -85,7 +85,7 @@ class lstm_layer : public layer
             reset_states();
           }
         }
-        return lstm_impl(input, &state_h_, &state_c_,
+        return lstm_impl(input, state_h_, state_c_,
             n_units_, use_bias_, return_sequences_, return_state_, weights_,
             recurrent_weights_, bias_, activation_, recurrent_activation_);
     }

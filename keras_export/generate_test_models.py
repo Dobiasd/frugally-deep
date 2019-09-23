@@ -1022,7 +1022,8 @@ def main():
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
-        tf.logging.set_verbosity(tf.logging.ERROR)
+        # tf.logging.set_verbosity(tf.logging.ERROR)
+        tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
 
         np.random.seed(0)
 

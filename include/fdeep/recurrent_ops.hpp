@@ -87,8 +87,8 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
 }
 
 inline tensor5s lstm_impl(const tensor5& input,
-                          const fplus::maybe<tensor5>& initial_state_h,
-                          const fplus::maybe<tensor5>& initial_state_c,
+                          fplus::maybe<tensor5>& initial_state_h,
+                          fplus::maybe<tensor5>& initial_state_c,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -102,17 +102,11 @@ inline tensor5s lstm_impl(const tensor5& input,
     const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
     const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
 
-    // initialize cell output states h, and cell memory states c for t-1 with zeros
+    // initialize cell output states h, and cell memory states c for t-1 with initial state values
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
-    if (initial_state_h.is_just())
-        h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.unsafe_get_just().as_vector());
-    else
-        h.setZero();
-    if (initial_state_c.is_just())
-        c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.unsafe_get_just().as_vector());
-    else
-        c.setZero();
+    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.unsafe_get_just().as_vector());
+    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.unsafe_get_just().as_vector());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
@@ -180,6 +174,11 @@ inline tensor5s lstm_impl(const tensor5& input,
             state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
         lstm_result.push_back(state_h);
         lstm_result.push_back(state_c);
+    }
+    // Copy the final state back into the initial state in the event of a stateful LSTM call
+    for (EigenIndex idx = 0; idx < n_units; ++idx){
+        initial_state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+        initial_state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
     }
     return lstm_result;
 }

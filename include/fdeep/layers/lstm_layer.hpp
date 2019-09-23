@@ -69,7 +69,7 @@ class lstm_layer : public layer
         // todo: Do whatever is needed.
         // const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
         // const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
-        if(inputs.size() > 2{) // states are initialized
+        if(inputs.size() > 2){ // states are initialized
           for (size_t idx = 0; idx < n_units_; ++idx){
             state_h_.set(0, 0, 0, 0, idx, inputs[1][0][0][0][0][idx]);
             state_c_.set(0, 0, 0, 0, idx, inputs[2][0][0][0][0][idx]);          

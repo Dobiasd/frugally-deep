@@ -46,7 +46,7 @@ class gru_layer : public layer
     {
     }
 
-    virtual void reset_states() const
+    virtual void reset_states() const override
     {
         if (stateful_)
         {

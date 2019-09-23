@@ -983,9 +983,6 @@ def get_test_model_lstm_stateful():
 
     model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
     return model
-    return get_debug_lstm_stateful()
-
-
 
 
 def main():

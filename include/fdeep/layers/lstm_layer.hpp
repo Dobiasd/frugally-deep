@@ -44,19 +44,15 @@ class lstm_layer : public layer
           bias_(bias)    
     // WIP: trying to make a constructor: want to create h and c state vectors initialized to zero.
     {
-        states_initialized_ = false;
         state_h_ = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
         state_c_ = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
     }
 
-    virtual void reset_states() const
+    void reset_states() const override
     {
-        if states_initialized_ == false{
-          // WIP: trying to set states h and c to zero
-          for (size_t idx = 0; idx < n_units_; ++idx){
-              state_h_.set(0, 0, 0, 0, idx, 0);
-              state_c_.set(0, 0, 0, 0, idx, 0);
-          }
+        for (size_t idx = 0; idx < n_units_; ++idx){
+            state_h_.set(0, 0, 0, 0, idx, 0);
+            state_c_.set(0, 0, 0, 0, idx, 0);
         }
     }
 
@@ -64,7 +60,6 @@ class lstm_layer : public layer
     tensor5s apply_impl(const tensor5s &inputs) const override final
     {
         const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor5, shape, shape5), inputs);
-
         // ensure that tensor5 shape is (1, 1, 1, seq_len, n_features)
         assertion(inputs.front().shape().size_dim_5_ == 1
                   && inputs.front().shape().size_dim_4_ == 1
@@ -74,15 +69,13 @@ class lstm_layer : public layer
         // todo: Do whatever is needed.
         // const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
         // const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
-        if inputs.size() > 2{
-          states_initialized_ = true;
+        if(inputs.size() > 2{) // states are initialized
           for (size_t idx = 0; idx < n_units_; ++idx){
             state_h_.set(0, 0, 0, 0, idx, inputs[1][0][0][0][0][idx]);
             state_c_.set(0, 0, 0, 0, idx, inputs[2][0][0][0][0][idx]);          
           }
         }
         else{
-          states_initialized_ = false;
           if stateful_ == false{
             reset_states();
           }
@@ -107,7 +100,6 @@ class lstm_layer : public layer
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;
-    const bool states_initialized_;
 };
 
 } // namespace internal

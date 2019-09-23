@@ -87,8 +87,8 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
 }
 
 inline tensor5s lstm_impl(const tensor5& input,
-                          fplus::maybe<tensor5>& initial_state_h,
-                          fplus::maybe<tensor5>& initial_state_c,
+                          tensor5 initial_state_h,
+                          tensor5 initial_state_c,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -105,8 +105,8 @@ inline tensor5s lstm_impl(const tensor5& input,
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.unsafe_get_just().as_vector());
-    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.unsafe_get_just().as_vector());
+    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
@@ -176,7 +176,7 @@ inline tensor5s lstm_impl(const tensor5& input,
         lstm_result.push_back(state_c);
     }
     // Copy the final state back into the initial state in the event of a stateful LSTM call
-    for (EigenIndex idx = 0; idx < n_units; ++idx){
+    for (EigenIndex idx = 0; idx < n; ++idx){
         initial_state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
         initial_state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
     }

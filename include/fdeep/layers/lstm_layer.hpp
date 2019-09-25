@@ -41,18 +41,17 @@ class lstm_layer : public layer
           stateful_(stateful),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
-          bias_(bias)    
-    // WIP: trying to make a constructor: want to create h and c state vectors initialized to zero.
+          bias_(bias),
+          state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
+          state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
     {
-        state_h_ = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
-        state_c_ = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
     }
 
     void reset_states() const override
     {
         for (size_t idx = 0; idx < n_units_; ++idx){
-            state_h_.set(0, 0, 0, 0, idx, 0);
-            state_c_.set(0, 0, 0, 0, idx, 0);
+          state_h_.set(0, 0, 0, 0, idx, 0);
+          state_c_.set(0, 0, 0, 0, idx, 0);
         }
     }
 
@@ -67,28 +66,17 @@ class lstm_layer : public layer
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
         const auto input = inputs.front();
         // todo: Do whatever is needed.
-        // const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
-        // const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
-        if(inputs.size() > 2){ // states are initialized
-          for (size_t idx = 0; idx < n_units_; ++idx){
-            state_h_.set(0, 0, 0, 0, idx, inputs[1][0][0][0][0][idx]);
-            state_c_.set(0, 0, 0, 0, idx, inputs[2][0][0][0][0][idx]);          
-          }
+        if(inputs.size() > 2) { // states are initialized
+            state_h_ = inputs[1];
+            state_c_ = inputs[2];          
         }
-        else{
-          if stateful_ == false{
+        else if(stateful_ == false) {
             reset_states();
-          }
         }
         return lstm_impl(input, state_h_, state_c_,
             n_units_, use_bias_, return_sequences_, return_state_, weights_,
             recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
-
-    // todo: We will deal with thread safety later.
-    // todo: Change however needed. This is just an example template.
-    mutable fplus::maybe<tensor5> state_h_ = fplus::maybe<tensor5>();
-    mutable fplus::maybe<tensor5> state_c_ = fplus::maybe<tensor5>();
 
     const std::size_t n_units_;
     const std::string activation_;
@@ -100,6 +88,8 @@ class lstm_layer : public layer
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;
+    mutable tensor5 state_h_;
+    mutable tensor5 state_c_;
 };
 
 } // namespace internal

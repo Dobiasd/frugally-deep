@@ -27,7 +27,7 @@ class gru_layer : public layer
                         const bool use_bias,
                         const bool reset_after,
                         const bool return_sequences,
-                        // todo: maybe add support for return_state
+                        const bool return_state,
                         const bool stateful,
                         const float_vec& weights,
                         const float_vec& recurrent_weights,
@@ -39,18 +39,20 @@ class gru_layer : public layer
           use_bias_(use_bias),
           reset_after_(reset_after),
           return_sequences_(return_sequences),
+          return_state_(return_state),
           stateful_(stateful),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
-          bias_(bias)
+          bias_(bias), 
+          state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
+
     {
     }
 
-    virtual void reset_states() const override
+    void reset_states() const override
     {
-        if (stateful_)
-        {
-            // todo: Do whatever is needed here.
+        for (size_t idx = 0; idx < n_units_; ++idx){
+            state_h_.set(0, 0, 0, 0, idx, 0);
         }
     }
 
@@ -66,14 +68,15 @@ class gru_layer : public layer
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
+        if(inputs.size() > 1) { // states are initialized
+          state_h_ = inputs[1];
+        }
+        else if(stateful_ == false) {
+            reset_states();
+        }
 
-        return gru_impl(input, n_units_, use_bias_, reset_after_, return_sequences_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
+        return gru_impl(input, state_h_, n_units_, use_bias_, reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
     }
-
-    // todo: We will deal with thread safety later.
-    // todo: Change however needed. This is just an example template.
-    mutable fplus::maybe<tensor5> state_h = fplus::maybe<tensor5>();
-    mutable fplus::maybe<tensor5> state_c = fplus::maybe<tensor5>();
 
     const std::size_t n_units_;
     const std::string activation_;
@@ -81,10 +84,12 @@ class gru_layer : public layer
     const bool use_bias_;
     const bool reset_after_;
     const bool return_sequences_;
+    const bool return_state_;
     const bool stateful_;
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;
+    mutable tensor5 state_h_;
 };
 
 } // namespace internal

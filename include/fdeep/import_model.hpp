@@ -965,14 +965,13 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
 
     const float_vec weights = decode_floats(get_param(name, "weights"));
     const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
-    const bool return_sequences = config["return_sequences"];
-    const bool return_state = config["return_state"];
-    const bool stateful = config["stateful"];
+    const bool return_sequences = json_object_get(config, "return_sequences", false);
+    const bool return_state = json_object_get(config, "return_state", false);
+    const bool stateful = json_object_get(config, "stateful", false);
 
     return std::make_shared<lstm_layer>(name, units, unit_activation,
                                         recurrent_activation, use_bias,
-                                        return_sequences, return_state,
-                                        stateful,
+                                        return_sequences, return_state, stateful,
                                         weights, recurrent_weights, bias);
 }
 
@@ -992,7 +991,9 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     );
 
     const bool use_bias = json_object_get(config, "use_bias", true);
-    const bool stateful = config["stateful"];
+    const bool return_sequences = json_object_get(config, "return_sequences", false);
+    const bool return_state = json_object_get(config, "return_state", false);
+    const bool stateful = json_object_get(config, "stateful", false);
 
     float_vec bias;
     if (use_bias)
@@ -1005,11 +1006,10 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
         "reset_after",
         data["class_name"] == "CuDNNGRU"
     );
-    const bool return_sequences = json_object_get(config, "return_sequences", false);
 
     return std::make_shared<gru_layer>(name, units, unit_activation,
-                                       recurrent_activation, use_bias, reset_after, return_sequences,
-                                       stateful,
+                                       recurrent_activation, use_bias, reset_after, 
+                                       return_sequences, return_state, stateful,
                                        weights, recurrent_weights, bias);
 }
 
@@ -1052,10 +1052,12 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
         wrapped_layer_type == "CuDNNGRU"
     );
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
+    const bool stateful = json_object_get(layer_config, "stateful", false); 
+
 
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
                                                  recurrent_activation, wrapped_layer_type,
-                                                 use_bias, reset_after, return_sequences,
+                                                 use_bias, reset_after, return_sequences, stateful,
                                                  forward_weights, forward_recurrent_weights, forward_bias,
                                                  backward_weights, backward_recurrent_weights, backward_bias);
 }

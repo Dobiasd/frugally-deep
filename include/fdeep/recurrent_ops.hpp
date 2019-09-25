@@ -87,8 +87,8 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
 }
 
 inline tensor5s lstm_impl(const tensor5& input,
-                          tensor5 initial_state_h,
-                          tensor5 initial_state_c,
+                          tensor5& initial_state_h,
+                          tensor5& initial_state_c,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -184,10 +184,12 @@ inline tensor5s lstm_impl(const tensor5& input,
 }
 
 inline tensor5s gru_impl(const tensor5& input,
+    tensor5& initial_state_h,
     const std::size_t n_units,
     const bool use_bias,
     const bool reset_after,
     const bool return_sequences,
+    const bool return_state,
     const float_vec& weights,
     const float_vec& recurrent_weights,
     const float_vec& bias,
@@ -217,8 +219,9 @@ inline tensor5s gru_impl(const tensor5& input,
         b_h.setZero();
 
     // initialize cell output states h
-    RowVector<Dynamic> h(1, n_units);
-    h.setZero();
+    // RowVector<Dynamic> h(1, n_units);
+    RowMajorMatrixXf h(1, n_units);
+    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
 
     // write input to eigen matrix of shape (timesteps, n_features)
     RowMajorMatrix<Dynamic, Dynamic> x(n_timesteps, n_features);
@@ -293,6 +296,17 @@ inline tensor5s gru_impl(const tensor5& input,
         else if (k == EigenIndex(n_timesteps) - 1)
             for (EigenIndex idx = 0; idx < n; ++idx)
                 gru_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
+        
+
+    if (return_state) {
+        auto state_h = tensor5(shape5(1, 1, 1, 1, n_units), float_type(0));
+        for (EigenIndex idx = 0; idx < n; ++idx)
+            state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+        gru_result.push_back(state_h);    }
+    // Copy the final state back into the initial state in the event of a stateful LSTM call
+    for (EigenIndex idx = 0; idx < n; ++idx){
+        initial_state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+    }
     }
 
     return gru_result;

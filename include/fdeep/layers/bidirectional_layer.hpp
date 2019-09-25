@@ -111,7 +111,7 @@ protected:
         {
             if(inputs.size() > 2) { // states are initialized
                 forward_state_h_ = inputs[1];
-                backward_state_h_ = inputs[3];
+                backward_state_h_ = inputs[2];
             }
             else if (stateful_ == false) {
                     reset_states(); 

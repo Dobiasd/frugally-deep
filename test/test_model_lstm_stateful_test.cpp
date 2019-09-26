@@ -19,5 +19,6 @@ TEST_CASE("test_model_lstm_test_stateful, load_model")
         10);
 
     model.predict_multi(multi_inputs, false);
-    model.predict_multi(multi_inputs, true);
+    // todo: split out stateful and non-stateful to make non-stateful thread safe.
+    // model.predict_multi(multi_inputs, true);
 }

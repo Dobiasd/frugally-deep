@@ -176,10 +176,8 @@ inline tensor5s lstm_impl(const tensor5& input,
         lstm_result.push_back(state_c);
     }
     // Copy the final state back into the initial state in the event of a stateful LSTM call
-    for (EigenIndex idx = 0; idx < n; ++idx){
-        initial_state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
-        initial_state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
-    }
+    initial_state_h = tensor5( shape5(1, 1, 1, 1, n_units), *eigen_row_major_mat_to_values(h) );
+    initial_state_c = tensor5( shape5(1, 1, 1, 1, n_units), *eigen_row_major_mat_to_values(c) );
     return lstm_result;
 }
 
@@ -304,9 +302,7 @@ inline tensor5s gru_impl(const tensor5& input,
             state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
         gru_result.push_back(state_h);    }
     // Copy the final state back into the initial state in the event of a stateful LSTM call
-    for (EigenIndex idx = 0; idx < n; ++idx){
-        initial_state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
-    }
+    initial_state_h = tensor5( shape5(1, 1, 1, 1, n_units), *eigen_row_major_mat_to_values(h) );
     }
 
     return gru_result;

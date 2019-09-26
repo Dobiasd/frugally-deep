@@ -62,12 +62,10 @@ public:
 
     void reset_states() const override
     {
-        for (size_t idx = 0; idx < n_units_; ++idx){
-            forward_state_h_.set(0, 0, 0, 0, idx, 0);
-            forward_state_c_.set(0, 0, 0, 0, idx, 0);
-            backward_state_h_.set(0, 0, 0, 0, idx, 0);
-            backward_state_c_.set(0, 0, 0, 0, idx, 0);
-        }
+        forward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        forward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        backward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        backward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
     }
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override final

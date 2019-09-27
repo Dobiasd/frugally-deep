@@ -43,17 +43,22 @@ class gru_layer : public layer
           stateful_(stateful),
           weights_(weights),
           recurrent_weights_(recurrent_weights),
-          bias_(bias), 
-          state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
+          bias_(bias),
+          state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
 
     {
     }
 
     void reset_states() const override
     {
-        for (size_t idx = 0; idx < n_units_; ++idx){
-            state_h_.set(0, 0, 0, 0, idx, 0);
+        if (is_stateful()) {
+            state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
         }
+    }
+
+    virtual bool is_stateful() const
+    {
+        return stateful_;
     }
 
   protected:
@@ -68,14 +73,23 @@ class gru_layer : public layer
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
-        if(inputs.size() > 1) { // states are initialized
-          state_h_ = inputs[1];
-        }
-        else if(stateful_ == false) {
-            reset_states();
-        }
 
-        return gru_impl(input, state_h_, n_units_, use_bias_, reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_, bias_, activation_, recurrent_activation_);
+        assertion(inputs.size() == 1 || inputs.size() == 2,
+                "Invalid number of input tensors.");
+
+        tensor5 state_h = inputs.size() == 2
+            ? inputs[1]
+            : is_stateful()
+                ? state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+        const auto result = gru_impl(input, state_h, n_units_, use_bias_,
+            reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_,
+            bias_, activation_, recurrent_activation_);
+        if (is_stateful()) {
+            state_h_ = state_h;
+        }
+        return result;
     }
 
     const std::size_t n_units_;
@@ -89,7 +103,7 @@ class gru_layer : public layer
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;
-    mutable tensor5 state_h_;
+    mutable fplus::maybe<tensor5> state_h_;
 };
 
 } // namespace internal

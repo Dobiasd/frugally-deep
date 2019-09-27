@@ -53,21 +53,41 @@ public:
         backward_weights_(backward_weights),
         backward_recurrent_weights_(backward_recurrent_weights),
         bias_backward_(bias_backward),
-        forward_state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
-        forward_state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
-        backward_state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
-        backward_state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
+        forward_state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        forward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        backward_state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        backward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
     {
     }
 
     void reset_states() const override
     {
-        forward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
-        forward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
-        backward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
-        backward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        if (is_stateful()) {
+            forward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            forward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            backward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            backward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+        }
     }
+
+    virtual bool is_stateful() const
+    {
+        return stateful_;
+    }
+
 protected:
+
+    static bool wrapped_layer_type_has_state_c(const std::string& wrapped_layer_type) {
+        if (wrapped_layer_type == "LSTM" || wrapped_layer_type == "CuDNNLSTM") {
+            return true;
+        }
+        if (wrapped_layer_type == "GRU" || wrapped_layer_type == "CuDNNGRU") {
+            return false;
+        }
+        raise_error("layer '" + wrapped_layer_type + "' not yet implemented");
+        return false;
+    }
+
     tensor5s apply_impl(const tensor5s& inputs) const override final
     {
         const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor5, shape, shape5), inputs);
@@ -86,40 +106,76 @@ protected:
         const tensor5 input_reversed = reverse_time_series_in_tensor5(input);
 
         if (wrapped_layer_type_ == "LSTM" || wrapped_layer_type_ == "CuDNNLSTM")
-        {   
-            if(inputs.size() > 4) { // states are initialized
-                forward_state_h_ = inputs[1];
-                forward_state_c_ = inputs[2];          
-                backward_state_h_ = inputs[3];
-                backward_state_c_ = inputs[4];          
-            }
-            else if (stateful_ == false) {
-                    reset_states(); 
-            }
-            result_forward = lstm_impl(input, forward_state_h_, forward_state_c_,
+        {
+            assertion(inputs.size() == 1 || inputs.size() == 5,
+                "Invalid number of input tensors.");
+
+            tensor5 forward_state_h = inputs.size() == 5
+            ? inputs[1]
+            : is_stateful()
+                ? forward_state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            tensor5 forward_state_c = inputs.size() == 5
+            ? inputs[2]
+            : is_stateful()
+                ? forward_state_c_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            tensor5 backward_state_h = inputs.size() == 5
+            ? inputs[3]
+            : is_stateful()
+                ? backward_state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            tensor5 backward_state_c = inputs.size() == 5
+            ? inputs[4]
+            : is_stateful()
+                ? backward_state_c_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            result_forward = lstm_impl(input, forward_state_h, forward_state_c,
                                        n_units_, use_bias_, return_sequences_, false,
                                        forward_weights_, forward_recurrent_weights_,
                                        bias_forward_, activation_, recurrent_activation_);
-            result_backward = lstm_impl(input_reversed, backward_state_h_, backward_state_c_,
+            result_backward = lstm_impl(input_reversed, backward_state_h, backward_state_c,
                                         n_units_, use_bias_, return_sequences_, false,
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
+            if (is_stateful()) {
+                forward_state_h_ = forward_state_h;
+                forward_state_c_ = forward_state_c;
+                backward_state_h_ = backward_state_h;
+                backward_state_c_ = backward_state_c;
+            }
         }
         else if (wrapped_layer_type_ == "GRU" || wrapped_layer_type_ == "CuDNNGRU")
         {
-            if(inputs.size() > 2) { // states are initialized
-                forward_state_h_ = inputs[1];
-                backward_state_h_ = inputs[2];
-            }
-            else if (stateful_ == false) {
-                    reset_states(); 
-            }
-            result_forward = gru_impl(input, forward_state_h_, n_units_, use_bias_, reset_after_, return_sequences_, false,
+            assertion(inputs.size() == 1 || inputs.size() == 3,
+                "Invalid number of input tensors.");
+
+            tensor5 forward_state_h = inputs.size() == 3
+            ? inputs[1]
+            : is_stateful()
+                ? forward_state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            tensor5 backward_state_h = inputs.size() == 3
+            ? inputs[2]
+            : is_stateful()
+                ? backward_state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+            result_forward = gru_impl(input, forward_state_h, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                       forward_weights_, forward_recurrent_weights_,
                                       bias_forward_, activation_, recurrent_activation_);
-            result_backward = gru_impl(input_reversed, backward_state_h_, n_units_, use_bias_, reset_after_, return_sequences_, false,
+            result_backward = gru_impl(input_reversed, backward_state_h, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                        backward_weights_, backward_recurrent_weights_,
                                        bias_backward_, activation_, recurrent_activation_);
+            if (is_stateful()) {
+                forward_state_h_ = forward_state_h;
+                backward_state_h_ = backward_state_h;
+            }
         }
         else
             raise_error("layer '" + wrapped_layer_type_ + "' not yet implemented");
@@ -163,10 +219,10 @@ protected:
     const float_vec backward_weights_;
     const float_vec backward_recurrent_weights_;
     const float_vec bias_backward_;
-    mutable tensor5 forward_state_h_;
-    mutable tensor5 forward_state_c_;
-    mutable tensor5 backward_state_h_;
-    mutable tensor5 backward_state_c_;
+    mutable fplus::maybe<tensor5> forward_state_h_;
+    mutable fplus::maybe<tensor5> forward_state_c_;
+    mutable fplus::maybe<tensor5> backward_state_h_;
+    mutable fplus::maybe<tensor5> backward_state_c_;
 };
 
 } // namespace internal

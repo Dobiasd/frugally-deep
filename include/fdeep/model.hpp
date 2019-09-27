@@ -22,29 +22,19 @@ class model
 {
 public:
     // A single forward pass (no batches).
+    // Will raise an exception when used with a stateful model.
+    // For those, use predict_stateful instead.
     tensor5s predict(const tensor5s& inputs) const
     {
-        const auto input_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor5, shape, shape5),
-            inputs);
-        internal::assertion(input_shapes
-            == get_input_shapes(),
-            std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape5s_variable(get_input_shapes()) +
-                " but provided was: " + show_shape5s(input_shapes));
+        internal::assertion(!is_stateful(),
+            "Prediction on stateful models is not const.");
+        return predict_impl(inputs);
+    }
 
-        const auto outputs = model_layer_->apply(inputs);
-
-        const auto output_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor5, shape, shape5),
-            outputs);
-        internal::assertion(output_shapes
-            == get_output_shapes(),
-            std::string("Invalid outputs shape.\n") +
-                "The model should return " + show_shape5s_variable(get_output_shapes()) +
-                " but actually returned: " + show_shape5s(output_shapes));
-
-        return outputs;
+    // A single forward pass, supporting stateful models.
+    tensor5s predict_stateful(const tensor5s& inputs)
+    {
+        return predict_impl(inputs);
     }
 
     // Forward pass multiple data.
@@ -53,6 +43,8 @@ public:
     std::vector<tensor5s> predict_multi(const std::vector<tensor5s>& inputs_vec,
         bool parallelly) const
     {
+        internal::assertion(!is_stateful(),
+            "Prediction on stateful models is not thread-safe.");
         const auto f = [this](const tensor5s& inputs) -> tensor5s
         {
             return predict(inputs);
@@ -152,9 +144,14 @@ public:
         return hash_;
     }
 
-    void reset_states() const
+    void reset_states()
     {
         model_layer_->reset_states();
+    }
+
+    bool is_stateful() const
+    {
+        return model_layer_->is_stateful();
     }
 
 private:
@@ -170,6 +167,30 @@ private:
     friend model read_model(std::istream&, bool,
         const std::function<void(std::string)>&, float_type,
         const internal::layer_creators&);
+
+    tensor5s predict_impl(const tensor5s& inputs) const {
+        const auto input_shapes = fplus::transform(
+            fplus_c_mem_fn_t(tensor5, shape, shape5),
+            inputs);
+        internal::assertion(input_shapes
+            == get_input_shapes(),
+            std::string("Invalid inputs shape.\n") +
+                "The model takes " + show_shape5s_variable(get_input_shapes()) +
+                " but provided was: " + show_shape5s(input_shapes));
+
+        const auto outputs = model_layer_->apply(inputs);
+
+        const auto output_shapes = fplus::transform(
+            fplus_c_mem_fn_t(tensor5, shape, shape5),
+            outputs);
+        internal::assertion(output_shapes
+            == get_output_shapes(),
+            std::string("Invalid outputs shape.\n") +
+                "The model should return " + show_shape5s_variable(get_output_shapes()) +
+                " but actually returned: " + show_shape5s(output_shapes));
+
+        return outputs;
+    }
 
     std::vector<shape5_variable> input_shapes_;
     std::vector<shape5_variable> output_shapes_;
@@ -246,7 +267,7 @@ inline model read_model(std::istream& model_file_stream,
         return json_data[param_name];
     };
 
-    const model full_model(internal::create_model_layer(
+    model full_model(internal::create_model_layer(
         get_param, get_global_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"],
         custom_layer_creators),
@@ -269,7 +290,7 @@ inline model read_model(std::istream& model_file_stream,
             {
                 log_sol("Running test " + fplus::show(i + 1) +
                     " of " + fplus::show(tests.size()));
-                const auto output = full_model.predict(tests[i].input_);
+                const auto output = full_model.predict_impl(tests[i].input_);
                 log_duration();
                 check_test_outputs(verify_epsilon, output, tests[i].output_);
             }

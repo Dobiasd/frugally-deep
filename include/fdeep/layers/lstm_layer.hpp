@@ -42,14 +42,22 @@ class lstm_layer : public layer
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias),
-          state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
-          state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
+          state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+          state_c_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
     {
     }
 
     void reset_states() const override
     {
-        state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        if (is_stateful()) {
+            state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+        }
+    }
+
+    virtual bool is_stateful() const
+    {
+        return stateful_;
     }
 
   protected:
@@ -62,17 +70,30 @@ class lstm_layer : public layer
                   && inputs.front().shape().height_ == 1,
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
         const auto input = inputs.front();
-        // todo: Do whatever is needed.
-        if(inputs.size() > 2) { // states are initialized
-            state_h_ = inputs[1];
-            state_c_ = inputs[2];          
-        }
-        else if(stateful_ == false) {
-            reset_states();
-        }
-        return lstm_impl(input, state_h_, state_c_,
+
+        assertion(inputs.size() == 1 || inputs.size() == 3,
+                "Invalid number of input tensors.");
+
+        tensor5 state_h = inputs.size() == 3
+            ? inputs[1]
+            : is_stateful()
+                ? state_h_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+        tensor5 state_c = inputs.size() == 3
+            ? inputs[2]
+            : is_stateful()
+                ? state_c_.unsafe_get_just()
+                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+
+        const auto result = lstm_impl(input, state_h, state_c,
             n_units_, use_bias_, return_sequences_, return_state_, weights_,
             recurrent_weights_, bias_, activation_, recurrent_activation_);
+        if (is_stateful()) {
+            state_h_ = state_h;
+            state_c_ = state_c;
+        }
+        return result;
     }
 
     const std::size_t n_units_;
@@ -85,8 +106,8 @@ class lstm_layer : public layer
     const float_vec weights_;
     const float_vec recurrent_weights_;
     const float_vec bias_;
-    mutable tensor5 state_h_;
-    mutable tensor5 state_c_;
+    mutable fplus::maybe<tensor5> state_h_;
+    mutable fplus::maybe<tensor5> state_c_;
 };
 
 } // namespace internal

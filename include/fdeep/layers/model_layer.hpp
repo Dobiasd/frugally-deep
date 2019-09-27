@@ -52,6 +52,12 @@ public:
             single_layer->reset_states();
         }
     }
+    bool is_stateful() const override
+    {
+        return fplus::any_by([](const auto& single_layer) {
+            return single_layer->is_stateful();
+        }, layers_);
+    }
 
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override

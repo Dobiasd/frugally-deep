@@ -47,7 +47,7 @@ class lstm_layer : public layer
     {
     }
 
-    void reset_states() const override
+    void reset_states() override
     {
         if (is_stateful()) {
             state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));

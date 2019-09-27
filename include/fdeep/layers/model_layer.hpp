@@ -45,7 +45,7 @@ public:
         assertion(node_idx < nodes_.size(), "invalid node index");
         return layer::get_output(layers, output_cache, node_idx, tensor_idx);
     }
-    void reset_states() const override
+    void reset_states() override
     {
         for (const auto& single_layer: layers_)
         {

@@ -17,7 +17,6 @@ TEST_CASE("test_model_embedding_test, load_model")
     const auto multi_inputs = fplus::generate<std::vector<fdeep::tensor5s>>(
         [&]() -> fdeep::tensor5s {return model.generate_dummy_inputs();},
         10);
-
     model.predict_multi(multi_inputs, false);
     model.predict_multi(multi_inputs, true);
 }

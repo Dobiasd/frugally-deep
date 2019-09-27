@@ -12,13 +12,8 @@
 
 TEST_CASE("test_model_lstm_test_stateful, load_model")
 {
-    const auto model = fdeep::load_model("../test_model_lstm_stateful.json",
+    auto model = fdeep::load_model("../test_model_lstm_stateful.json",
         true, fdeep::cout_logger, static_cast<fdeep::float_type>(0.00001));
-    const auto multi_inputs = fplus::generate<std::vector<fdeep::tensor5s>>(
-        [&]() -> fdeep::tensor5s {return model.generate_dummy_inputs();},
-        10);
-
-    model.predict_multi(multi_inputs, false);
-    // todo: split out stateful and non-stateful to make non-stateful thread safe.
-    // model.predict_multi(multi_inputs, true);
+    model.predict_stateful(model.generate_dummy_inputs());
+    model.predict_stateful(model.generate_dummy_inputs());
 }

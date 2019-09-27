@@ -28,8 +28,16 @@ add_custom_command ( OUTPUT test_model_lstm.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm test_model_lstm.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_lstm_stateful.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm_stateful test_model_lstm_stateful.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_gru.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru test_model_gru.h5"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_gru_stateful.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru_stateful test_model_gru_stateful.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.h5
@@ -80,9 +88,19 @@ add_custom_command ( OUTPUT test_model_lstm.json
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm.h5 test_model_lstm.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_lstm_stateful.json
+                     DEPENDS test_model_lstm_stateful.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm_stateful.h5 test_model_lstm_stateful.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_gru.json
                      DEPENDS test_model_gru.h5
                      COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru.h5 test_model_gru.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_gru_stateful.json
+                     DEPENDS test_model_gru_stateful.h5
+                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru_stateful.h5 test_model_gru_stateful.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.json
@@ -124,7 +142,9 @@ _add_test(test_model_embedding_test test_model_embedding.json)
 _add_test(test_model_convolutional_test test_model_convolutional.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
 _add_test(test_model_lstm_test test_model_lstm.json)
+_add_test(test_model_lstm_stateful_test test_model_lstm_stateful.json)
 _add_test(test_model_gru_test test_model_gru.json)
+_add_test(test_model_gru_stateful_test test_model_gru_stateful.json)
 _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 if(FDEEP_BUILD_FULL_TEST)
@@ -141,7 +161,9 @@ if(FDEEP_BUILD_FULL_TEST)
     COMMAND test_model_convolutional_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_lstm_test
+    COMMAND test_model_lstm_stateful_test
     COMMAND test_model_gru_test
+    COMMAND test_model_gru_stateful_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
     COMMAND test_model_full_test
@@ -159,7 +181,9 @@ else()
     COMMAND test_model_convolutional_test
     COMMAND test_model_recurrent_test
     COMMAND test_model_lstm_test
+    COMMAND test_model_lstm_stateful_test
     COMMAND test_model_gru_test
+    COMMAND test_model_gru_stateful_test
     COMMAND test_model_variable_test
     COMMAND test_model_sequential_test
     COMMAND readme_example_main

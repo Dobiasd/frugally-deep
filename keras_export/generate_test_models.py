@@ -23,6 +23,9 @@ from keras.layers import Permute, Reshape
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.models import Model, load_model, Sequential
 
+# from keras.utils  import plot_model ### DEBUG: stateful
+import tensorflow as tf
+
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
@@ -55,7 +58,7 @@ def get_shape_for_random_data(data_size, shape):
         return (data_size, shape[0], shape[1])
     if len(shape) == 1:
         return (data_size, shape[0])
-    raise ValueError('can not get determine shape for random data')
+    raise ValueError('can not determine shape for random data')
 
 
 def generate_random_data(data_size, shape):
@@ -445,19 +448,25 @@ def get_test_model_lstm():
     model.fit(data_in, data_out, epochs=10)
     return model
 
-
 def get_test_model_gru():
-    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
+    return get_test_model_gru_stateful_optional(False)
 
+def get_test_model_gru_stateful():
+    return get_test_model_gru_stateful_optional(True)
+
+def get_test_model_gru_stateful_optional(stateful):
+    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
     input_shapes = [
         (17, 4),
         (1, 10)
     ]
-    inputs = [Input(shape=s) for s in input_shapes]
+    stateful_batch_size = 1
+    inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
     outputs = []
 
     for inp in inputs:
         gru_sequences = GRU(
+            stateful=stateful,
             units=8,
             recurrent_activation='relu',
             reset_after=True,
@@ -465,6 +474,7 @@ def get_test_model_gru():
             use_bias=True
         )(inp)
         gru_regular = GRU(
+            stateful=stateful,
             units=3,
             recurrent_activation='sigmoid',
             reset_after=True,
@@ -475,6 +485,7 @@ def get_test_model_gru():
 
         gru_bidi_sequences = Bidirectional(
             GRU(
+                stateful=stateful,
                 units=4,
                 recurrent_activation='hard_sigmoid',
                 reset_after=False,
@@ -484,6 +495,7 @@ def get_test_model_gru():
         )(inp)
         gru_bidi = Bidirectional(
             GRU(
+                stateful=stateful,
                 units=6,
                 recurrent_activation='sigmoid',
                 reset_after=True,
@@ -497,17 +509,20 @@ def get_test_model_gru():
         if is_running_on_gpu():
             # run GPU-enabled mode if GPU is available
             gru_gpu_regular = keras.layers.CuDNNGRU(
-                units=3
+                stateful=stateful,
+                units=3, 
             )(inp)
 
             gru_gpu_bidi = Bidirectional(
                 keras.layers.CuDNNGRU(
-                    units=3
+                    stateful=stateful,
+                    units=3,
                 )
             )(inp)
         else:
             # fall back to equivalent regular GRU for CPU-only mode
             gru_gpu_regular = GRU(
+                stateful=stateful,
                 units=3,
                 activation='tanh',
                 recurrent_activation='sigmoid',
@@ -517,6 +532,7 @@ def get_test_model_gru():
 
             gru_gpu_bidi = Bidirectional(
                 GRU(
+                    stateful=stateful,
                     units=3,
                     activation='tanh',
                     recurrent_activation='sigmoid',
@@ -529,13 +545,12 @@ def get_test_model_gru():
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
-
     # fit to dummy data
     training_data_size = 1
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
+    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
     return model
 
 
@@ -867,6 +882,107 @@ def get_test_model_full():
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
+def get_debug_lstm_stateful():
+    stateful_batch_size = 1
+    input_shapes = [(1,2)]
+    stateful_batch_shape = (stateful_batch_size,) + input_shapes[0]
+    ip = Input(batch_shape=stateful_batch_shape)  ## stateful ==> needs batch_shape specified
+    stateful_out = LSTM(4, return_sequences=False, stateful=True )(ip)
+    model = Model(inputs=ip, outputs=stateful_out)
+    model.compile(loss='mean_squared_error', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = stateful_batch_size
+    data_in = generate_input_data(training_data_size, input_shapes)
+    # data_in = np.random.random( (training_data_size,) +  input_shapes[0] )  ### direct method
+    initial_data_out = model.predict(data_in)
+    # out_shape = initial_data_out.shape[1:]
+    # data_out = np.random.random( (training_data_size,) +  out_shape )  ### direct method
+    data_out = generate_output_data(training_data_size, [initial_data_out])
+
+    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
+    return model
+
+def get_test_model_lstm_stateful():
+    stateful_batch_size = 1
+    input_shapes = [
+        (17, 4),
+        (1, 10),
+        (None, 4),
+        (12,),
+        (12,)
+    ]
+
+    inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
+    outputs = []
+    for in_num, inp in enumerate(inputs[:2]):
+        stateful = bool( ( in_num + 1) % 2 )
+        lstm_sequences = LSTM(
+            stateful=stateful,
+            units=8,
+            recurrent_activation='relu',
+            return_sequences=True,
+            name='lstm_sequences_' + str(in_num) + '_st-' + str(stateful)
+        )(inp)
+        stateful = bool( ( in_num ) % 2 )
+        lstm_regular = LSTM(
+            stateful=stateful,
+            units=3,
+            recurrent_activation='sigmoid',
+            return_sequences=False,
+            name='lstm_regular_' + str(in_num) + '_st-' + str(stateful)
+        )(lstm_sequences)
+        outputs.append(lstm_regular)
+        stateful = bool( ( in_num + 1) % 2 )
+        lstm_state, state_h, state_c = LSTM(
+            stateful=stateful,
+            units=3,
+            recurrent_activation='sigmoid',
+            return_state=True,
+            name='lstm_state_return_' + str(in_num) + '_st-' + str(stateful)
+        )(inp)
+        outputs.append(lstm_state)
+        outputs.append(state_h)
+        outputs.append(state_c)
+        stateful = bool( ( in_num + 1) % 2 )
+        lstm_bidi_sequences = Bidirectional(
+            LSTM(
+                stateful=stateful,
+                units=4,
+                recurrent_activation='hard_sigmoid',
+                return_sequences=True,
+                name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
+            )
+        )(inp)
+        stateful = bool( ( in_num ) % 2 )        
+        lstm_bidi = Bidirectional(
+            LSTM(
+                stateful=stateful,
+                units=6,
+                recurrent_activation='linear',
+                return_sequences=False,
+                name='bi-lstm2_' + str(in_num) + '_st-' + str(stateful)
+            )
+        )(lstm_bidi_sequences)
+        outputs.append(lstm_bidi)
+   
+    initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True, 
+                                   name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+    outputs.extend(initial_state_stateful)
+    # initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
+    #         name='initial_state_not_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+    # outputs.extend(initial_state_not_stateful)
+    model = Model(inputs=inputs, outputs=outputs)
+    model.compile(loss='mean_squared_error', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = stateful_batch_size
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+
+    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
+    return model
 
 def main():
     """Generate different test models and save them to the given directory."""
@@ -887,7 +1003,10 @@ def main():
             'gru': get_test_model_gru,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
-            'full': get_test_model_full
+            'full': get_test_model_full,
+            'lstm_stateful': get_test_model_lstm_stateful,
+            'gru_stateful': get_test_model_gru_stateful,
+            'debug': get_debug_lstm_stateful  #### DEBUG stateful
         }
 
         if not model_name in get_model_functions:
@@ -897,6 +1016,8 @@ def main():
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
+        # tf.logging.set_verbosity(tf.logging.ERROR)
+        tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
 
         np.random.seed(0)
 
@@ -908,6 +1029,8 @@ def main():
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
         print(model.summary())
+        # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
+
 
 
 if __name__ == "__main__":

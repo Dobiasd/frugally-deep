@@ -213,8 +213,15 @@ def gen_test_data(model):
     warm_up_runs = 3
     test_runs = 5
     data_out = None
-    for _ in range(warm_up_runs):
-        measure_predict(model, data_in)
+    for i in range(warm_up_runs):
+        if i == 0:
+            # store the results of first call for the test
+            # this is because states of recurrent layers is 0.
+            # cannot call model.reset_states() in some cases in keras without an error.
+            # an error occures when recurrent layer is stateful and the initial state is passed as input
+            data_out_test, duration = measure_predict(model, data_in)
+        else:
+            measure_predict(model, data_in)
     duration_sum = 0
     print('Starting performance measurements.')
     for _ in range(test_runs):
@@ -224,7 +231,7 @@ def gen_test_data(model):
     print('Forward pass took {} s on average.'.format(duration_avg))
     return {
         'inputs': list(map(show_test_data_as_tensor5, data_in)),
-        'outputs': list(map(show_test_data_as_tensor5, data_out))
+        'outputs': list(map(show_test_data_as_tensor5, data_out_test))
     }
 
 

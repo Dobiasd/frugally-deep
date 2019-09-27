@@ -29,6 +29,7 @@ public:
                         const bool use_bias,
                         const bool reset_after,
                         const bool return_sequences,
+                        const bool stateful,
                         const float_vec& forward_weights,
                         const float_vec& forward_recurrent_weights,
                         const float_vec& bias_forward,
@@ -45,15 +46,27 @@ public:
         use_bias_(use_bias),
         reset_after_(reset_after),
         return_sequences_(return_sequences),
+        stateful_(stateful),
         forward_weights_(forward_weights),
         forward_recurrent_weights_(forward_recurrent_weights),
         bias_forward_(bias_forward),
         backward_weights_(backward_weights),
         backward_recurrent_weights_(backward_recurrent_weights),
-        bias_backward_(bias_backward)
+        bias_backward_(bias_backward),
+        forward_state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
+        forward_state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
+        backward_state_h_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) ),
+        backward_state_c_( tensor5(shape5(1, 1, 1, 1, n_units), static_cast <float_type>(0)) )
     {
     }
 
+    void reset_states() const override
+    {
+        forward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        forward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        backward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+        backward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast <float_type>(0));
+    }
 protected:
     tensor5s apply_impl(const tensor5s& inputs) const override final
     {
@@ -66,9 +79,6 @@ protected:
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
 
         const auto input = inputs.front();
-        const fplus::maybe<tensor5> initial_state_h = inputs.size() > 1 ? inputs[1] : fplus::nothing<tensor5>();
-        const fplus::maybe<tensor5> initial_state_c = inputs.size() > 2 ? inputs[2] : fplus::nothing<tensor5>();
-
         tensor5s result_forward = {};
         tensor5s result_backward = {};
         tensor5s bidirectional_result = {};
@@ -76,22 +86,38 @@ protected:
         const tensor5 input_reversed = reverse_time_series_in_tensor5(input);
 
         if (wrapped_layer_type_ == "LSTM" || wrapped_layer_type_ == "CuDNNLSTM")
-        {
-            result_forward = lstm_impl(input, initial_state_h, initial_state_c,
+        {   
+            if(inputs.size() > 4) { // states are initialized
+                forward_state_h_ = inputs[1];
+                forward_state_c_ = inputs[2];          
+                backward_state_h_ = inputs[3];
+                backward_state_c_ = inputs[4];          
+            }
+            else if (stateful_ == false) {
+                    reset_states(); 
+            }
+            result_forward = lstm_impl(input, forward_state_h_, forward_state_c_,
                                        n_units_, use_bias_, return_sequences_, false,
                                        forward_weights_, forward_recurrent_weights_,
                                        bias_forward_, activation_, recurrent_activation_);
-            result_backward = lstm_impl(input_reversed, initial_state_h, initial_state_c,
+            result_backward = lstm_impl(input_reversed, backward_state_h_, backward_state_c_,
                                         n_units_, use_bias_, return_sequences_, false,
                                         backward_weights_, backward_recurrent_weights_,
                                         bias_backward_, activation_, recurrent_activation_);
         }
         else if (wrapped_layer_type_ == "GRU" || wrapped_layer_type_ == "CuDNNGRU")
         {
-            result_forward = gru_impl(input, n_units_, use_bias_, reset_after_, return_sequences_,
+            if(inputs.size() > 2) { // states are initialized
+                forward_state_h_ = inputs[1];
+                backward_state_h_ = inputs[2];
+            }
+            else if (stateful_ == false) {
+                    reset_states(); 
+            }
+            result_forward = gru_impl(input, forward_state_h_, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                       forward_weights_, forward_recurrent_weights_,
                                       bias_forward_, activation_, recurrent_activation_);
-            result_backward = gru_impl(input_reversed, n_units_, use_bias_, reset_after_, return_sequences_,
+            result_backward = gru_impl(input_reversed, backward_state_h_, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                        backward_weights_, backward_recurrent_weights_,
                                        bias_backward_, activation_, recurrent_activation_);
         }
@@ -130,12 +156,17 @@ protected:
     const bool use_bias_;
     const bool reset_after_;
     const bool return_sequences_;
+    const bool stateful_;
     const float_vec forward_weights_;
     const float_vec forward_recurrent_weights_;
     const float_vec bias_forward_;
     const float_vec backward_weights_;
     const float_vec backward_recurrent_weights_;
     const float_vec bias_backward_;
+    mutable tensor5 forward_state_h_;
+    mutable tensor5 forward_state_c_;
+    mutable tensor5 backward_state_h_;
+    mutable tensor5 backward_state_c_;
 };
 
 } // namespace internal

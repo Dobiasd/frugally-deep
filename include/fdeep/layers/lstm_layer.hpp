@@ -55,7 +55,7 @@ class lstm_layer : public layer
         }
     }
 
-    virtual bool is_stateful() const
+    bool is_stateful() const override
     {
         return stateful_;
     }

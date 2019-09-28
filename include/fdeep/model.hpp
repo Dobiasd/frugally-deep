@@ -27,7 +27,7 @@ public:
     tensor5s predict(const tensor5s& inputs) const
     {
         internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not const.");
+            "Prediction on stateful models is not const. Use predict_stateful instead.");
         return predict_impl(inputs);
     }
 
@@ -65,7 +65,14 @@ public:
     // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensor5s& inputs) const
     {
-        return predict_class_with_confidence(inputs).first;
+        internal::assertion(!is_stateful(),
+            "Prediction on stateful models is not const. Use predict_class_stateful instead.");
+        return predict_class_with_confidence_impl(inputs).first;
+    }
+
+    std::size_t predict_class_stateful(const tensor5s& inputs)
+    {
+        return predict_class_with_confidence_impl(inputs).first;
     }
 
     // Like predict_class,
@@ -73,14 +80,15 @@ public:
     std::pair<std::size_t, float_type>
     predict_class_with_confidence(const tensor5s& inputs) const
     {
-        const tensor5s outputs = predict(inputs);
-        internal::assertion(outputs.size() == 1,
-            "invalid number of outputs");
-        const auto output_shape = outputs.front().shape();
-        internal::assertion(output_shape.without_depth().area() == 1,
-            "invalid output shape");
-        const auto pos = internal::tensor5_max_pos(outputs.front());
-        return std::make_pair(pos.z_, outputs.front().get(pos));
+        internal::assertion(!is_stateful(),
+            "Prediction on stateful models is not const. Use predict_class_with_confidence_stateful instead.");
+        return predict_class_with_confidence_impl(inputs);
+    }
+
+    std::pair<std::size_t, float_type>
+    predict_class_with_confidence_stateful(const tensor5s& inputs)
+    {
+        return predict_class_with_confidence_impl(inputs);
     }
 
     // Convenience wrapper around predict for models with
@@ -89,13 +97,14 @@ public:
     // Returns this one activation value.
     float_type predict_single_output(const tensor5s& inputs) const
     {
-        const tensor5s outputs = predict(inputs);
-        internal::assertion(outputs.size() == 1,
-            "invalid number of outputs");
-        const auto output_shape = outputs.front().shape();
-        internal::assertion(output_shape.volume() == 1,
-            "invalid output shape");
-        return outputs.front().get(0, 0, 0, 0, 0);
+        internal::assertion(!is_stateful(),
+            "Prediction on stateful models is not const. Use predict_single_output_stateful instead.");
+        return predict_single_output_impl(inputs);
+    }
+
+    float_type predict_single_output_stateful(const tensor5s& inputs)
+    {
+        return predict_single_output_impl(inputs);
     }
 
     const std::vector<shape5_variable>& get_input_shapes() const
@@ -190,6 +199,30 @@ private:
                 " but actually returned: " + show_shape5s(output_shapes));
 
         return outputs;
+    }
+
+    std::pair<std::size_t, float_type>
+    predict_class_with_confidence_impl(const tensor5s& inputs) const
+    {
+        const tensor5s outputs = predict(inputs);
+        internal::assertion(outputs.size() == 1,
+            "invalid number of outputs");
+        const auto output_shape = outputs.front().shape();
+        internal::assertion(output_shape.without_depth().area() == 1,
+            "invalid output shape");
+        const auto pos = internal::tensor5_max_pos(outputs.front());
+        return std::make_pair(pos.z_, outputs.front().get(pos));
+    }
+
+    float_type predict_single_output_impl(const tensor5s& inputs) const
+    {
+        const tensor5s outputs = predict(inputs);
+        internal::assertion(outputs.size() == 1,
+            "invalid number of outputs");
+        const auto output_shape = outputs.front().shape();
+        internal::assertion(output_shape.volume() == 1,
+            "invalid output shape");
+        return outputs.front().get(0, 0, 0, 0, 0);
     }
 
     std::vector<shape5_variable> input_shapes_;

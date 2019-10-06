@@ -143,6 +143,11 @@ def get_test_model_small():
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
 
+    outputs.append(UpSampling1D(size=2)(inputs[6]))
+    outputs.append(UpSampling1D(size=2)(inputs[9]))
+    outputs.append(UpSampling1D(size=3)(inputs[10]))
+    outputs.append(UpSampling1D(size=4)(inputs[11]))
+
     outputs.append(keras.layers.Multiply()([inputs[10], inputs[11]]))
     outputs.append(keras.layers.Multiply()([inputs[11], inputs[10]]))
     outputs.append(keras.layers.Multiply()([inputs[11], inputs[13]]))

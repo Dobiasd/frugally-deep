@@ -51,6 +51,7 @@
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
+#include "fdeep/layers/upsampling_1d_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"

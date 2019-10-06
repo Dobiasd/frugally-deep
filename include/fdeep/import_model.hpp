@@ -67,6 +67,7 @@
 #include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/time_distributed_layer.hpp"
+#include "fdeep/layers/upsampling_1d_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
 #include "fdeep/shape5.hpp"
@@ -580,6 +581,14 @@ inline layer_ptr create_global_average_pooling_2d_layer(
         && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
 
     return std::make_shared<global_average_pooling_2d_layer>(name, channels_first);
+}
+
+inline layer_ptr create_upsampling_1d_layer(
+    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const std::size_t size = data["config"]["size"];
+    return std::make_shared<upsampling_1d_layer>(name, size);
 }
 
 inline layer_ptr create_upsampling_2d_layer(
@@ -1099,7 +1108,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},
             {"GlobalAveragePooling1D", create_global_average_pooling_1d_layer},
             {"GlobalAveragePooling2D", create_global_average_pooling_2d_layer},
-            {"UpSampling1D", create_upsampling_2d_layer},
+            {"UpSampling1D", create_upsampling_1d_layer},
             {"UpSampling2D", create_upsampling_2d_layer},
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},

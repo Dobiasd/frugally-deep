@@ -58,12 +58,12 @@ protected:
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
-        for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+        for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
         {
-            for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+            std::size_t y_in = y / scale_factor_.height_;
+            for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
             {
-                std::size_t y_in = y / scale_factor_.height_;
-                for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+                for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
                     out_vol.set(0, 0, y, x, z, in_vol.get(0, 0, y_in, x_in, z));
@@ -100,12 +100,12 @@ protected:
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
-        for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+        for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
         {
-            for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+            float_type y_in = static_cast<float_type>(y) / static_cast<float_type>(scale_factor_.height_);
+            for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
             {
-                float_type y_in = static_cast<float_type>(y) / static_cast<float_type>(scale_factor_.height_);
-                for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+                for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     float_type x_in = static_cast<float_type>(x) / static_cast<float_type>(scale_factor_.width_);
                     out_vol.set(0, 0, y, x, z,

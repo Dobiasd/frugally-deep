@@ -1,6 +1,12 @@
 #include <fdeep/fdeep.hpp>
+// #include <iostream>
 
-void write_to_results(const std::vector<float>& x, std::vector<float>& results){
+#include <fstream> // looks like we need this too (edit by π)
+
+
+using namespace fdeep;
+
+void vec_append(std::vector<float>& results, const std::vector<float>& x){
 	results.insert(std::end(results), std::begin(x), std::end(x));
 	return;
 }
@@ -10,6 +16,7 @@ int main()
 	// "GRU_nonstateful_no_init_state.json", 
 	// "GRU_nonstateful_init_state.json", 
 	// "GRU_stateful_no_init_state.json", 
+
 	// "GRU_stateful_init_state.json", 
 	// "LSTM_nonstateful_no_init_state.json", 
 	// "LSTM_nonstateful_init_state.json", 
@@ -24,8 +31,12 @@ int main()
 	// "bidi-LSTM_stateful_no_init_state.json", 
 	// "bidi-LSTM_stateful_init_state.json"
 
+	// std::ofstream FILE("fd_results.bin", std::ios::out | std::ofstream::binary);
+	std::ofstream outFile;
+	outFile.open("fd_results.bin", std::ios::binary);
+
     const std::vector<float> x_inf_0 = {2.1, -1.2, 3.14, 1.2};
-	const std::vector<float> x_inf_1 = {1, 3, -2, 10};
+    const std::vector<float> x_inf_1 = {1, 3, -2, 10};
 	const std::vector<float> state_0 = {1.1, -2.1};
 	const std::vector<float> state_1 = {2.7, 3.1};
 	const std::vector<float> state_2 = {-2.5, 3.0};
@@ -33,48 +44,72 @@ int main()
 	std::vector<float> all_results = {};
 	std::vector<float> one_result = {};
 
-
-    const fdeep::shared_float_vec xt0(fplus::make_shared_ref<fdeep::float_vec>(x_inf_0));
-	const fdeep::shared_float_vec xt1(fplus::make_shared_ref<fdeep::float_vec>(x_inf_1));
-    const fdeep::shared_float_vec st0(fplus::make_shared_ref<fdeep::float_vec>(state_0));
-    const fdeep::shared_float_vec st1(fplus::make_shared_ref<fdeep::float_vec>(state_1));
-    const fdeep::shared_float_vec st2(fplus::make_shared_ref<fdeep::float_vec>(state_2));
-    const fdeep::shared_float_vec st3(fplus::make_shared_ref<fdeep::float_vec>(state_3));
+    const shared_float_vec xt0(fplus::make_shared_ref<float_vec>(x_inf_0));
+	const shared_float_vec xt1(fplus::make_shared_ref<float_vec>(x_inf_1));
+    const shared_float_vec st0(fplus::make_shared_ref<float_vec>(state_0));
+    const shared_float_vec st1(fplus::make_shared_ref<float_vec>(state_1));
+    const shared_float_vec st2(fplus::make_shared_ref<float_vec>(state_2));
+    const shared_float_vec st3(fplus::make_shared_ref<float_vec>(state_3));
 	
-	// fdeep::tensor5 test_in_0(fdeep::shape5(1, 1, 1, 4, 1), xt0);
-    fdeep::tensor5 test_in_1(fdeep::shape5(1, 1, 1, 4, 1), xt1);
-    fdeep::tensor5 test_state_0(fdeep::shape5(1, 1, 1, 2, 1), st0);
-    fdeep::tensor5 test_state_1(fdeep::shape5(1, 1, 1, 2, 1), st1);
-    fdeep::tensor5 test_state_2(fdeep::shape5(1, 1, 1, 2, 1), st2);
-    fdeep::tensor5 test_state_3(fdeep::shape5(1, 1, 1, 2, 1), st3);
+	const tensor5 test_in_0(shape5(1, 1, 1, 4, 1), xt0);
+    const tensor5 test_in_1(shape5(1, 1, 1, 4, 1), xt1);
+    const tensor5 test_state_0(shape5(1, 1, 1, 1, 2), st0);
+    const tensor5 test_state_1(shape5(1, 1, 1, 1, 2), st1);
+    const tensor5 test_state_2(shape5(1, 1, 1, 1, 2), st2);
+    const tensor5 test_state_3(shape5(1, 1, 1, 1, 2), st3);
 
-	fdeep::tensor5 test_in_0(fdeep::shape5(1, 1, 1, 4, 1),  static_cast<fdeep::float_type>(0));
-	for(size_t idx = 0; idx < 4; ++ idx){
-	    test_in_0.set(0, 0, 0, idx, 1, x_inf_0[idx]);
-	}
 
-	const auto GRU_nonstateful_no_init_state = fdeep::load_model("./models/GRU_nonstateful_no_init_state.json", true, fdeep::cout_logger, static_cast<fdeep::float_type>(0.00001));
-	const auto result_0 = GRU_nonstateful_no_init_state.predict({test_in_0});
-	const auto result_1 = GRU_nonstateful_no_init_state.predict({test_in_1});
-	one_result = *result_0[0].as_vector();
-	all_results.insert(std::end(all_results), std::begin(one_result), std::end(one_result));
-	// write_to_results(*result_1[0].as_vector(), all_results);
+	auto model = load_model("./models/GRU_nonstateful_no_init_state.json");
+	/// state_reset = false 
+	auto result = model.predict({test_in_0});
+	vec_append(all_results, *result[0].as_vector());
+	result = model.predict({test_in_1});
+	vec_append(all_results, *result[0].as_vector());
+	/// state_reset = true 
+	model.reset_states();
+	result = model.predict({test_in_0});
+	vec_append(all_results, *result[0].as_vector());
+	model.reset_states();
+	result = model.predict({test_in_1});
+	vec_append(all_results, *result[0].as_vector());
 
-	const auto in_seq = *test_in_0.as_vector();
+	model = load_model("./models/GRU_nonstateful_init_state.json");
+	/// state_reset = false 
+	result = model.predict({test_in_0, test_state_0});
+	vec_append(all_results, *result[0].as_vector());
+	result = model.predict({test_in_1, test_state_0});
+	vec_append(all_results, *result[0].as_vector());
+	/// state_reset = true 
+	model.reset_states();
+	result = model.predict({test_in_0, test_state_0});
+	vec_append(all_results, *result[0].as_vector());
+	model.reset_states();
+	result = model.predict({test_in_1, test_state_0});
+	vec_append(all_results, *result[0].as_vector());
 
-	std::cout << "\n\nin_seq-vectorized ***" << std::endl;
-	for(size_t idx = 0; idx < 4; ++ idx){
-	    std::cout << in_seq[idx]  << std::endl;
-	}
+	model = load_model("./models/GRU_stateful_no_init_state.json");
+	/// state_reset = false 
+	result = model.predict_stateful({test_in_0});
+	vec_append(all_results, *result[0].as_vector());
+	result = model.predict_stateful({test_in_1});
+	vec_append(all_results, *result[0].as_vector());
+	/// state_reset = true 
+	model.reset_states();
+	result = model.predict_stateful({test_in_0});
+	vec_append(all_results, *result[0].as_vector());
+	model.reset_states();
+	result = model.predict_stateful({test_in_1});
+	vec_append(all_results, *result[0].as_vector());
 
-	std::cout << "\n\nin_seq-tensor ***" << std::endl;
-	for(size_t idx = 0; idx < 4; ++ idx){
-	    std::cout << test_in_0.get(0, 0, 0, idx, 1) << std::endl;
-	}
 
-	std::cout << "\n\nout_seq (vectorized) ***" << std::endl;
-	for(size_t idx = 0; idx < one_result.size(); ++ idx){
-	    std::cout << one_result[idx] << std::endl;
-	}
+	std::cout << "\n\nOUTPUT ***" << std::endl;
+ 	for(size_t idx = 0; idx < all_results.size(); ++ idx){
+ 	    std::cout << all_results[idx] << std::endl;
+	 }
+	
+	const size_t sz = all_results.size();
+	// outFile.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
+	outFile.write(reinterpret_cast<const char*>(&all_results[0]), sz * sizeof(all_results[0]));
+	outFile.close();
 
 }

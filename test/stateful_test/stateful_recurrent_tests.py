@@ -5,7 +5,10 @@ from keras.layers import Input, Dense, GRU, LSTM, Bidirectional
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-PRINT_SUMMARIES = False
+import os
+
+
+PRINT_SUMMARIES = True
 VERBOSE = True
 
 def get_trained_model(x_train, y_train, layer_name, n_recurrent_units, bidi):
@@ -75,10 +78,11 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
 	if PRINT_SUMMARIES:
 		test_model.summary()
 	test_model.set_weights(weights)
+	model_fname = './models/'
 	if bidi:
-		model_fname = 'bidi-' + layer_name 
+		model_fname += 'bidi-' + layer_name 
 	else:
-		model_fname = layer_name
+		model_fname += layer_name
 	if stateful:
 		model_fname += '_stateful'
 	else:
@@ -155,6 +159,7 @@ initial_states = np.asarray( [ 1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0 ], dt
 initial_states = initial_states.reshape((4,1,2))
 
 model_file_names = []
+os.system('mkdir -p models')
 for bidi in [False, True]:
 	for layer_name in ['GRU', 'LSTM']:
 		### train with no initial state, no statefulness
@@ -172,3 +177,35 @@ if VERBOSE:
 	print('\n\n')
 	print(all_results)
 	print(model_file_names)
+
+all_results.tofile('models/python_results.npy')
+
+for h5_fname in model_file_names:
+	json_fname = h5_fname.replace('.h5', '.json')
+	cmd = '../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
+	os.system(cmd)
+
+cmd = 'clang++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  stateful_tests'
+os.system(cmd)
+os.system('./stateful_tests')
+
+frugally_deep_results = np.fromfile('models/fd_results.bin', dtype=np.float32)
+
+num_test_models = len(model_file_names)
+test_sequences_per_model = 4
+frugally_deep_results = frugally_deep_results.reshape((num_test_models, test_sequences_per_model * train_seq_length))
+all_results = all_results.reshape((num_test_models, test_sequences_per_model * train_seq_length))
+all_results = all_results.astype(np.float32)
+for i, model_fname in enumerate(model_file_names):
+	test_name = os.path.basename(model_fname)
+	test_name = test_name.split('.h5')[0]
+	print(f'Test {i+1}: {test_name}: ')
+	diff = np.abs( all_results[i] - frugally_deep_results[i] )
+	max_delta = np.max(diff)
+	print(f'Max delta: {max_delta : 4.3e}')
+	if max_delta < 0.0001:
+		print('PASSED')
+	else:
+		print('*********  FAILED !!!!!!!!!!!!\n\n')
+		print(f'Keras: {all_results[i]}')
+		print(f'Frugally-deep: {frugally_deep_results[i]}')

@@ -91,8 +91,8 @@ protected:
                 "Invalid number of input tensors.");
                 
             tensor5 forward_state_h = inputs.size() == 5 ? inputs[1] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-            tensor5 backward_state_h = inputs.size() == 5 ? inputs[2] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-            tensor5 forward_state_c = inputs.size() == 5 ? inputs[3] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            tensor5 forward_state_c = inputs.size() == 5 ? inputs[2] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            tensor5 backward_state_h = inputs.size() == 5 ? inputs[3] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
             tensor5 backward_state_c = inputs.size() == 5 ? inputs[4] : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));        
             result_forward = lstm_impl(input, forward_state_h, forward_state_c,
                                        n_units_, use_bias_, return_sequences_, false,

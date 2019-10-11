@@ -1,8 +1,5 @@
 #include <fdeep/fdeep.hpp>
-// #include <iostream>
-
 #include <fstream> // looks like we need this too (edit by π)
-
 
 using namespace fdeep;
 
@@ -43,10 +40,10 @@ int main()
 	// *********** TEST 1: "GRU_nonstateful_no_init_state.json" ***********
 	auto model = load_model("./models/GRU_nonstateful_no_init_state.json");
 	/// state_reset = true 
-	result = model.predict({test_in_0});
+	auto result = model.predict({test_in_0});
 	vec_append(all_results, *result[0].as_vector());
 	model.reset_states();
-	auto result = model.predict({test_in_1});
+	result = model.predict({test_in_1});
 	vec_append(all_results, *result[0].as_vector());
 	model.reset_states();
 	/// state_reset = false 
@@ -294,5 +291,4 @@ int main()
 	// outFile.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
 	outFile.write(reinterpret_cast<const char*>(&all_results[0]), sz * sizeof(all_results[0]));
 	outFile.close();
-
 }

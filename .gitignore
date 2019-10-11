@@ -6,3 +6,4 @@ _*
 .mypy_cache
 /experiments
 .idea
+test/stateful_test/models

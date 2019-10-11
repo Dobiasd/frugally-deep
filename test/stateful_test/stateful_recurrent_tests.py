@@ -4,12 +4,12 @@ import numpy as np
 from keras.layers import Input, Dense, GRU, LSTM, Bidirectional
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
 import os
+import sys
 
-
-PRINT_SUMMARIES = True
-VERBOSE = True
+PRINT_SUMMARIES = False
+VERBOSE = False
+TEST_EPSILON = 0.0001
 
 def get_trained_model(x_train, y_train, layer_name, n_recurrent_units, bidi):
 	if layer_name == 'LSTM':
@@ -160,6 +160,8 @@ initial_states = initial_states.reshape((4,1,2))
 
 model_file_names = []
 os.system('mkdir -p models')
+os.system('rm ./models/*')      ### clears old models plus old versions of stateful_recurrent_tests excecutable
+
 for bidi in [False, True]:
 	for layer_name in ['GRU', 'LSTM']:
 		### train with no initial state, no statefulness
@@ -185,10 +187,16 @@ for h5_fname in model_file_names:
 	cmd = '../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
 	os.system(cmd)
 
-cmd = 'clang++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  stateful_tests'
-os.system(cmd)
-os.system('./stateful_tests')
+try:
+	print('Compiling stateful_recurrent_tests.cpp...')
+	cmd = 'clang++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  ./models/stateful_tests'
+	if os.system(cmd) != 0:
+		raise Exception('ERROR::: with compilation of stateful_recurrent_tests.cpp')
+except:
+	print('Exiting now -- try directly compiling stateful_recurrent_tests.cpp to find the issue')
+	sys.exit()
 
+os.system('./models/stateful_tests')
 frugally_deep_results = np.fromfile('models/fd_results.bin', dtype=np.float32)
 
 num_test_models = len(model_file_names)
@@ -196,16 +204,22 @@ test_sequences_per_model = 4
 frugally_deep_results = frugally_deep_results.reshape((num_test_models, test_sequences_per_model * train_seq_length))
 all_results = all_results.reshape((num_test_models, test_sequences_per_model * train_seq_length))
 all_results = all_results.astype(np.float32)
+
+all_tests_passed = True
 for i, model_fname in enumerate(model_file_names):
 	test_name = os.path.basename(model_fname)
 	test_name = test_name.split('.h5')[0]
 	print(f'Test {i+1}: {test_name}: ')
 	diff = np.abs( all_results[i] - frugally_deep_results[i] )
 	max_delta = np.max(diff)
-	print(f'Max delta: {max_delta : 4.3e}')
-	if max_delta < 0.0001:
+	if VERBOSE:
+		print(f'Max delta: {max_delta : 4.3e}')
+	if max_delta < TEST_EPSILON:
 		print('PASSED')
 	else:
 		print('*********  FAILED !!!!!!!!!!!!\n\n')
-		print(f'Keras: {all_results[i]}')
-		print(f'Frugally-deep: {frugally_deep_results[i]}')
+		print(f'Keras: {all_results[i]}\n')
+		print(f'Frugally-deep: {frugally_deep_results[i]}\n')
+		all_tests_passed = False
+	
+print('\n\nPassed all stateful tests')

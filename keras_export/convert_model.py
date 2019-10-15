@@ -273,7 +273,7 @@ def show_conv_1d_layer(layer):
     weights_flat = prepare_filter_weights_conv_1d(weights[0])
     assert layer.padding in ['valid', 'same', 'causal']
     assert len(layer.input_shape) == 3
-    assert layer.input_shape[0] is None
+    assert layer.input_shape[0] in {None, 1}
     result = {
         'weights': encode_floats(weights_flat)
     }
@@ -291,7 +291,7 @@ def show_conv_2d_layer(layer):
     weights_flat = prepare_filter_weights_conv_2d(weights[0])
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] is None
+    assert layer.input_shape[0] in {None, 1}
     result = {
         'weights': encode_floats(weights_flat)
     }
@@ -315,7 +315,7 @@ def show_separable_conv_2d_layer(layer):
 
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] is None
+    assert layer.input_shape[0] in {None, 1}
     result = {
         'slice_weights': encode_floats(slice_weights),
         'stack_weights': encode_floats(stack_weights),
@@ -338,7 +338,7 @@ def show_depthwise_conv_2d_layer(layer):
 
     assert layer.padding in ['valid', 'same']
     assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] is None
+    assert layer.input_shape[0] in {None, 1}
     result = {
         'slice_weights': encode_floats(slice_weights),
     }

@@ -974,9 +974,9 @@ def get_test_model_lstm_stateful():
     initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True, 
                                    name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
     outputs.extend(initial_state_stateful)
-    # initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
-    #         name='initial_state_not_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
-    # outputs.extend(initial_state_not_stateful)
+    initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
+            name='initial_state_not_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+    outputs.extend(initial_state_not_stateful)
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(loss='mean_squared_error', optimizer='nadam')
 

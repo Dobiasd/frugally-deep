@@ -22,8 +22,6 @@ from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import Permute, Reshape
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.models import Model, load_model, Sequential
-
-# from keras.utils  import plot_model ### DEBUG: stateful
 import tensorflow as tf
 
 __author__ = "Tobias Hermann"
@@ -887,27 +885,6 @@ def get_test_model_full():
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
-def get_debug_lstm_stateful():
-    stateful_batch_size = 1
-    input_shapes = [(1,2)]
-    stateful_batch_shape = (stateful_batch_size,) + input_shapes[0]
-    ip = Input(batch_shape=stateful_batch_shape)  ## stateful ==> needs batch_shape specified
-    stateful_out = LSTM(4, return_sequences=False, stateful=True )(ip)
-    model = Model(inputs=ip, outputs=stateful_out)
-    model.compile(loss='mean_squared_error', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = stateful_batch_size
-    data_in = generate_input_data(training_data_size, input_shapes)
-    # data_in = np.random.random( (training_data_size,) +  input_shapes[0] )  ### direct method
-    initial_data_out = model.predict(data_in)
-    # out_shape = initial_data_out.shape[1:]
-    # data_out = np.random.random( (training_data_size,) +  out_shape )  ### direct method
-    data_out = generate_output_data(training_data_size, [initial_data_out])
-
-    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
-    return model
-
 def get_test_model_lstm_stateful():
     stateful_batch_size = 1
     input_shapes = [
@@ -1010,8 +987,7 @@ def main():
             'sequential': get_test_model_sequential,
             'full': get_test_model_full,
             'lstm_stateful': get_test_model_lstm_stateful,
-            'gru_stateful': get_test_model_gru_stateful,
-            'debug': get_debug_lstm_stateful  #### DEBUG stateful
+            'gru_stateful': get_test_model_gru_stateful
         }
 
         if not model_name in get_model_functions:
@@ -1021,7 +997,6 @@ def main():
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
-        # tf.logging.set_verbosity(tf.logging.ERROR)
         tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
 
         np.random.seed(0)

@@ -7,6 +7,13 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import os
 import sys
 
+__author__ = "Keith Chugg"
+__copyright__ = "Copyright 2019, Keith Chugg"
+__license__ = "MIT"
+__maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
+__email__ = "editgym@gmail.com"
+
+
 PRINT_SUMMARIES = False
 VERBOSE = False
 TEST_EPSILON = 0.0001
@@ -106,7 +113,8 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
 			msg = '\n\nRunning '
 			if bidi:
 				msg += 'Bidi-'
-			msg += f'{layer_name}; Sequence {s}; stateful {stateful}; Initialzied state: {states_initialized}; State Reset: {state_reset}\n'
+			msg += layer_name + '; Sequence ' + str(s) + '; stateful ' + str(stateful) + '; Initialzied state: ' + str(states_initialized) + '; State Reset: ' + str(state_reset) + '\n'
+			# msg += f'{layer_name}; Sequence {s}; stateful {stateful}; Initialzied state: {states_initialized}; State Reset: {state_reset}\n'
 			if VERBOSE:
 				print(msg)
 			pred_in = x_in[s].reshape(x_inf[1:].shape)
@@ -126,9 +134,9 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
 			pred_seq = pred_seq.reshape(sequence_length)
 			results = np.append(results, pred_seq)
 			if VERBOSE:
-				print(f'Baseline  : {baseline}')
-				print(f'Prediction: {pred_seq}')
-				print(f'Difference: {baseline - pred_seq}')
+				print('Baseline: ', baseline)
+				print('Prediction: ', pred_seq)
+				print('Difference: ', baseline - pred_seq)
 			if state_reset:
 				if stateful and states_initialized:
 					if VERBOSE:
@@ -189,7 +197,7 @@ for h5_fname in model_file_names:
 
 try:
 	print('Compiling stateful_recurrent_tests.cpp...')
-	cmd = 'clang++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  ./models/stateful_tests'
+	cmd = 'g++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  ./models/stateful_tests'
 	if os.system(cmd) != 0:
 		raise Exception('ERROR::: with compilation of stateful_recurrent_tests.cpp')
 except:
@@ -209,17 +217,17 @@ all_tests_passed = True
 for i, model_fname in enumerate(model_file_names):
 	test_name = os.path.basename(model_fname)
 	test_name = test_name.split('.h5')[0]
-	print(f'Test {i+1}: {test_name}: ')
+	print('Test ', i+1, ' ', test_name, ': ')
 	diff = np.abs( all_results[i] - frugally_deep_results[i] )
 	max_delta = np.max(diff)
 	if VERBOSE:
-		print(f'Max delta: {max_delta : 4.3e}')
+		print('Max delta: ', "{:4.3e}".format(max_delta))
 	if max_delta < TEST_EPSILON:
 		print('PASSED')
 	else:
 		print('*********  FAILED !!!!!!!!!!!!\n\n')
-		print(f'Keras: {all_results[i]}\n')
-		print(f'Frugally-deep: {frugally_deep_results[i]}\n')
+		print('Keras: ', all_results[i], '\n')
+		print('Frugally-deep: ', frugally_deep_results[i], '\n')
 		all_tests_passed = False
 	
 print('\n\nPassed all stateful tests')

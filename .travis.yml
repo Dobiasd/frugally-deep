@@ -33,7 +33,7 @@ install:
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
   # python libs
   - sudo pip3 install --upgrade pip
-  - sudo pip3 install numpy scipy "tensorflow<2" h5py "keras"
+  - sudo pip3 install numpy scipy h5py keras "tensorflow<2"
   # FunctionalPlus
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
@@ -60,6 +60,10 @@ install:
   # run CMake
   - mkdir -p build && cd build
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
+  # run stateful tests
+  - cd test/stateful_test
+  - python3 stateful_recurrent_tests.py
+  - cd ../..
 
 script:
   - which $CXX

@@ -160,6 +160,7 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
                     test_model.reset_states()
     return results
 
+print("Starting stateful recurrent tests", flush=True)
 
 ##### generate toy data
 train_seq_length = 4

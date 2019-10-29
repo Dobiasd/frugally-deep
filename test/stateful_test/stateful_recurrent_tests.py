@@ -50,7 +50,7 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
 			recurrent_out = Bidirectional( REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful ) )(features_in)
 			pred = Dense(1)(recurrent_out)
 			test_model = keras.Model(inputs=features_in, outputs=pred)
-		else: 
+		else:
 			state_h_fwd_in = Input(batch_shape=(1,n_recurrent_units))
 			state_h_bwd_in = Input(batch_shape=(1,n_recurrent_units))
 			state_c_fwd_in = Input(batch_shape=(1,n_recurrent_units))
@@ -69,7 +69,7 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
 			recurrent_out = REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful )(features_in)
 			pred = Dense(1)(recurrent_out)
 			test_model = keras.Model(inputs=features_in, outputs=pred)
-		else: 
+		else:
 			state_h_in = Input(batch_shape=(1,n_recurrent_units))
 			state_c_in = Input(batch_shape=(1,n_recurrent_units))
 			if layer_name == 'LSTM':
@@ -80,14 +80,14 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
 				# GRU
 				recurrent_out = REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful )(features_in, initial_state=state_h_in)
 				pred = Dense(1)(recurrent_out)
-				test_model = keras.Model(inputs=[features_in, state_h_in], outputs=pred)		
+				test_model = keras.Model(inputs=[features_in, state_h_in], outputs=pred)
 	test_model.compile(loss='mean_squared_error', optimizer='adam')
 	if PRINT_SUMMARIES:
 		test_model.summary()
 	test_model.set_weights(weights)
 	model_fname = './models/'
 	if bidi:
-		model_fname += 'bidi-' + layer_name 
+		model_fname += 'bidi-' + layer_name
 	else:
 		model_fname += layer_name
 	if stateful:
@@ -146,7 +146,7 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
 	return results
 
 ##### generate toy data
-train_seq_length = 4   
+train_seq_length = 4
 feature_dim = 1
 num_seqs = 8
 
@@ -160,7 +160,7 @@ all_results = np.zeros(0, dtype=np.float32)
 
 # hand-generate the input data to make it easy to input into C++ code by hand.
 # this hard-codes the train_seq_length, feature_dim vars for this purpose
-x_inf = np.asarray( [ 2.1, -1.2, 3.14, 1.2, 1, 3, -2, 10 ], dtype=np.float32 ) # simple 
+x_inf = np.asarray( [ 2.1, -1.2, 3.14, 1.2, 1, 3, -2, 10 ], dtype=np.float32 ) # simple
 x_inf = x_inf.reshape( (2, train_seq_length, 1) )
 
 initial_states = np.asarray( [ 1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0 ], dtype=np.float32 )
@@ -177,7 +177,7 @@ for bidi in [False, True]:
 		y_inf = training_model.predict(x_inf)
 		for stateful in [False, True]:
 			for initialize_states in [False, True]:
-				### evaluate the model 
+				### evaluate the model
 				test_model, model_fname = get_test_model(n_recurrent_units, train_seq_length, feature_dim, layer_name, stateful, initialize_states, trained_weights, bidi)
 				result = eval_test_model(y_inf, test_model, x_inf, layer_name, bidi, stateful, initialize_states, initial_states)
 				all_results = np.append(all_results, result)
@@ -197,7 +197,7 @@ for h5_fname in model_file_names:
 
 try:
 	print('Compiling stateful_recurrent_tests.cpp...')
-	cmd = 'g++ -mavx -std=c++14 -O3  stateful_recurrent_tests.cpp -o  ./models/stateful_tests'
+	cmd = 'g++ -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests'
 	if os.system(cmd) != 0:
 		raise Exception('ERROR::: with compilation of stateful_recurrent_tests.cpp')
 except:
@@ -229,5 +229,5 @@ for i, model_fname in enumerate(model_file_names):
 		print('Keras: ', all_results[i], '\n')
 		print('Frugally-deep: ', frugally_deep_results[i], '\n')
 		all_tests_passed = False
-	
+
 print('\n\nPassed all stateful tests')

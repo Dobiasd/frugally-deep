@@ -186,9 +186,6 @@ initial_states = np.asarray([1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0], dtype
 initial_states = initial_states.reshape((4, 1, 2))
 
 model_file_names = []
-shutil.rmtree('models',
-              ignore_errors=True)  ### clears old models plus old versions of stateful_recurrent_tests excecutable
-os.makedirs('models')
 
 for bidi in [False, True]:
     for layer_name in ['GRU', 'LSTM']:
@@ -216,15 +213,6 @@ for h5_fname in model_file_names:
     json_fname = h5_fname.replace('.h5', '.json')
     cmd = 'python3 ../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
     os.system(cmd)
-
-try:
-    print('Compiling stateful_recurrent_tests.cpp...')
-    cmd = '$CXX -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests'
-    if os.system(cmd) != 0:
-        raise Exception('ERROR::: with compilation of stateful_recurrent_tests.cpp')
-except:
-    print('Exiting now -- try directly compiling stateful_recurrent_tests.cpp to find the issue')
-    sys.exit()
 
 frugally_deep_results = np.fromfile('models/fd_results.bin', dtype=np.float32)
 

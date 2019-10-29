@@ -161,6 +161,7 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
                     test_model.reset_states()
     return results
 
+
 print("Starting stateful recurrent tests", flush=True)
 
 ##### generate toy data
@@ -185,7 +186,8 @@ initial_states = np.asarray([1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0], dtype
 initial_states = initial_states.reshape((4, 1, 2))
 
 model_file_names = []
-shutil.rmtree('models', ignore_errors=True)  ### clears old models plus old versions of stateful_recurrent_tests excecutable
+shutil.rmtree('models',
+              ignore_errors=True)  ### clears old models plus old versions of stateful_recurrent_tests excecutable
 os.makedirs('models')
 
 for bidi in [False, True]:

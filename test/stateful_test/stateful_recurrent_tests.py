@@ -6,6 +6,7 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import os
 import sys
+import errno
 
 __author__ = "Keith Chugg"
 __copyright__ = "Copyright 2019, Keith Chugg"
@@ -230,4 +231,6 @@ for i, model_fname in enumerate(model_file_names):
 		print('Frugally-deep: ', frugally_deep_results[i], '\n')
 		all_tests_passed = False
 
+if not all_tests_passed:
+	sys.exit(errno.EIO)
 print('\n\nPassed all stateful tests')

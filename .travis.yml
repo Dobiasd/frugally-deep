@@ -61,7 +61,9 @@ install:
   - mkdir -p build && cd build
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
   # run stateful tests
+  - cd test/stateful_test/readme.md
   - python3 stateful_recurrent_tests.py
+  - cd ../..
 
 script:
   - which $CXX

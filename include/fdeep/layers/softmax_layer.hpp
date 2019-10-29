@@ -49,8 +49,8 @@ protected:
                 const auto log_sum_shifted = std::log(sum_shifted);
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    output.set(0, 0, y, x, z_class,
-                        std::exp(inp_shifted.get(0, 0, y, x, z_class) - log_sum_shifted));
+                    const auto result = std::exp(inp_shifted.get(0, 0, y, x, z_class) - log_sum_shifted);
+                    output.set(0, 0, y, x, z_class, std::isinf(result) ? static_cast<float_type>(0) : result);
                 }
             }
         }

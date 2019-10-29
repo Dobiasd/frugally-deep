@@ -217,7 +217,7 @@ for h5_fname in model_file_names:
 
 try:
     print('Compiling stateful_recurrent_tests.cpp...')
-    cmd = 'g++ -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests'
+    cmd = '$CXX -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests'
     if os.system(cmd) != 0:
         raise Exception('ERROR::: with compilation of stateful_recurrent_tests.cpp')
 except:

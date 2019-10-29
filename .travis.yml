@@ -63,7 +63,6 @@ install:
   - cd ..
   # run stateful tests
   - cd test/stateful_test
-  - alias g++=$CXX
   - python3 stateful_recurrent_tests.py
   - cd ../..
 

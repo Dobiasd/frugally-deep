@@ -60,6 +60,7 @@ install:
   # run CMake
   - mkdir -p build && cd build
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
+  - cd ..
   # run stateful tests
   - cd test/stateful_test
   - python3 stateful_recurrent_tests.py

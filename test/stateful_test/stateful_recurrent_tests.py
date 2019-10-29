@@ -8,6 +8,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import os
 import sys
 import errno
+import shutil
 
 __author__ = "Keith Chugg"
 __copyright__ = "Copyright 2019, Keith Chugg"
@@ -184,8 +185,8 @@ initial_states = np.asarray([1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0], dtype
 initial_states = initial_states.reshape((4, 1, 2))
 
 model_file_names = []
-os.system('mkdir -p models')
-os.system('rm ./models/*')  ### clears old models plus old versions of stateful_recurrent_tests excecutable
+shutil.rmtree('models', ignore_errors=True)  ### clears old models plus old versions of stateful_recurrent_tests excecutable
+os.makedirs('models')
 
 for bidi in [False, True]:
     for layer_name in ['GRU', 'LSTM']:
@@ -211,7 +212,7 @@ all_results.tofile('models/python_results.npy')
 
 for h5_fname in model_file_names:
     json_fname = h5_fname.replace('.h5', '.json')
-    cmd = '../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
+    cmd = 'python3 ../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
     os.system(cmd)
 
 try:
@@ -223,7 +224,6 @@ except:
     print('Exiting now -- try directly compiling stateful_recurrent_tests.cpp to find the issue')
     sys.exit()
 
-os.system('./models/stateful_tests')
 frugally_deep_results = np.fromfile('models/fd_results.bin', dtype=np.float32)
 
 num_test_models = len(model_file_names)

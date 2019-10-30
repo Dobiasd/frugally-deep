@@ -67,9 +67,9 @@ script:
   - cmake --build . --target unittest --config Release --
   - cd ..
   # run stateful tests
-  - echo "compiling stateful recurrent tests"
-  - $CXX -std=c++14 -O3 test/stateful_test/stateful_recurrent_tests.cpp -o test/stateful_test/stateful_recurrent_tests_cpp
   - cd test/stateful_test
+  - echo "compiling stateful recurrent tests"
+  - $CXX -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
   - mkdir models
   - echo "running stateful recurrent tests"
   - python3 stateful_recurrent_tests.py

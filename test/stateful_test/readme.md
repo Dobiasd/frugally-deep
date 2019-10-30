@@ -6,7 +6,7 @@ To execute this test, just run the following commands:
 
 ```bash
 mkdir models
-g++ -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./stateful_tests_cpp
+g++ -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cppts
 python3 stateful_recurrent_tests.py
 ```
 

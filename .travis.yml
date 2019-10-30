@@ -59,9 +59,13 @@ install:
   - cd ../..
   # run CMake
   - mkdir -p build && cd build
-  - cmake .. -DFDEEP_BUILD_UNITTEST=ON
+  - cmake ..
   - make
   - sudo make install
+  - cd ..
+  - rm -r -f build
+  - mkdir -p build && cd build
+  - cmake .. -DFDEEP_BUILD_UNITTEST=ON
   - cd ..
   # run stateful tests
   - cd test/stateful_test

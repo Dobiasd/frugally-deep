@@ -76,5 +76,5 @@ script:
   - cd build
   - which $CXX
   - $CXX --version
-  - cmake --build . --config Release --
+  - cmake --build . --target unittest --config Release --
   - cd .. && python3 conan_build.py

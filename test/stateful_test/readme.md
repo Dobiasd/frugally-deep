@@ -5,7 +5,8 @@ This is a set of tests that is not part of the frugally-deep unit tests.  These 
 To execute this test, just run the following commands:
 
 ```bash
-g++ -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests
+mkdir models
+g++ -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./stateful_tests_cpp
 python3 stateful_recurrent_tests.py
 ```
 

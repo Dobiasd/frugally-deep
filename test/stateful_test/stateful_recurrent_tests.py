@@ -214,6 +214,8 @@ for h5_fname in model_file_names:
     cmd = 'python3 ../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
     os.system(cmd)
 
+os.system('./stateful_tests_cpp')
+
 frugally_deep_results = np.fromfile('models/fd_results.bin', dtype=np.float32)
 
 num_test_models = len(model_file_names)

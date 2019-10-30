@@ -66,7 +66,7 @@ install:
   - cd test/stateful_test
   - mkdir models
   - echo "compiling stateful recurrent tests"
-  - $CXX -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./models/stateful_tests
+  - $CXX -std=c++14 -O3 stateful_recurrent_tests.cpp -o ./stateful_tests_cpp
   - echo "running stateful recurrent tests"
   - python3 stateful_recurrent_tests.py
   - cd ../..

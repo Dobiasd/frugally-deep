@@ -72,6 +72,7 @@ install:
   - cd ../..
 
 script:
+  - cd build
   - which $CXX
   - $CXX --version
   - cmake --build . --target unittest --config Release --

@@ -57,15 +57,15 @@ install:
   - git checkout v3.1.2
   - mkdir -p build && cd build && cmake .. && make && sudo make install
   - cd ../..
-  # run CMake
+
+script:
+  # run unit tests
   - mkdir -p build && cd build
-  - cmake ..
-  - make
-  - sudo make install
-  - cd ..
-  - rm -r -f build
-  - mkdir -p build && cd build
+  - which $CXX
+  - $CXX --version
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
+  - cmake --build . --target unittest --config Release --
+  - sudo make install
   - cd ..
   # run stateful tests
   - cd test/stateful_test
@@ -75,10 +75,5 @@ install:
   - echo "running stateful recurrent tests"
   - python3 stateful_recurrent_tests.py
   - cd ../..
-
-script:
-  - cd build
-  - which $CXX
-  - $CXX --version
-  - cmake --build . --target unittest --config Release --
-  - cd .. && python3 conan_build.py
+  # release possibly new version to conan
+  - python3 conan_build.py

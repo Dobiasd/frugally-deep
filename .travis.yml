@@ -60,6 +60,7 @@ install:
   # run CMake
   - mkdir -p build && cd build
   - cmake .. -DFDEEP_BUILD_UNITTEST=ON
+  - make
   - sudo make install
   - cd ..
   # run stateful tests
@@ -75,5 +76,5 @@ script:
   - cd build
   - which $CXX
   - $CXX --version
-  - cmake --build . --target unittest --config Release --
+  - cmake --build . --config Release --
   - cd .. && python3 conan_build.py

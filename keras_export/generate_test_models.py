@@ -513,7 +513,7 @@ def get_test_model_gru_stateful_optional(stateful):
             # run GPU-enabled mode if GPU is available
             gru_gpu_regular = keras.layers.CuDNNGRU(
                 stateful=stateful,
-                units=3, 
+                units=3,
             )(inp)
 
             gru_gpu_bidi = Bidirectional(
@@ -936,7 +936,7 @@ def get_test_model_lstm_stateful():
                 name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
             )
         )(inp)
-        stateful = bool( ( in_num ) % 2 )        
+        stateful = bool( ( in_num ) % 2 )
         lstm_bidi = Bidirectional(
             LSTM(
                 stateful=stateful,
@@ -947,8 +947,8 @@ def get_test_model_lstm_stateful():
             )
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
-   
-    initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True, 
+
+    initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True,
                                    name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
     outputs.extend(initial_state_stateful)
     initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
@@ -997,7 +997,6 @@ def main():
         assert K.backend() == "tensorflow"
         assert K.floatx() == "float32"
         assert K.image_data_format() == 'channels_last'
-        tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
 
         np.random.seed(0)
 

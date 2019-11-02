@@ -8,11 +8,10 @@ import hashlib
 import json
 import sys
 
-import keras
 import numpy as np
-from keras import backend as K
-from keras.layers import Input
-from keras.models import Model, load_model
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Input, Embedding
+from tensorflow.keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -92,7 +91,7 @@ def int_or_none(value):
 
 def keras_shape_to_fdeep_shape5(raw_shape):
     """Convert a keras shape to an fdeep shape"""
-    shape = raw_shape[1:]
+    shape = singleton_list_to_value(raw_shape)[1:]
     depth = len(shape)
     if depth == 1:
         return (1, 1, 1, 1, int_or_none(shape[0]))
@@ -160,7 +159,7 @@ def are_embedding_layer_positions_ok_for_testing(model):
         layers = model.layers
         result = set()
         for layer in layers:
-            if isinstance(layer, keras.layers.Embedding):
+            if isinstance(layer, Embedding):
                 result.add(layer.name)
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
@@ -171,7 +170,7 @@ def are_embedding_layer_positions_ok_for_testing(model):
         result = set()
         for input_layer in get_model_input_layers(model):
             if input_layer._outbound_nodes and isinstance(
-                    input_layer._outbound_nodes[0].outbound_layer, keras.layers.Embedding):
+                    input_layer._outbound_nodes[0].outbound_layer, Embedding):
                 result.add(input_layer._outbound_nodes[0].outbound_layer.name)
         return set(result)
 
@@ -193,7 +192,7 @@ def gen_test_data(model):
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
         if input_layer._outbound_nodes and isinstance(
-                input_layer._outbound_nodes[0].outbound_layer, keras.layers.Embedding):
+                input_layer._outbound_nodes[0].outbound_layer, Embedding):
             random_fn = lambda size: np.random.randint(
                 0, input_layer._outbound_nodes[0].outbound_layer.input_dim, size)
         else:
@@ -203,7 +202,7 @@ def gen_test_data(model):
         except AttributeError:
             shape = input_layer.input_shape
         return random_fn(
-            size=replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
+            size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
 
     assert are_embedding_layer_positions_ok_for_testing(
         model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
@@ -212,7 +211,6 @@ def gen_test_data(model):
 
     warm_up_runs = 3
     test_runs = 5
-    data_out = None
     for i in range(warm_up_runs):
         if i == 0:
             # store the results of first call for the test
@@ -682,16 +680,6 @@ def get_model_name(model):
     return 'dummy_model_name'
 
 
-def set_model_name(model, name):
-    """Overwrite .name or ._name'"""
-    if hasattr(model, 'name'):
-        model.name = name
-    elif hasattr(model, '_name'):
-        model._name = name
-    else:
-        pass  # Model has no name property.
-
-
 def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ == 'Sequential':
@@ -702,18 +690,13 @@ def convert_sequential_to_model(model):
             inbound_nodes = model.inbound_nodes
         else:
             raise ValueError('can not get (_)inbound_nodes from model')
-        # Since Keras 2.2.0
-        if model.model == model:
-            input_layer = Input(batch_shape=model.layers[0].input_shape)
-            prev_layer = input_layer
-            for layer in model.layers:
-                layer._inbound_nodes = []
-                prev_layer = layer(prev_layer)
-            funcmodel = Model([input_layer], [prev_layer])
-            model = funcmodel
-        else:
-            model = model.model
-        set_model_name(model, name)
+        input_layer = Input(batch_shape=model.layers[0].input_shape)
+        prev_layer = input_layer
+        for layer in model.layers:
+            layer._inbound_nodes = []
+            prev_layer = layer(prev_layer)
+        funcmodel = Model([input_layer], [prev_layer], name=name)
+        model = funcmodel
         if hasattr(model, '_inbound_nodes'):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
@@ -789,6 +772,17 @@ def as_list(value_or_values):
     return [value_or_values]
 
 
+def singleton_list_to_value(value_or_values):
+    """
+    Leaves non-list values untouched.
+    Raises an Exception in case the input list does not have exactly one element.
+    """
+    if isinstance(value_or_values, list):
+        assert len(value_or_values) == 1
+        return value_or_values[0]
+    return value_or_values
+
+
 def model_to_fdeep_json(model, no_tests=False):
     """Convert any Keras model to the frugally-deep model format."""
 
@@ -807,6 +801,7 @@ def model_to_fdeep_json(model, no_tests=False):
 
     print('Determining Keras behaviour.')
     json_output['image_data_format'] = K.image_data_format()
+    # todo: Are those still needed?
     for depth in range(1, 3, 1):
         json_output['conv2d_valid_offset_depth_' + str(depth)] = \
             check_operation_offset(depth, offset_conv2d_eval, 'valid')
@@ -824,6 +819,7 @@ def model_to_fdeep_json(model, no_tests=False):
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
     json_output['average_pooling_2d_same_offset'] = \
         check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
+
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
     json_output['output_shapes'] = list(map(keras_shape_to_fdeep_shape5, as_list(model.output_shape)))
 
@@ -843,10 +839,6 @@ def model_to_fdeep_json(model, no_tests=False):
 
 def convert(in_path, out_path, no_tests=False):
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""
-
-    assert K.backend() == "tensorflow"
-    assert K.floatx() == "float32"
-    assert K.image_data_format() == 'channels_last'
 
     print('loading {}'.format(in_path))
     model = load_model(in_path)

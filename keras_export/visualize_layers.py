@@ -6,9 +6,9 @@ import datetime
 import sys
 
 import numpy as np
-from keras import backend as K
-from keras.models import load_model
 from scipy.misc import imsave
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import load_model
 
 # based on: https://blog.keras.io/how-convolutional-neural-networks-see-the-world.html
 __author__ = "Francois Chollet, Tobias Hermann"
@@ -146,10 +146,6 @@ def main():
         print(usage)
         sys.exit(1)
     else:
-        assert K.backend() == "tensorflow"
-        assert K.floatx() == "float32"
-        assert K.image_data_format() == 'channels_last'
-
         in_path = sys.argv[1]
         out_dir = sys.argv[2]
         print('loading {}'.format(in_path))

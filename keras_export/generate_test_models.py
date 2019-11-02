@@ -4,39 +4,29 @@
 
 import sys
 
-import keras
 import numpy as np
-from keras import backend as K
-from keras.layers import BatchNormalization, Concatenate
-from keras.layers import Bidirectional, TimeDistributed
-from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
-from keras.layers import Conv2D, ZeroPadding2D, Cropping2D
-from keras.layers import Embedding
-from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
-from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from keras.layers import Input, Dense, Dropout, Flatten, Activation
-from keras.layers import LSTM, GRU
-from keras.layers import LeakyReLU, ELU, PReLU
-from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
-from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from keras.layers import Permute, Reshape
-from keras.layers import SeparableConv2D, DepthwiseConv2D
-from keras.models import Model, load_model, Sequential
-import tensorflow as tf
+from tensorflow.keras.layers import BatchNormalization, Concatenate
+from tensorflow.keras.layers import Bidirectional, TimeDistributed
+from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
+from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
+from tensorflow.keras.layers import LSTM, GRU
+from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
+from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
+from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
+from tensorflow.keras.layers import Permute, Reshape
+from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
+from tensorflow.keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
 __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
-
-
-def is_running_on_gpu():
-    """Returns if the neural network model runs on a GPU."""
-    try:
-        return len(keras.backend.tensorflow_backend._get_available_gpus()) > 0
-    except NameError:
-        return False
 
 
 def replace_none_with(value, shape):
@@ -142,18 +132,15 @@ def get_test_model_small():
     outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
-    outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+    # outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
 
     outputs.append(UpSampling1D(size=2)(inputs[6]))
-    outputs.append(UpSampling1D(size=2)(inputs[9]))
-    outputs.append(UpSampling1D(size=3)(inputs[10]))
-    outputs.append(UpSampling1D(size=4)(inputs[11]))
 
-    outputs.append(keras.layers.Multiply()([inputs[10], inputs[11]]))
-    outputs.append(keras.layers.Multiply()([inputs[11], inputs[10]]))
-    outputs.append(keras.layers.Multiply()([inputs[11], inputs[13]]))
-    outputs.append(keras.layers.Multiply()([inputs[10], inputs[11], inputs[12]]))
-    outputs.append(keras.layers.Multiply()([inputs[11], inputs[12], inputs[13]]))
+    outputs.append(Multiply()([inputs[10], inputs[11]]))
+    outputs.append(Multiply()([inputs[11], inputs[10]]))
+    outputs.append(Multiply()([inputs[11], inputs[13]]))
+    outputs.append(Multiply()([inputs[10], inputs[11], inputs[12]]))
+    outputs.append(Multiply()([inputs[11], inputs[12], inputs[13]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
     model.compile(loss='mse', optimizer='nadam')
@@ -202,8 +189,8 @@ def get_test_model_pooling():
         outputs.append(GlobalMaxPooling2D(data_format="channels_last")(inp))
 
         # (batch_size, channels, rows, cols)
-        outputs.append(AveragePooling2D(data_format="channels_first")(inp))
-        outputs.append(MaxPooling2D(data_format="channels_first")(inp))
+        # outputs.append(AveragePooling2D(data_format="channels_first")(inp))  # "Default AvgPoolingOp only supports NHWC on device type CPU"
+        # outputs.append(MaxPooling2D(data_format="channels_first")(inp))  # "Default MaxPoolingOp only supports NHWC on device type CPU"
         outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inp))
         outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inp))
 
@@ -405,37 +392,23 @@ def get_test_model_lstm():
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
 
-        # CuDNN-enabled LSTM layers
-        if is_running_on_gpu():
-            # run GPU-enabled mode if GPU is available
-            lstm_gpu_regular = keras.layers.CuDNNLSTM(
-                units=3
-            )(inp)
+        lstm_gpu_regular = LSTM(
+            units=3,
+            activation='tanh',
+            recurrent_activation='sigmoid',
+            use_bias=True
+        )(inp)
 
-            lstm_gpu_bidi = Bidirectional(
-                keras.layers.CuDNNLSTM(
-                    units=3
-                )
-            )(inp)
-        else:
-            # fall back to equivalent regular LSTM for CPU-only mode
-            lstm_gpu_regular = LSTM(
+        lstm_gpu_bidi = Bidirectional(
+            LSTM(
                 units=3,
                 activation='tanh',
                 recurrent_activation='sigmoid',
                 use_bias=True
-            )(inp)
-
-            lstm_gpu_bidi = Bidirectional(
-                LSTM(
-                    units=3,
-                    activation='tanh',
-                    recurrent_activation='sigmoid',
-                    use_bias=True
-                )
-            )(inp)
-        outputs.append(lstm_gpu_regular)
-        outputs.append(lstm_gpu_bidi)
+            )
+        )(inp)
+    outputs.append(lstm_gpu_regular)
+    outputs.append(lstm_gpu_bidi)
 
     outputs.extend(LSTM(units=12, return_sequences=True,
                         return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
@@ -451,11 +424,14 @@ def get_test_model_lstm():
     model.fit(data_in, data_out, epochs=10)
     return model
 
+
 def get_test_model_gru():
     return get_test_model_gru_stateful_optional(False)
 
+
 def get_test_model_gru_stateful():
     return get_test_model_gru_stateful_optional(True)
+
 
 def get_test_model_gru_stateful_optional(stateful):
     """Returns a test model for Gated Recurrent Unit (GRU) layers."""
@@ -464,7 +440,7 @@ def get_test_model_gru_stateful_optional(stateful):
         (1, 10)
     ]
     stateful_batch_size = 1
-    inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
+    inputs = [Input(batch_shape=(stateful_batch_size,) + s) for s in input_shapes]
     outputs = []
 
     for inp in inputs:
@@ -508,41 +484,25 @@ def get_test_model_gru_stateful_optional(stateful):
         )(gru_bidi_sequences)
         outputs.append(gru_bidi)
 
-        # CuDNN-enabled GRU layers
-        if is_running_on_gpu():
-            # run GPU-enabled mode if GPU is available
-            gru_gpu_regular = keras.layers.CuDNNGRU(
-                stateful=stateful,
-                units=3,
-            )(inp)
+        gru_gpu_regular = GRU(
+            stateful=stateful,
+            units=3,
+            activation='tanh',
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            use_bias=True
+        )(inp)
 
-            gru_gpu_bidi = Bidirectional(
-                keras.layers.CuDNNGRU(
-                    stateful=stateful,
-                    units=3,
-                )
-            )(inp)
-        else:
-            # fall back to equivalent regular GRU for CPU-only mode
-            gru_gpu_regular = GRU(
+        gru_gpu_bidi = Bidirectional(
+            GRU(
                 stateful=stateful,
                 units=3,
                 activation='tanh',
                 recurrent_activation='sigmoid',
                 reset_after=True,
                 use_bias=True
-            )(inp)
-
-            gru_gpu_bidi = Bidirectional(
-                GRU(
-                    stateful=stateful,
-                    units=3,
-                    activation='tanh',
-                    recurrent_activation='sigmoid',
-                    reset_after=True,
-                    use_bias=True
-                )
-            )(inp)
+            )
+        )(inp)
         outputs.append(gru_gpu_regular)
         outputs.append(gru_gpu_bidi)
 
@@ -601,7 +561,7 @@ def get_test_model_sequential():
     model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
     model.add(Conv2D(8, (3, 3), activation='relu'))
     model.add(Permute((3, 1, 2)))
-    model.add(MaxPooling2D(pool_size=(2, 2), data_format="channels_first"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Permute((2, 3, 1)))
     model.add(Dropout(0.25))
 
@@ -819,11 +779,11 @@ def get_test_model_full():
     x = Dense(3)(x)  # (1, 1, 3)
     outputs.append(x)
 
-    outputs.append(keras.layers.Add()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(keras.layers.Subtract()([inputs[4], inputs[8]]))
-    outputs.append(keras.layers.Multiply()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(keras.layers.Average()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(keras.layers.Maximum()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(Add()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(Subtract()([inputs[4], inputs[8]]))
+    outputs.append(Multiply()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(Average()([inputs[4], inputs[8], inputs[8]]))
+    outputs.append(Maximum()([inputs[4], inputs[8], inputs[8]]))
     outputs.append(Concatenate()([inputs[4], inputs[8], inputs[8]]))
 
     intermediate_input_shape = (3,)
@@ -885,6 +845,7 @@ def get_test_model_full():
     model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
+
 def get_test_model_lstm_stateful():
     stateful_batch_size = 1
     input_shapes = [
@@ -895,10 +856,10 @@ def get_test_model_lstm_stateful():
         (12,)
     ]
 
-    inputs = [Input( batch_shape= (stateful_batch_size,) + s ) for s in input_shapes]
+    inputs = [Input(batch_shape=(stateful_batch_size,) + s) for s in input_shapes]
     outputs = []
     for in_num, inp in enumerate(inputs[:2]):
-        stateful = bool( ( in_num + 1) % 2 )
+        stateful = bool((in_num + 1) % 2)
         lstm_sequences = LSTM(
             stateful=stateful,
             units=8,
@@ -906,7 +867,7 @@ def get_test_model_lstm_stateful():
             return_sequences=True,
             name='lstm_sequences_' + str(in_num) + '_st-' + str(stateful)
         )(inp)
-        stateful = bool( ( in_num ) % 2 )
+        stateful = bool((in_num) % 2)
         lstm_regular = LSTM(
             stateful=stateful,
             units=3,
@@ -915,7 +876,7 @@ def get_test_model_lstm_stateful():
             name='lstm_regular_' + str(in_num) + '_st-' + str(stateful)
         )(lstm_sequences)
         outputs.append(lstm_regular)
-        stateful = bool( ( in_num + 1) % 2 )
+        stateful = bool((in_num + 1) % 2)
         lstm_state, state_h, state_c = LSTM(
             stateful=stateful,
             units=3,
@@ -926,7 +887,7 @@ def get_test_model_lstm_stateful():
         outputs.append(lstm_state)
         outputs.append(state_h)
         outputs.append(state_c)
-        stateful = bool( ( in_num + 1) % 2 )
+        stateful = bool((in_num + 1) % 2)
         lstm_bidi_sequences = Bidirectional(
             LSTM(
                 stateful=stateful,
@@ -936,7 +897,7 @@ def get_test_model_lstm_stateful():
                 name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
             )
         )(inp)
-        stateful = bool( ( in_num ) % 2 )
+        stateful = bool((in_num) % 2)
         lstm_bidi = Bidirectional(
             LSTM(
                 stateful=stateful,
@@ -949,10 +910,11 @@ def get_test_model_lstm_stateful():
         outputs.append(lstm_bidi)
 
     initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True,
-                                   name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+                                  name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
     outputs.extend(initial_state_stateful)
     initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
-            name='initial_state_not_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+                                      name='initial_state_not_stateful')(inputs[2],
+                                                                         initial_state=[inputs[3], inputs[4]])
     outputs.extend(initial_state_not_stateful)
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(loss='mean_squared_error', optimizer='nadam')
@@ -965,6 +927,7 @@ def get_test_model_lstm_stateful():
 
     model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
     return model
+
 
 def main():
     """Generate different test models and save them to the given directory."""
@@ -994,10 +957,6 @@ def main():
             print('unknown model name: ', model_name)
             sys.exit(2)
 
-        assert K.backend() == "tensorflow"
-        assert K.floatx() == "float32"
-        assert K.image_data_format() == 'channels_last'
-
         np.random.seed(0)
 
         model_func = get_model_functions[model_name]
@@ -1009,7 +968,6 @@ def main():
         model = load_model(dest_path)
         print(model.summary())
         # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
-
 
 
 if __name__ == "__main__":

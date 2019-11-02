@@ -27,7 +27,12 @@ int main()
         "mobilenetv2.json",
         "nasnetlarge.json",
         "nasnetmobile.json",
+        "resnet101.json",
+        "resnet101v2.json",
+        "resnet152.json",
+        "resnet152v2.json",
         "resnet50.json",
+        "resnet50v2.json",
         "vgg16.json",
         "vgg19.json",
         "xception.json"

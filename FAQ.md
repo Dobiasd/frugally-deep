@@ -21,8 +21,9 @@ This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor5` but an
 Example:
 
 ```python
-from keras.models import Model
-from keras.layers import Input, Concatenate, Add
+import tensorflow.keras as keras
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Concatenate, Add
 
 inputs = [
     Input(shape=(240, 320, 3)),

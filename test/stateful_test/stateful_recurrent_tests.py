@@ -1,12 +1,10 @@
-import keras
-import numpy as np
-from keras.layers import Input, Dense, GRU, LSTM, Bidirectional
-import tensorflow as tf
+import errno
 import os
 import sys
-import errno
 
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+import numpy as np
+from tensorflow.keras.layers import Input, Dense, GRU, LSTM, Bidirectional
+from tensorflow.keras.models import Model
 
 __author__ = "Keith Chugg"
 __copyright__ = "Copyright 2019, Keith Chugg"
@@ -32,7 +30,7 @@ def get_trained_model(x_train, y_train, layer_name, n_recurrent_units, bidi):
     else:
         recurrent_out = REC_LAYER(n_recurrent_units, return_sequences=True, stateful=False)(training_in)
     training_pred = Dense(1)(recurrent_out)
-    training_model = keras.Model(inputs=training_in, outputs=training_pred)
+    training_model = Model(inputs=training_in, outputs=training_pred)
     training_model.compile(loss='mean_squared_error', optimizer='adam')
     if PRINT_SUMMARIES:
         training_model.summary()
@@ -53,7 +51,7 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
             recurrent_out = Bidirectional(REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful))(
                 features_in)
             pred = Dense(1)(recurrent_out)
-            test_model = keras.Model(inputs=features_in, outputs=pred)
+            test_model = Model(inputs=features_in, outputs=pred)
         else:
             state_h_fwd_in = Input(batch_shape=(1, n_recurrent_units))
             state_h_bwd_in = Input(batch_shape=(1, n_recurrent_units))
@@ -63,19 +61,19 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
                 recurrent_out = Bidirectional(REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful))(
                     features_in, initial_state=[state_h_fwd_in, state_h_bwd_in, state_c_fwd_in, state_c_bwd_in])
                 pred = Dense(1)(recurrent_out)
-                test_model = keras.Model(
+                test_model = Model(
                     inputs=[features_in, state_h_fwd_in, state_h_bwd_in, state_c_fwd_in, state_c_bwd_in], outputs=pred)
             else:
                 # GRU
                 recurrent_out = Bidirectional(REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful))(
                     features_in, initial_state=[state_h_fwd_in, state_h_bwd_in])
                 pred = Dense(1)(recurrent_out)
-                test_model = keras.Model(inputs=[features_in, state_h_fwd_in, state_h_bwd_in], outputs=pred)
+                test_model = Model(inputs=[features_in, state_h_fwd_in, state_h_bwd_in], outputs=pred)
     else:  # not bidi
         if not initialize_states:
             recurrent_out = REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful)(features_in)
             pred = Dense(1)(recurrent_out)
-            test_model = keras.Model(inputs=features_in, outputs=pred)
+            test_model = Model(inputs=features_in, outputs=pred)
         else:
             state_h_in = Input(batch_shape=(1, n_recurrent_units))
             state_c_in = Input(batch_shape=(1, n_recurrent_units))
@@ -84,13 +82,13 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
                                           return_sequences=True,
                                           stateful=stateful)(features_in, initial_state=[state_h_in, state_c_in])
                 pred = Dense(1)(recurrent_out)
-                test_model = keras.Model(inputs=[features_in, state_h_in, state_c_in], outputs=pred)
+                test_model = Model(inputs=[features_in, state_h_in, state_c_in], outputs=pred)
             else:
                 # GRU
                 recurrent_out = REC_LAYER(n_recurrent_units, return_sequences=True, stateful=stateful)(features_in,
                                                                                                        initial_state=state_h_in)
                 pred = Dense(1)(recurrent_out)
-                test_model = keras.Model(inputs=[features_in, state_h_in], outputs=pred)
+                test_model = Model(inputs=[features_in, state_h_in], outputs=pred)
     test_model.compile(loss='mean_squared_error', optimizer='adam')
     if PRINT_SUMMARIES:
         test_model.summary()

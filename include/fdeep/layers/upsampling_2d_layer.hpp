@@ -76,6 +76,10 @@ protected:
         std::size_t pos_dim_5, std::size_t pos_dim_4,
         float_type y, float_type x, std::size_t z) const
     {
+        y = fplus::max(0, y);
+        x = fplus::max(0, x);
+        y = fplus::min(y, t.height());
+        x = fplus::min(x, t.width());
         std::size_t y_top = static_cast<std::size_t>(fplus::max(0, fplus::floor(y)));
         std::size_t y_bottom = static_cast<std::size_t>(fplus::min(t.height() - 1, y_top + 1));
         std::size_t x_left = static_cast<std::size_t>(fplus::max(0, fplus::floor(x)));
@@ -102,12 +106,12 @@ protected:
             in_vol.shape().depth_), 0);
         for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
         {
-            float_type y_in = static_cast<float_type>(y) / static_cast<float_type>(scale_factor_.height_);
+            const auto y_in = (static_cast<float_type>(y) + 0.5f) / static_cast<float_type>(scale_factor_.height_) - 0.5f;
             for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
             {
                 for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
-                    float_type x_in = static_cast<float_type>(x) / static_cast<float_type>(scale_factor_.width_);
+                    const auto x_in = (static_cast<float_type>(x) + 0.5f) / static_cast<float_type>(scale_factor_.width_) - 0.5f;
                     out_vol.set(0, 0, y, x, z,
                         get_interpolated_bilinearly(in_vol, 0, 0, y_in, x_in, z));
                 }

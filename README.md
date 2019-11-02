@@ -106,8 +106,8 @@ The following minimal example shows the full workflow:
 ```python
 # create_model.py
 import numpy as np
-from keras.layers import Input, Dense
-from keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.models import Model
 
 inputs = Input(shape=(4,))
 x = Dense(5, activation='relu')(inputs)
@@ -116,8 +116,8 @@ model = Model(inputs=inputs, outputs=predictions)
 model.compile(loss='categorical_crossentropy', optimizer='nadam')
 
 model.fit(
-    np.asarray([[1,2,3,4], [2,3,4,5]]),
-    np.asarray([[1,0,0], [0,0,1]]), epochs=10)
+    np.asarray([[1, 2, 3, 4], [2, 3, 4, 5]]),
+    np.asarray([[1, 0, 0], [0, 0, 1]]), epochs=10)
 
 model.save('keras_model.h5', include_optimizer=False)
 ```
@@ -149,22 +149,27 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.33 s |        0.30 s |
-| `DenseNet169`     |     0.39 s |        0.33 s |
-| `DenseNet201`     |     0.48 s |        0.43 s |
-| `InceptionV3`     |     0.35 s |        0.37 s |
-| `MobileNet`       |     0.11 s |        0.15 s |
-| `MobileNetV2`     |     0.13 s |        0.16 s |
-| `NASNetLarge`     |     2.03 s |        4.64 s |
-| `NASNetMobile`    |     0.18 s |        0.38 s |
-| `ResNet50`        |     0.32 s |        0.25 s |
-| `VGG16`           |     0.64 s |        0.80 s |
-| `VGG19`           |     0.78 s |        0.96 s |
-| `Xception`        |     0.65 s |        1.20 s |
+| `DenseNet121`     |            |               |
+| `DenseNet169`     |            |               |
+| `DenseNet201`     |            |               |
+| `InceptionV3`     |            |               |
+| `MobileNet`       |            |               |
+| `MobileNetV2`     |            |               |
+| `NASNetLarge`     |            |               |
+| `NASNetMobile`    |            |               |
+| `ResNet101`       |            |               |
+| `ResNet101V2`     |            |               |
+| `ResNet152`       |            |               |
+| `ResNet152V2`     |            |               |
+| `ResNet50`        |            |               |
+| `ResNet50V2`      |            |               |
+| `VGG16`           |            |               |
+| `VGG19`           |            |               |
+| `Xception`        |            |               |
 
-Keras version: `2.2.4`
+Keras version: `2.3.1`
 
-TensorFlow version: `1.13.1`
+TensorFlow version: `2.0.0`
 
 Requirements and Installation
 -----------------------------

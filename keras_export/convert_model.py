@@ -469,8 +469,6 @@ def show_cudnn_lstm_layer(layer):
 
 def show_cudnn_gru_layer(layer):
     """Serialize a GPU-trained GRU layer to dict"""
-    # todo: Add support for return_state in `gru_layer.hpp`
-    assert not layer.return_state
     weights = layer.get_weights()
     assert len(weights) == 3  # CuDNN GRU always has a bias
 

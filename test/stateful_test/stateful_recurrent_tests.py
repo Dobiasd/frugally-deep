@@ -240,6 +240,7 @@ def main():
             all_tests_passed = False
 
     if not all_tests_passed:
+        print('\n\nAt least one test failed.')
         sys.exit(errno.EIO)
     print('\n\nPassed all stateful tests')
 

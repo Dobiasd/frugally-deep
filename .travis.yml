@@ -34,6 +34,7 @@ install:
   # python libs
   - sudo pip3 install --upgrade pip
   - sudo pip3 install numpy scipy h5py keras tensorflow
+  - python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tensorflow.keras.__version__)"
   # FunctionalPlus
   - git clone https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus

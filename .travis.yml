@@ -13,7 +13,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'deadsnakes']
-          packages: ['g++-7', 'python3.7']
+          packages: ['g++-7', 'python3.5']
           addons:
 
 before_install:
@@ -32,7 +32,7 @@ install:
   # system libs
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
   # python libs
-  - sudo pip3 install --upgrade pip
+  - python3 -m pip install --upgrade pip
   - sudo pip3 install numpy scipy h5py "tensorflow>=2"
   - echo "Version numbers of TensorFlow and Keras:"
   - python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tensorflow.keras.__version__)"

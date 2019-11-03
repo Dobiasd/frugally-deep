@@ -73,8 +73,6 @@ inline tensor5 convolve_im2col(
     std::size_t out_width,
     std::size_t strides_y,
     std::size_t strides_x,
-    std::size_t offset_y,
-    std::size_t offset_x,
     const im2col_filter_matrix& filter_mat,
     const tensor5& in_padded)
 {
@@ -95,8 +93,8 @@ inline tensor5 convolve_im2col(
                     for (std::size_t zf = 0; zf < fz; ++zf)
                     {
                         a(a_y++, a_x) = in_padded.get(0, 0,
-                                offset_y + strides_y * y + yf,
-                                offset_x + strides_x * x + xf,
+                                strides_y * y + yf,
+                                strides_x * x + xf,
                                 zf);
                     }
                 }
@@ -137,8 +135,6 @@ struct convolution_config
     std::size_t pad_bottom_;
     std::size_t pad_left_;
     std::size_t pad_right_;
-    std::size_t offset_y_;
-    std::size_t offset_x_;
     std::size_t out_height_;
     std::size_t out_width_;
 };
@@ -147,7 +143,6 @@ inline convolution_config preprocess_convolution(
     const shape2& filter_shape,
     const shape2& strides,
     padding pad_type,
-    bool use_offset,
     std::size_t input_shape_height,
     std::size_t input_shape_width)
 {
@@ -172,12 +167,12 @@ inline convolution_config preprocess_convolution(
         out_height = fplus::ceil(static_cast<float>(in_height - filter_height + 1) / static_cast<float>(strides_y) - 0.001);
         out_width = fplus::ceil(static_cast<float>(in_width - filter_width + 1) / static_cast<float>(strides_x) - 0.001);
     }
-    
+
     int pad_top = 0;
     int pad_bottom = 0;
     int pad_left = 0;
     int pad_right = 0;
-    
+
     if (pad_type == padding::same)
     {
         int pad_along_height = 0;
@@ -203,22 +198,8 @@ inline convolution_config preprocess_convolution(
         pad_left = filter_width - 1;
     }
 
-    int offset_y = 0;
-    int offset_x = 0;
-
-    if (use_offset)
-    {
-        offset_y = ((in_height + pad_top + pad_bottom - filter_height) % strides_y) / 2;
-    }
-    if (use_offset)
-    {
-        offset_x = ((in_width + pad_left + pad_right - filter_width) % strides_x) / 2;
-    }
-
     std::size_t out_height_size_t = fplus::integral_cast_throw<std::size_t>(out_height);
     std::size_t out_width_size_t = fplus::integral_cast_throw<std::size_t>(out_width);
-    std::size_t offset_y_size_t = fplus::integral_cast_throw<std::size_t>(offset_y);
-    std::size_t offset_x_size_t = fplus::integral_cast_throw<std::size_t>(offset_x);
     std::size_t pad_top_size_t = fplus::integral_cast_throw<std::size_t>(pad_top);
     std::size_t pad_bottom_size_t = fplus::integral_cast_throw<std::size_t>(pad_bottom);
     std::size_t pad_left_size_t = fplus::integral_cast_throw<std::size_t>(pad_left);
@@ -226,14 +207,12 @@ inline convolution_config preprocess_convolution(
 
     return {pad_top_size_t, pad_bottom_size_t,
         pad_left_size_t, pad_right_size_t,
-        offset_y_size_t, offset_x_size_t,
         out_height_size_t, out_width_size_t};
 }
 
 inline tensor5 convolve(
     const shape2& strides,
     const padding& pad_type,
-    bool use_offset,
     const im2col_filter_matrix& filter_mat,
     const tensor5& input)
 {
@@ -242,10 +221,8 @@ inline tensor5 convolve(
 
     const auto conv_cfg = preprocess_convolution(
         filter_mat.filter_shape_.without_depth(),
-        strides, pad_type, use_offset, input.shape().height_, input.shape().width_);
+        strides, pad_type, input.shape().height_, input.shape().width_);
 
-    const std::size_t offset_y = conv_cfg.offset_y_;
-    const std::size_t offset_x = conv_cfg.offset_x_;
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
@@ -256,7 +233,6 @@ inline tensor5 convolve(
     return convolve_im2col(
         out_height, out_width,
         strides.height_, strides.width_,
-        offset_y, offset_x,
         filter_mat, in_padded);
 }
 

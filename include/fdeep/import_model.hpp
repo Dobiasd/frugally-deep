@@ -278,14 +278,12 @@ inline node_connection create_node_connection(const nlohmann::json& data)
 
 using get_param_f =
     std::function<nlohmann::json(const std::string&, const std::string&)>;
-using get_global_param_f = std::function<nlohmann::json(const std::string&)>;
 
 using layer_creators =
     std::map<
         std::string,
         std::function<layer_ptr(
             const get_param_f&,
-            const get_global_param_f&,
             const nlohmann::json&,
             const std::string&)>>;
 
@@ -294,24 +292,23 @@ using wrapper_layer_creators =
         std::string,
         std::function<layer_ptr(
             const get_param_f&,
-            const get_global_param_f&,
             const nlohmann::json&,
             const std::string&,
             const layer_creators&)>>;
 
-layer_ptr create_layer(const get_param_f&, const get_global_param_f&,
+layer_ptr create_layer(const get_param_f&,
     const nlohmann::json&,
     const layer_creators& custom_layer_creators);
 
 inline layer_ptr create_model_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const nlohmann::json& data,
     const std::string& name, const layer_creators& custom_layer_creators)
 {
     assertion(data["config"]["layers"].is_array(), "missing layers array");
 
     const auto make_layer = [&](const nlohmann::json& json)
     {
-        return create_layer(get_param, get_global_param, json, custom_layer_creators);
+        return create_layer(get_param, json, custom_layer_creators);
     };
     const auto layers = create_vector<layer_ptr>(make_layer,
         data["config"]["layers"]);
@@ -343,7 +340,7 @@ inline padding create_padding(const std::string& padding_str)
 }
 
 inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const nlohmann::json& data,
     const std::string& name)
 {
     const std::string padding_str = data["config"]["padding"];
@@ -368,23 +365,13 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     const shape5 filter_shape(1, 1,
         kernel_size.height_, kernel_size.width_, filter_depths);
 
-    const bool padding_valid_uses_offset_depth_1 =
-        get_global_param("conv2d_valid_offset_depth_1");
-    const bool padding_same_uses_offset_depth_1 =
-        get_global_param("conv2d_same_offset_depth_1");
-    const bool padding_valid_uses_offset_depth_2 =
-        get_global_param("conv2d_valid_offset_depth_2");
-    const bool padding_same_uses_offset_depth_2 =
-        get_global_param("conv2d_same_offset_depth_2");
     return std::make_shared<conv_2d_layer>(name,
         filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
-        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         dilation_rate, weights, bias);
 }
 
 inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const nlohmann::json& data,
     const std::string& name)
 {
     const std::string padding_str = data["config"]["padding"];
@@ -415,23 +402,13 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
     const shape5 filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
-    const bool padding_valid_uses_offset_depth_1 =
-        get_global_param("separable_conv2d_valid_offset_depth_1");
-    const bool padding_same_uses_offset_depth_1 =
-        get_global_param("separable_conv2d_same_offset_depth_1");
-        const bool padding_valid_uses_offset_depth_2 =
-        get_global_param("separable_conv2d_valid_offset_depth_2");
-    const bool padding_same_uses_offset_depth_2 =
-        get_global_param("separable_conv2d_same_offset_depth_2");
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
-        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         dilation_rate, slice_weights, stack_weights, bias_0, bias);
 }
 
 inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const nlohmann::json& data,
     const std::string& name)
 {
     const std::string padding_str = data["config"]["padding"];
@@ -453,24 +430,13 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     if (use_bias)
         bias = decode_floats(get_param(name, "bias"));
     assertion(bias.size() == filter_count, "size of bias does not match");
-    const bool padding_valid_uses_offset_depth_1 =
-        get_global_param("separable_conv2d_valid_offset_depth_1");
-    const bool padding_same_uses_offset_depth_1 =
-        get_global_param("separable_conv2d_same_offset_depth_1");
-        const bool padding_valid_uses_offset_depth_2 =
-        get_global_param("separable_conv2d_valid_offset_depth_2");
-    const bool padding_same_uses_offset_depth_2 =
-        get_global_param("separable_conv2d_same_offset_depth_2");
     return std::make_shared<depthwise_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
-        padding_valid_uses_offset_depth_1, padding_same_uses_offset_depth_1,
-        padding_valid_uses_offset_depth_2, padding_same_uses_offset_depth_2,
         dilation_rate, slice_weights, bias);
 }
 
 inline layer_ptr create_input_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
-    const std::string& name)
+    const get_param_f&, const nlohmann::json& data, const std::string& name)
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
@@ -479,8 +445,7 @@ inline layer_ptr create_input_layer(
 }
 
 inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
-    const get_global_param_f&, const nlohmann::json& data,
-    const std::string& name)
+    const nlohmann::json& data, const std::string& name)
 {
     const float_vec moving_mean = decode_floats(get_param(name, "moving_mean"));
     const float_vec moving_variance =
@@ -497,35 +462,26 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
 }
 
 inline layer_ptr create_identity_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
-    const std::string& name)
+    const get_param_f&, const nlohmann::json&, const std::string& name)
 {
     // Dropout and noise layers are identity functions during prediction.
     return std::make_shared<linear_layer>(name);
 }
 
 inline layer_ptr create_max_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f& get_global_param,
-    const nlohmann::json& data, const std::string& name)
+    const get_param_f&, const nlohmann::json& data, const std::string& name)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
     const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
-    const bool padding_valid_uses_offset =
-        get_global_param("max_pooling_2d_valid_offset");
-    const bool padding_same_uses_offset =
-        get_global_param("max_pooling_2d_same_offset");
     return std::make_shared<max_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type,
-        padding_valid_uses_offset,
-        padding_same_uses_offset);
+        pool_size, strides, channels_first, pad_type);
 }
 
 inline layer_ptr create_average_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f& get_global_param,
-    const nlohmann::json& data, const std::string& name)
+    const get_param_f&, const nlohmann::json& data, const std::string& name)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
@@ -533,18 +489,12 @@ inline layer_ptr create_average_pooling_2d_layer(
     const std::string padding_str = data["config"]["padding"];
 
     const auto pad_type = create_padding(padding_str);
-    const bool padding_valid_uses_offset =
-        get_global_param("average_pooling_2d_valid_offset");
-    const bool padding_same_uses_offset =
-        get_global_param("average_pooling_2d_same_offset");
     return std::make_shared<average_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type,
-        padding_valid_uses_offset,
-        padding_same_uses_offset);
+        pool_size, strides, channels_first, pad_type);
 }
 
 inline layer_ptr create_global_max_pooling_1d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const bool channels_first = json_obj_has_member(data, "config")
@@ -554,7 +504,7 @@ inline layer_ptr create_global_max_pooling_1d_layer(
 }
 
 inline layer_ptr create_global_max_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const bool channels_first = json_obj_has_member(data, "config")
@@ -564,7 +514,7 @@ inline layer_ptr create_global_max_pooling_2d_layer(
 }
 
 inline layer_ptr create_global_average_pooling_1d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const bool channels_first = json_obj_has_member(data, "config")
@@ -574,7 +524,7 @@ inline layer_ptr create_global_average_pooling_1d_layer(
 }
 
 inline layer_ptr create_global_average_pooling_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const bool channels_first = json_obj_has_member(data, "config")
@@ -584,7 +534,7 @@ inline layer_ptr create_global_average_pooling_2d_layer(
 }
 
 inline layer_ptr create_upsampling_1d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const std::size_t size = data["config"]["size"];
@@ -592,7 +542,7 @@ inline layer_ptr create_upsampling_1d_layer(
 }
 
 inline layer_ptr create_upsampling_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const auto scale_factor = create_shape2(data["config"]["size"]);
@@ -602,8 +552,7 @@ inline layer_ptr create_upsampling_2d_layer(
 }
 
 inline layer_ptr create_dense_layer(const get_param_f& get_param,
-    const get_global_param_f&, const nlohmann::json& data,
-    const std::string& name)
+    const nlohmann::json& data, const std::string& name)
 {
     const float_vec weights = decode_floats(get_param(name, "weights"));
 
@@ -619,7 +568,7 @@ inline layer_ptr create_dense_layer(const get_param_f& get_param,
 }
 
 inline layer_ptr create_concatenate_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const std::int32_t keras_axis = data["config"]["axis"];
@@ -627,49 +576,49 @@ inline layer_ptr create_concatenate_layer(
 }
 
 inline layer_ptr create_add_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<add_layer>(name);
 }
 
 inline layer_ptr create_maximum_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<maximum_layer>(name);
 }
 
 inline layer_ptr create_multiply_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<multiply_layer>(name);
 }
 
 inline layer_ptr create_average_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<average_layer>(name);
 }
 
 inline layer_ptr create_subtract_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<subtract_layer>(name);
 }
 
 inline layer_ptr create_flatten_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<flatten_layer>(name);
 }
 
 inline layer_ptr create_zero_padding_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const auto padding =
@@ -701,7 +650,7 @@ inline layer_ptr create_zero_padding_2d_layer(
 }
 
 inline layer_ptr create_cropping_2d_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const auto cropping =
@@ -733,7 +682,7 @@ inline layer_ptr create_cropping_2d_layer(
 }
 
 inline layer_ptr create_reshape_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     const auto target_shape =
@@ -746,49 +695,49 @@ inline layer_ptr create_reshape_layer(
 }
 
 inline activation_layer_ptr create_linear_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<linear_layer>(name);
 }
 
 inline activation_layer_ptr create_softmax_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<softmax_layer>(name);
 }
 
 inline activation_layer_ptr create_softplus_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<softplus_layer>(name);
 }
 
 inline activation_layer_ptr create_tanh_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<tanh_layer>(name);
 }
 
 inline activation_layer_ptr create_sigmoid_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<sigmoid_layer>(name);
 }
 
 inline activation_layer_ptr create_hard_sigmoid_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<hard_sigmoid_layer>(name);
 }
 
 inline activation_layer_ptr create_relu_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     float_type max_value = std::numeric_limits<float_type>::max();
@@ -802,14 +751,14 @@ inline activation_layer_ptr create_relu_layer(
 }
 
 inline activation_layer_ptr create_selu_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<selu_layer>(name);
 }
 
 inline activation_layer_ptr create_leaky_relu_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     float_type alpha = 1.0f;
@@ -822,14 +771,14 @@ inline activation_layer_ptr create_leaky_relu_layer(
 }
 
 inline layer_ptr create_leaky_relu_layer_isolated(
-    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
-    return create_leaky_relu_layer(get_param, get_global_param, data, name);
+    return create_leaky_relu_layer(get_param, data, name);
 }
 
 inline layer_ptr create_prelu_layer(
-    const get_param_f& get_param, const get_global_param_f&,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
     std::vector<std::size_t> shared_axes;
@@ -845,7 +794,7 @@ inline layer_ptr create_prelu_layer(
 }
 
 inline activation_layer_ptr create_elu_layer(
-    const get_param_f&, const get_global_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
     float_type alpha = 1.0f;
@@ -858,27 +807,27 @@ inline activation_layer_ptr create_elu_layer(
 }
 
 inline layer_ptr create_elu_layer_isolated(
-    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
-    return create_elu_layer(get_param, get_global_param, data, name);
+    return create_elu_layer(get_param,data, name);
 }
 
 inline layer_ptr create_relu_layer_isolated(
-    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
-    return create_relu_layer(get_param, get_global_param, data, name);
+    return create_relu_layer(get_param, data, name);
 }
 
 inline activation_layer_ptr create_activation_layer_type_name(
-    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const get_param_f& get_param,
     const nlohmann::json& data,
     const std::string& type, const std::string& name)
 {
     const std::map<std::string,
             std::function<activation_layer_ptr(const get_param_f&,
-                const get_global_param_f&, const nlohmann::json&,
+                const nlohmann::json&,
                 const std::string&)>>
     creators = {
         {"linear", create_linear_layer},
@@ -895,20 +844,20 @@ inline activation_layer_ptr create_activation_layer_type_name(
     return fplus::throw_on_nothing(
         error("unknown activation type: " + type),
         fplus::get_from_map(creators, type))(
-            get_param, get_global_param, data, name);
+            get_param, data, name);
 }
 
 inline layer_ptr create_activation_layer(
-    const get_param_f& get_param, const get_global_param_f& get_global_param,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
     const std::string type = data["config"]["activation"];
-    return create_activation_layer_type_name(get_param, get_global_param,
+    return create_activation_layer_type_name(get_param,
         data, type, name);
 }
 
 inline layer_ptr create_permute_layer(
-    const get_param_f&, const get_global_param_f&,
+    const get_param_f&,
     const nlohmann::json& data, const std::string& name)
 {
     const auto dims = create_vector<std::size_t>(create_size_t,
@@ -932,7 +881,6 @@ inline nodes create_nodes(const nlohmann::json& data)
 }
 
 inline layer_ptr create_embedding_layer(const get_param_f &get_param,
-                                        const get_global_param_f &,
                                         const nlohmann::json &data,
                                         const std::string &name)
 {
@@ -944,7 +892,6 @@ inline layer_ptr create_embedding_layer(const get_param_f &get_param,
 }
 
 inline layer_ptr create_lstm_layer(const get_param_f &get_param,
-                                   const get_global_param_f &,
                                    const nlohmann::json &data,
                                    const std::string &name)
 {
@@ -976,7 +923,6 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
 }
 
 inline layer_ptr create_gru_layer(const get_param_f &get_param,
-                                  const get_global_param_f &,
                                   const nlohmann::json &data,
                                   const std::string &name)
 {
@@ -1008,13 +954,12 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
     );
 
     return std::make_shared<gru_layer>(name, units, unit_activation,
-                                       recurrent_activation, use_bias, reset_after, 
+                                       recurrent_activation, use_bias, reset_after,
                                        return_sequences, return_state, stateful,
                                        weights, recurrent_weights, bias);
 }
 
 inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
-                                            const get_global_param_f&,
                                             const nlohmann::json& data,
                                             const std::string& name)
 {
@@ -1061,7 +1006,6 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
 }
 
 inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
-                                   const get_global_param_f& get_global_param,
                                    const nlohmann::json& data,
                                    const std::string& name,
                                    const layer_creators& custom_layer_creators)
@@ -1073,13 +1017,13 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     const std::size_t td_input_len = std::size_t(decode_floats(get_param(name, "td_input_len")).front());
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 
-    layer_ptr inner_layer = create_layer(get_param, get_global_param, data_inner_layer, custom_layer_creators);
+    layer_ptr inner_layer = create_layer(get_param, data_inner_layer, custom_layer_creators);
 
     return std::make_shared<time_distributed_layer>(name, inner_layer, td_input_len, td_output_len);
 }
 
 inline layer_ptr create_layer(const get_param_f& get_param,
-    const get_global_param_f& get_global_param, const nlohmann::json& data,
+    const nlohmann::json& data,
     const layer_creators& custom_layer_creators)
 {
     const std::string name = data["name"];
@@ -1147,7 +1091,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     if (fplus::map_contains(wrapper_creators, type))
     {
         auto result = fplus::get_from_map_unsafe(wrapper_creators, type)(
-            get_param, get_global_param, data, name, custom_layer_creators);
+            get_param, data, name, custom_layer_creators);
         result->set_nodes(create_nodes(data));
         return result;
     }
@@ -1159,7 +1103,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
         auto result = fplus::throw_on_nothing(
             error("unknown layer type: " + type),
             fplus::get_from_map(creators, type))(
-                get_param, get_global_param, data, name);
+                get_param, data, name);
 
         if (type != "Activation" &&
             json_obj_has_member(data["config"], "activation")
@@ -1168,7 +1112,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             && type != "Bidirectional")
         {
             result->set_activation(
-                create_activation_layer_type_name(get_param, get_global_param, data,
+                create_activation_layer_type_name(get_param, data,
                     data["config"]["activation"], ""));
         }
         result->set_nodes(create_nodes(data));

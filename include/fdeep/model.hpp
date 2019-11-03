@@ -293,15 +293,8 @@ inline model read_model(std::istream& model_file_stream,
         return json_data["trainable_params"][layer_name][param_name];
     };
 
-    const std::function<nlohmann::json(const std::string&)>
-        get_global_param =
-            [&json_data](const std::string& param_name) -> nlohmann::json
-    {
-        return json_data[param_name];
-    };
-
     model full_model(internal::create_model_layer(
-        get_param, get_global_param, json_data["architecture"],
+        get_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"],
         custom_layer_creators),
         internal::create_shape5s_variable(json_data["input_shapes"]),

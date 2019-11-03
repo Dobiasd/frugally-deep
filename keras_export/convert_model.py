@@ -796,28 +796,7 @@ def model_to_fdeep_json(model, no_tests=False):
     json_output = {}
     print('Converting model architecture.')
     json_output['architecture'] = json.loads(model.to_json())
-
-    print('Determining Keras behaviour.')
     json_output['image_data_format'] = K.image_data_format()
-    # todo: Are those still needed?
-    for depth in range(1, 3, 1):
-        json_output['conv2d_valid_offset_depth_' + str(depth)] = \
-            check_operation_offset(depth, offset_conv2d_eval, 'valid')
-        json_output['conv2d_same_offset_depth_' + str(depth)] = \
-            check_operation_offset(depth, offset_conv2d_eval, 'same')
-        json_output['separable_conv2d_valid_offset_depth_' + str(depth)] = \
-            check_operation_offset(depth, offset_sep_conv2d_eval, 'valid')
-        json_output['separable_conv2d_same_offset_depth_' + str(depth)] = \
-            check_operation_offset(depth, offset_sep_conv2d_eval, 'same')
-    json_output['max_pooling_2d_valid_offset'] = \
-        check_operation_offset(1, conv2d_offset_max_pool_eval, 'valid')
-    json_output['max_pooling_2d_same_offset'] = \
-        check_operation_offset(1, conv2d_offset_max_pool_eval, 'same')
-    json_output['average_pooling_2d_valid_offset'] = \
-        check_operation_offset(1, conv2d_offset_average_pool_eval, 'valid')
-    json_output['average_pooling_2d_same_offset'] = \
-        check_operation_offset(1, conv2d_offset_average_pool_eval, 'same')
-
     json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
     json_output['output_shapes'] = list(map(keras_shape_to_fdeep_shape5, as_list(model.output_shape)))
 

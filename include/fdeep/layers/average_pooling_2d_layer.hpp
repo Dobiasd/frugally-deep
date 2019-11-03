@@ -19,7 +19,6 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
     std::size_t strides_y, std::size_t strides_x,
     bool channels_first,
     padding pad_type,
-    bool use_offset,
     const tensor5& in)
 {
     const float_type invalid = std::numeric_limits<float_type>::lowest();
@@ -42,12 +41,10 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
     const auto conv_cfg = preprocess_convolution(
         shape2(pool_height, pool_width),
         shape2(strides_y, strides_x),
-        pad_type, use_offset, in_height, in_width);
+        pad_type, in_height, in_width);
 
     int pad_top_int = static_cast<int>(conv_cfg.pad_top_);
     int pad_left_int = static_cast<int>(conv_cfg.pad_left_);
-    const std::size_t offset_y = conv_cfg.offset_y_;
-    const std::size_t offset_x = conv_cfg.offset_x_;
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
@@ -65,10 +62,10 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
                     std::size_t divisor = 0;
                     for (std::size_t yf = 0; yf < pool_height; ++yf)
                     {
-                        int in_get_y = static_cast<int>(offset_y + strides_y * y + yf) - pad_top_int;
+                        int in_get_y = static_cast<int>(strides_y * y + yf) - pad_top_int;
                         for (std::size_t xf = 0; xf < pool_width; ++xf)
                         {
-                            int in_get_x = static_cast<int>(offset_x + strides_x * x + xf) - pad_left_int;
+                            int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
                             const auto current = in.get_x_z_padded(invalid, z, in_get_y, in_get_x);
                             if (current != invalid)
                             {
@@ -98,10 +95,10 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
                     std::size_t divisor = 0;
                     for (std::size_t yf = 0; yf < pool_height; ++yf)
                     {
-                        int in_get_y = static_cast<int>(offset_y + strides_y * y + yf) - pad_top_int;
+                        int in_get_y = static_cast<int>(strides_y * y + yf) - pad_top_int;
                         for (std::size_t xf = 0; xf < pool_width; ++xf)
                         {
-                            int in_get_x = static_cast<int>(offset_x + strides_x * x + xf) - pad_left_int;
+                            int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
                             const auto current = in.get_y_x_padded(invalid,
                                 in_get_y, in_get_x, z);
                             if (current != invalid)
@@ -124,24 +121,22 @@ class average_pooling_2d_layer : public pooling_2d_layer
 {
 public:
     explicit average_pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first, padding p,
-        bool padding_valid_uses_offset, bool padding_same_uses_offset) :
-        pooling_2d_layer(name, pool_size, strides, channels_first, p,
-            padding_valid_uses_offset, padding_same_uses_offset)
+        const shape2& pool_size, const shape2& strides, bool channels_first, padding p) :
+        pooling_2d_layer(name, pool_size, strides, channels_first, p)
     {
     }
 protected:
     tensor5 pool(const tensor5& in) const override
     {
         if (pool_size_ == shape2(2, 2) && strides_ == shape2(2, 2))
-            return average_pool_2d(2, 2, 2, 2, channels_first_, padding_, use_offset(), in);
+            return average_pool_2d(2, 2, 2, 2, channels_first_, padding_, in);
         else if (pool_size_ == shape2(4, 4) && strides_ == shape2(4, 4))
-            return average_pool_2d(4, 4, 4, 4, channels_first_, padding_, use_offset(), in);
+            return average_pool_2d(4, 4, 4, 4, channels_first_, padding_, in);
         else
             return average_pool_2d(
                 pool_size_.height_, pool_size_.width_,
                 strides_.height_, strides_.width_,
-                channels_first_, padding_, use_offset(), in);
+                channels_first_, padding_, in);
     }
 };
 

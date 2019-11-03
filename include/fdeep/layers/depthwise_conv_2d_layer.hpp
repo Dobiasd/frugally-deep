@@ -30,10 +30,6 @@ public:
             const std::string& name, std::size_t input_depth,
             const shape5& filter_shape,
             std::size_t k, const shape2& strides, padding p,
-            bool padding_valid_offset_depth_1,
-            bool padding_same_offset_depth_1,
-            bool padding_valid_offset_depth_2,
-            bool padding_same_offset_depth_2,
             const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& bias)
@@ -42,11 +38,7 @@ public:
             generate_filters(dilation_rate, filter_shape,
                 input_depth, depthwise_weights, bias))),
         strides_(strides),
-        padding_(p),
-        padding_valid_offset_depth_1_(padding_valid_offset_depth_1),
-        padding_same_offset_depth_1_(padding_same_offset_depth_1),
-        padding_valid_offset_depth_2_(padding_valid_offset_depth_2),
-        padding_same_offset_depth_2_(padding_same_offset_depth_2)
+        padding_(p)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -64,18 +56,11 @@ protected:
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");
 
-        const bool use_offset = input_slices.size() == 1 ?
-            ((padding_ == padding::valid && padding_valid_offset_depth_1_) ||
-            (padding_ == padding::same && padding_same_offset_depth_1_)) :
-            ((padding_ == padding::valid && padding_valid_offset_depth_2_) ||
-            (padding_ == padding::same && padding_same_offset_depth_2_));
-
         const auto convolve_slice =
             [&](const tensor5& slice, const im2col_filter_matrix& f) -> tensor5
         {
             assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
-            const auto result = convolve(strides_, padding_,
-                use_offset, f, slice);
+            const auto result = convolve(strides_, padding_, f, slice);
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
         };
@@ -89,10 +74,6 @@ protected:
     std::vector<im2col_filter_matrix> filters_depthwise_;
     shape2 strides_;
     padding padding_;
-    bool padding_valid_offset_depth_1_;
-    bool padding_same_offset_depth_1_;
-    bool padding_valid_offset_depth_2_;
-    bool padding_same_offset_depth_2_;
 };
 
 } } // namespace fdeep, namespace internal

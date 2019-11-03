@@ -8,9 +8,9 @@
 #include "doctest/doctest.h"
 #include <fdeep/fdeep.hpp>
 
-TEST_CASE("test_model_small_test, load_model")
+TEST_CASE("test_model_exhaustive_test, load_model")
 {
-    const auto model = fdeep::load_model("../test_model_small.json",
+    const auto model = fdeep::load_model("../test_model_exhaustive.json",
         true, fdeep::cout_logger, static_cast<fdeep::float_type>(0.00001));
     const auto multi_inputs = fplus::generate<std::vector<fdeep::tensor5s>>(
         [&]() -> fdeep::tensor5s {return model.generate_dummy_inputs();},

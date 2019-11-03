@@ -9,7 +9,6 @@
 int main()
 {
     std::vector<std::string> model_paths = {
-        //"test_model_full.json",
         "densenet121.json",
         "densenet169.json",
         "densenet201.json",

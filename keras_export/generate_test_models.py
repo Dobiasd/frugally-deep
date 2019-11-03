@@ -18,7 +18,7 @@ from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
-from tensorflow.keras.layers import Permute, Reshape
+from tensorflow.keras.layers import Permute
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -79,8 +79,8 @@ def generate_output_data(data_size, outputs):
             for output in outputs]
 
 
-def get_test_model_small():
-    """Returns a minimalist test model."""
+def get_test_model_exhaustive():
+    """Returns a exhaustive test model."""
     input_shapes = [
         (2, 3, 4, 5, 6),
         (2, 3, 4, 5, 6),
@@ -104,11 +104,74 @@ def get_test_model_small():
         (1, 1, 1, 4),
         (1, 1, 1, 1, 3),
         (1, 1, 1, 1, 4),
+        (26, 28, 3),
+        (4, 4, 3),
+        (4, 4, 3),
+        (4,),
+        (2, 3),
+        (1,),
+        (1,),
+        (1,),
+        (2, 3),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
+
+    outputs.append(Conv1D(1, 3, padding='valid')(inputs[6]))
+    outputs.append(Conv1D(2, 1, padding='same')(inputs[6]))
+    outputs.append(Conv1D(3, 4, padding='causal', dilation_rate=2)(inputs[6]))
+    outputs.append(ZeroPadding1D(2)(inputs[6]))
+    outputs.append(Cropping1D((2, 3))(inputs[6]))
+    outputs.append(MaxPooling1D(2)(inputs[6]))
+    outputs.append(MaxPooling1D(2, strides=2, padding='same')(inputs[6]))
+    outputs.append(AveragePooling1D(2)(inputs[6]))
+    outputs.append(AveragePooling1D(2, strides=2, padding='same')(inputs[6]))
+    outputs.append(GlobalMaxPooling1D()(inputs[6]))
+    outputs.append(GlobalMaxPooling1D(data_format="channels_first")(inputs[6]))
+    outputs.append(GlobalAveragePooling1D()(inputs[6]))
+    outputs.append(GlobalAveragePooling1D(data_format="channels_first")(inputs[6]))
+
+    outputs.append(Conv2D(4, (3, 3))(inputs[4]))
+    outputs.append(Conv2D(4, (3, 3), use_bias=False)(inputs[4]))
+    outputs.append(Conv2D(4, (2, 4), strides=(2, 3), padding='same')(inputs[4]))
+    outputs.append(Conv2D(4, (2, 4), padding='same', dilation_rate=(2, 3))(inputs[4]))
+
+    outputs.append(SeparableConv2D(3, (3, 3))(inputs[4]))
+    outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))
+    outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
+
+    outputs.append(MaxPooling2D((2, 2))(inputs[4]))
+    outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
+    outputs.append(AveragePooling2D((2, 2))(inputs[4]))
+    outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
+
+    outputs.append(GlobalAveragePooling2D()(inputs[4]))
+    outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
+    outputs.append(GlobalMaxPooling2D()(inputs[4]))
+    outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
+
+    outputs.append(BatchNormalization()(inputs[4]))
+    outputs.append(Dropout(0.5)(inputs[4]))
+
+    outputs.append(ZeroPadding2D(2)(inputs[4]))
+    outputs.append(ZeroPadding2D((2, 3))(inputs[4]))
+    outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[4]))
+    outputs.append(Cropping2D(2)(inputs[4]))
+    outputs.append(Cropping2D((2, 3))(inputs[4]))
+    outputs.append(Cropping2D(((1, 2), (3, 4)))(inputs[4]))
+
+    outputs.append(Dense(3, use_bias=True)(inputs[13]))
+    outputs.append(Dense(3, use_bias=True)(inputs[14]))
+    outputs.append(Dense(4, use_bias=False)(inputs[16]))
+    outputs.append(Dense(4, use_bias=False, activation='tanh')(inputs[18]))
+    outputs.append(Dense(4, use_bias=False)(inputs[20]))
+
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
 
     for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
         outputs.append(Concatenate(axis=axis)([inputs[0], inputs[1]]))
@@ -129,11 +192,6 @@ def get_test_model_small():
     for axis in [-1, 5]:
         outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))
 
-    outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
-    outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
-    outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
-    # outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
-
     outputs.append(UpSampling1D(size=2)(inputs[6]))
 
     outputs.append(Multiply()([inputs[10], inputs[11]]))
@@ -142,7 +200,83 @@ def get_test_model_small():
     outputs.append(Multiply()([inputs[10], inputs[11], inputs[12]]))
     outputs.append(Multiply()([inputs[11], inputs[12], inputs[13]]))
 
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_small')
+    shared_conv = Conv2D(1, (1, 1),
+                         padding='valid', name='shared_conv', activation='relu')
+
+    up_scale_2 = UpSampling2D((2, 2))
+    x1 = shared_conv(up_scale_2(inputs[23]))  # (1, 8, 8)
+    x2 = shared_conv(up_scale_2(inputs[24]))  # (1, 8, 8)
+    x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(inputs[24]))  # (1, 8, 8)
+    x = Concatenate()([x1, x2, x3])  # (3, 8, 8)
+    outputs.append(x)
+
+    x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x)  # (3, 8, 8)
+    outputs.append(x)
+    x = Dropout(0.5)(x)
+    outputs.append(x)
+    x = Concatenate()([
+        MaxPooling2D((2, 2))(x),
+        AveragePooling2D((2, 2))(x)])  # (6, 4, 4)
+    outputs.append(x)
+
+    x = Flatten()(x)  # (1, 1, 96)
+    x = Dense(4, use_bias=False)(x)
+    outputs.append(x)
+    x = Dense(3)(x)  # (1, 1, 3)
+    outputs.append(x)
+
+    outputs.append(Add()([inputs[26], inputs[30], inputs[30]]))
+    outputs.append(Subtract()([inputs[26], inputs[30]]))
+    outputs.append(Multiply()([inputs[26], inputs[30], inputs[30]]))
+    outputs.append(Average()([inputs[26], inputs[30], inputs[30]]))
+    outputs.append(Maximum()([inputs[26], inputs[30], inputs[30]]))
+    outputs.append(Concatenate()([inputs[26], inputs[30], inputs[30]]))
+
+    intermediate_input_shape = (3,)
+    intermediate_in = Input(intermediate_input_shape)
+    intermediate_x = intermediate_in
+    intermediate_x = Dense(8)(intermediate_x)
+    intermediate_x = Dense(5)(intermediate_x)
+    intermediate_model = Model(
+        inputs=[intermediate_in], outputs=[intermediate_x],
+        name='intermediate_model')
+    intermediate_model.compile(loss='mse', optimizer='nadam')
+
+    x = intermediate_model(x)  # (1, 1, 5)
+
+    intermediate_model_2 = Sequential()
+    intermediate_model_2.add(Dense(7, input_shape=(5,)))
+    intermediate_model_2.add(Dense(5))
+    intermediate_model_2.compile(optimizer='rmsprop',
+                                 loss='categorical_crossentropy')
+
+    x = intermediate_model_2(x)  # (1, 1, 5)
+
+    x = Dense(3)(x)  # (1, 1, 3)
+
+    shared_activation = Activation('tanh')
+
+    outputs = outputs + [
+        Activation('tanh')(inputs[25]),
+        Activation('hard_sigmoid')(inputs[25]),
+        Activation('selu')(inputs[25]),
+        Activation('sigmoid')(inputs[25]),
+        Activation('softplus')(inputs[25]),
+        Activation('softmax')(inputs[25]),
+        Activation('relu')(inputs[25]),
+        LeakyReLU()(inputs[25]),
+        ELU()(inputs[25]),
+        PReLU()(inputs[24]),
+        PReLU()(inputs[25]),
+        PReLU()(inputs[26]),
+        shared_activation(inputs[25]),
+        Activation('linear')(inputs[26]),
+        Activation('linear')(inputs[23]),
+        x,
+        shared_activation(x),
+    ]
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_exhaustive')
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
@@ -151,58 +285,6 @@ def get_test_model_small():
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=10)
-    return model
-
-
-def get_test_model_pooling():
-    """Returns a minimalistic test model for pooling layers."""
-
-    input_shapes = [  # volume must be a multiple of 12 for Reshape
-        (16, 18, 3),
-        (2, 3, 6),
-        (32, 32, 9),
-    ]
-    inputs = [Input(shape=s) for s in input_shapes]
-
-    outputs = []
-
-    # 1-dimensional
-    for inp in inputs:
-        reshape = Reshape((-1, 12))(inp)
-
-        # (batch_size, steps, features)
-        outputs.append(AveragePooling1D(data_format="channels_last")(reshape))
-        outputs.append(MaxPooling1D(data_format="channels_last")(reshape))
-        outputs.append(GlobalAveragePooling1D(data_format="channels_last")(reshape))
-        outputs.append(GlobalMaxPooling1D(data_format="channels_last")(reshape))
-
-        # (batch_size, features, steps)
-        outputs.append(GlobalAveragePooling1D(data_format="channels_first")(reshape))
-        outputs.append(GlobalMaxPooling1D(data_format="channels_first")(reshape))
-
-    # 2-dimensional
-    for inp in inputs:
-        # (batch_size, rows, cols, channels)
-        outputs.append(AveragePooling2D(data_format="channels_last")(inp))
-        outputs.append(MaxPooling2D(data_format="channels_last")(inp))
-        outputs.append(GlobalAveragePooling2D(data_format="channels_last")(inp))
-        outputs.append(GlobalMaxPooling2D(data_format="channels_last")(inp))
-
-        # (batch_size, channels, rows, cols)
-        # outputs.append(AveragePooling2D(data_format="channels_first")(inp))  # "Default AvgPoolingOp only supports NHWC on device type CPU"
-        # outputs.append(MaxPooling2D(data_format="channels_first")(inp))  # "Default MaxPoolingOp only supports NHWC on device type CPU"
-        outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inp))
-        outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inp))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_pooling')
-    model.compile(loss='mse', optimizer='adam')
-
-    # fit to dummy data
-    training_data_size = 1
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=1)
     return model
 
 
@@ -242,34 +324,6 @@ def get_test_model_embedding():
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=1)
-    return model
-
-
-def get_test_model_convolutional():
-    """Returns a minimalistic test model for convolutional layers."""
-    input_shapes = [
-        (17, 4),
-        (6, 10),
-        (20, 40),
-    ]
-
-    inputs = [Input(shape=s) for s in input_shapes]
-    outputs = []
-
-    for inp in inputs:
-        for padding in ['same', 'valid', 'causal']:
-            conv = Conv1D(6, 3, padding=padding, activation='relu')(inp)
-            outputs.append(conv)
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_convolutional')
-    model.compile(loss='mse', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = 1
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
     return model
 
 
@@ -518,7 +572,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
 
 def get_test_model_variable():
-    """Returns a small model for variably shaped input tensors."""
+    """Returns a exhaustive model for variably shaped input tensors."""
 
     input_shapes = [
         (None, None, 1),
@@ -584,265 +638,6 @@ def get_test_model_sequential():
     data_in = [np.random.random(size=(training_data_size, 32, 32, 3))]
     data_out = [np.random.random(size=(training_data_size, 10))]
     model.fit(data_in, data_out, epochs=10)
-    return model
-
-
-def get_test_model_full():
-    """Returns a maximally complex test model,
-    using all supported layer types with different parameter combination.
-    """
-    input_shapes = [
-        (26, 28, 3),
-        (4, 4, 3),
-        (4, 4, 3),
-        (4,),
-        (2, 3),
-        (27, 29, 1),
-        (17, 1),
-        (17, 4),
-        (2, 3),
-        (2, 3, 4, 5),
-        (2, 3, 4, 5, 6),
-        (2, 3, 4, 5, 6),
-        (7, 8, 9, 10),
-        (7, 8, 9, 10),
-        (11, 12, 13),
-        (11, 12, 13),
-        (14, 15),
-        (14, 15),
-        (16,),
-        (16,),
-    ]
-
-    inputs = [Input(shape=s) for s in input_shapes]
-
-    outputs = []
-
-    outputs.append(Flatten()(inputs[4]))
-    outputs.append(Flatten()(inputs[5]))
-    outputs.append(Flatten()(inputs[9]))
-    outputs.append(Flatten()(inputs[10]))
-
-    for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
-        outputs.append(Concatenate(axis=axis)([inputs[10], inputs[11]]))
-
-    for axis in [-4, -3, -2, -1, 1, 2, 3, 4]:
-        outputs.append(Concatenate(axis=axis)([inputs[12], inputs[13]]))
-
-    for axis in [-3, -2, -1, 1, 2, 3]:
-        outputs.append(Concatenate(axis=axis)([inputs[14], inputs[15]]))
-
-    for axis in [-2, -1, 1, 2]:
-        outputs.append(Concatenate(axis=axis)([inputs[16], inputs[17]]))
-
-    for axis in [-1, 1]:
-        outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))
-
-    for inp in inputs[6:8]:
-        for padding in ['valid', 'same', 'causal']:
-            for s in range(1, 6):
-                for out_channels in [1, 2]:
-                    for d in range(1, 4):
-                        outputs.append(
-                            Conv1D(out_channels, s, padding=padding,
-                                   dilation_rate=d)(inp))
-        for padding_size in range(0, 5):
-            outputs.append(ZeroPadding1D(padding_size)(inp))
-        for crop_left in range(0, 2):
-            for crop_right in range(0, 2):
-                outputs.append(Cropping1D((crop_left, crop_right))(inp))
-        for upsampling_factor in range(1, 5):
-            outputs.append(UpSampling1D(upsampling_factor)(inp))
-        for padding in ['valid', 'same']:
-            for pool_factor in range(1, 6):
-                for s in range(1, 4):
-                    outputs.append(
-                        MaxPooling1D(pool_factor, strides=s,
-                                     padding=padding)(inp))
-                    outputs.append(
-                        AveragePooling1D(pool_factor, strides=s,
-                                         padding=padding)(inp))
-        outputs.append(GlobalMaxPooling1D()(inp))
-        outputs.append(GlobalAveragePooling1D()(inp))
-
-    for inp in [inputs[0], inputs[5]]:
-        for padding in ['valid', 'same']:
-            for h in range(1, 6):
-                for out_channels in [1, 2]:
-                    for d in range(1, 4):
-                        outputs.append(
-                            Conv2D(out_channels, (h, 1), padding=padding,
-                                   dilation_rate=(d, 1))(inp))
-                        outputs.append(
-                            SeparableConv2D(out_channels, (h, 1), padding=padding,
-                                            dilation_rate=(d, 1))(inp))
-                    for sy in range(1, 4):
-                        outputs.append(
-                            Conv2D(out_channels, (h, 1), strides=(1, sy),
-                                   padding=padding)(inp))
-                        outputs.append(
-                            SeparableConv2D(out_channels, (h, 1),
-                                            strides=(sy, sy),
-                                            padding=padding)(inp))
-                for sy in range(1, 4):
-                    outputs.append(
-                        DepthwiseConv2D((h, 1),
-                                        strides=(sy, sy),
-                                        padding=padding)(inp))
-                    outputs.append(
-                        MaxPooling2D((h, 1), strides=(1, sy),
-                                     padding=padding)(inp))
-            for w in range(1, 6):
-                for out_channels in [1, 2]:
-                    for d in range(1, 4) if sy == 1 else [1]:
-                        outputs.append(
-                            Conv2D(out_channels, (1, w), padding=padding,
-                                   dilation_rate=(1, d))(inp))
-                        outputs.append(
-                            SeparableConv2D(out_channels, (1, w), padding=padding,
-                                            dilation_rate=(1, d))(inp))
-                    for sx in range(1, 4):
-                        outputs.append(
-                            Conv2D(out_channels, (1, w), strides=(sx, 1),
-                                   padding=padding)(inp))
-                        outputs.append(
-                            SeparableConv2D(out_channels, (1, w),
-                                            strides=(sx, sx),
-                                            padding=padding)(inp))
-                for sx in range(1, 4):
-                    outputs.append(
-                        DepthwiseConv2D((1, w),
-                                        strides=(sy, sy),
-                                        padding=padding)(inp))
-                    outputs.append(
-                        MaxPooling2D((1, w), strides=(1, sx),
-                                     padding=padding)(inp))
-    outputs.append(ZeroPadding2D(2)(inputs[0]))
-    outputs.append(ZeroPadding2D((2, 3))(inputs[0]))
-    outputs.append(ZeroPadding2D(((1, 2), (3, 4)))(inputs[0]))
-    outputs.append(Cropping2D(2)(inputs[0]))
-    outputs.append(Cropping2D((2, 3))(inputs[0]))
-    outputs.append(Cropping2D(((1, 2), (3, 4)))(inputs[0]))
-    for y in range(1, 3):
-        for x in range(1, 3):
-            outputs.append(UpSampling2D(size=(y, x))(inputs[0]))
-    outputs.append(GlobalAveragePooling2D()(inputs[0]))
-    outputs.append(GlobalMaxPooling2D()(inputs[0]))
-    outputs.append(AveragePooling2D((2, 2))(inputs[0]))
-    outputs.append(MaxPooling2D((2, 2))(inputs[0]))
-    outputs.append(UpSampling2D((2, 2))(inputs[0]))
-    outputs.append(Dropout(0.5)(inputs[0]))
-
-    # same as axis=-1
-    outputs.append(Concatenate()([inputs[1], inputs[2]]))
-    outputs.append(Concatenate(axis=3)([inputs[1], inputs[2]]))
-    # axis=0 does not make sense, since dimension 0 is the batch dimension
-    outputs.append(Concatenate(axis=1)([inputs[1], inputs[2]]))
-    outputs.append(Concatenate(axis=2)([inputs[1], inputs[2]]))
-
-    outputs.append(BatchNormalization()(inputs[0]))
-    outputs.append(BatchNormalization(center=False)(inputs[0]))
-    outputs.append(BatchNormalization(scale=False)(inputs[0]))
-
-    outputs.append(Conv2D(2, (3, 3), use_bias=True)(inputs[0]))
-    outputs.append(Conv2D(2, (3, 3), use_bias=False)(inputs[0]))
-    outputs.append(SeparableConv2D(2, (3, 3), use_bias=True)(inputs[0]))
-    outputs.append(SeparableConv2D(2, (3, 3), use_bias=False)(inputs[0]))
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=True)(inputs[0]))
-    outputs.append(DepthwiseConv2D(2, (3, 3), use_bias=False)(inputs[0]))
-
-    outputs.append(Dense(2, use_bias=True)(inputs[3]))
-    outputs.append(Dense(2, use_bias=False)(inputs[3]))
-
-    shared_conv = Conv2D(1, (1, 1),
-                         padding='valid', name='shared_conv', activation='relu')
-
-    up_scale_2 = UpSampling2D((2, 2))
-    x1 = shared_conv(up_scale_2(inputs[1]))  # (1, 8, 8)
-    x2 = shared_conv(up_scale_2(inputs[2]))  # (1, 8, 8)
-    x3 = Conv2D(1, (1, 1), padding='valid')(up_scale_2(inputs[2]))  # (1, 8, 8)
-    x = Concatenate()([x1, x2, x3])  # (3, 8, 8)
-    outputs.append(x)
-
-    x = Conv2D(3, (1, 1), padding='same', use_bias=False)(x)  # (3, 8, 8)
-    outputs.append(x)
-    x = Dropout(0.5)(x)
-    outputs.append(x)
-    x = Concatenate()([
-        MaxPooling2D((2, 2))(x),
-        AveragePooling2D((2, 2))(x)])  # (6, 4, 4)
-    outputs.append(x)
-
-    x = Flatten()(x)  # (1, 1, 96)
-    x = Dense(4, use_bias=False)(x)
-    outputs.append(x)
-    x = Dense(3)(x)  # (1, 1, 3)
-    outputs.append(x)
-
-    outputs.append(Add()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(Subtract()([inputs[4], inputs[8]]))
-    outputs.append(Multiply()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(Average()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(Maximum()([inputs[4], inputs[8], inputs[8]]))
-    outputs.append(Concatenate()([inputs[4], inputs[8], inputs[8]]))
-
-    intermediate_input_shape = (3,)
-    intermediate_in = Input(intermediate_input_shape)
-    intermediate_x = intermediate_in
-    intermediate_x = Dense(8)(intermediate_x)
-    intermediate_x = Dense(5)(intermediate_x)
-    intermediate_model = Model(
-        inputs=[intermediate_in], outputs=[intermediate_x],
-        name='intermediate_model')
-    intermediate_model.compile(loss='mse', optimizer='nadam')
-
-    x = intermediate_model(x)  # (1, 1, 5)
-
-    intermediate_model_2 = Sequential()
-    intermediate_model_2.add(Dense(7, input_shape=(5,)))
-    intermediate_model_2.add(Dense(5))
-    intermediate_model_2.compile(optimizer='rmsprop',
-                                 loss='categorical_crossentropy')
-
-    x = intermediate_model_2(x)  # (1, 1, 5)
-
-    x = Dense(3)(x)  # (1, 1, 3)
-
-    shared_activation = Activation('tanh')
-
-    outputs = outputs + [
-        Activation('tanh')(inputs[3]),
-        Activation('hard_sigmoid')(inputs[3]),
-        Activation('selu')(inputs[3]),
-        Activation('sigmoid')(inputs[3]),
-        Activation('softplus')(inputs[3]),
-        Activation('softmax')(inputs[3]),
-        Activation('relu')(inputs[3]),
-        LeakyReLU()(inputs[3]),
-        ELU()(inputs[3]),
-        PReLU()(inputs[2]),
-        PReLU()(inputs[3]),
-        PReLU()(inputs[4]),
-        shared_activation(inputs[3]),
-        Activation('linear')(inputs[4]),
-        Activation('linear')(inputs[1]),
-        x,
-        shared_activation(x),
-    ]
-
-    print('Model has {} outputs.'.format(len(outputs)))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_full')
-    model.compile(loss='mse', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = 1
-    batch_size = 1
-    epochs = 10
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=epochs, batch_size=batch_size)
     return model
 
 
@@ -939,16 +734,13 @@ def main():
         dest_path = sys.argv[2]
 
         get_model_functions = {
-            'small': get_test_model_small,
-            'pooling': get_test_model_pooling,
+            'exhaustive': get_test_model_exhaustive,
             'embedding': get_test_model_embedding,
-            'convolutional': get_test_model_convolutional,
             'recurrent': get_test_model_recurrent,
             'lstm': get_test_model_lstm,
             'gru': get_test_model_gru,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
-            'full': get_test_model_full,
             'lstm_stateful': get_test_model_lstm_stateful,
             'gru_stateful': get_test_model_gru_stateful
         }

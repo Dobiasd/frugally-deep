@@ -58,12 +58,6 @@ make unittest
 cd ../..
 ```
 
-Or if you would like to test exhaustively (and have plenty of time):
-```
-cmake -DFDEEP_BUILD_UNITTEST=ON -DFDEEP_BUILD_FULL_TEST=ON ..
-make unittest
-```
-
 
 ### Installation using [Conan C/C++ package manager](https://conan.io)
 

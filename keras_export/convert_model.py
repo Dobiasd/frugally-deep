@@ -702,7 +702,8 @@ def convert_sequential_to_model(model):
     assert model.layers
     for i in range(len(model.layers)):
         if type(model.layers[i]).__name__ in ['Model', 'Sequential']:
-            model.layers[i] = convert_sequential_to_model(model.layers[i])
+            # "model.layers[i] = ..." would not overwrite the layer.
+            model._layers[i] = convert_sequential_to_model(model.layers[i])
     return model
 
 

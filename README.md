@@ -149,25 +149,23 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |            |               |
-| `DenseNet169`     |            |               |
-| `DenseNet201`     |            |               |
-| `InceptionV3`     |            |               |
-| `MobileNet`       |            |               |
-| `MobileNetV2`     |            |               |
-| `NASNetLarge`     |            |               |
-| `NASNetMobile`    |            |               |
-| `ResNet101`       |            |               |
-| `ResNet101V2`     |            |               |
-| `ResNet152`       |            |               |
-| `ResNet152V2`     |            |               |
-| `ResNet50`        |            |               |
-| `ResNet50V2`      |            |               |
-| `VGG16`           |            |               |
-| `VGG19`           |            |               |
-| `Xception`        |            |               |
-
-Keras version: `2.3.1`
+| `DenseNet121`     |     0.19 s |        0.23 s |
+| `DenseNet169`     |     0.23 s |        0.33 s |
+| `DenseNet201`     |     0.28 s |        0.41 s |
+| `InceptionV3`     |     0.18 s |        0.38 s |
+| `MobileNet`       |     0.07 s |        0.14 s |
+| `MobileNetV2`     |     0.08 s |        0.15 s |
+| `NASNetLarge`     |     1.34 s |        4.50 s |
+| `NASNetMobile`    |     0.16 s |        0.35 s |
+| `ResNet101`       |     0.29 s |        0.45 s |
+| `ResNet101V2`     |     0.26 s |        0.41 s |
+| `ResNet152`       |     0.40 s |        0.65 s |
+| `ResNet152V2`     |     0.38 s |        0.62 s |
+| `ResNet50`        |     0.18 s |        0.26 s |
+| `ResNet50V2`      |     0.15 s |        0.22 s |
+| `VGG16`           |     0.39 s |        0.70 s |
+| `VGG19`           |     0.48 s |        0.93 s |
+| `Xception`        |     0.27 s |        1.21 s |
 
 TensorFlow version: `2.0.0`
 

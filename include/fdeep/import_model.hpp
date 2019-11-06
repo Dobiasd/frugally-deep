@@ -997,10 +997,11 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
         wrapped_layer_type == "CuDNNGRU"
     );
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
-
+    const bool stateful = json_object_get(layer_config, "stateful", false);
+    
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
                                                  recurrent_activation, wrapped_layer_type,
-                                                 use_bias, reset_after, return_sequences,
+                                                 use_bias, reset_after, return_sequences, stateful,
                                                  forward_weights, forward_recurrent_weights, forward_bias,
                                                  backward_weights, backward_recurrent_weights, backward_bias);
 }

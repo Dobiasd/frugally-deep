@@ -149,11 +149,12 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
                 print('Prediction: ', pred_seq)
                 print('Difference: ', baseline - pred_seq)
             if state_reset:
-                if stateful and states_initialized:
-                    if VERBOSE:
-                        print('Keras does not handle reset_state calls with stateful=True with initial state inputs')
-                else:
-                    test_model.reset_states()
+                test_model.reset_states()
+                # if stateful and states_initialized:
+                #     if VERBOSE:
+                #         print('Keras does not handle reset_state calls with stateful=True with initial state inputs')
+                # else:
+                #     test_model.reset_states()
     return results
 
 

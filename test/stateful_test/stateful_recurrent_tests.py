@@ -3,6 +3,7 @@ import os
 import sys
 
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, GRU, LSTM, Bidirectional
 from tensorflow.keras.models import Model
 
@@ -160,6 +161,20 @@ def eval_test_model(baseline_out, test_model, x_in, layer_name, bidi, stateful, 
 
 def main():
     print("Starting stateful recurrent tests")
+
+    # See https://www.tensorflow.org/guide/gpu
+    print('Adjusting GPU-memory settings to avoid CUDA_ERROR_OUT_OF_MEMORY.')
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
 
     # generate toy data
     train_seq_length = 4

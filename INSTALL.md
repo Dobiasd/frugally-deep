@@ -14,20 +14,18 @@ cmake ..
 make && sudo make install
 cd ../..
 
-sudo apt install mercurial
-hg clone https://bitbucket.org/eigen/eigen/
-cd eigen
+git clone -b '3.3.5' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
+cd eigen-git-mirror
 mkdir -p build && cd build
 cmake ..
 make && sudo make install
 sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 cd ../..
 
-git clone https://github.com/nlohmann/json
+git clone -b 'v3.7.1' --single-branch --depth 1 https://github.com/nlohmann/json
 cd json
-git checkout v3.1.2
 mkdir -p build && cd build
-cmake ..
+cmake -DBUILD_TESTING=OFF ..
 make && sudo make install
 cd ../..
 
@@ -43,7 +41,7 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 
 ```
 # install doctest
-git clone https://github.com/onqtam/doctest.git
+git clone -b '2.3.5' --single-branch --depth 1 https://github.com/onqtam/doctest.git
 cd doctest
 mkdir -p build && cd build
 cmake .. -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF

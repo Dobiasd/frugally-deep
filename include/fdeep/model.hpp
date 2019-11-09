@@ -206,11 +206,11 @@ private:
     {
         const tensor5s outputs = predict(inputs);
         internal::assertion(outputs.size() == 1,
-            "invalid number of outputs.\n") +
+            std::string("invalid number of outputs.\n") +
             "Use model::predict instead of model::predict_class.");
         const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.without_depth().area() == 1,
-            "invalid output shape.\n") +
+            std::string("invalid output shape.\n") +
             "Use model::predict instead of model::predict_class.");
         const auto pos = internal::tensor5_max_pos(outputs.front());
         return std::make_pair(pos.z_, outputs.front().get(pos));

@@ -248,7 +248,7 @@ def encode_floats(arr):
 def prepare_filter_weights_conv_2d(weights):
     """Change dimension order of 2d filter weights to the one used in fdeep"""
     assert len(weights.shape) == 4
-    return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 3, 0]).flatten()
+    return np.moveaxis(weights, [3, 0, 1, 2], [0, 1, 2, 3]).flatten()
 
 
 def prepare_filter_weights_slice_conv_2d(weights):

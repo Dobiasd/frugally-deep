@@ -30,10 +30,13 @@ public:
             const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_im2col_filter_matrix(
-            generate_filters(dilation_rate, filter_shape, k, weights, bias))),
+        filter_shape_(filter_shape),
+        k_(k),
+        weights_(weights),
+        bias_(bias),
         strides_(strides),
-        padding_(p)
+        padding_(p),
+        dilation_rate_(dilation_rate)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -43,11 +46,23 @@ protected:
     tensor5s apply_impl(const tensor5s& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        return {convolve(strides_, padding_, filters_, inputs.front())};
+        return {convolve(
+            filter_shape_,
+            k_,
+            weights_,
+            bias_,
+            strides_,
+            padding_,
+            dilation_rate_,
+            inputs.front())};
     }
-    im2col_filter_matrix filters_;
+    shape5 filter_shape_;
+    std::size_t k_;
+    float_vec weights_;
+    float_vec bias_;
     shape2 strides_;
     padding padding_;
+    shape2 dilation_rate_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -79,8 +79,35 @@ def generate_output_data(data_size, outputs):
             for output in outputs]
 
 
+def get_test_model_experimental():
+    """Returns a minimal model. Only used to replicate/debug specific issues."""
+    input_shapes = [
+        (20, 30, 3)
+        #(1024, 1024, 3)
+    ]
+
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+
+    outputs.append(Conv2D(8, (5, 7), use_bias=False)(inputs[0]))
+    #outputs.append(Conv2D(128, (3, 3), use_bias=False)(inputs[0]))
+    outputs.append(inputs[0])
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_experimental')
+    model.compile(loss='mse', optimizer='nadam')
+
+    # fit to dummy data
+    training_data_size = 1
+    data_in = generate_input_data(training_data_size, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=10)
+    return model
+
+
 def get_test_model_exhaustive():
-    """Returns a exhaustive test model."""
+    """Returns an exhaustive test model."""
     input_shapes = [
         (2, 3, 4, 5, 6),
         (2, 3, 4, 5, 6),
@@ -572,7 +599,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
 
 def get_test_model_variable():
-    """Returns a exhaustive model for variably shaped input tensors."""
+    """Returns a test model for variably shaped input tensors."""
 
     input_shapes = [
         (None, None, 1),
@@ -734,6 +761,7 @@ def main():
         dest_path = sys.argv[2]
 
         get_model_functions = {
+            'experimental': get_test_model_experimental,
             'exhaustive': get_test_model_exhaustive,
             'embedding': get_test_model_embedding,
             'recurrent': get_test_model_recurrent,

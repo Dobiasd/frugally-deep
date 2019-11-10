@@ -122,10 +122,11 @@ inline tensor5 convolve(
         static_cast<int>(input.width()),
         static_cast<int>(input.height()));
 
-    Eigen::array<std::pair<int, int>, 2> paddings;
-    paddings[0] = std::make_pair(conv_cfg.pad_left_, conv_cfg.pad_right_);
-    paddings[1] = std::make_pair(conv_cfg.pad_top_, conv_cfg.pad_bottom_);
-    const auto t = t_orig.pad(paddings);
+    Eigen::array<std::pair<int, int>, 2> eigen_paddings;
+    eigen_paddings[0] = std::make_pair(conv_cfg.pad_left_, conv_cfg.pad_right_);
+    eigen_paddings[1] = std::make_pair(conv_cfg.pad_top_, conv_cfg.pad_bottom_);
+    Eigen::array<Eigen::DenseIndex, 2> eigen_strides({strides.height_, strides.width_});
+    const auto t = t_orig.pad(eigen_paddings).stride(strides);
 
     tensor5 output(shape5(1, 1, conv_cfg.out_height_, conv_cfg.out_width_, k), static_cast<float_type>(0));
 

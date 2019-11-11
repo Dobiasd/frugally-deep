@@ -140,14 +140,14 @@ inline tensor5 convolve(
             static_cast<int>(filter_shape.height_));
 
         output_slices.push_back(tensor5(shape5(1, 1, conv_cfg.out_height_, conv_cfg.out_width_, 1), static_cast<float_type>(0)));
-        Eigen::TensorMap<Eigen::Tensor<float_type, 3>> outputSliceMap(
+        Eigen::TensorMap<Eigen::Tensor<float_type, 3>> output_slice_map(
             const_cast<float *>(output_slices.back().as_vector()->data()),
             static_cast<int>(1),
             static_cast<int>(conv_cfg.out_width_),
             static_cast<int>(conv_cfg.out_height_));
 
         Eigen::array<ptrdiff_t, 3> dims({0, 1, 2});
-        outputSliceMap = t.convolve(f, dims);
+        output_slice_map = t.convolve(f, dims);
     }
 
     return tensor5_from_depth_slices(output_slices);

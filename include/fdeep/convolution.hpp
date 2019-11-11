@@ -132,6 +132,8 @@ inline tensor5 convolve(
 
     // see: https://stackoverflow.com/questions/58788433/how-to-use-eigentensorconvolve-with-multiple-kernels
     std::vector<tensor5> output_slices;
+
+    // todo: Can be done in parallel.
     for (std::size_t i = 0; i < k; ++i) {
         const Eigen::TensorMap<Eigen::Tensor<float_type, 3>> f(
             const_cast<float *>(weights.data() + i * filter_shape.volume()),

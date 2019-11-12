@@ -43,41 +43,13 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-inline float_type dot_product_n(
+inline float_type dot_product(
     const float_type* xs,
     const float_type* ys,
     std::size_t n)
 {
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vx(const_cast<float*>(xs), static_cast<EigenIndex>(n));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vy(const_cast<float*>(ys), static_cast<EigenIndex>(n));
-    return vx.adjoint() * vy;
-}
-
-inline float_type dot_product_192(const float_type* xs, const float_type* ys, std::size_t)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 192, 1>> vx(const_cast<float*>(xs));
-    Eigen::Map<Eigen::Matrix<float_type, 192, 1>> vy(const_cast<float*>(ys));
-    return vx.adjoint() * vy;
-}
-
-inline float_type dot_product_384(const float_type* xs, const float_type* ys, std::size_t)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 384, 1>> vx(const_cast<float*>(xs));
-    Eigen::Map<Eigen::Matrix<float_type, 384, 1>> vy(const_cast<float*>(ys));
-    return vx.adjoint() * vy;
-}
-
-inline float_type dot_product_768(const float_type* xs, const float_type* ys, std::size_t)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 768, 1>> vx(const_cast<float*>(xs));
-    Eigen::Map<Eigen::Matrix<float_type, 768, 1>> vy(const_cast<float*>(ys));
-    return vx.adjoint() * vy;
-}
-
-inline float_type dot_product_1536(const float_type* xs, const float_type* ys, std::size_t)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 1536, 1>> vx(const_cast<float*>(xs));
-    Eigen::Map<Eigen::Matrix<float_type, 1536, 1>> vy(const_cast<float*>(ys));
     return vx.adjoint() * vy;
 }
 
@@ -100,13 +72,6 @@ inline tensor5 convolve_accumulative(
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float>(0));
     const auto dot_product_dims = f_width * f_depth;
-
-    const auto dot_product =
-        dot_product_dims == 192 ? [](const float_type* xs, const float_type* ys, std::size_t n) { return dot_product_192(xs, ys, n); } :
-        dot_product_dims == 384 ? [](const float_type* xs, const float_type* ys, std::size_t n) { return dot_product_384(xs, ys, n); } :
-        dot_product_dims == 768 ? [](const float_type* xs, const float_type* ys, std::size_t n) { return dot_product_768(xs, ys, n); } :
-        dot_product_dims == 1536 ? [](const float_type* xs, const float_type* ys, std::size_t n) { return dot_product_1536(xs, ys, n); } :
-        [](const float_type* xs, const float_type* ys, std::size_t n) { return dot_product_n(xs, ys, n); };
 
     for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
     {

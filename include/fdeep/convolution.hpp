@@ -53,7 +53,7 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-inline float_type dot_product(
+FDEEP_FORCE_INLINE float_type dot_product(
     const float_type* xs,
     const float_type* ys,
     std::size_t n)
@@ -63,12 +63,13 @@ inline float_type dot_product(
     return vx.adjoint() * vy;
 }
 
-inline tensor5 convolve_accumulative(
+FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
     std::size_t strides_x,
     const im2col_filter_matrix& filter_mat,
+    std::size_t dot_product_dims,
     const tensor5& in)
 {
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
@@ -81,9 +82,9 @@ inline tensor5 convolve_accumulative(
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
-    const auto dot_product_dims = f_width * f_depth;
+    assertion(dot_product_dims == f_width * f_depth, "invalid dot-product dimensions");
 
-    //std::cout << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
+    //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
     // todo: Use fplus::transform_parallelly on z_out.
     for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
@@ -116,6 +117,75 @@ inline tensor5 convolve_accumulative(
         }
     }
     return output;
+}
+
+inline tensor5 convolve_accumulative_fix(
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t strides_y,
+    std::size_t strides_x,
+    const im2col_filter_matrix& filter_mat,
+    std::size_t dot_product_dims,
+    const tensor5& in)
+{
+    if (strides_y == 1 && strides_x == 1 && dot_product_dims == 9) {
+        return convolve_accumulative(
+            out_height,
+            out_width,
+            1,
+            1,
+            filter_mat,
+            9,
+            in);
+    }
+    if (strides_y == 1 && strides_x == 1 && dot_product_dims == 192) {
+        return convolve_accumulative(
+            out_height,
+            out_width,
+            1,
+            1,
+            filter_mat,
+            192,
+            in);
+    }
+    if (strides_y == 1 && strides_x == 1 && dot_product_dims == 384) {
+        return convolve_accumulative(
+            out_height,
+            out_width,
+            1,
+            1,
+            filter_mat,
+            384,
+            in);
+    }
+    if (strides_y == 1 && strides_x == 1 && dot_product_dims == 768) {
+        return convolve_accumulative(
+            out_height,
+            out_width,
+            1,
+            1,
+            filter_mat,
+            768,
+            in);
+    }
+    if (strides_y == 1 && strides_x == 1 && dot_product_dims == 1536) {
+        return convolve_accumulative(
+            out_height,
+            out_width,
+            1,
+            1,
+            filter_mat,
+            1536,
+            in);
+    }
+    return convolve_accumulative(
+        out_height,
+        out_width,
+        strides_y,
+        strides_x,
+        filter_mat,
+        dot_product_dims,
+        in);
 }
 
 enum class padding { valid, same, causal };
@@ -221,10 +291,14 @@ inline tensor5 convolve(
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 
-    return convolve_accumulative(
+    const std::size_t dot_product_dims = filter_mat.filter_shape_.depth_ * filter_mat.filter_shape_.width_;
+
+    return convolve_accumulative_fix(
         out_height, out_width,
         strides.height_, strides.width_,
-        filter_mat, in_padded);
+        filter_mat,
+        dot_product_dims,
+        in_padded);
 }
 
 } } // namespace fdeep, namespace internal

@@ -74,18 +74,22 @@ inline tensor5 convolve_accumulative(
 
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float>(0));
 
+    const EigenIndex dot_product_dims = static_cast<EigenIndex>(f_width * f_depth);
+
     for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
     {
         const filter& current_filter = filters[z_out];
         for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
         {
             const float_type* filter_ptr = &(current_filter.get_tensor5().get_ref(0, 0, y_filt, 0, 0));
+            const auto v_filter = Eigen::Map<Eigen::VectorXf>(const_cast<float*>(filter_ptr), dot_product_dims).adjoint();
             for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
             {
                 for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
                 {
                     const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
-                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(input_ptr, filter_ptr, f_width * f_depth);
+                    Eigen::Map<Eigen::VectorXf> v_receptive_field(const_cast<float*>(input_ptr), dot_product_dims);
+                    output.get_ref(0, 0, y_out, x_out, z_out) += v_filter * v_receptive_field;
                 }
             }
         }

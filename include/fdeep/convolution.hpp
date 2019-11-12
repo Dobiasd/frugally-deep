@@ -48,8 +48,8 @@ inline float_type dot_product(
     const float_type* ys,
     std::size_t n)
 {
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vx(const_cast<float*>(xs), static_cast<EigenIndex>(n));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vy(const_cast<float*>(ys), static_cast<EigenIndex>(n));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vx(const_cast<float_type*>(xs), static_cast<EigenIndex>(n));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vy(const_cast<float_type*>(ys), static_cast<EigenIndex>(n));
     return vx.adjoint() * vy;
 }
 
@@ -70,7 +70,7 @@ inline tensor5 convolve_accumulative(
     const auto out_depth = filters.size();
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
-    tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float>(0));
+    tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
     const auto dot_product_dims = f_width * f_depth;
 
     for (std::size_t z_out = 0; z_out < out_depth; ++z_out)

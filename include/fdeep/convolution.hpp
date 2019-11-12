@@ -86,16 +86,16 @@ inline tensor5 convolve_accumulative(
     //std::cout << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
     // todo: Use fplus::transform_parallelly on z_out.
-    for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+    for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
     {
-        const filter& current_filter = filters[z_out];
-        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
+        for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
         {
-            const float_type* filter_ptr = &(current_filter.get_tensor5().get_ref(0, 0, y_filt, 0, 0));
-            for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
-            {
-                for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
+            for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+             {
+                for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
                 {
+                    const filter& current_filter = filters[z_out];
+                    const float_type* filter_ptr = &(current_filter.get_tensor5().get_ref(0, 0, y_filt, 0, 0));
                     const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
                     output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims);
                 }

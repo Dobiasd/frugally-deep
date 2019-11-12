@@ -24,7 +24,9 @@ struct im2col_filter_matrix
 {
     shape5 filter_shape_;
     std::size_t filter_count_;
-    std::vector<filter> filters;
+    std::vector<filter> filters_;
+    std::vector<float_type> biases_;
+    bool use_bias_;
 };
 
 inline im2col_filter_matrix generate_im2col_filter_matrix(
@@ -34,7 +36,15 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         fplus_c_mem_fn_t(filter, shape, shape5), filters),
         "all filters must have the same shape");
 
-    return {filters.front().shape(), filters.size(), filters};
+    const auto biases = fplus::transform(
+        fplus_c_mem_fn_t(filter, get_bias, float_type),
+        filters);
+
+    const bool use_bias =
+        fplus::sum(biases) != static_cast<float_type>(0) ||
+        !fplus::all_the_same(biases);
+
+    return {filters.front().shape(), filters.size(), filters, biases, use_bias};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
@@ -63,7 +73,7 @@ inline tensor5 convolve_accumulative(
 {
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
 
-    const std::vector<filter>& filters = filter_mat.filters;
+    const std::vector<filter>& filters = filter_mat.filters_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
     const auto f_depth = filter_mat.filter_shape_.depth_;
@@ -73,6 +83,9 @@ inline tensor5 convolve_accumulative(
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
     const auto dot_product_dims = f_width * f_depth;
 
+    //std::cout << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
+
+    // todo: Use fplus::transform_parallelly on z_out.
     for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
     {
         const filter& current_filter = filters[z_out];
@@ -90,14 +103,15 @@ inline tensor5 convolve_accumulative(
         }
     }
 
-    for (std::size_t y_out = 0; y_out < out_height; ++y_out)
-    {
-        for (std::size_t x_out = 0; x_out < out_width; ++x_out)
+    if (filter_mat.use_bias_) {
+        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
         {
-            for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
             {
-                const float_type bias = filters[z_out].get_bias();
-                output.set(0, 0, y_out, x_out, z_out, output.get(0, 0, y_out, x_out, z_out) + bias);
+                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+                {
+                    output.get_ref(0, 0, y_out, x_out, z_out) += filter_mat.biases_[z_out];
+                }
             }
         }
     }

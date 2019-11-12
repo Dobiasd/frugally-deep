@@ -22,7 +22,6 @@ namespace fdeep { namespace internal
 // todo: Remove. Just save raw filters on layers.
 struct im2col_filter_matrix
 {
-    ColMajorMatrixXf mat_;
     shape5 filter_shape_;
     std::size_t filter_count_;
     std::vector<filter> filters;
@@ -35,30 +34,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         fplus_c_mem_fn_t(filter, shape, shape5), filters),
         "all filters must have the same shape");
 
-    const std::size_t fy = filters.front().shape().height_;
-    const std::size_t fx = filters.front().shape().width_;
-    const std::size_t fz = filters.front().shape().depth_;
-    ColMajorMatrixXf b(filters.size(), fy * fx * fz + 1);
-    EigenIndex b_y = 0;
-    EigenIndex b_x = 0;
-    for (std::size_t f = 0; f < filters.size(); ++f)
-    {
-        b_x = 0;
-        const filter& filter = filters[f];
-        for (std::size_t yf = 0; yf < fy; ++yf)
-        {
-            for (std::size_t xf = 0; xf < fx; ++xf)
-            {
-                for (std::size_t zf = 0; zf < fz; ++zf)
-                {
-                    b(b_y, b_x++) = filter.get(yf, xf, zf);
-                }
-            }
-        }
-        b(b_y, b_x++) = filter.get_bias();
-        ++b_y;
-    }
-    return {b, filters.front().shape(), filters.size(), filters};
+    return {filters.front().shape(), filters.size(), filters};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
@@ -72,8 +48,10 @@ inline float_type dot_product(
     const float_type* ys,
     std::size_t n)
 {
-    // todo: use eigen
-    return std::inner_product(xs, xs + n, ys, static_cast<float_type>(0));
+    // todo: respect float_type
+    Eigen::Map<Eigen::VectorXf> vx(const_cast<float*>(xs), static_cast<EigenIndex>(n));
+    Eigen::Map<Eigen::VectorXf> vy(const_cast<float*>(ys), static_cast<EigenIndex>(n));
+    return vx.adjoint() * vy;
 }
 
 inline tensor5 convolve_accumulative(

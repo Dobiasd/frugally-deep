@@ -50,10 +50,19 @@ public:
     {
         return (*values_)[idx(pos)];
     }
+    const float_type& get_ref(const tensor5_pos& pos) const
+    {
+        return (*values_)[idx(pos)];
+    }
     float_type get(std::size_t pos_dim_5, std::size_t pos_dim_4,
         std::size_t y, std::size_t x, std::size_t z) const
     {
         return get(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z));
+    }
+    const float_type& get_ref(std::size_t pos_dim_5, std::size_t pos_dim_4,
+        std::size_t y, std::size_t x, std::size_t z) const
+    {
+        return get_ref(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z));
     }
     float_type get_y_x_padded(float_type pad_value,
         int y, int x, std::size_t z) const

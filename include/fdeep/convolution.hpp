@@ -13,16 +13,19 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <numeric>
 #include <vector>
 
 namespace fdeep { namespace internal
 {
 
+// todo: Remove. Just save raw filters on layers.
 struct im2col_filter_matrix
 {
     ColMajorMatrixXf mat_;
     shape5 filter_shape_;
     std::size_t filter_count_;
+    std::vector<filter> filters;
 };
 
 inline im2col_filter_matrix generate_im2col_filter_matrix(
@@ -55,7 +58,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         b(b_y, b_x++) = filter.get_bias();
         ++b_y;
     }
-    return {b, filters.front().shape(), filters.size()};
+    return {b, filters.front().shape(), filters.size(), filters};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
@@ -64,67 +67,66 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-// GEMM convolution, faster but uses more RAM
-// https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
-// https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
-// http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-inline tensor5 convolve_im2col(
+inline float_type dot_product(
+    const float_type* xs,
+    const float_type* ys,
+    std::size_t n)
+{
+    // todo: use eigen
+    return std::inner_product(xs, xs + n, ys, static_cast<float_type>(0));
+}
+
+inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,
     std::size_t strides_x,
     const im2col_filter_matrix& filter_mat,
-    const tensor5& in_padded)
+    const tensor5& in)
 {
-    const auto fy = filter_mat.filter_shape_.height_;
-    const auto fx = filter_mat.filter_shape_.width_;
-    const auto fz = filter_mat.filter_shape_.depth_;
-    ColMajorMatrixXf a(fy * fx * fz + 1, out_height * out_width);
-    EigenIndex a_x = 0;
-    for (std::size_t y = 0; y < out_height; ++y)
+    assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
+
+    const std::vector<filter>& filters = filter_mat.filters;
+    const auto f_height = filter_mat.filter_shape_.height_;
+    const auto f_width = filter_mat.filter_shape_.width_;
+    const auto f_depth = filter_mat.filter_shape_.depth_;
+    const auto out_depth = filters.size();
+
+    assertion(f_depth == in.shape().depth_, "filter depth does not match input");
+
+    tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float>(0));
+
+    for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
     {
-        for (std::size_t x = 0; x < out_width; ++x)
+        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
         {
-            EigenIndex a_y = 0;
-            for (std::size_t yf = 0; yf < fy; ++yf)
+            const float_type* filter_ptr = &(filters[z_out].get_tensor5().get_ref(0, 0, y_filt, 0, 0));
+
+            for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
             {
-                for (std::size_t xf = 0; xf < fx; ++xf)
+                for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
                 {
-                    for (std::size_t zf = 0; zf < fz; ++zf)
-                    {
-                        a(a_y++, a_x) = in_padded.get(0, 0,
-                                strides_y * y + yf,
-                                strides_x * x + xf,
-                                zf);
-                    }
+                    auto current = output.get(0, 0, y_out, x_out, z_out);
+                    const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
+                    const auto addend = dot_product(input_ptr, filter_ptr, f_width * f_depth);
+                    output.set(0, 0, y_out, x_out, z_out, current + addend);
                 }
-                a(a_y, a_x) = static_cast<float_type>(1);
             }
-            ++a_x;
         }
     }
 
-    const std::size_t val_cnt =
-        static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
-    assertion(val_cnt % (out_height * out_width) == 0,
-        "Can not calculate out_depth");
-
-    const std::size_t out_depth = val_cnt / (out_height * out_width);
-    assertion(val_cnt == out_depth * out_height * out_width,
-        "Invalid target size");
-
-    shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
-    res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
-
-    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned> out_mat_map(
-        res_vec->data(),
-        static_cast<EigenIndex>(filter_mat.mat_.rows()),
-        static_cast<EigenIndex>(a.cols()));
-
-    // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-    out_mat_map.noalias() = filter_mat.mat_ * a;
-
-    return tensor5(shape5(1, 1, out_height, out_width, out_depth), res_vec);
+    for (std::size_t y_out = 0; y_out < out_height; ++y_out)
+    {
+        for (std::size_t x_out = 0; x_out < out_width; ++x_out)
+        {
+            for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+            {
+                const float_type bias = filters[z_out].get_bias();
+                output.set(0, 0, y_out, x_out, z_out, output.get(0, 0, y_out, x_out, z_out) + bias);
+            }
+        }
+    }
+    return output;
 }
 
 enum class padding { valid, same, causal };
@@ -230,7 +232,7 @@ inline tensor5 convolve(
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 
-    return convolve_im2col(
+    return convolve_accumulative(
         out_height, out_width,
         strides.height_, strides.width_,
         filter_mat, in_padded);

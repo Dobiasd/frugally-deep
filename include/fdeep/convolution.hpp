@@ -27,6 +27,7 @@ struct im2col_filter_matrix
     std::vector<filter> filters_;
     std::vector<float_type> biases_;
     bool use_bias_;
+    tensor5 filter_tensor_;
 };
 
 inline im2col_filter_matrix generate_im2col_filter_matrix(
@@ -44,7 +45,29 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         fplus::sum(biases) != static_cast<float_type>(0) ||
         !fplus::all_the_same(biases);
 
-    return {filters.front().shape(), filters.size(), filters, biases, use_bias};
+    const auto shape = filters.front().shape();
+
+    tensor5 filter_tensor(
+        shape5(1, shape.height_, filters.size(), shape.width_, shape.depth_),
+        static_cast<float>(0));
+
+    for (std::size_t y = 0; y < shape.height_; ++y)
+    {
+        for (std::size_t n = 0; n < filters.size(); ++n)
+        {
+            for (std::size_t x = 0; x < shape.width_; ++x)
+            {
+                for (std::size_t z = 0; z < shape.depth_; ++z)
+                {
+                    filter_tensor.set(
+                        0, y, n, x, z,
+                        filters[n].get(y, x, z));
+                }
+            }
+        }
+    }
+
+    return {shape, filters.size(), filters, biases, use_bias, filter_tensor};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
@@ -74,6 +97,7 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
 
     const std::vector<filter>& filters = filter_mat.filters_;
+    const tensor5& filter_tensor = filter_mat.filter_tensor_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
     const auto f_depth = filter_mat.filter_shape_.depth_;
@@ -85,18 +109,22 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
 
     //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
-    // todo: Use fplus::transform_parallelly on z_out.
-    for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+    // todo allow prefetch for other compilers too
+
+    // todo: measure jumps in calls to dot_product
+
+    for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const filter& current_filter = filters[z_out];
-        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
+        //__builtin_prefetch(&(filter_tensor.get_ref(0, y_filt, 0, 0, 0)));
+        for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const float_type* filter_ptr = &(current_filter.get_tensor5().get_ref(0, 0, y_filt, 0, 0));
-            for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
+            for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
-                for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
+                const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
+                //__builtin_prefetch(input_ptr);
+                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
                 {
-                    const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
+                    const float_type* filter_ptr = &(filter_tensor.get_ref(0, y_filt, z_out, 0, 0));
                     output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims);
                 }
             }

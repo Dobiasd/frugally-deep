@@ -78,29 +78,6 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-// https://stackoverflow.com/a/13222410/1866775
-// x = ( x7, x6, x5, x4, x3, x2, x1, x0 )
-FDEEP_FORCE_INLINE float sum8(__m256 x) {
-    // hiQuad = ( x7, x6, x5, x4 )
-    const __m128 hiQuad = _mm256_extractf128_ps(x, 1);
-    // loQuad = ( x3, x2, x1, x0 )
-    const __m128 loQuad = _mm256_castps256_ps128(x);
-    // sumQuad = ( x3 + x7, x2 + x6, x1 + x5, x0 + x4 )
-    const __m128 sumQuad = _mm_add_ps(loQuad, hiQuad);
-    // loDual = ( -, -, x1 + x5, x0 + x4 )
-    const __m128 loDual = sumQuad;
-    // hiDual = ( -, -, x3 + x7, x2 + x6 )
-    const __m128 hiDual = _mm_movehl_ps(sumQuad, sumQuad);
-    // sumDual = ( -, -, x1 + x3 + x5 + x7, x0 + x2 + x4 + x6 )
-    const __m128 sumDual = _mm_add_ps(loDual, hiDual);
-    // lo = ( -, -, -, x0 + x2 + x4 + x6 )
-    const __m128 lo = sumDual;
-    // hi = ( -, -, -, x1 + x3 + x5 + x7 )
-    const __m128 hi = _mm_shuffle_ps(sumDual, sumDual, 0x1);
-    // sum = ( -, -, -, x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 )
-    const __m128 sum = _mm_add_ss(lo, hi);
-    return _mm_cvtss_f32(sum);
-}
 
 FDEEP_FORCE_INLINE float_type dot_product(
     const float_type* xs,
@@ -136,8 +113,8 @@ FDEEP_FORCE_INLINE float_type dot_product(
     {
         const auto xs8 = _mm256_load_ps(&(xs_aligned[8*i]));
         const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
-        const auto mulres = _mm256_mul_ps(xs8, ys8);
-        result += sum8(mulres);
+        const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
+        result += res[0] + res[4];
     }
     return result;
 }
@@ -170,20 +147,20 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     assertion(dot_product_dims % 8 == 0, "alignment does not match dot-product dimensions");
     const int dot_product_dims_div_8 = dot_product_dims / 8;
 
-    // todo: provide alternative for older CPUs
     static_assert(EIGEN_MAX_ALIGN_BYTES % 32 == 0, "invalid alignment");
 
     //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
-    // todo: use __builtin_prefetch
-    // todo: allow prefetch for other compilers too
+    // todo allow prefetch for other compilers too
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
+        //__builtin_prefetch(&(filter_tensor.get_ref(0, y_filt, 0, 0, 0)));
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
+                //__builtin_prefetch(input_ptr);
                 for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
                 {
                     const float_type* filter_ptr = &(filter_tensor.get_ref(0, y_filt, z_out, 0, 0));

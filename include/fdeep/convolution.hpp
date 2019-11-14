@@ -79,7 +79,7 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 }
 
 
-FDEEP_FORCE_INLINE float_type dot_product(
+inline float_type dot_product(
     const float_type* xs,
     const float_type* ys,
     int n_div_8)
@@ -98,16 +98,14 @@ FDEEP_FORCE_INLINE float_type dot_product(
     */
 
     // Eigen version: Works.
-    /*
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
-    */
 
     // AVX-256 version: Works.
-    // https://stackoverflow.com/questions/13000316/how-to-access-components-of-the-256-bit-ps-vector
     // todo: respect float type, or drop support for double
     // todo: if this is fast, maybe get rid of Eigen as dependency
+    /*
     float result = 0;
     for (int i = 0; i < n_div_8; ++i)
     {
@@ -117,9 +115,10 @@ FDEEP_FORCE_INLINE float_type dot_product(
         result += res[0] + res[4];
     }
     return result;
+    */
 }
 
-FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
+inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
     std::size_t strides_y,

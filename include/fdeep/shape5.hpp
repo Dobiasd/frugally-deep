@@ -53,7 +53,7 @@ public:
 
     static std::size_t depth_to_memory_depth(std::size_t depth)
     {
-        return round_up(depth, TENSOR_STACK_ALIGNMENT_BYTES / sizeof(float_type));
+        return round_up(depth, EIGEN_MAX_ALIGN_BYTES / sizeof(float_type));
     }
 
     std::size_t depth_in_memory() const

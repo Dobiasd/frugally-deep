@@ -84,8 +84,8 @@ FDEEP_FORCE_INLINE float_type dot_product(
     const float_type* ys,
     int n)
 {
-    const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, TENSOR_STACK_ALIGNMENT_BYTES));
-    const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, TENSOR_STACK_ALIGNMENT_BYTES));
+    const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, EIGEN_MAX_ALIGN_BYTES));
+    const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, EIGEN_MAX_ALIGN_BYTES));
 
     // Naive version: Works.
     /*
@@ -189,12 +189,11 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     const int dot_product_dims = static_cast<int>(f_width * f_memory_depth);
     assertion(dot_product_dims % 8 == 0, "alignment does not match dot-product dimensions");
 
+    static_assert(EIGEN_MAX_ALIGN_BYTES % 32 == 0, "invalid alignment");
+
     //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
     // todo allow prefetch for other compilers too
-
-    // todo: measure jumps in calls to dot_product
-
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         //__builtin_prefetch(&(filter_tensor.get_ref(0, y_filt, 0, 0, 0)));

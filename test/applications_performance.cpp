@@ -14,6 +14,7 @@ int test_convolution()
     const std::size_t x_width = 56;
     const std::size_t x_height = 56;
     const std::size_t x_depth = 256;
+    const int runs = 1;
 
     const fdeep::float_vec weights(filter_height * filter_width * x_depth * k, 0);
     const fdeep::float_vec bias(k, 0);
@@ -31,10 +32,14 @@ int test_convolution()
 
     using namespace std::chrono;
     const auto start_time_ns = high_resolution_clock::now().time_since_epoch().count();
-    const auto y = layer.apply({x});
+    float checksum = 0.0f; // to prevent compiler from optimizing everything away
+    for (int run = 0; run < runs; ++run)
+    {
+        const auto y = layer.apply({x});
+        checksum += y.front().get(0, 0, 1, 1, 1);
+    }
     const auto end_time_ns = high_resolution_clock::now().time_since_epoch().count();
-    const auto elapsed_ms = (end_time_ns - start_time_ns) / 1000000;
-    const auto checksum = y.front().get(0, 0, 0, 0, 0) + y.front().get(0, 0, 1, 1, 1);
+    const auto elapsed_ms = (end_time_ns - start_time_ns) / (runs * 1000000);
     std::cout << "checksum: " << checksum << ") elapsed_ms: " << elapsed_ms << std::endl;
     return 0;
 }

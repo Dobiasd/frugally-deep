@@ -41,7 +41,7 @@ int test_convolution()
 
 int main()
 {
-    //return test_convolution();
+    return test_convolution();
 
     std::vector<std::string> model_paths = {
         // todo: remove block

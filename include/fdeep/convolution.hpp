@@ -10,6 +10,8 @@
 
 #include "fdeep/filter.hpp"
 
+#include <cblas.h>
+
 #include <immintrin.h>
 
 #include <algorithm>
@@ -87,7 +89,7 @@ inline float_type dot_product(
     const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, EIGEN_MAX_ALIGN_BYTES));
     const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, EIGEN_MAX_ALIGN_BYTES));
 
-    // Naive version: Works.
+    // Naive version
     /*
     float result = 0;
     for (int i = 0; i < 8 * n_div_8; ++i)
@@ -97,17 +99,19 @@ inline float_type dot_product(
     return result;
     */
 
+    // cblas version
+    return cblas_sdot(8*n_div_8, xs_aligned, 1, ys_aligned, 1);
 
-    // Eigen version: Works.
+    // Eigen version
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned32> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned32> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
 
 
-    // AVX-256 version: Works.
+    // AVX-256 version
     // todo: respect float type, or drop support for double
     // todo: if this is fast, maybe get rid of Eigen as dependency
-    /*
+
     float result = 0;
     for (int i = 0; i < n_div_8; ++i)
     {
@@ -117,7 +121,6 @@ inline float_type dot_product(
         result += res[0] + res[4];
     }
     return result;
-    */
 }
 
 inline tensor5 convolve_accumulative(

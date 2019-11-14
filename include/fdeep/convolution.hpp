@@ -98,17 +98,16 @@ FDEEP_FORCE_INLINE float_type dot_product(
     */
 
     // Eigen version: Works.
-
+    /*
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
+    */
 
-
-
-    // AVX-256 version: todo fix
+    // AVX-256 version: Works.
     // https://stackoverflow.com/questions/13000316/how-to-access-components-of-the-256-bit-ps-vector
     // todo: respect float type, or drop support for double
-    // todo: if this is fast, get rid of Eigen as dependency
+    // todo: if this is fast, maybe get rid of Eigen as dependency
     float result = 0;
     for (int i = 0; i < n_div_8; ++i)
     {
@@ -116,49 +115,8 @@ FDEEP_FORCE_INLINE float_type dot_product(
         const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
         const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
         result += res[0] + res[4];
-        /*
-        const auto xs8 = _mm256_load_ps(&(xs_aligned[i]));
-        const auto ys8 = _mm256_load_ps(&(ys_aligned[i]));
-        const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
-        __m256 d = _mm256_permute2f128_ps(res, res, 1);
-        __m256 r = _mm256_add_ps(res, d);
-        result += r[0];
-        */
-
-        /*
-        const auto r0 = _mm256_extractf128_ps(res, 0);
-        const auto r1 = _mm256_extractf128_ps(res, 1);
-        float fr0;
-        float fr1;
-        _MM_EXTRACT_FLOAT(fr0, r0, 0);
-        _MM_EXTRACT_FLOAT(fr1, r1, 0);
-        result += fr0 + fr1;
-        //float res[8];
-        // *(__m256)(res) = _mm256_dp_ps(xs8, ys8, 0xff);
-        //result += res[0] + res[4];
-        */
     }
     return result;
-
-    /*
-
-
-        __m128d vsum1 = _mm_setzero_pd();
-        for ( ; i < (N & ~0x3); i += 4 )
-        {
-            __m256d xs8 = _mm_setzero_pd();
-            __m256d ys8 = _mm_setzero_pd();
-            __m128d v0 = _mm_load_pd( &x[i] );
-            __m128d v1 = _mm_load_pd( &x[i + 2] );
-            vsum0 = _mm_add_pd( vsum0, v0 );
-            vsum1 = _mm_add_pd( vsum1, v1 );
-        }
-
-    for (int i = 0; i < n; i+=8)
-    {
-        _mm256_dp_ps (__m256 a, __m256 b, const int imm8)
-    }
-    */
 }
 
 FDEEP_FORCE_INLINE tensor5 convolve_accumulative(

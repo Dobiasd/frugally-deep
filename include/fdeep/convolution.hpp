@@ -98,36 +98,23 @@ FDEEP_FORCE_INLINE float_type dot_product(
     */
 
     // Eigen version: Works.
-/*
+    /*
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
-*/
+    */
 
     // AVX-256 version: Works.
     // https://stackoverflow.com/questions/13000316/how-to-access-components-of-the-256-bit-ps-vector
     // todo: respect float type, or drop support for double
     // todo: if this is fast, maybe get rid of Eigen as dependency
     float result = 0;
-    for (int i = 0; i < n_div_8 - 3; i += 4)
+    for (int i = 0; i < n_div_8; ++i)
     {
-        const auto xs8a = _mm256_load_ps(&(xs_aligned[8 * (i + 0)]));
-        const auto ys8a = _mm256_load_ps(&(ys_aligned[8 * (i + 0)]));
-        const auto xs8b = _mm256_load_ps(&(xs_aligned[8 * (i + 1)]));
-        const auto ys8b = _mm256_load_ps(&(ys_aligned[8 * (i + 1)]));
-        const auto xs8c = _mm256_load_ps(&(xs_aligned[8 * (i + 2)]));
-        const auto ys8c = _mm256_load_ps(&(ys_aligned[8 * (i + 2)]));
-        const auto xs8d = _mm256_load_ps(&(xs_aligned[8 * (i + 3)]));
-        const auto ys8d = _mm256_load_ps(&(ys_aligned[8 * (i + 3)]));
-        const auto resa = _mm256_dp_ps(xs8a, ys8a, 0xff);
-        const auto resb = _mm256_dp_ps(xs8b, ys8b, 0xff);
-        const auto resc = _mm256_dp_ps(xs8c, ys8c, 0xff);
-        const auto resd = _mm256_dp_ps(xs8d, ys8d, 0xff);
-        result +=
-            resa[0] + resa[4] +
-            resb[0] + resb[4] +
-            resc[0] + resc[4] +
-            resd[0] + resd[4];
+        const auto xs8 = _mm256_load_ps(&(xs_aligned[8*i]));
+        const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
+        const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
+        result += res[0] + res[4];
     }
     return result;
 }

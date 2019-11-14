@@ -97,15 +97,17 @@ inline float_type dot_product(
     return result;
     */
 
+/*
     // Eigen version: Works.
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
+*/
 
     // AVX-256 version: Works.
     // todo: respect float type, or drop support for double
     // todo: if this is fast, maybe get rid of Eigen as dependency
-    /*
+
     float result = 0;
     for (int i = 0; i < n_div_8; ++i)
     {
@@ -115,7 +117,7 @@ inline float_type dot_product(
         result += res[0] + res[4];
     }
     return result;
-    */
+
 }
 
 inline tensor5 convolve_accumulative(

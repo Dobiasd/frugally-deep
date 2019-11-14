@@ -8,6 +8,7 @@
 
 int test_convolution()
 {
+    std::cout << "EIGEN_MAX_ALIGN_BYTES: " << EIGEN_MAX_ALIGN_BYTES << std::endl;
     const std::size_t k = 512;
     const std::size_t filter_height = 3;
     const std::size_t filter_width = 3;

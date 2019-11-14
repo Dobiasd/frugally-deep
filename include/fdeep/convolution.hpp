@@ -99,8 +99,8 @@ inline float_type dot_product(
 
 
     // Eigen version: Works.
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned32> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned32> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
 
 

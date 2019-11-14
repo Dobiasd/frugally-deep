@@ -10,6 +10,8 @@
 
 #include "fdeep/filter.hpp"
 
+#include <immintrin.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -25,7 +27,7 @@ struct im2col_filter_matrix
     shape5 filter_shape_;
     std::size_t filter_count_;
     std::vector<filter> filters_;
-    std::vector<float_type> biases_;
+    float_vec biases_;
     bool use_bias_;
     tensor5 filter_tensor_;
 };
@@ -37,7 +39,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         fplus_c_mem_fn_t(filter, shape, shape5), filters),
         "all filters must have the same shape");
 
-    const auto biases = fplus::transform(
+    const auto biases = fplus::transform_convert<float_vec>(
         fplus_c_mem_fn_t(filter, get_bias, float_type),
         filters);
 
@@ -79,11 +81,55 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 FDEEP_FORCE_INLINE float_type dot_product(
     const float_type* xs,
     const float_type* ys,
-    std::size_t n)
+    int n)
 {
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vx(const_cast<float_type*>(xs), static_cast<EigenIndex>(n));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>> vy(const_cast<float_type*>(ys), static_cast<EigenIndex>(n));
-    return vx.adjoint() * vy;
+    const auto xs_aligned = __builtin_assume_aligned(xs, TENSOR_STACK_ALIGNMENT_BYTES);
+    const auto ys_aligned = __builtin_assume_aligned(ys, TENSOR_STACK_ALIGNMENT_BYTES);
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(reinterpret_cast<float_type*>(xs_aligned), static_cast<EigenIndex>(n));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(reinterpret_cast<float_type*>(ys_aligned), static_cast<EigenIndex>(n));
+    return vx * vy;
+
+    //return xs[0] * ys[0] + xs[n/2] * ys[n/2];
+    /*
+    // https://stackoverflow.com/questions/13000316/how-to-access-components-of-the-256-bit-ps-vector
+    // todo: respect float type
+    float result = 0;
+    int i = 0;
+    void* xs_ptr = xs;
+    void* ys_ptr = xs;
+    while ()
+
+    for ( ; i < n / 8; i += 8 )
+    {
+        // __builtin_assume_aligned
+        const auto xs8 = _mm256_load_ps(&((xs + 4) / 4)[i]);
+        const auto ys8 = _mm256_load_ps(&((ys + 4) / 4)[i]);
+        const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
+
+        result += res[0] + res[4];
+        //_mm256_store_pd( &result, res);
+    }
+    */
+
+    /*
+
+
+        __m128d vsum1 = _mm_setzero_pd();
+        for ( ; i < (N & ~0x3); i += 4 )
+        {
+            __m256d xs8 = _mm_setzero_pd();
+            __m256d ys8 = _mm_setzero_pd();
+            __m128d v0 = _mm_load_pd( &x[i] );
+            __m128d v1 = _mm_load_pd( &x[i + 2] );
+            vsum0 = _mm_add_pd( vsum0, v0 );
+            vsum1 = _mm_add_pd( vsum1, v1 );
+        }
+
+    for (int i = 0; i < n; i+=8)
+    {
+        _mm256_dp_ps (__m256 a, __m256 b, const int imm8)
+    }
+    */
 }
 
 FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
@@ -104,8 +150,13 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     const auto out_depth = filters.size();
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
+
+    const auto f_memory_depth = filter_mat.filter_shape_.depth_in_memory();
+    const auto in_memory_depth = in.shape().depth_in_memory();
+    assertion(f_memory_depth == in_memory_depth, "invalid alignment");
+
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
-    const std::size_t dot_product_dims = f_width * f_depth;
+    const int dot_product_dims = static_cast<int>(f_width * f_memory_depth);
 
     //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
@@ -143,6 +194,7 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
             }
         }
     }
+    //std::cout << "---" << std::endl;
     return output;
 }
 

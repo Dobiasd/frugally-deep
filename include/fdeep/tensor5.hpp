@@ -28,22 +28,106 @@ namespace fdeep { namespace internal
 class tensor5
 {
 public:
+
+    static shared_float_vec memory_align_values(const shape5& shape,
+        const shared_float_vec& values)
+    {
+        const std::size_t depth_diff = shape.depth_in_memory() - shape.depth_;
+        if (depth_diff == 0)
+        {
+            return values;
+        }
+        auto aligned_values = fplus::make_shared_ref<float_vec>(shape.volume_in_memory(), 0);
+
+        for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+        {
+            for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+            {
+                for (std::size_t y = 0; y < shape.height_; ++y)
+                {
+                    for (std::size_t x = 0; x < shape.width_; ++x)
+                    {
+                        for (std::size_t z = 0; z < shape.depth_; ++z)
+                        {
+                            (*aligned_values)[
+                                idx_with_memory_depth(tensor5_pos(
+                                    dim5, dim4, y, x, z),
+                                    shape.size_dim_4_,
+                                    shape.height_,
+                                    shape.width_,
+                                    shape.depth_in_memory())] = (*values)[
+                                idx_with_memory_depth(tensor5_pos(
+                                    dim5, dim4, y, x, z),
+                                    shape.size_dim_4_,
+                                    shape.height_,
+                                    shape.width_,
+                                    shape.depth_)];
+                        }
+                    }
+                }
+            }
+        }
+
+        return aligned_values;
+    }
+
+    static shared_float_vec memory_unalign_values(const shape5& shape,
+        const shared_float_vec& values)
+    {
+        const std::size_t depth_diff = shape.depth_in_memory() - shape.depth_;
+        if (depth_diff == 0)
+        {
+            return values;
+        }
+        auto unaligned_values = fplus::make_shared_ref<float_vec>(shape.volume(), 0);
+
+        for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+        {
+            for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+            {
+                for (std::size_t y = 0; y < shape.height_; ++y)
+                {
+                    for (std::size_t x = 0; x < shape.width_; ++x)
+                    {
+                        for (std::size_t z = 0; z < shape.depth_; ++z)
+                        {
+                            (*unaligned_values)[
+                                idx_with_memory_depth(tensor5_pos(
+                                    dim5, dim4, y, x, z),
+                                    shape.size_dim_4_,
+                                    shape.height_,
+                                    shape.width_,
+                                    shape.depth_)] = (*values)[
+                                idx_with_memory_depth(tensor5_pos(
+                                    dim5, dim4, y, x, z),
+                                    shape.size_dim_4_,
+                                    shape.height_,
+                                    shape.width_,
+                                    shape.depth_in_memory())];
+                        }
+                    }
+                }
+            }
+        }
+
+        return unaligned_values;
+    }
+
     tensor5(const shape5& shape, const shared_float_vec& values) :
         shape_(shape),
-        values_(values)
+        values_(memory_align_values(shape, values))
     {
-        assertion(shape.volume() == values->size(), "invalid number of values");
+        assertion(shape.volume_in_memory() == values_->size(), "invalid alignment");
     }
     tensor5(const shape5& shape, float_vec&& values) :
         shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(std::move(values)))
+        values_(memory_align_values(shape, fplus::make_shared_ref<float_vec>(std::move(values))))
     {
-        assertion(shape.volume() == values_->size(),
-            "invalid number of values");
+        assertion(shape.volume_in_memory() == values_->size(), "invalid alignment");
     }
     tensor5(const shape5& shape, float_type value) :
         shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(shape.volume(), value))
+        values_(memory_align_values(shape, fplus::make_shared_ref<float_vec>(shape.volume(), value)))
     {
     }
     float_type get(const tensor5_pos& pos) const
@@ -118,20 +202,35 @@ public:
     {
         return shape().width_;
     }
-    const shared_float_vec& as_vector() const
+    const shared_float_vec as_vector() const
     {
-        return values_;
+        return memory_unalign_values(shape(), values_);
     }
 
 private:
-    std::size_t idx(const tensor5_pos& pos) const
+    static std::size_t idx_with_memory_depth(const tensor5_pos& pos,
+        std::size_t size_dim_4,
+        std::size_t height,
+        std::size_t width,
+        std::size_t memory_depth)
     {
         return
-            pos.pos_dim_5_ * shape().size_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
-            pos.pos_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
-            pos.y_ * shape().width_ * shape().depth_ +
-            pos.x_ * shape().depth_ +
+            pos.pos_dim_5_ * size_dim_4 * height * width * memory_depth +
+            pos.pos_dim_4_ * height * width * memory_depth +
+            pos.y_ * width * memory_depth +
+            pos.x_ * memory_depth +
             pos.z_;
+    };
+
+    std::size_t idx(const tensor5_pos& pos) const
+    {
+        return idx_with_memory_depth(
+            pos,
+            shape().size_dim_4_,
+            shape().height_,
+            shape().width_,
+            shape().depth_in_memory()
+        );
     };
     shape5 shape_;
     shared_float_vec values_;
@@ -159,7 +258,8 @@ inline tensor5 from_singleton_value(float_type value)
 template <typename F>
 tensor5 transform_tensor5(F f, const tensor5& m)
 {
-    return tensor5(m.shape(), fplus::transform(f, *m.as_vector()));
+    return tensor5(m.shape(), fplus::transform_convert<float_vec>(f,
+        *m.as_vector()));
 }
 
 inline tensor5 tensor5_from_depth_slices(const std::vector<tensor5>& ms)
@@ -742,7 +842,7 @@ inline tensor5 reshape_tensor5(const tensor5& in,
         "Reshape can only infer one dimension");
     const auto fixed_dims = fplus::keep_if(fplus::is_not_equal_to(-1), shape);
     const auto fixes_dims_prod = fplus::product(fixed_dims);
-    const auto num_values = static_cast<int>(in.as_vector()->size());
+    const auto num_values = static_cast<int>(in.shape().volume());
     assertion(num_values % fixes_dims_prod == 0,
         "Invalid dimensions in reshape");
     const auto deduced_dim = num_values / fixes_dims_prod;
@@ -809,7 +909,7 @@ inline tensor5 multiply_tensor5s(const tensor5s& ts_all)
     if (factors_and_tensors.first.size() > 0) {
         const auto factor = fplus::product(
             fplus::transform(to_singleton_value, factors_and_tensors.first));
-        result_values = fplus::transform(
+        result_values = fplus::transform_convert<float_vec>(
             fplus::multiply_with<float_type>(factor), result_values);
     }
     return tensor5(ts.front().shape(), std::move(result_values));
@@ -819,7 +919,11 @@ inline tensor5 subtract_tensor5(const tensor5& a, const tensor5& b)
 {
     assertion(a.shape() == b.shape(),
         "both tensor5s must have the same size");
-    auto result_values = fplus::zip_with(std::minus<float_type>(),
+    const auto f = std::minus<float_type>();
+    float_vec result_values = fplus::zip_with<
+        float_vec, float_vec,
+        decltype(f), float_type, float_type, float_type, float_vec
+    >(f,
         *a.as_vector(), *b.as_vector());
     return tensor5(a.shape(), std::move(result_values));
 }

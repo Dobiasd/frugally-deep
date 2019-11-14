@@ -45,6 +45,27 @@ public:
         return size_dim_5_ * size_dim_4_ * height_ * width_ * depth_;
     }
 
+    static std::size_t round_up(std::size_t x, std::size_t multiple)
+    {
+        assert(multiple);
+        return ((x + multiple - 1) / multiple) * multiple;
+    }
+
+    static std::size_t depth_to_memory_depth(std::size_t depth)
+    {
+        return round_up(depth, TENSOR_STACK_ALIGNMENT_BYTES / sizeof(float_type));
+    }
+
+    std::size_t depth_in_memory() const
+    {
+        return depth_to_memory_depth(depth_);
+    }
+
+    std::size_t volume_in_memory() const
+    {
+        return size_dim_5_ * size_dim_4_ * height_ * width_ * depth_in_memory();
+    }
+
     void assert_is_shape_2() const
     {
         assertion(

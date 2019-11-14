@@ -28,6 +28,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include <boost/align/aligned_allocator.hpp>
+
 #include <fplus/fplus.hpp>
 
 #include <cmath>
@@ -77,7 +79,12 @@ inline void assertion(bool cond, const std::string& error)
     typedef Eigen::DenseIndex EigenIndex;
 #endif
 
-typedef std::vector<float_type> float_vec;
+// todo: avoid depending on boost just because of this
+#define TENSOR_STACK_ALIGNMENT_BYTES 32
+template <typename T>
+using aligned_vector = std::vector<T, boost::alignment::aligned_allocator<T, TENSOR_STACK_ALIGNMENT_BYTES>>;
+
+typedef aligned_vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;

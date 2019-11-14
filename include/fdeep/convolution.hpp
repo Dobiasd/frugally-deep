@@ -78,6 +78,30 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
+float_vec tempa(768, 0);
+
+// x = ( x7, x6, x5, x4, x3, x2, x1, x0 )
+float sum8(__m256 x) {
+    // hiQuad = ( x7, x6, x5, x4 )
+    const __m128 hiQuad = _mm256_extractf128_ps(x, 1);
+    // loQuad = ( x3, x2, x1, x0 )
+    const __m128 loQuad = _mm256_castps256_ps128(x);
+    // sumQuad = ( x3 + x7, x2 + x6, x1 + x5, x0 + x4 )
+    const __m128 sumQuad = _mm_add_ps(loQuad, hiQuad);
+    // loDual = ( -, -, x1 + x5, x0 + x4 )
+    const __m128 loDual = sumQuad;
+    // hiDual = ( -, -, x3 + x7, x2 + x6 )
+    const __m128 hiDual = _mm_movehl_ps(sumQuad, sumQuad);
+    // sumDual = ( -, -, x1 + x3 + x5 + x7, x0 + x2 + x4 + x6 )
+    const __m128 sumDual = _mm_add_ps(loDual, hiDual);
+    // lo = ( -, -, -, x0 + x2 + x4 + x6 )
+    const __m128 lo = sumDual;
+    // hi = ( -, -, -, x1 + x3 + x5 + x7 )
+    const __m128 hi = _mm_shuffle_ps(sumDual, sumDual, 0x1);
+    // sum = ( -, -, -, x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 )
+    const __m128 sum = _mm_add_ss(lo, hi);
+    return _mm_cvtss_f32(sum);
+}
 
 inline float_type dot_product(
     const float_type* xs,
@@ -86,6 +110,21 @@ inline float_type dot_product(
 {
     const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, EIGEN_MAX_ALIGN_BYTES));
     const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, EIGEN_MAX_ALIGN_BYTES));
+    const auto temp_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(&(tempa[0]), EIGEN_MAX_ALIGN_BYTES));
+
+    for (int i = 0; i < n_div_8; ++i)
+    {
+        const auto xs8 = _mm256_load_ps(&(xs_aligned[8*i]));
+        const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
+        const auto res = _mm256_mul_ps(xs8, ys8);
+        _mm256_store_ps(&(temp_aligned[8*i]), res);
+    }
+    float result = 0;
+    for (int i = 0; i < n_div_8; ++i)
+    {
+        result += sum8(_mm256_load_ps(&(temp_aligned[8*i])));
+    }
+    return result;
 
     // Naive version: Works.
     /*
@@ -147,6 +186,9 @@ inline tensor5 convolve_accumulative(
     const int dot_product_dims = static_cast<int>(f_width * f_memory_depth);
     assertion(dot_product_dims % 8 == 0, "alignment does not match dot-product dimensions");
     const int dot_product_dims_div_8 = dot_product_dims / 8;
+
+    std::cout << "dot_product_dims: " << dot_product_dims << std::endl;
+    std::cout << "dot_product_dims_div_8: " << dot_product_dims_div_8 << std::endl;
 
     static_assert(EIGEN_MAX_ALIGN_BYTES % 32 == 0, "invalid alignment");
 

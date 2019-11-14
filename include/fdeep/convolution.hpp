@@ -82,7 +82,7 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 FDEEP_FORCE_INLINE float_type dot_product(
     const float_type* xs,
     const float_type* ys,
-    int n)
+    int n_div_8)
 {
     const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, EIGEN_MAX_ALIGN_BYTES));
     const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, EIGEN_MAX_ALIGN_BYTES));
@@ -90,7 +90,7 @@ FDEEP_FORCE_INLINE float_type dot_product(
     // Naive version: Works.
     /*
     float result = 0;
-    for (int i = 0; i < dims; ++i)
+    for (int i = 0; i < 8 * n_div_8; ++i)
     {
         result += xs_aligned[i] * ys_aligned[i];
     }
@@ -99,9 +99,8 @@ FDEEP_FORCE_INLINE float_type dot_product(
 
     // Eigen version: Works.
 
-    int dims = 8 * (n / 8); // Hint to the compiler.
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(dims));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(dims));
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
     return vx * vy;
 
 
@@ -111,10 +110,10 @@ FDEEP_FORCE_INLINE float_type dot_product(
     // todo: respect float type, or drop support for double
     // todo: if this is fast, get rid of Eigen as dependency
     float result = 0;
-    for (int i = 0; i < n / 8; i += 8)
+    for (int i = 0; i < n_div_8; ++i)
     {
-        const auto xs8 = _mm256_load_ps(&(xs_aligned[i]));
-        const auto ys8 = _mm256_load_ps(&(ys_aligned[i]));
+        const auto xs8 = _mm256_load_ps(&(xs_aligned[8*i]));
+        const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
         const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
         result += res[0] + res[4];
         /*
@@ -188,6 +187,7 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
     const int dot_product_dims = static_cast<int>(f_width * f_memory_depth);
     assertion(dot_product_dims % 8 == 0, "alignment does not match dot-product dimensions");
+    const int dot_product_dims_div_8 = dot_product_dims / 8;
 
     static_assert(EIGEN_MAX_ALIGN_BYTES % 32 == 0, "invalid alignment");
 
@@ -206,7 +206,7 @@ FDEEP_FORCE_INLINE tensor5 convolve_accumulative(
                 for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
                 {
                     const float_type* filter_ptr = &(filter_tensor.get_ref(0, y_filt, z_out, 0, 0));
-                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims);
+                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims_div_8);
                 }
             }
         }

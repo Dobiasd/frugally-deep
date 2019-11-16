@@ -23,12 +23,12 @@ int main()
     std::vector<float> all_results = {};
     std::vector<float> one_result = {};
 
-    const shared_float_vec xt0(fplus::make_shared_ref<float_vec>(x_inf_0));
-    const shared_float_vec xt1(fplus::make_shared_ref<float_vec>(x_inf_1));
-    const shared_float_vec st0(fplus::make_shared_ref<float_vec>(state_0));
-    const shared_float_vec st1(fplus::make_shared_ref<float_vec>(state_1));
-    const shared_float_vec st2(fplus::make_shared_ref<float_vec>(state_2));
-    const shared_float_vec st3(fplus::make_shared_ref<float_vec>(state_3));
+    const float_vec xt0(x_inf_0);
+    const float_vec xt1(x_inf_1);
+    const float_vec st0(state_0);
+    const float_vec st1(state_1);
+    const float_vec st2(state_2);
+    const float_vec st3(state_3);
 
     const tensor5 test_in_0(shape5(1, 1, 1, 4, 1), xt0);
     const tensor5 test_in_1(shape5(1, 1, 1, 4, 1), xt1);
@@ -41,121 +41,121 @@ int main()
     auto model = load_model("./models/GRU_nonstateful_no_init_state.json");
     /// state_reset = true
     auto result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 2: "GRU_nonstateful_init_state.json" ***********
     model = load_model("./models/GRU_nonstateful_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict({test_in_1, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 3: "GRU_stateful_no_init_state.json" ***********
     model = load_model("./models/GRU_stateful_no_init_state.json");
     /// state_reset = true fdr =
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 4: "GRU_stateful_init_state.json" ***********
     model = load_model("./models/GRU_stateful_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1, test_state_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 5: "LSTM_nonstateful_no_init_state.json" ***********
     model = load_model("./models/LSTM_nonstateful_no_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 6: "LSTM_nonstateful_init_state.json" ***********
     model = load_model("./models/LSTM_nonstateful_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 7: "LSTM_stateful_no_init_state.json" ***********
     model = load_model("./models/LSTM_stateful_no_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 8: "LSTM_stateful_init_state.json" ***********
     model = load_model("./models/LSTM_stateful_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // ************************* BIDIRECTIONAL TESTS ************************* //
     #define TF_BIDI_BUG_FIXED false
@@ -163,121 +163,121 @@ int main()
     model = load_model("./models/bidi-GRU_nonstateful_no_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 10: "bidi-GRU_nonstateful_init_state.json" ***********
     model = load_model("./models/bidi-GRU_nonstateful_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 11: "bidi-GRU_stateful_no_init_state.json" ***********
     model = load_model("./models/bidi-GRU_stateful_no_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED)  model.reset_states();
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 12: "bidi-GRU_stateful_init_state.json" ***********
     model = load_model("./models/bidi-GRU_stateful_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED)  model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 13: "bidi-LSTM_nonstateful_no_init_state.json" ***********
     model = load_model("./models/bidi-LSTM_nonstateful_no_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 14: "bidi-LSTM_nonstateful_init_state.json" ***********
     model = load_model("./models/bidi-LSTM_nonstateful_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 15: "bidi-LSTM_stateful_no_init_state.json" ***********
     model = load_model("./models/bidi-LSTM_stateful_no_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     // *********** TEST 16: "bidi-LSTM_stateful_init_state.json" ***********
     model = load_model("./models/bidi-LSTM_nonstateful_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     if(TF_BIDI_BUG_FIXED) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
-    vec_append(all_results, *result[0].as_vector());
+    vec_append(all_results, result[0].as_vector());
 
     #undef TF_BIDI_BUG_FIXED
 

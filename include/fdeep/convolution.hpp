@@ -113,11 +113,10 @@ inline tensor5 convolve_im2col(
     assertion(val_cnt == out_depth * out_height * out_width,
         "Invalid target size");
 
-    shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
-    res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
+    float_vec res_vec = float_vec(static_cast<std::size_t>(out_depth * out_height * out_width));
 
     Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned> out_mat_map(
-        res_vec->data(),
+        res_vec.data(),
         static_cast<EigenIndex>(filter_mat.mat_.rows()),
         static_cast<EigenIndex>(a.cols()));
 

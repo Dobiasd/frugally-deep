@@ -13,6 +13,8 @@
 
 #include <fplus/fplus.hpp>
 
+#include <eigen3/unsupported/Eigen/CXX11/Tensor>
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -27,28 +29,27 @@ namespace fdeep { namespace internal
 
 class tensor5
 {
+private:
+    typedef Eigen::Tensor<float_type, 5> EigenTensor;
+    typedef EigenTensor::Index EigenTensorIndex;
+
 public:
-    tensor5(const shape5& shape, const shared_float_vec& values) :
-        shape_(shape),
-        values_(values)
+    tensor5(const shape5& shape, const float_vec& values) :
+        data_(create_eigen_tensor(shape, values))
     {
-        assertion(shape.volume() == values->size(), "invalid number of values");
-    }
-    tensor5(const shape5& shape, float_vec&& values) :
-        shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(std::move(values)))
-    {
-        assertion(shape.volume() == values_->size(),
-            "invalid number of values");
     }
     tensor5(const shape5& shape, float_type value) :
-        shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(shape.volume(), value))
+        data_(create_eigen_tensor(shape, value))
     {
     }
     float_type get(const tensor5_pos& pos) const
     {
-        return (*values_)[idx(pos)];
+        return data_(
+            static_cast<EigenTensorIndex>(pos.pos_dim_5_),
+            static_cast<EigenTensorIndex>(pos.pos_dim_4_),
+            static_cast<EigenTensorIndex>(pos.z_),
+            static_cast<EigenTensorIndex>(pos.y_),
+            static_cast<EigenTensorIndex>(pos.x_));
     }
     float_type get(std::size_t pos_dim_5, std::size_t pos_dim_4,
         std::size_t y, std::size_t x, std::size_t z) const
@@ -77,16 +78,26 @@ public:
     }
     void set(const tensor5_pos& pos, float_type value)
     {
-        (*values_)[idx(pos)] = value;
+        data_(
+            static_cast<EigenTensorIndex>(pos.pos_dim_5_),
+            static_cast<EigenTensorIndex>(pos.pos_dim_4_),
+            static_cast<EigenTensorIndex>(pos.z_),
+            static_cast<EigenTensorIndex>(pos.y_),
+            static_cast<EigenTensorIndex>(pos.x_)) = value;
     }
     void set(std::size_t pos_dim_5, std::size_t pos_dim_4,
         std::size_t y, std::size_t x, std::size_t z, float_type value)
     {
         set(tensor5_pos(pos_dim_5, pos_dim_4, y, x, z), value);
     }
-    const shape5& shape() const
+    const shape5 shape() const
     {
-        return shape_;
+        return shape5(
+            static_cast<std::size_t>(data_.dimensions()[0]),
+            static_cast<std::size_t>(data_.dimensions()[1]),
+            static_cast<std::size_t>(data_.dimensions()[3]),
+            static_cast<std::size_t>(data_.dimensions()[4]),
+            static_cast<std::size_t>(data_.dimensions()[2]));
     }
     std::size_t depth() const
     {
@@ -100,23 +111,100 @@ public:
     {
         return shape().width_;
     }
-    const shared_float_vec& as_vector() const
+    // todo: avoid using internally because of performance reasons
+    const float_vec as_vector() const
     {
-        return values_;
+        float_vec result(shape().volume());
+        std::size_t i = 0;
+        for (std::size_t dim5 = 0; dim5 < shape().size_dim_5_; ++dim5)
+        {
+            for (std::size_t dim4 = 0; dim4 < shape().size_dim_4_; ++dim4)
+            {
+                for (std::size_t y = 0; y < shape().height_; ++y)
+                {
+                    for (std::size_t x = 0; x < shape().width_; ++x)
+                    {
+                        for (std::size_t z = 0; z < shape().depth_; ++z)
+                        {
+                            result[i++] = get(dim5, dim4, y, x, z);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
 private:
-    std::size_t idx(const tensor5_pos& pos) const
+
+    static EigenTensor create_eigen_tensor(
+        const shape5& shape, const float_vec& values)
     {
-        return
-            pos.pos_dim_5_ * shape().size_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
-            pos.pos_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
-            pos.y_ * shape().width_ * shape().depth_ +
-            pos.x_ * shape().depth_ +
-            pos.z_;
-    };
-    shape5 shape_;
-    shared_float_vec values_;
+        assertion(shape.volume() == values.size(), "invalid number of values");
+        EigenTensor result(
+            static_cast<EigenTensorIndex>(shape.size_dim_5_),
+            static_cast<EigenTensorIndex>(shape.size_dim_4_),
+            static_cast<EigenTensorIndex>(shape.depth_),
+            static_cast<EigenTensorIndex>(shape.height_),
+            static_cast<EigenTensorIndex>(shape.width_));
+        std::size_t i = 0;
+        for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+        {
+            for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+            {
+                for (std::size_t y = 0; y < shape.height_; ++y)
+                {
+                    for (std::size_t x = 0; x < shape.width_; ++x)
+                    {
+                        for (std::size_t z = 0; z < shape.depth_; ++z)
+                        {
+                            result(
+                                static_cast<EigenTensorIndex>(dim5),
+                                static_cast<EigenTensorIndex>(dim4),
+                                static_cast<EigenTensorIndex>(z),
+                                static_cast<EigenTensorIndex>(y),
+                                static_cast<EigenTensorIndex>(x)) = values[i++];
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static EigenTensor create_eigen_tensor(
+        const shape5& shape, float_type value)
+    {
+        EigenTensor result(
+            static_cast<EigenTensorIndex>(shape.size_dim_5_),
+            static_cast<EigenTensorIndex>(shape.size_dim_4_),
+            static_cast<EigenTensorIndex>(shape.depth_),
+            static_cast<EigenTensorIndex>(shape.height_),
+            static_cast<EigenTensorIndex>(shape.width_));
+        for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+        {
+            for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+            {
+                for (std::size_t z = 0; z < shape.depth_; ++z)
+                {
+                    for (std::size_t y = 0; y < shape.height_; ++y)
+                    {
+                        for (std::size_t x = 0; x < shape.width_; ++x)
+                        {
+                            result(static_cast<EigenTensorIndex>(dim5),
+                                static_cast<EigenTensorIndex>(dim4),
+                                static_cast<EigenTensorIndex>(z),
+                                static_cast<EigenTensorIndex>(y),
+                                static_cast<EigenTensorIndex>(x)) = value;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    EigenTensor data_;
 };
 
 typedef std::vector<tensor5> tensor5s;
@@ -141,7 +229,25 @@ inline tensor5 from_singleton_value(float_type value)
 template <typename F>
 tensor5 transform_tensor5(F f, const tensor5& m)
 {
-    return tensor5(m.shape(), fplus::transform(f, *m.as_vector()));
+    tensor5 result(m.shape(), static_cast<float_type>(0));
+    const auto shape = m.shape();
+    for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+        {
+            for (std::size_t z = 0; z < shape.depth_; ++z)
+            {
+                for (std::size_t y = 0; y < shape.height_; ++y)
+                {
+                    for (std::size_t x = 0; x < shape.width_; ++x)
+                    {
+                        result.set(dim5, dim4, y, x, z, f(m.get(dim5, dim4, y, x, z)));
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }
 
 inline tensor5 tensor5_from_depth_slices(const std::vector<tensor5>& ms)
@@ -724,7 +830,7 @@ inline tensor5 reshape_tensor5(const tensor5& in,
         "Reshape can only infer one dimension");
     const auto fixed_dims = fplus::keep_if(fplus::is_not_equal_to(-1), shape);
     const auto fixes_dims_prod = fplus::product(fixed_dims);
-    const auto num_values = static_cast<int>(in.as_vector()->size());
+    const auto num_values = static_cast<int>(in.as_vector().size());
     assertion(num_values % fixes_dims_prod == 0,
         "Invalid dimensions in reshape");
     const auto deduced_dim = num_values / fixes_dims_prod;
@@ -748,15 +854,15 @@ inline tensor5 sum_tensor5s(const tensor5s& ts)
         fplus::all_the_same_on(fplus_c_mem_fn_t(tensor5, shape, shape5), ts),
         "all tensor5s must have the same size");
     const auto ts_values = fplus::transform(
-        fplus_c_mem_fn_t(tensor5, as_vector, shared_float_vec), ts);
+        fplus_c_mem_fn_t(tensor5, as_vector, float_vec), ts);
     float_vec result_values;
-    result_values.reserve(ts_values.front()->size());
-    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    result_values.reserve(ts_values.front().size());
+    for (std::size_t i = 0; i < ts_values.front().size(); ++i)
     {
         float_type sum_val = static_cast<float_type>(0);
         for (const auto& t_vals : ts_values)
         {
-            sum_val += (*t_vals)[i];
+            sum_val += t_vals[i];
         }
         result_values.push_back(sum_val);
     }
@@ -776,15 +882,15 @@ inline tensor5 multiply_tensor5s(const tensor5s& ts_all)
         fplus::all_the_same_on(fplus_c_mem_fn_t(tensor5, shape, shape5), ts),
         "all tensor5s must have the same size");
     const auto ts_values = fplus::transform(
-        fplus_c_mem_fn_t(tensor5, as_vector, shared_float_vec), ts);
+        fplus_c_mem_fn_t(tensor5, as_vector, float_vec), ts);
     float_vec result_values;
-    result_values.reserve(ts_values.front()->size());
-    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    result_values.reserve(ts_values.front().size());
+    for (std::size_t i = 0; i < ts_values.front().size(); ++i)
     {
         float_type product_val = static_cast<float_type>(1);
         for (const auto& t_vals : ts_values)
         {
-            product_val *= (*t_vals)[i];
+            product_val *= t_vals[i];
         }
         result_values.push_back(product_val);
     }
@@ -802,7 +908,7 @@ inline tensor5 subtract_tensor5(const tensor5& a, const tensor5& b)
     assertion(a.shape() == b.shape(),
         "both tensor5s must have the same size");
     auto result_values = fplus::zip_with(std::minus<float_type>(),
-        *a.as_vector(), *b.as_vector());
+        a.as_vector(), b.as_vector());
     return tensor5(a.shape(), std::move(result_values));
 }
 
@@ -820,15 +926,15 @@ inline tensor5 max_tensor5s(const tensor5s& ts)
         fplus::all_the_same_on(fplus_c_mem_fn_t(tensor5, shape, shape5), ts),
         "all tensor5s must have the same size");
     const auto ts_values = fplus::transform(
-        fplus_c_mem_fn_t(tensor5, as_vector, shared_float_vec), ts);
+        fplus_c_mem_fn_t(tensor5, as_vector, float_vec), ts);
     float_vec result_values;
-    result_values.reserve(ts_values.front()->size());
-    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    result_values.reserve(ts_values.front().size());
+    for (std::size_t i = 0; i < ts_values.front().size(); ++i)
     {
         float_type max_val = std::numeric_limits<float_type>::lowest();
         for (const auto& t_vals : ts_values)
         {
-            max_val = std::max(max_val, (*t_vals)[i]);
+            max_val = std::max(max_val, t_vals[i]);
         }
         result_values.push_back(max_val);
     }
@@ -844,11 +950,10 @@ inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
     return m;
 }
 
-inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
+inline float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
 {
-    shared_float_vec result = fplus::make_shared_ref<float_vec>();
-    result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
-    std::memcpy(result->data(), m.data(), result->size() * sizeof(float_type));
+    float_vec result = float_vec(static_cast<std::size_t>(m.rows() * m.cols()));
+    std::memcpy(result.data(), m.data(), result.size() * sizeof(float_type));
     return result;
 }
 
@@ -856,7 +961,6 @@ inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
 
 using float_type = internal::float_type;
 using float_vec = internal::float_vec;
-using shared_float_vec = internal::shared_float_vec;
 using tensor5 = internal::tensor5;
 using tensor5s = internal::tensor5s;
 using tensor5s_vec = internal::tensor5s_vec;
@@ -864,7 +968,7 @@ using tensor5s_vec = internal::tensor5s_vec;
 
 inline std::string show_tensor5(const tensor5& t)
 {
-    const auto xs = *t.as_vector();
+    const auto xs = t.as_vector();
     const auto test_strs = fplus::transform(
         fplus::fwd::show_float_fill_left(' ', 0, 4), xs);
     const auto max_length = fplus::size_of_cont(fplus::maximum_on(
@@ -916,7 +1020,7 @@ inline void tensor5_into_bytes(const tensor5& t, std::uint8_t* value_ptr,
     internal::float_type low = 0.0f, internal::float_type high = 1.0f)
 {
     const auto values = t.as_vector();
-    internal::assertion(bytes_available == values->size(),
+    internal::assertion(bytes_available == values.size(),
     "invalid buffer size");
     const auto bytes = fplus::transform(
         [low, high](internal::float_type v) -> std::uint8_t
@@ -925,8 +1029,8 @@ inline void tensor5_into_bytes(const tensor5& t, std::uint8_t* value_ptr,
             fplus::reference_interval(
                 static_cast<float_type>(0.0f),
                 static_cast<float_type>(255.0f), low, high, v));
-    }, *values);
-    for (std::size_t i = 0; i < values->size(); ++i)
+    }, values);
+    for (std::size_t i = 0; i < values.size(); ++i)
     {
         *(value_ptr++) = bytes[i];
     }
@@ -953,14 +1057,14 @@ inline tensor5s_vec reshape_tensor5_vectors(
 {
     const auto values = fplus::concat(fplus::concat(
         fplus::transform_inner(
-            [](const tensor5& t) -> float_vec {return *t.as_vector();},
+            [](const tensor5& t) -> float_vec {return t.as_vector();},
             tss)));
 
     fdeep::internal::assertion(values.size() == vectors_size * vector_size * height * width * depth,
         "Invalid number of values for reshape target.");
 
     const auto ts = fplus::transform(
-        [&](fdeep::float_vec v) -> tensor5 {return tensor5(shape5(1, 1, height, width, depth), std::move(v));},
+        [&](fdeep::float_vec v) -> tensor5 {return tensor5(shape5(1, 1, height, width, depth), v);},
         fplus::split_every(depth * height * width, values));
 
     return fplus::split_every(vector_size, ts);

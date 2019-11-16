@@ -19,12 +19,12 @@ public:
     explicit prelu_layer(const std::string& name, const float_vec& alpha,
             std::vector<std::size_t> shared_axes)
         : layer(name),
-        alpha_(fplus::make_shared_ref<float_vec>(alpha)),
+        alpha_(alpha),
         shared_axes_(shared_axes)
     {
     }
 protected:
-    fdeep::shared_float_vec alpha_;
+    fdeep::float_vec alpha_;
     std::vector<std::size_t> shared_axes_;
     tensor5s apply_impl(const tensor5s& input) const override
     {
@@ -72,7 +72,7 @@ protected:
                             y_temp * width * depth +
                             x_temp * depth +
                             z_temp;
-                        out.set(0, 0, y, x, z, (*alpha_)[pos] *
+                        out.set(0, 0, y, x, z, alpha_[pos] *
                             input[0].get(0, 0, y, x, z));
                     }
                 }

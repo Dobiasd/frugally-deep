@@ -105,8 +105,8 @@ inline tensor5s lstm_impl(const tensor5& input,
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
     RowMajorMatrixXf h(1, n_units);
     RowMajorMatrixXf c(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
-    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
+    h = eigen_row_major_mat_from_values(1, n_units, initial_state_h.as_vector());
+    c = eigen_row_major_mat_from_values(1, n_units, initial_state_c.as_vector());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
@@ -219,7 +219,7 @@ inline tensor5s gru_impl(const tensor5& input,
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
     RowMajorMatrixXf h(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    h = eigen_row_major_mat_from_values(1, n_units, initial_state_h.as_vector());
 
     // write input to eigen matrix of shape (timesteps, n_features)
     RowMajorMatrix<Dynamic, Dynamic> x(n_timesteps, n_features);

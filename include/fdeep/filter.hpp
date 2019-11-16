@@ -24,7 +24,7 @@ public:
     filter(const tensor5& m, float_type bias) : m_(m), bias_(bias)
     {
     }
-    const shape5& shape() const
+    const shape5 shape() const
     {
         return m_.shape();
     }

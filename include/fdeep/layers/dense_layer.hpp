@@ -55,7 +55,7 @@ protected:
         //     input = flatten_tensor5(input);
         // }
         const auto input_parts = fplus::split_every(
-            input.shape().depth_, *input.as_vector());
+            input.shape().depth_, input.as_vector());
 
         const auto result_value_vectors = fplus::transform(
             [this](const auto& input_part) -> float_vec
@@ -65,7 +65,7 @@ protected:
                 const auto bias_padded_input = bias_pad_input(input_part);
                 const auto result = bias_padded_input * params_;
                 assertion(result.rows() == 1, "invalid result size.");
-                return *eigen_row_major_mat_to_values(result);
+                return eigen_row_major_mat_to_values(result);
             },
             input_parts);
 
@@ -79,7 +79,7 @@ protected:
             input.shape().height_,
             input.shape().width_,
             n_out_),
-            fplus::make_shared_ref<fdeep::float_vec>(result_values))};
+            result_values)};
     }
     static RowMajorMatrixXf bias_pad_input(const float_vec& input)
     {

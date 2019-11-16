@@ -294,7 +294,7 @@ int main()
 How to convert an `Eigen::Matrix` to `fdeep::tensor5`?
 ------------------------------------------------------
 
-You can copy the values from `Eigen::Matrix` to `fdeep::tensor5`:
+Copy the values from `Eigen::Matrix` to `fdeep::tensor5`:
 
 ```cpp
 #include <iostream>
@@ -342,50 +342,6 @@ int main()
 }
 ```
 
-Or you can reuse the memory, by sharing it between `Eigen::Matrix` and `fdeep::tensor5`.
-
-```cpp
-#include <iostream>
-#include <eigen3/Eigen/Dense>
-#include <fdeep/fdeep.hpp>
-
-int main()
-{
-    // use row major storage order for eigen matrix, since fdeep uses it too
-    using RowMajorMatrixXf = Eigen::Matrix<fdeep::float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-    // dimensions of the eigen matrix
-    const int rows = 640;
-    const int cols = 480;
-
-    // initialize memory shared between matrix and tensor
-    fdeep::shared_float_vec data_vec = fplus::make_shared_ref<fdeep::float_vec>();
-    data_vec->resize(static_cast<std::size_t>(rows * cols));
-
-    // create eigen matrix using the memory block from the vector above
-    Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> mapped_matrix(
-        data_vec->data(),
-        rows, cols);
-
-    // populate mapped_matrix some way
-    mapped_matrix(0, 0) = 4.0f;
-    mapped_matrix(1, 1) = 5.0f;
-    mapped_matrix(4, 2) = 6.0f;
-
-    // create fdeep::tensor5 also using the memory block of the vector
-    const int tensor5_channels = rows;
-    const int tensor5_rows = 1;
-    const int tensor5_cols = cols;
-    fdeep::shape5 tensor5_shape(1, 1, tensor5_rows, tensor5_cols, tensor5_channels);
-    fdeep::tensor5 t(tensor5_shape, data_vec);
-
-    // print some values to make sure the mapping is correct
-    std::cout << t.get(0, 0, 0, 0, 0) << std::endl;
-    std::cout << t.get(0, 0, 0, 1, 1) << std::endl;
-    std::cout << t.get(0, 0, 0, 4, 2) << std::endl;
-}
-```
-
 How to fill an `fdeep::tensor5` with values, e.g., from an `std::vector<float>`?
 --------------------------------------------------------------------------------
 
@@ -404,29 +360,14 @@ int main()
 
 But in case one already has an `std::vector<float>` with values, one might want to re-use it.
 
-So the `std::vector<float>` needs to be converted to `fplus::shared_ref<std::vector<float>>` for `fdeep::tensor` to accept it in its constructor.
-
-`T` can be converted to `fplus::shared_ref<T>` by using `fplus::make_shared_ref<T>`:
+`fdeep::tensor` to accept an `std::vector<float>` in its constructor.
 
 ```cpp
 #include <fdeep/fdeep.hpp>
 int main()
 {
     const std::vector<float> v = {1, 2, 3};
-    const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(v));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
-}
-```
-
-In case the original vector is no longer needed, the copy of the value can be avoided by making it an r-value with `std::move`:
-
-```cpp
-#include <fdeep/fdeep.hpp>
-int main()
-{
-    const std::vector<float> v = {1, 2, 3};
-    const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(std::move(v)));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
+    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), v);
 }
 ```
 

@@ -30,7 +30,7 @@ public:
             const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
         : layer(name),
-        filters_(generate_im2col_filter_matrix(
+        filters_(generate_filter_tensor(
             generate_filters(dilation_rate, filter_shape, k, weights, bias))),
         strides_(strides),
         padding_(p)
@@ -45,7 +45,7 @@ protected:
         assertion(inputs.size() == 1, "only one input tensor allowed");
         return {convolve(strides_, padding_, filters_, inputs.front())};
     }
-    im2col_filter_matrix filters_;
+    filter_tensor filters_;
     shape2 strides_;
     padding padding_;
 };

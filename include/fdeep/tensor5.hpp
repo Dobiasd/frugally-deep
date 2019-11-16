@@ -135,6 +135,12 @@ public:
         return result;
     }
 
+    // todo: make private. Should not be in public API.
+    const EigenTensor& get_eigen_tensor() const
+    {
+        return data_;
+    }
+
 private:
 
     static EigenTensor create_eigen_tensor(

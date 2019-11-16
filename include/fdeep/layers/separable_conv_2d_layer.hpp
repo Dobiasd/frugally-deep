@@ -38,7 +38,7 @@ public:
         filters_depthwise_(fplus::transform(generate_im2col_single_filter_matrix,
             generate_filters(dilation_rate, filter_shape,
                 input_depth, depthwise_weights, bias_0))),
-        filters_pointwise_(generate_im2col_filter_matrix(
+        filters_pointwise_(generate_filter_tensor(
             generate_filters(shape2(1, 1),
                 shape5(1, 1, 1, 1, input_depth), k, pointwise_weights, bias))),
         strides_(strides),
@@ -61,9 +61,9 @@ protected:
             "invalid input depth");
 
         const auto convolve_slice =
-            [&](const tensor5& slice, const im2col_filter_matrix& f) -> tensor5
+            [&](const tensor5& slice, const filter_tensor& f) -> tensor5
         {
-            assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
+            assertion(f.filter_shape().depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_, f, slice);
             assertion(result.shape().depth_ == 1, "invalid conv output");
             return result;
@@ -77,8 +77,8 @@ protected:
         return {convolve(shape2(1, 1), padding::valid, filters_pointwise_, temp)};
     }
 
-    std::vector<im2col_filter_matrix> filters_depthwise_;
-    im2col_filter_matrix filters_pointwise_;
+    std::vector<filter_tensor> filters_depthwise_;
+    filter_tensor filters_pointwise_;
     shape2 strides_;
     padding padding_;
 };

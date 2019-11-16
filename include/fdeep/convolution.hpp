@@ -10,6 +10,15 @@
 
 #include "fdeep/filter.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "tensorflow/core/kernels/eigen_spatial_convolutions-inl.h"
+#pragma GCC diagnostic pop
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -18,14 +27,27 @@
 namespace fdeep { namespace internal
 {
 
-struct im2col_filter_matrix
+struct filter_tensor
 {
-    ColMajorMatrixXf mat_;
-    shape5 filter_shape_;
-    std::size_t filter_count_;
+    typedef Eigen::Tensor<float_type, 4>::Index EigenTensorIndex;
+    Eigen::Tensor<float_type, 4> tensor_;
+    float_vec bias_;
+    shape5 filter_shape() const
+    {
+        return shape5(
+            1,
+            1,
+            static_cast<std::size_t>(tensor_.dimensions()[2]),
+            static_cast<std::size_t>(tensor_.dimensions()[3]),
+            static_cast<std::size_t>(tensor_.dimensions()[1]));
+    }
+    std::size_t filter_count() const
+    {
+        return static_cast<std::size_t>(tensor_.dimensions()[0]);
+    }
 };
 
-inline im2col_filter_matrix generate_im2col_filter_matrix(
+inline filter_tensor generate_filter_tensor(
     const std::vector<filter>& filters)
 {
     assertion(fplus::all_the_same_on(
@@ -35,95 +57,40 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::size_t fy = filters.front().shape().height_;
     const std::size_t fx = filters.front().shape().width_;
     const std::size_t fz = filters.front().shape().depth_;
-    ColMajorMatrixXf b(filters.size(), fy * fx * fz + 1);
-    EigenIndex b_y = 0;
-    EigenIndex b_x = 0;
+    Eigen::Tensor<float_type, 4> t(
+        static_cast<filter_tensor::EigenTensorIndex>(filters.size()),
+        static_cast<filter_tensor::EigenTensorIndex>(fz),
+        static_cast<filter_tensor::EigenTensorIndex>(fy),
+        static_cast<filter_tensor::EigenTensorIndex>(fx));
     for (std::size_t f = 0; f < filters.size(); ++f)
     {
-        b_x = 0;
-        const filter& filter = filters[f];
         for (std::size_t yf = 0; yf < fy; ++yf)
         {
             for (std::size_t xf = 0; xf < fx; ++xf)
             {
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_y, b_x++) = filter.get(yf, xf, zf);
+                    t(
+                        static_cast<filter_tensor::EigenTensorIndex>(f),
+                        static_cast<filter_tensor::EigenTensorIndex>(zf),
+                        static_cast<filter_tensor::EigenTensorIndex>(yf),
+                        static_cast<filter_tensor::EigenTensorIndex>(xf)) =
+                            filters[f].get(yf, xf, zf);
                 }
             }
         }
-        b(b_y, b_x++) = filter.get_bias();
-        ++b_y;
     }
-    return {b, filters.front().shape(), filters.size()};
+
+    float_vec bias = fplus::transform(
+        fplus_c_mem_fn_t(filter, get_bias, float_type), filters);
+
+    return {t, bias};
 }
 
-inline im2col_filter_matrix generate_im2col_single_filter_matrix(
+inline filter_tensor generate_im2col_single_filter_matrix(
     const filter& filter)
 {
-    return generate_im2col_filter_matrix(filter_vec(1, filter));
-}
-
-// GEMM convolution, faster but uses more RAM
-// https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
-// https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
-// http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-inline tensor5 convolve_im2col(
-    std::size_t out_height,
-    std::size_t out_width,
-    std::size_t strides_y,
-    std::size_t strides_x,
-    const im2col_filter_matrix& filter_mat,
-    const tensor5& in_padded)
-{
-    const auto fy = filter_mat.filter_shape_.height_;
-    const auto fx = filter_mat.filter_shape_.width_;
-    const auto fz = filter_mat.filter_shape_.depth_;
-    ColMajorMatrixXf a(fy * fx * fz + 1, out_height * out_width);
-    EigenIndex a_x = 0;
-    for (std::size_t y = 0; y < out_height; ++y)
-    {
-        for (std::size_t x = 0; x < out_width; ++x)
-        {
-            EigenIndex a_y = 0;
-            for (std::size_t yf = 0; yf < fy; ++yf)
-            {
-                for (std::size_t xf = 0; xf < fx; ++xf)
-                {
-                    for (std::size_t zf = 0; zf < fz; ++zf)
-                    {
-                        a(a_y++, a_x) = in_padded.get(0, 0,
-                                strides_y * y + yf,
-                                strides_x * x + xf,
-                                zf);
-                    }
-                }
-                a(a_y, a_x) = static_cast<float_type>(1);
-            }
-            ++a_x;
-        }
-    }
-
-    const std::size_t val_cnt =
-        static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
-    assertion(val_cnt % (out_height * out_width) == 0,
-        "Can not calculate out_depth");
-
-    const std::size_t out_depth = val_cnt / (out_height * out_width);
-    assertion(val_cnt == out_depth * out_height * out_width,
-        "Invalid target size");
-
-    float_vec res_vec = float_vec(static_cast<std::size_t>(out_depth * out_height * out_width));
-
-    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned> out_mat_map(
-        res_vec.data(),
-        static_cast<EigenIndex>(filter_mat.mat_.rows()),
-        static_cast<EigenIndex>(a.cols()));
-
-    // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-    out_mat_map.noalias() = filter_mat.mat_ * a;
-
-    return tensor5(shape5(1, 1, out_height, out_width, out_depth), res_vec);
+    return generate_filter_tensor(filter_vec(1, filter));
 }
 
 enum class padding { valid, same, causal };
@@ -212,27 +179,86 @@ inline convolution_config preprocess_convolution(
 inline tensor5 convolve(
     const shape2& strides,
     const padding& pad_type,
-    const im2col_filter_matrix& filter_mat,
+    const filter_tensor& filter_mat,
     const tensor5& input)
 {
-    assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
+    assertion(input.shape().size_dim_5_ == 1, "invalid input shape");
+    assertion(input.shape().size_dim_4_ == 1, "invalid input shape");
+    assertion(filter_mat.filter_shape().depth_ == input.shape().depth_,
         "invalid filter depth");
 
     const auto conv_cfg = preprocess_convolution(
-        filter_mat.filter_shape_.without_depth(),
+        filter_mat.filter_shape().without_depth(),
         strides, pad_type, input.shape().height_, input.shape().width_);
 
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
+    const std::size_t filter_count = filter_mat.filter_count();
 
     const auto in_padded = pad_tensor5(0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 
-    return convolve_im2col(
-        out_height, out_width,
-        strides.height_, strides.width_,
-        filter_mat, in_padded);
+    tensor5 result(shape5(1, 1, out_height, out_width, filter_count),
+        static_cast<float_type>(0));
+
+    typedef Eigen::Tensor<float_type, 3> EigenTensor3;
+    typedef EigenTensor3::Index EigenTensor3Index;
+
+    //Eigen::Map<Eigen::Tensor<float_type, 3>> source(
+        //in_padded.get_eigen_tensor().data,
+    Eigen::Tensor<float_type, 3> source(
+        static_cast<EigenTensor3Index>(in_padded.shape().depth_),
+        static_cast<EigenTensor3Index>(in_padded.shape().height_),
+        static_cast<EigenTensor3Index>(in_padded.shape().width_));
+
+    for (std::size_t z = 0; z < in_padded.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < in_padded.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < in_padded.shape().width_; ++x)
+            {
+                source(
+                    static_cast<EigenTensor3Index>(z),
+                    static_cast<EigenTensor3Index>(y),
+                    static_cast<EigenTensor3Index>(x)) = in_padded.get(0, 0, y, x, z);
+            }
+        }
+    }
+
+    // todo: move padding here
+    // todo: move bias here
+    const auto eigen_padding = Eigen::PADDING_VALID;
+    Eigen::Tensor<float_type, 3> dest(
+        static_cast<EigenTensor3Index>(filter_count),
+        static_cast<EigenTensor3Index>(out_height),
+        static_cast<EigenTensor3Index>(out_width));
+    dest = SpatialConvolution(source, filter_mat.tensor_,
+        static_cast<Eigen::Index>(strides.height_),
+        static_cast<Eigen::Index>(strides.width_),
+        eigen_padding,
+        1,
+        1,
+        Eigen::NoOpOutputKernel(),
+        0, 0,
+        0, 0);
+
+    for (std::size_t z = 0; z < result.shape().depth_; ++z)
+    {
+        for (std::size_t y = 0; y < result.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < result.shape().width_; ++x)
+            {
+                result.set(0, 0, y, x, z,
+                    dest(
+                        static_cast<EigenTensor3Index>(z),
+                        static_cast<EigenTensor3Index>(y),
+                        static_cast<EigenTensor3Index>(x)) + filter_mat.bias_[z]);
+            }
+        }
+    }
+
+    return result;
 }
 
 } } // namespace fdeep, namespace internal

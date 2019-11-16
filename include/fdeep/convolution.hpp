@@ -10,6 +10,7 @@
 
 #include "fdeep/filter.hpp"
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
@@ -17,8 +18,11 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 #include "tensorflow/core/kernels/eigen_spatial_convolutions-inl.h"
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 #include <algorithm>
 #include <cassert>

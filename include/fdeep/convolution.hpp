@@ -16,7 +16,7 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-ignored-attributes"
+#pragma GCC diagnostic ignored "-Wignored-attributes"
 #include "tensorflow/core/kernels/eigen_spatial_convolutions-inl.h"
 #pragma GCC diagnostic pop
 

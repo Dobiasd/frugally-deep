@@ -23,7 +23,7 @@ Table of contents
 Introduction
 ------------
 
-Would you like to build/train a model using Keras/Python? And would you like run the prediction (forward pass) on your model in C++ without linking your application against TensorFlow? Then frugally-deep is exactly for you.
+Would you like to build/train a model using Keras/Python? And would you like to run the prediction (forward pass) on your model in C++ without linking your application against TensorFlow? Then frugally-deep is exactly for you.
 
 **frugally-deep**
 
@@ -31,11 +31,11 @@ Would you like to build/train a model using Keras/Python? And would you like run
 * is very easy to integrate and use.
 * depends only on [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus), [Eigen](http://eigen.tuxfamily.org/) and [json](https://github.com/nlohmann/json) - also header-only libraries.
 * supports inference (`model.predict`) not only for [sequential models](https://keras.io/getting-started/sequential-model-guide/) but also for computational graphs with a more complex topology, created with the [functional API](https://keras.io/getting-started/functional-api-guide/).
-* re-implements a (small) subset of TensorFlow, i.e. the operations needed to support prediction.
+* re-implements a (small) subset of TensorFlow, i.e., the operations needed to support prediction.
 * results in a much smaller binary size than linking against TensorFlow.
-* works out of-the-box also when compiled into a 32-bit executable. (Of course 64 bit is fine too.)
+* works out-of-the-box also when compiled into a 32-bit executable. (Of course, 64 bit is fine too.)
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core per prediction. ;-)
-* but is quite fast on one CPU core [compared to TensorFlow](#performance), and you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
+* but you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
 
 
 ### Supported layer types

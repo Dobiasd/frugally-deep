@@ -35,7 +35,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * results in a much smaller binary size than linking against TensorFlow.
 * works out-of-the-box also when compiled into a 32-bit executable. (Of course, 64 bit is fine too.)
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core per prediction. ;-)
-* but you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
+* but is quite fast on one CPU core [compared to TensorFlow](#performance), and you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
 
 
 ### Supported layer types
@@ -145,29 +145,27 @@ For more integration examples please have a look at the [FAQ](FAQ.md).
 Performance
 -----------
 
-Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep was compiled (GCC ver. 5.4.0) with `g++ -O3 -mavx` (same as TensorFlow binaries). The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
+Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow (`2.0.0`) were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.19 s |        0.23 s |
-| `DenseNet169`     |     0.23 s |        0.33 s |
-| `DenseNet201`     |     0.28 s |        0.41 s |
-| `InceptionV3`     |     0.18 s |        0.38 s |
-| `MobileNet`       |     0.07 s |        0.14 s |
+| `DenseNet121`     |     0.19 s |        0.26 s |
+| `DenseNet169`     |     0.23 s |        0.29 s |
+| `DenseNet201`     |     0.28 s |        0.36 s |
+| `InceptionV3`     |     0.18 s |        0.27 s |
+| `MobileNet`       |     0.07 s |        0.13 s |
 | `MobileNetV2`     |     0.08 s |        0.15 s |
-| `NASNetLarge`     |     1.34 s |        4.50 s |
+| `NASNetLarge`     |     1.34 s |        4.17 s |
 | `NASNetMobile`    |     0.16 s |        0.35 s |
-| `ResNet101`       |     0.29 s |        0.45 s |
-| `ResNet101V2`     |     0.26 s |        0.41 s |
-| `ResNet152`       |     0.40 s |        0.65 s |
-| `ResNet152V2`     |     0.38 s |        0.62 s |
-| `ResNet50`        |     0.18 s |        0.26 s |
-| `ResNet50V2`      |     0.15 s |        0.22 s |
-| `VGG16`           |     0.39 s |        0.70 s |
-| `VGG19`           |     0.48 s |        0.93 s |
-| `Xception`        |     0.27 s |        1.21 s |
-
-TensorFlow version: `2.0.0`
+| `ResNet101`       |     0.29 s |        0.31 s |
+| `ResNet101V2`     |     0.26 s |        0.28 s |
+| `ResNet152`       |     0.40 s |        0.45 s |
+| `ResNet152V2`     |     0.38 s |        0.41 s |
+| `ResNet50`        |     0.18 s |        0.19 s |
+| `ResNet50V2`      |     0.15 s |        0.16 s |
+| `VGG16`           |     0.39 s |        0.45 s |
+| `VGG19`           |     0.48 s |        0.54 s |
+| `Xception`        |     0.27 s |        1.05 s |
 
 Requirements and Installation
 -----------------------------

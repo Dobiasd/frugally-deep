@@ -295,6 +295,7 @@ inline model read_model(std::istream& model_file_stream,
         return json_data["trainable_params"][layer_name][param_name];
     };
 
+    log_sol("Building model");
     model full_model(internal::create_model_layer(
         get_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"],
@@ -303,6 +304,7 @@ inline model read_model(std::istream& model_file_stream,
         internal::create_shape5s_variable(json_data["output_shapes"]),
         internal::json_object_get<std::string, std::string>(
             json_data, "hash", ""));
+    log_duration();
 
     if (verify)
     {

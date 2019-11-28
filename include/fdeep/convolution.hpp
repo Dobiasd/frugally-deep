@@ -80,6 +80,7 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 
 
 inline float_type dot_product(
+    // Adding __restrict__ here does not help either
     const float_type* xs,
     const float_type* ys,
     int n_div_8)

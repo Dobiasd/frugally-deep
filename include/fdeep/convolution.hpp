@@ -157,16 +157,17 @@ inline tensor5 convolve_accumulative(
     // todo allow prefetch for other compilers too
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        //__builtin_prefetch(&(filter_tensor.get_ref(0, y_filt, 0, 0, 0)));
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
-                //__builtin_prefetch(input_ptr);
+                __builtin_prefetch(input_ptr, 0, 3);
                 for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
                 {
-                    const float_type* filter_ptr = &(filter_tensor.get_ref(0, y_filt, z_out, 0, 0));
+                    __builtin_prefetch(&output.get_ref(0, 0, y_out, x_out, z_out) + 64, 1, 2);
+                    const float_type* filter_ptr = &filter_tensor.get_ref(0, y_filt, z_out, 0, 0);
+                    __builtin_prefetch(&filter_tensor.get_ref(0, y_filt, z_out, 0, 0) + 64, 0, 0);
                     output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims_div_8);
                 }
             }

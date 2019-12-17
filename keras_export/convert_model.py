@@ -354,7 +354,8 @@ def show_batch_normalization_layer(layer):
     else:
         assert len(layer.axis) == 1
         layer_axis = layer.axis[0]
-    assert layer_axis == -1 or layer_axis + 1 == len(layer.input_shape)
+    assert layer_axis == -1 or layer_axis + 1 == len(layer.input_shape), \
+        "BatchNormalization only supported on the last tensor axis"
     moving_mean = K.get_value(layer.moving_mean)
     moving_variance = K.get_value(layer.moving_variance)
     result = {}

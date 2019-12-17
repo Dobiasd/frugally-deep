@@ -152,7 +152,27 @@ def get_test_model_exhaustive():
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
 
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization(axis=1)(inputs[0]))
+    outputs.append(BatchNormalization(axis=2)(inputs[0]))
+    outputs.append(BatchNormalization(axis=3)(inputs[0]))
+    outputs.append(BatchNormalization(axis=4)(inputs[0]))
+    outputs.append(BatchNormalization(axis=5)(inputs[0]))
+    outputs.append(BatchNormalization()(inputs[2]))
+    outputs.append(BatchNormalization(axis=1)(inputs[2]))
+    outputs.append(BatchNormalization(axis=2)(inputs[2]))
+    outputs.append(BatchNormalization(axis=3)(inputs[2]))
+    outputs.append(BatchNormalization(axis=4)(inputs[2]))
     outputs.append(BatchNormalization()(inputs[4]))
+    #outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
+    outputs.append(BatchNormalization(axis=2)(inputs[4]))
+    outputs.append(BatchNormalization(axis=3)(inputs[4]))
+    outputs.append(BatchNormalization()(inputs[6]))
+    outputs.append(BatchNormalization(axis=1)(inputs[6]))
+    outputs.append(BatchNormalization(axis=2)(inputs[6]))
+    outputs.append(BatchNormalization()(inputs[8]))
+    outputs.append(BatchNormalization(axis=1)(inputs[8]))
+
     outputs.append(Dropout(0.5)(inputs[4]))
 
     outputs.append(ZeroPadding2D(2)(inputs[4]))

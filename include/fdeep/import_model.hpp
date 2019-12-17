@@ -452,13 +452,16 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
         decode_floats(get_param(name, "moving_variance"));
     const bool center = data["config"]["center"];
     const bool scale = data["config"]["scale"];
+    const auto axis_vec = create_vector<int>(create_int, data["config"]["axis"]);
+    assertion(axis_vec.size() == 1, "invalid axis configuration");
+    const int axis = axis_vec.front();
     const float_type epsilon = data["config"]["epsilon"];
     float_vec gamma;
     float_vec beta;
     if (scale) gamma = decode_floats(get_param(name, "gamma"));
     if (center) beta = decode_floats(get_param(name, "beta"));
     return std::make_shared<batch_normalization_layer>(
-        name, moving_mean, moving_variance, beta, gamma, epsilon);
+        name, axis, moving_mean, moving_variance, beta, gamma, epsilon);
 }
 
 inline layer_ptr create_identity_layer(
@@ -998,7 +1001,7 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     );
     const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
     const bool stateful = json_object_get(layer_config, "stateful", false);
-    
+
     return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
                                                  recurrent_activation, wrapped_layer_type,
                                                  use_bias, reset_after, return_sequences, stateful,

@@ -19,12 +19,14 @@ class batch_normalization_layer : public layer
 {
 public:
     explicit batch_normalization_layer(const std::string& name,
+        int axis,
         const float_vec& moving_mean,
         const float_vec& moving_variance,
         const float_vec& beta,
         const float_vec& gamma,
         float_type epsilon)
         : layer(name),
+        axis_(axis),
         moving_mean_(moving_mean),
         moving_variance_(moving_variance),
         beta_(beta),
@@ -33,6 +35,7 @@ public:
     {
     }
 protected:
+    int axis_;
     float_vec moving_mean_;
     float_vec moving_variance_;
     float_vec beta_;
@@ -59,21 +62,27 @@ protected:
         }
 
         tensor5 output(input.shape(), 0);
-        for (std::size_t z = 0; z < output.shape().depth_; ++z)
+        for (std::size_t dim5 = 0; dim5 < output.shape().size_dim_5_; ++dim5)
         {
-            const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
-            for (std::size_t y = 0; y < output.shape().height_; ++y)
+            for (std::size_t dim4 = 0; dim4 < output.shape().size_dim_4_; ++dim4)
             {
-                for (std::size_t x = 0; x < output.shape().width_; ++x)
+                for (std::size_t z = 0; z < output.shape().depth_; ++z)
                 {
-                    float_type val = input.get(0, 0, y, x, z);
-                    val -= moving_mean_[z];
-                    if (use_gamma)
-                        val *= gamma_[z];
-                    val /= denom;
-                    if (use_beta)
-                        val += beta_[z];
-                    output.set(0, 0, y, x, z, val);
+                    const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
+                    for (std::size_t y = 0; y < output.shape().height_; ++y)
+                    {
+                        for (std::size_t x = 0; x < output.shape().width_; ++x)
+                        {
+                            float_type val = input.get(dim5, dim4, y, x, z);
+                            val -= moving_mean_[z];
+                            if (use_gamma)
+                                val *= gamma_[z];
+                            val /= denom;
+                            if (use_beta)
+                                val += beta_[z];
+                            output.set(dim5, dim4, y, x, z, val);
+                        }
+                    }
                 }
             }
         }
@@ -84,7 +93,46 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();
-        return {apply_to_slices(input)};
+        const int adjusted_axis =
+            axis_ == -1
+            ? 5
+            : 5 + axis_ - static_cast<int>(input.shape().rank());
+
+        if (adjusted_axis == 5)
+        {
+            return {apply_to_slices(input)};
+        }
+        else if (adjusted_axis == 4)
+        {
+            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
+                {1, 2, 3, 5, 4})),
+                {1, 2, 3, 5, 4})};
+        }
+        else if (adjusted_axis == 3)
+        {
+            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
+                {1, 2, 5, 4, 3})),
+                {1, 2, 5, 4, 3})};
+        }
+        else if (adjusted_axis == 2)
+        {
+            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
+                {1, 5, 3, 4, 2})),
+                {1, 5, 3, 4, 2})};
+        }
+        else if (adjusted_axis == 1)
+        {
+            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
+                {5, 2, 3, 4, 1})),
+                {5, 2, 3, 4, 1})};
+        }
+        else {
+            raise_error("Invalid axis for batch normalization.");
+            // Just to make the compiler happy.
+            // In reality, this is never called.
+            return inputs;
+        }
+
     }
 };
 

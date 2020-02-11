@@ -348,12 +348,6 @@ def show_depthwise_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    layer_axis = None
-    if isinstance(layer.axis, int):
-        layer_axis = layer.axis
-    else:
-        assert len(layer.axis) == 1
-        layer_axis = layer.axis[0]
     moving_mean = K.get_value(layer.moving_mean)
     moving_variance = K.get_value(layer.moving_variance)
     result = {}

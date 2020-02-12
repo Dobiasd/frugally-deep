@@ -316,7 +316,8 @@ inline tensor reverse_time_series_in_tensor(const tensor& ts)
     for (std::size_t x = ts.shape().width_; x--> 0;)
     {
         for (std::size_t z = 0; z < ts.shape().depth_; ++z)
-            reversed.set(tensor_pos(n, z) ,ts.get(tensor_pos(x, z)));
+            reversed.set_ignore_rank(tensor_pos(n, z),
+                ts.get_ignore_rank(tensor_pos(x, z)));
         n++;
     }
     return reversed;

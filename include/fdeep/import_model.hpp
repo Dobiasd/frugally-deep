@@ -198,7 +198,7 @@ inline tensor_shape create_tensor_shape(const nlohmann::json& data)
     assertion(data.is_array(), "tensor_shape needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return tensor_shape(data[0]);
+        return tensor_shape(static_cast<std::size_t>(data[0]));
     if (data.size() == 2)
         return tensor_shape(data[0], data[1]);
     if (data.size() == 3)

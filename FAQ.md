@@ -437,7 +437,9 @@ How to convert an `fdeep::tensor` to an `std::vector<float>`?
 #include <fdeep/fdeep.hpp>
 int main()
 {
-    const fdeep::tensor tensor(fdeep::tensor_shape(4), {1, 2, 3, 4});
+    const fdeep::tensor tensor(
+        fdeep::tensor_shape(static_cast<std::size_t>(4)),
+        {1, 2, 3, 4});
     const std::vector<float> vec = *tensor.as_vector();
 }
 ```

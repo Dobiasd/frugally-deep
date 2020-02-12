@@ -32,10 +32,10 @@ int main()
 
     const tensor test_in_0(tensor_shape(4, 1), xt0);
     const tensor test_in_1(tensor_shape(4, 1), xt1);
-    const tensor test_state_0(tensor_shape(2), st0);
-    const tensor test_state_1(tensor_shape(2), st1);
-    const tensor test_state_2(tensor_shape(2), st2);
-    const tensor test_state_3(tensor_shape(2), st3);
+    const tensor test_state_0(tensor_shape(static_cast<std::size_t>(2)), st0);
+    const tensor test_state_1(tensor_shape(static_cast<std::size_t>(2)), st1);
+    const tensor test_state_2(tensor_shape(static_cast<std::size_t>(2)), st2);
+    const tensor test_state_3(tensor_shape(static_cast<std::size_t>(2)), st3);
 
     // *********** TEST 1: "GRU_nonstateful_no_init_state.json" ***********
     auto model = load_model("./models/GRU_nonstateful_no_init_state.json");

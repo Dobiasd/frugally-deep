@@ -35,7 +35,7 @@ protected:
             : in.shape().width_
             ;
 
-        tensor5 out(shape5(1, 1, 1, 1, feature_count), 0);
+        tensor5 out(shape5(feature_count), 0);
         for (std::size_t z = 0; z < feature_count; ++z)
         {
             float_type val = std::numeric_limits<float_type>::lowest();

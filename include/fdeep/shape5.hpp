@@ -128,18 +128,38 @@ inline shape5 make_shape5_with(
     const shape5& default_shape,
     const shape5_variable shape)
 {
-    return shape5(
-        fplus::just_with_default(default_shape.size_dim_5_, shape.size_dim_5_),
-        fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
-        fplus::just_with_default(default_shape.height_, shape.height_),
-        fplus::just_with_default(default_shape.width_, shape.width_),
-        fplus::just_with_default(default_shape.depth_, shape.depth_));
+    if (shape.rank_ == 1)
+        return shape5(
+            fplus::just_with_default(default_shape.depth_, shape.depth_));
+    if (shape.rank_ == 2)
+        return shape5(
+            fplus::just_with_default(default_shape.width_, shape.width_),
+            fplus::just_with_default(default_shape.depth_, shape.depth_));
+    if (shape.rank_ == 3)
+        return shape5(
+            fplus::just_with_default(default_shape.height_, shape.height_),
+            fplus::just_with_default(default_shape.width_, shape.width_),
+            fplus::just_with_default(default_shape.depth_, shape.depth_));
+    if (shape.rank_ == 4)
+        return shape5(
+            fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
+            fplus::just_with_default(default_shape.height_, shape.height_),
+            fplus::just_with_default(default_shape.width_, shape.width_),
+            fplus::just_with_default(default_shape.depth_, shape.depth_));
+    else
+        return shape5(
+            fplus::just_with_default(default_shape.size_dim_5_, shape.size_dim_5_),
+            fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
+            fplus::just_with_default(default_shape.height_, shape.height_),
+            fplus::just_with_default(default_shape.width_, shape.width_),
+            fplus::just_with_default(default_shape.depth_, shape.depth_));
 }
 
 inline bool shape5_equals_shape5_variable(
     const shape5& lhs, const shape5_variable& rhs)
 {
     return
+        (rhs.rank_ == lhs.rank_) &&
         (rhs.size_dim_5_.is_nothing() || lhs.size_dim_5_ == rhs.size_dim_5_.unsafe_get_just()) &&
         (rhs.size_dim_4_.is_nothing() || lhs.size_dim_4_ == rhs.size_dim_4_.unsafe_get_just()) &&
         (rhs.height_.is_nothing() || lhs.height_ == rhs.height_.unsafe_get_just()) &&
@@ -162,6 +182,7 @@ inline bool operator == (const std::vector<shape5>& lhss,
 inline bool operator == (const shape5& lhs, const shape5& rhs)
 {
     return
+        lhs.rank_ == rhs.rank_ &&
         lhs.size_dim_5_ == rhs.size_dim_5_ &&
         lhs.size_dim_4_ == rhs.size_dim_4_ &&
         lhs.height_ == rhs.height_ &&
@@ -191,6 +212,38 @@ inline shape5 dilate_shape5(
         return shape5(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
 }
 
+inline shape5 shape5_with_changed_rank(const shape5& s, std::size_t rank)
+{
+    assertion(rank > 1 && rank < 6, "Invalid target rank");
+    if (rank == 4)
+    {
+        assertion(s.size_dim_5_ == 1, "Invalid target rank");
+        return shape5(s.size_dim_4_, s.height_, s.width_, s.depth_);
+    }
+    if (rank == 3)
+    {
+        assertion(s.size_dim_5_ == 1, "Invalid target rank");
+        assertion(s.size_dim_4_ == 1, "Invalid target rank");
+        return shape5(s.height_, s.width_, s.depth_);
+    }
+    if (rank == 2)
+    {
+        assertion(s.size_dim_5_ == 1, "Invalid target rank");
+        assertion(s.size_dim_4_ == 1, "Invalid target rank");
+        assertion(s.height_ == 1, "Invalid target rank");
+        return shape5(s.width_, s.depth_);
+    }
+    if (rank == 1)
+    {
+        assertion(s.size_dim_5_ == 1, "Invalid target rank");
+        assertion(s.size_dim_4_ == 1, "Invalid target rank");
+        assertion(s.height_ == 1, "Invalid target rank");
+        assertion(s.width_ == 1, "Invalid target rank");
+        return shape5(s.depth_);
+    }
+    return shape5(s.size_dim_5_, s.size_dim_4_, s.height_, s.width_, s.depth_);
+}
+
 inline std::size_t get_shape5_dimension_by_index(const shape5& s,
     const std::size_t idx)
 {
@@ -213,15 +266,30 @@ inline shape5 change_shape5_dimension_by_index(const shape5& in,
 {
     shape5 out = in;
     if (idx == 0)
+    {
         out.size_dim_5_ = dim;
+        out.rank_ = std::max<std::size_t>(in.rank_, 5);
+    }
     else if (idx == 1)
+    {
         out.size_dim_4_ = dim;
+        out.rank_ = std::max<std::size_t>(in.rank_, 4);
+    }
     else if (idx == 2)
+    {
         out.height_ = dim;
+        out.rank_ = std::max<std::size_t>(in.rank_, 3);
+    }
     else if (idx == 3)
+    {
         out.width_ = dim;
+        out.rank_ = std::max<std::size_t>(in.rank_, 2);
+    }
     else if (idx == 4)
+    {
         out.depth_ = dim;
+        out.rank_ = std::max<std::size_t>(in.rank_, 1);
+    }
     else
         raise_error("Invalid shape5 index.");
     return out;
@@ -240,7 +308,7 @@ inline std::string show_shape5(const shape5& s)
         s.width_,
         s.depth_
         };
-    return fplus::show_cont_with_frame(", ", "(", ")", dimensions);
+    return std::to_string(s.rank_) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
 inline std::string show_shape5s(

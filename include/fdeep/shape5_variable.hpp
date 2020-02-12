@@ -28,6 +28,7 @@ public:
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
+            rank_(5),
             size_dim_5_(size_dim_5),
             size_dim_4_(size_dim_4),
             height_(height),
@@ -36,6 +37,57 @@ public:
     {
     }
 
+        explicit shape5_variable(
+        fplus::maybe<std::size_t> size_dim_4,
+        fplus::maybe<std::size_t> height,
+        fplus::maybe<std::size_t> width,
+        fplus::maybe<std::size_t> depth) :
+            rank_(4),
+            size_dim_5_(1),
+            size_dim_4_(size_dim_4),
+            height_(height),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5_variable(
+        fplus::maybe<std::size_t> height,
+        fplus::maybe<std::size_t> width,
+        fplus::maybe<std::size_t> depth) :
+            rank_(3),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(height),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5_variable(
+        fplus::maybe<std::size_t> width,
+        fplus::maybe<std::size_t> depth) :
+            rank_(2),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(1),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5_variable(
+        fplus::maybe<std::size_t> depth) :
+            rank_(1),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(1),
+            width_(1),
+            depth_(depth)
+    {
+    }
+
+    std::size_t rank_;
     fplus::maybe<std::size_t> size_dim_5_;
     fplus::maybe<std::size_t> size_dim_4_;
     fplus::maybe<std::size_t> height_;
@@ -73,7 +125,7 @@ inline std::string show_shape5_variable(const shape5_variable& s)
         };
     const auto dimensions_repr = fplus::transform(
         fplus::show_maybe<std::size_t>, dimensions);
-    return fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
+    return std::to_string(s.rank_) + fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
 }
 
 inline std::string show_shape5s_variable(

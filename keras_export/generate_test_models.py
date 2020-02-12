@@ -233,6 +233,7 @@ def get_test_model_exhaustive():
         outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))
 
     outputs.append(UpSampling1D(size=2)(inputs[6]))
+    # outputs.append(UpSampling1D(size=2)(inputs[8])) # ValueError: Input 0 of layer up_sampling1d_1 is incompatible with the layer: expected ndim=3, found ndim=2. Full shape received: [None, 16]
 
     outputs.append(Multiply()([inputs[10], inputs[11]]))
     outputs.append(Multiply()([inputs[11], inputs[10]]))

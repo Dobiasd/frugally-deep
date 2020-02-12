@@ -16,7 +16,7 @@
 namespace fdeep { namespace internal
 {
 
-// Takes a single stack volume (shape5(1, 1, 1, 1, n)) as input.
+// Takes a single stack volume (shape5(n)) as input.
 class dense_layer : public layer
 {
 public:
@@ -73,12 +73,8 @@ protected:
         assertion(result_values.size() % n_out_ == 0,
             "Invalid number of output values.");
 
-        return {tensor5(shape5(
-            input.shape().size_dim_5_,
-            input.shape().size_dim_4_,
-            input.shape().height_,
-            input.shape().width_,
-            n_out_),
+        return {tensor5(change_shape5_dimension_by_index(
+                input.shape(), 4, n_out_),
             fplus::make_shared_ref<fdeep::float_vec>(result_values))};
     }
     static RowMajorMatrixXf bias_pad_input(const float_vec& input)

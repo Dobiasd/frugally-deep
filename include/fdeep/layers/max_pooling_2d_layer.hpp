@@ -51,7 +51,7 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
 
     if (channels_first)
     {
-        tensor5 out(shape5(1, 1, feature_count, out_height, out_width), 0);
+        tensor5 out(shape5(feature_count, out_height, out_width), 0);
 
         for (std::size_t z = 0; z < feature_count; ++z)
         {
@@ -79,7 +79,7 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
     }
     else
     {
-        tensor5 out(shape5(1, 1, out_height, out_width, feature_count), 0);
+        tensor5 out(shape5(out_height, out_width, feature_count), 0);
 
         for (std::size_t y = 0; y < out_height; ++y)
         {
@@ -111,8 +111,9 @@ class max_pooling_2d_layer : public pooling_2d_layer
 {
 public:
     explicit max_pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first, padding p) :
-        pooling_2d_layer(name, pool_size, strides, channels_first, p)
+        const shape2& pool_size, const shape2& strides, bool channels_first,
+        padding p, std::size_t output_dimensions) :
+        pooling_2d_layer(name, pool_size, strides, channels_first, p, output_dimensions)
     {
     }
 protected:

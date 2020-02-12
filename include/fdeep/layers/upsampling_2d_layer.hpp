@@ -54,7 +54,7 @@ protected:
     std::string interpolation_;
     tensor5 upsampling2d_nearest(const tensor5& in_vol) const
     {
-        tensor5 out_vol(shape5(1, 1,
+        tensor5 out_vol(shape5(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
@@ -100,7 +100,7 @@ protected:
     }
     tensor5 upsampling2d_bilinear(const tensor5& in_vol) const
     {
-        tensor5 out_vol(shape5(1, 1,
+        tensor5 out_vol(shape5(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);

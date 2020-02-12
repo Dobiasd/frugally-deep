@@ -96,7 +96,7 @@ protected:
         const int adjusted_axis =
             axis_ == -1
             ? 5
-            : 5 + axis_ - static_cast<int>(input.shape().rank());
+            : 5 + axis_ - static_cast<int>(input.shape().rank_);
 
         if (adjusted_axis == 5)
         {
@@ -104,27 +104,31 @@ protected:
         }
         else if (adjusted_axis == 4)
         {
-            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
-                {1, 2, 3, 5, 4})),
-                {1, 2, 3, 5, 4})};
+            return {tensor5_with_changed_rank(
+                permute_tensor5(apply_to_slices(permute_tensor5(input,
+                    {1, 2, 3, 5, 4})),
+                    {1, 2, 3, 5, 4}), input.shape().rank_)};
         }
         else if (adjusted_axis == 3)
         {
-            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
-                {1, 2, 5, 4, 3})),
-                {1, 2, 5, 4, 3})};
+            return {tensor5_with_changed_rank(
+                permute_tensor5(apply_to_slices(permute_tensor5(input,
+                    {1, 2, 5, 4, 3})),
+                    {1, 2, 5, 4, 3}), input.shape().rank_)};
         }
         else if (adjusted_axis == 2)
         {
-            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
-                {1, 5, 3, 4, 2})),
-                {1, 5, 3, 4, 2})};
+            return {tensor5_with_changed_rank(
+                permute_tensor5(apply_to_slices(permute_tensor5(input,
+                    {1, 5, 3, 4, 2})),
+                    {1, 5, 3, 4, 2}), input.shape().rank_)};
         }
         else if (adjusted_axis == 1)
         {
-            return {permute_tensor5(apply_to_slices(permute_tensor5(input,
-                {5, 2, 3, 4, 1})),
-                {5, 2, 3, 4, 1})};
+            return {tensor5_with_changed_rank(
+                permute_tensor5(apply_to_slices(permute_tensor5(input,
+                    {5, 2, 3, 4, 1})),
+                    {5, 2, 3, 4, 1}), input.shape().rank_)};
         }
         else {
             raise_error("Invalid axis for batch normalization.");

@@ -53,20 +53,20 @@ public:
         backward_weights_(backward_weights),
         backward_recurrent_weights_(backward_recurrent_weights),
         bias_backward_(bias_backward),
-        forward_state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
-        forward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
-        backward_state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
-        backward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())    
+        forward_state_h_(stateful ? tensor5(shape5(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        forward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        backward_state_h_(stateful ? tensor5(shape5(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>()),
+        backward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor5(shape5(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
         {
     }
 
     void reset_states() override
      {
         if (is_stateful()) {
-            forward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-            forward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-            backward_state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-            backward_state_c_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            forward_state_h_ = tensor5(shape5(n_units_), static_cast<float_type>(0));
+            forward_state_c_ = tensor5(shape5(n_units_), static_cast<float_type>(0));
+            backward_state_h_ = tensor5(shape5(n_units_), static_cast<float_type>(0));
+            backward_state_c_ = tensor5(shape5(n_units_), static_cast<float_type>(0));
         }
      }
 
@@ -111,30 +111,30 @@ protected:
         {
             assertion(inputs.size() == 1 || inputs.size() == 5,
                 "Invalid number of input tensors.");
-                
+
             tensor5 forward_state_h = inputs.size() == 5
             ? inputs[1]
             : is_stateful()
                 ? forward_state_h_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
             tensor5 forward_state_c = inputs.size() == 5
             ? inputs[2]
             : is_stateful()
                 ? forward_state_c_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
             tensor5 backward_state_h = inputs.size() == 5
             ? inputs[3]
             : is_stateful()
                 ? backward_state_h_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
             tensor5 backward_state_c = inputs.size() == 5
             ? inputs[4]
             : is_stateful()
                 ? backward_state_c_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
             result_forward = lstm_impl(input, forward_state_h, forward_state_c,
                                        n_units_, use_bias_, return_sequences_, stateful_,
@@ -160,14 +160,14 @@ protected:
             ? inputs[1]
             : is_stateful()
                 ? forward_state_h_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
             tensor5 backward_state_h = inputs.size() == 3
             ? inputs[2]
             : is_stateful()
                 ? backward_state_h_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
-                
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
+
             result_forward = gru_impl(input, forward_state_h, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                       forward_weights_, forward_recurrent_weights_,
                                       bias_forward_, activation_, recurrent_activation_);

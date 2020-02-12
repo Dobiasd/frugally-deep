@@ -124,7 +124,7 @@ typedef std::vector<tensor5s> tensor5s_vec;
 
 inline bool is_singleton_value(const tensor5& t)
 {
-    return t.shape() == shape5(1, 1, 1, 1, 1);
+    return t.shape().volume() == 1;
 }
 
 inline float_type to_singleton_value(const tensor5& t)
@@ -135,7 +135,12 @@ inline float_type to_singleton_value(const tensor5& t)
 
 inline tensor5 from_singleton_value(float_type value)
 {
-    return tensor5(shape5(1, 1, 1, 1, 1), value);
+    return tensor5(shape5(1), value);
+}
+
+inline tensor5 tensor5_with_changed_rank(const tensor5& t, std::size_t rank)
+{
+    return tensor5(shape5_with_changed_rank(t.shape(), rank), t.as_vector());
 }
 
 template <typename F>
@@ -156,7 +161,7 @@ inline tensor5 tensor5_from_depth_slices(const std::vector<tensor5>& ms)
     }
     std::size_t height = ms.front().shape().height_;
     std::size_t width = ms.front().shape().width_;
-    tensor5 m(shape5(1, 1, height, width, ms.size()), 0);
+    tensor5 m(shape5(height, width, ms.size()), 0);
     for (std::size_t y = 0; y < m.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < m.shape().width_; ++x)
@@ -176,7 +181,7 @@ inline std::vector<tensor5> tensor5_to_depth_slices(const tensor5& m)
     ms.reserve(m.shape().depth_);
     for (std::size_t i = 0; i < m.shape().depth_; ++i)
     {
-        ms.push_back(tensor5(shape5(1, 1,
+        ms.push_back(tensor5(shape5(
             m.shape().height_, m.shape().width_, 1), 0));
     }
 
@@ -292,11 +297,11 @@ inline tensor5s tensor5_to_tensor5s_dim5_slices(const tensor5& m)
     ms.reserve(m.shape().size_dim_5_);
     for (std::size_t i = 0; i < m.shape().size_dim_5_; ++i)
     {
-        ms.push_back(tensor5(shape5(1,
-                                    m.shape().size_dim_4_,
-                                    m.shape().height_,
-                                    m.shape().width_,
-                                    m.shape().depth_), 0));
+        ms.push_back(tensor5(shape5(
+            m.shape().size_dim_4_,
+            m.shape().height_,
+            m.shape().width_,
+            m.shape().depth_), 0));
     }
     for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {
@@ -373,11 +378,9 @@ inline tensor5 concatenate_tensor5s_depth(const tensor5s& in)
         fplus::all_the_same(shape_sizes[3]),
         "Tensor shapes differ on wrong dimension.");
 
-    tensor5 result(shape5(in.front().shape().size_dim_5_,
-                          in.front().shape().size_dim_4_,
-                          in.front().shape().height_,
-                          in.front().shape().width_,
-                          fplus::sum(shape_sizes[4])), 0);
+    tensor5 result(change_shape5_dimension_by_index(
+            in.front().shape(), 4, fplus::sum(shape_sizes[4])),
+        0);
     std::size_t out_dim1 = 0;
     for (const auto& t: in)
     {
@@ -411,11 +414,9 @@ inline tensor5 concatenate_tensor5s_width(const tensor5s& in)
         fplus::all_the_same(shape_sizes[4]),
         "Tensor shapes differ on wrong dimension.");
 
-    tensor5 result(shape5(in.front().shape().size_dim_5_,
-                          in.front().shape().size_dim_4_,
-                          in.front().shape().height_,
-                          fplus::sum(shape_sizes[3]),
-                          in.front().shape().depth_), 0);
+    tensor5 result(change_shape5_dimension_by_index(
+            in.front().shape(), 3, fplus::sum(shape_sizes[3])),
+        0);
     std::size_t out_dim2 = 0;
     for (const auto& t: in)
     {
@@ -449,11 +450,9 @@ inline tensor5 concatenate_tensor5s_height(const tensor5s& in)
         fplus::all_the_same(shape_sizes[4]),
         "Tensor shapes differ on wrong dimension.");
 
-    tensor5 result(shape5(in.front().shape().size_dim_5_,
-                          in.front().shape().size_dim_4_,
-                          fplus::sum(shape_sizes[2]),
-                          in.front().shape().width_,
-                          in.front().shape().depth_), 0);
+    tensor5 result(change_shape5_dimension_by_index(
+            in.front().shape(), 2, fplus::sum(shape_sizes[2])),
+        0);
     std::size_t out_dim3 = 0;
     for (const auto& t: in)
     {
@@ -486,12 +485,9 @@ inline tensor5 concatenate_tensor5s_dim4(const tensor5s& in)
         fplus::all_the_same(shape_sizes[3]) &&
         fplus::all_the_same(shape_sizes[4]),
         "Tensor shapes differ on wrong dimension.");
-
-    tensor5 result(shape5(in.front().shape().size_dim_5_,
-                          fplus::sum(shape_sizes[1]),
-                          in.front().shape().height_,
-                          in.front().shape().width_,
-                          in.front().shape().depth_), 0);
+    tensor5 result(change_shape5_dimension_by_index(
+            in.front().shape(), 1, fplus::sum(shape_sizes[1])),
+        0);
     std::size_t out_dim4 = 0;
     for (const auto& t: in)
     {
@@ -525,11 +521,9 @@ inline tensor5 concatenate_tensor5s_dim5(const tensor5s& in)
         fplus::all_the_same(shape_sizes[4]),
         "Tensor shapes differ on wrong dimension.");
 
-    tensor5 result(shape5(fplus::sum(shape_sizes[0]),
-                          in.front().shape().size_dim_4_,
-                          in.front().shape().height_,
-                          in.front().shape().width_,
-                          in.front().shape().depth_), 0);
+    tensor5 result(change_shape5_dimension_by_index(
+            in.front().shape(), 0, fplus::sum(shape_sizes[0])),
+        0);
     std::size_t out_dim5 = 0;
     for (const auto& t: in)
     {
@@ -583,12 +577,12 @@ inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
     }
     raise_error("Invalid axis (" + std::to_string(axis) +
         ") for tensor concatenation.");
-    return tensor5(shape5(0, 0, 0, 0, 0), 0);
+    return tensor5(shape5(0), 0);
 }
 
 inline tensor5 flatten_tensor5(const tensor5& vol)
 {
-    return tensor5(shape5(1, 1, 1, 1, vol.shape().volume()), vol.as_vector());
+    return tensor5(shape5(vol.shape().volume()), vol.as_vector());
 }
 
 inline tensor5 pad_tensor5(float_type val,
@@ -596,7 +590,7 @@ inline tensor5 pad_tensor5(float_type val,
     std::size_t left_pad, std::size_t right_pad,
     const tensor5& in)
 {
-    tensor5 result(shape5(1, 1,
+    tensor5 result(shape5(
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,
         in.shape().depth_), val);
@@ -672,7 +666,7 @@ inline tensor5 crop_tensor5(
     std::size_t left_crop, std::size_t right_crop,
     const tensor5& in)
 {
-    tensor5 result(shape5(1, 1,
+    tensor5 result(shape5(
         in.shape().height_ - (top_crop + bottom_crop),
         in.shape().width_ - (left_crop + right_crop),
         in.shape().depth_), 0);
@@ -734,7 +728,7 @@ inline tensor5 reshape_tensor5(const tensor5& in,
     assertion(fplus::all_by(fplus::is_positive<int>, deduced_shape),
         "Invalid shape values in reshape");
 
-    return tensor5(shape5(1, 1,
+    return tensor5(shape5(
         static_cast<std::size_t>(deduced_shape[0]),
         static_cast<std::size_t>(deduced_shape[1]),
         static_cast<std::size_t>(deduced_shape[2])),
@@ -904,7 +898,7 @@ inline tensor5 tensor5_from_bytes(const std::uint8_t* value_ptr,
             static_cast<float_type>(255.0f),
             static_cast<internal::float_type>(b));
     }, bytes);
-    return tensor5(shape5(1, 1, height, width, channels), std::move(values));
+    return tensor5(shape5(height, width, channels), std::move(values));
 }
 
 // Converts a tensor5 into a memory block holding 8-bit values.
@@ -960,7 +954,7 @@ inline tensor5s_vec reshape_tensor5_vectors(
         "Invalid number of values for reshape target.");
 
     const auto ts = fplus::transform(
-        [&](fdeep::float_vec v) -> tensor5 {return tensor5(shape5(1, 1, height, width, depth), std::move(v));},
+        [&](fdeep::float_vec v) -> tensor5 {return tensor5(shape5(height, width, depth), std::move(v));},
         fplus::split_every(depth * height * width, values));
 
     return fplus::split_every(vector_size, ts);

@@ -121,28 +121,18 @@ inline shape5_variable create_shape5_variable(const nlohmann::json& data)
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
         return shape5_variable(
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
             create_maybe_size_t(data[0]));
     if (data.size() == 2)
         return shape5_variable(
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]));
     if (data.size() == 3)
         return shape5_variable(
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]));
     if (data.size() == 4)
         return shape5_variable(
-            fplus::nothing<std::size_t>(),
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
@@ -154,7 +144,39 @@ inline shape5_variable create_shape5_variable(const nlohmann::json& data)
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]),
             create_maybe_size_t(data[4]));
-     if (data.size() == 6) // todo: is this needed?
+
+    raise_error("shape5_variable needs 1, 2, 3, 4 or 5 dimensions");
+    return shape5_variable(
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>(),
+        fplus::nothing<std::size_t>()); // Should never be called
+}
+
+inline shape5_variable create_shape5_variable_leading_null(const nlohmann::json& data)
+{
+    assertion(data.is_array(), "shape5_variable needs to be an array");
+    assertion(data.size() > 0, "need at least one dimension");
+    if (data.size() == 2)
+        return shape5_variable(
+            create_maybe_size_t(data[1]));
+    if (data.size() == 3)
+        return shape5_variable(
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]));
+    if (data.size() == 4)
+        return shape5_variable(
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]),
+            create_maybe_size_t(data[3]));
+    if (data.size() == 5)
+        return shape5_variable(
+            create_maybe_size_t(data[1]),
+            create_maybe_size_t(data[2]),
+            create_maybe_size_t(data[3]),
+            create_maybe_size_t(data[4]));
+    if (data.size() == 6)
         return shape5_variable(
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
@@ -186,7 +208,7 @@ inline shape5 create_shape5(const nlohmann::json& data)
     if (data.size() == 5)
         return shape5(data[0], data[1], data[2], data[3], data[4]);
     raise_error("shape5 needs 1, 2, 3, 4 or 5 dimensions");
-    return shape5(0, 0, 0, 0, 0); // Should never be called
+    return shape5(0); // Should never be called
 }
 
 inline shape2 create_shape2(const nlohmann::json& data)
@@ -339,9 +361,10 @@ inline padding create_padding(const std::string& padding_str)
     }, padding_str));
 }
 
-inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
+inline layer_ptr create_conv_1d_or_2d_layer(const get_param_f& get_param,
     const nlohmann::json& data,
-    const std::string& name)
+    const std::string& name,
+    std::size_t dimensions)
 {
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
@@ -367,12 +390,27 @@ inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
 
     return std::make_shared<conv_2d_layer>(name,
         filter_shape, filter_count, strides, pad_type,
-        dilation_rate, weights, bias);
+        dilation_rate, weights, bias, dimensions);
 }
 
-inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
+inline layer_ptr create_conv_1d_layer(const get_param_f& get_param,
     const nlohmann::json& data,
     const std::string& name)
+{
+    return create_conv_1d_or_2d_layer(get_param, data, name, 1);
+}
+
+inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
+    const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_conv_1d_or_2d_layer(get_param, data, name, 2);
+}
+
+inline layer_ptr create_separable_conv_1D_or_2D_layer(const get_param_f& get_param,
+    const nlohmann::json& data,
+    const std::string& name,
+    std::size_t dimensions)
 {
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
@@ -404,7 +442,21 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
-        dilation_rate, slice_weights, stack_weights, bias_0, bias);
+        dilation_rate, slice_weights, stack_weights, bias_0, bias, dimensions);
+}
+
+inline layer_ptr create_separable_conv_1D_layer(const get_param_f& get_param,
+    const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_separable_conv_1D_or_2D_layer(get_param, data, name, 1);
+}
+
+inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
+    const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_separable_conv_1D_or_2D_layer(get_param, data, name, 2);
 }
 
 inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
@@ -440,7 +492,7 @@ inline layer_ptr create_input_layer(
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
-    const auto input_shape = create_shape5_variable(data["config"]["batch_input_shape"]);
+    const auto input_shape = create_shape5_variable_leading_null(data["config"]["batch_input_shape"]);
     return std::make_shared<input_layer>(name, input_shape);
 }
 
@@ -471,8 +523,9 @@ inline layer_ptr create_identity_layer(
     return std::make_shared<linear_layer>(name);
 }
 
-inline layer_ptr create_max_pooling_2d_layer(
-    const get_param_f&, const nlohmann::json& data, const std::string& name)
+inline layer_ptr create_max_pooling_1d_or_2d_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name, std::size_t dimensions)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
@@ -480,11 +533,26 @@ inline layer_ptr create_max_pooling_2d_layer(
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<max_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type);
+        pool_size, strides, channels_first, pad_type, dimensions);
 }
 
-inline layer_ptr create_average_pooling_2d_layer(
-    const get_param_f&, const nlohmann::json& data, const std::string& name)
+inline layer_ptr create_max_pooling_1d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_max_pooling_1d_or_2d_layer(get_param, data, name, 1);
+}
+
+inline layer_ptr create_max_pooling_2d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_max_pooling_1d_or_2d_layer(get_param, data, name, 2);
+}
+
+inline layer_ptr create_average_pooling_1d_or_2d_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name, std::size_t dimensions)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
@@ -493,7 +561,21 @@ inline layer_ptr create_average_pooling_2d_layer(
 
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<average_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type);
+        pool_size, strides, channels_first, pad_type, dimensions);
+}
+
+inline layer_ptr create_average_pooling_1d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_average_pooling_1d_or_2d_layer(get_param, data, name, 1);
+}
+
+inline layer_ptr create_average_pooling_2d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_average_pooling_1d_or_2d_layer(get_param, data, name, 2);
 }
 
 inline layer_ptr create_global_max_pooling_1d_layer(
@@ -620,9 +702,9 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
-inline layer_ptr create_zero_padding_2d_layer(
+inline layer_ptr create_zero_padding_1d_or_2d_layer(
     const get_param_f&, const nlohmann::json& data,
-    const std::string& name)
+    const std::string& name, std::size_t dimensions)
 {
     const auto padding =
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
@@ -639,7 +721,7 @@ inline layer_ptr create_zero_padding_2d_layer(
         const std::size_t left_pad = padding[0][0];
         const std::size_t right_pad = padding[1][0];
         return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad);
+            top_pad, bottom_pad, left_pad, right_pad, dimensions);
     }
     else
     {
@@ -648,13 +730,27 @@ inline layer_ptr create_zero_padding_2d_layer(
         const std::size_t left_pad = padding[1][0];
         const std::size_t right_pad = padding[1][1];
         return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad);
+            top_pad, bottom_pad, left_pad, right_pad, dimensions);
     }
 }
 
-inline layer_ptr create_cropping_2d_layer(
-    const get_param_f&, const nlohmann::json& data,
+inline layer_ptr create_zero_padding_2d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
     const std::string& name)
+{
+    return create_zero_padding_1d_or_2d_layer(get_param, data, name, 2);
+}
+
+inline layer_ptr create_zero_padding_1d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_zero_padding_1d_or_2d_layer(get_param, data, name, 1);
+}
+
+inline layer_ptr create_cropping_1d_or_2d_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name, std::size_t dimensions)
 {
     const auto cropping =
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
@@ -671,7 +767,7 @@ inline layer_ptr create_cropping_2d_layer(
         const std::size_t left_crop = cropping[0][0];
         const std::size_t right_crop = cropping[1][0];
         return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop);
+            top_crop, bottom_crop, left_crop, right_crop, dimensions);
     }
     else
     {
@@ -680,8 +776,22 @@ inline layer_ptr create_cropping_2d_layer(
         const std::size_t left_crop = cropping[1][0];
         const std::size_t right_crop = cropping[1][1];
         return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop);
+            top_crop, bottom_crop, left_crop, right_crop, dimensions);
     }
+}
+
+inline layer_ptr create_cropping_2d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_cropping_1d_or_2d_layer(get_param, data, name, 2);
+}
+
+inline layer_ptr create_cropping_1d_layer(
+    const get_param_f& get_param, const nlohmann::json& data,
+    const std::string& name)
+{
+    return create_cropping_1d_or_2d_layer(get_param, data, name, 1);
 }
 
 inline layer_ptr create_reshape_layer(
@@ -1033,9 +1143,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     const std::string name = data["name"];
 
     const layer_creators default_creators = {
-            {"Conv1D", create_conv_2d_layer},
+            {"Conv1D", create_conv_1d_layer},
             {"Conv2D", create_conv_2d_layer},
-            {"SeparableConv1D", create_separable_conv_2D_layer},
+            {"SeparableConv1D", create_separable_conv_1D_layer},
             {"SeparableConv2D", create_separable_conv_2D_layer},
             {"DepthwiseConv2D", create_depthwise_conv_2D_layer},
             {"InputLayer", create_input_layer},
@@ -1052,9 +1162,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
             {"ReLU", create_relu_layer_isolated},
-            {"MaxPooling1D", create_max_pooling_2d_layer},
+            {"MaxPooling1D", create_max_pooling_1d_layer},
             {"MaxPooling2D", create_max_pooling_2d_layer},
-            {"AveragePooling1D", create_average_pooling_2d_layer},
+            {"AveragePooling1D", create_average_pooling_1d_layer},
             {"AveragePooling2D", create_average_pooling_2d_layer},
             {"GlobalMaxPooling1D", create_global_max_pooling_1d_layer},
             {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},
@@ -1070,9 +1180,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Average", create_average_layer},
             {"Subtract", create_subtract_layer},
             {"Flatten", create_flatten_layer},
-            {"ZeroPadding1D", create_zero_padding_2d_layer},
+            {"ZeroPadding1D", create_zero_padding_1d_layer},
             {"ZeroPadding2D", create_zero_padding_2d_layer},
-            {"Cropping1D", create_cropping_2d_layer},
+            {"Cropping1D", create_cropping_1d_layer},
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
             {"Reshape", create_reshape_layer},

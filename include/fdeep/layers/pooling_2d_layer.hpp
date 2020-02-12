@@ -24,12 +24,14 @@ class pooling_2d_layer : public layer
 {
 public:
     explicit pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first, padding p) :
+        const shape2& pool_size, const shape2& strides, bool channels_first,
+        padding p, std::size_t output_dimensions) :
         layer(name),
         pool_size_(pool_size),
         strides_(strides),
         channels_first_(channels_first),
-        padding_(p)
+        padding_(p),
+        output_dimensions_(output_dimensions)
     {
     }
 protected:
@@ -37,7 +39,14 @@ protected:
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        return {pool(input)};
+        const auto result = pool(input);
+        if (output_dimensions_ == 1)
+        {
+            // To support correct output rank for 1d version of layer.
+            assertion(result.shape().rank_ == 3, "Invalid rank of conv output");
+            return {tensor5_with_changed_rank(result, 2)};
+        }
+        return {result};
     }
 
     virtual tensor5 pool(const tensor5& input) const = 0;
@@ -46,6 +55,7 @@ protected:
     shape2 strides_;
     bool channels_first_;
     padding padding_;
+    std::size_t output_dimensions_;
 };
 
 } } // namespace fdeep, namespace internal

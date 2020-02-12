@@ -33,11 +33,7 @@ protected:
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
 
-        if (input.shape().rank_ == 1)
-        {
-            return {upsampling_1d_rank_1(input)};
-        }
-        else if (input.shape().rank_ == 2)
+        if (input.shape().rank_ == 2)
         {
             return {upsampling_1d_rank_2(input)};
         }
@@ -48,30 +44,10 @@ protected:
         }
     }
 
-    tensor5 upsampling_1d_rank_1(const tensor5& input) const
-    {
-        tensor5 out_vol(shape5(1, 1,
-            input.shape().height_,
-            input.shape().width_,
-            input.shape().depth_ * size_), 0);
-        for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
-        {
-            for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
-            {
-                for (std::size_t z = 0; z < out_vol.shape().depth_; ++z)
-                {
-                    const std::size_t z_in = z / size_;
-                    out_vol.set(0, 0, y, x, z, input.get(0, 0, y, x, z_in));
-                }
-            }
-        }
-        return {out_vol};
-    }
-
     tensor5 upsampling_1d_rank_2(const tensor5& input) const
     {
-        tensor5 out_vol(shape5(1, 1,
-            input.shape().height_,
+        assertion(input.shape().rank_ == 2, "invalid rank for upsampling");
+        tensor5 out_vol(shape5(
             input.shape().width_ * size_,
             input.shape().depth_), 0);
         for (std::size_t y = 0; y < out_vol.shape().height_; ++y)

@@ -44,7 +44,7 @@ class gru_layer : public layer
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias),
-          state_h_(stateful ? tensor5(shape5(1, 1, 1, 1, n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
+          state_h_(stateful ? tensor5(shape5(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor5>())
 
     {
     }
@@ -52,7 +52,7 @@ class gru_layer : public layer
     void reset_states() override
     {
         if (is_stateful()) {
-            state_h_ = tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+            state_h_ = tensor5(shape5(n_units_), static_cast<float_type>(0));
         }
     }
 
@@ -81,7 +81,7 @@ class gru_layer : public layer
             ? inputs[1]
             : is_stateful()
                 ? state_h_.unsafe_get_just()
-                : tensor5(shape5(1, 1, 1, 1, n_units_), static_cast<float_type>(0));
+                : tensor5(shape5(n_units_), static_cast<float_type>(0));
 
         const auto result = gru_impl(input, state_h, n_units_, use_bias_,
             reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_,

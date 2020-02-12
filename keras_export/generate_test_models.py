@@ -164,6 +164,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=3)(inputs[2]))
     outputs.append(BatchNormalization(axis=4)(inputs[2]))
     outputs.append(BatchNormalization()(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
     #outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[4]))
     outputs.append(BatchNormalization(axis=3)(inputs[4]))
@@ -178,7 +179,8 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=1)(inputs[14]))
     outputs.append(BatchNormalization(axis=2)(inputs[14]))
     outputs.append(BatchNormalization()(inputs[16]))
-    outputs.append(BatchNormalization(axis=1)(inputs[16]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(BatchNormalization(axis=1)(inputs[16])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[16]))
     outputs.append(BatchNormalization(axis=3)(inputs[16]))
     outputs.append(BatchNormalization()(inputs[18]))

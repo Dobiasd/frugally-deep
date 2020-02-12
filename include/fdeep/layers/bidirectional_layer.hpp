@@ -94,9 +94,7 @@ protected:
         const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor, shape, tensor_shape), inputs);
 
         // ensure that tensor shape is (1, 1, 1, seq_len, n_features)
-        assertion(inputs.front().shape().size_dim_5_ == 1
-                  && inputs.front().shape().size_dim_4_ == 1
-                  && inputs.front().shape().height_ == 1,
+        assertion(inputs.front().shape().rank_ == 2,
                   "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_tensor_shapes(input_shapes) + "'");
 
         const auto input = inputs.front();

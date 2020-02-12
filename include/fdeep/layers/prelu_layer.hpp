@@ -59,9 +59,10 @@ protected:
             {
                 for (std::size_t z = 0; z < out.shape().depth_; ++z)
                 {
-                    if (input[0].get(0, 0, y, x, z) > 0)
+                    if (input[0].get_ignore_rank(tensor_pos(y, x, z)) > 0)
                     {
-                        out.set(0, 0, y, x, z, input[0].get(0, 0, y, x, z));
+                        out.set_ignore_rank(tensor_pos(y, x, z),
+                            input[0].get_ignore_rank(tensor_pos(y, x, z)));
                     }
                     else
                     {
@@ -72,8 +73,8 @@ protected:
                             y_temp * width * depth +
                             x_temp * depth +
                             z_temp;
-                        out.set(0, 0, y, x, z, (*alpha_)[pos] *
-                            input[0].get(0, 0, y, x, z));
+                        out.set_ignore_rank(tensor_pos(y, x, z), (*alpha_)[pos] *
+                            input[0].get_ignore_rank(tensor_pos(y, x, z)));
                     }
                 }
             }

@@ -49,12 +49,12 @@ protected:
                 for (std::size_t x = 0; x < in_width; ++x)
                 {
                     if (channels_first_)
-                        val = std::max(val, in.get(0, 0, z, y, x));
+                        val = std::max(val, in.get(tensor_pos(z, y, x)));
                     else
-                        val = std::max(val, in.get(0, 0, y, x, z));
+                        val = std::max(val, in.get(tensor_pos(y, x, z)));
                 }
             }
-            out.set(0, 0, 0, 0, z, val);
+            out.set(tensor_pos(z), val);
         }
         return out;
     }

@@ -43,14 +43,14 @@ protected:
                 float_type sum_shifted = 0.0f;
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    sum_shifted += output.get(0, 0, y, x, z_class);
+                    sum_shifted += output.get_ignore_rank(tensor_pos(y, x, z_class));
                 }
                 // Divide the unnormalized values of each pixel by the stacks sum.
                 const auto log_sum_shifted = std::log(sum_shifted);
                 for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
                 {
-                    const auto result = std::exp(inp_shifted.get(0, 0, y, x, z_class) - log_sum_shifted);
-                    output.set(0, 0, y, x, z_class, std::isinf(result) ? static_cast<float_type>(0) : result);
+                    const auto result = std::exp(inp_shifted.get_ignore_rank(tensor_pos(y, x, z_class)) - log_sum_shifted);
+                    output.set_ignore_rank(tensor_pos(y, x, z_class), std::isinf(result) ? static_cast<float_type>(0) : result);
                 }
             }
         }

@@ -49,10 +49,9 @@ public:
     {
         return (*values_)[idx(pos)];
     }
-    float_type get(std::size_t pos_dim_5, std::size_t pos_dim_4,
-        std::size_t y, std::size_t x, std::size_t z) const
+    float_type get_ignore_rank(const tensor_pos& pos) const
     {
-        return get(tensor_pos(pos_dim_5, pos_dim_4, y, x, z));
+        return (*values_)[idx_ignore_rank(pos)];
     }
     float_type get_y_x_padded(float_type pad_value,
         int y, int x, std::size_t z) const
@@ -62,7 +61,7 @@ public:
         {
             return pad_value;
         }
-        return get(tensor_pos(static_cast<std::size_t>(y), static_cast<std::size_t>(x), z));
+        return get_ignore_rank(tensor_pos(static_cast<std::size_t>(y), static_cast<std::size_t>(x), z));
     }
     float_type get_x_z_padded(float_type pad_value,
         std::size_t y, int x, int z) const
@@ -78,10 +77,9 @@ public:
     {
         (*values_)[idx(pos)] = value;
     }
-    void set(std::size_t pos_dim_5, std::size_t pos_dim_4,
-        std::size_t y, std::size_t x, std::size_t z, float_type value)
+    void set_ignore_rank(const tensor_pos& pos, float_type value)
     {
-        set(tensor_pos(pos_dim_5, pos_dim_4, y, x, z), value);
+        (*values_)[idx_ignore_rank(pos)] = value;
     }
     const tensor_shape& shape() const
     {
@@ -105,15 +103,19 @@ public:
     }
 
 private:
-    std::size_t idx(const tensor_pos& pos) const
+    std::size_t idx_ignore_rank(const tensor_pos& pos) const
     {
-        assertion(pos.rank_ == shape().rank_, "Invalid position rank for tensor");
         return
             pos.pos_dim_5_ * shape().size_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
             pos.pos_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
             pos.y_ * shape().width_ * shape().depth_ +
             pos.x_ * shape().depth_ +
             pos.z_;
+    };
+    std::size_t idx(const tensor_pos& pos) const
+    {
+        assertion(pos.rank_ == shape().rank_, "Invalid position rank for tensor");
+        return idx_ignore_rank(pos);
     };
     tensor_shape shape_;
     shared_float_vec values_;
@@ -168,7 +170,7 @@ inline tensor tensor_from_depth_slices(const std::vector<tensor>& ms)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                m.set(0, 0, y, x, z, ms[z].get(0, 0, y, x, 0));
+                m.set(tensor_pos(y, x, z), ms[z].get(tensor_pos(y, x, 0)));
             }
         }
     }
@@ -191,7 +193,7 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                ms[z].set(0, 0, y, x, 0, m.get(0, 0, y, x, z));
+                ms[z].set(tensor_pos(y, x, 0), m.get(tensor_pos(y, x, z)));
             }
         }
     }
@@ -329,27 +331,35 @@ inline std::pair<tensor_pos, tensor_pos> tensor_min_max_pos(
     tensor_pos result_max(0, 0, 0, 0, 0);
     float_type value_max = std::numeric_limits<float_type>::lowest();
     float_type value_min = std::numeric_limits<float_type>::max();
-    for (std::size_t y = 0; y < vol.shape().height_; ++y)
+    for (std::size_t dim5 = 0; dim5 < vol.shape().size_dim_5_; ++dim5)
     {
-        for (std::size_t x = 0; x < vol.shape().width_; ++x)
+        for (std::size_t dim4 = 0; dim4 < vol.shape().size_dim_4_; ++dim4)
         {
-            for (std::size_t z = 0; z < vol.shape().depth_; ++z)
+            for (std::size_t y = 0; y < vol.shape().height_; ++y)
             {
-                auto current_value = vol.get(0, 0, y, x, z);
-                if (current_value > value_max)
+                for (std::size_t x = 0; x < vol.shape().width_; ++x)
                 {
-                    result_max = tensor_pos(y, x, z);
-                    value_max = current_value;
-                }
-                if (current_value < value_min)
-                {
-                    result_min = tensor_pos(y, x, z);
-                    value_min = current_value;
+                    for (std::size_t z = 0; z < vol.shape().depth_; ++z)
+                    {
+                        auto current_value = vol.get_ignore_rank(tensor_pos(y, x, z));
+                        if (current_value > value_max)
+                        {
+                            result_max = tensor_pos(dim5, dim4, y, x, z);
+                            value_max = current_value;
+                        }
+                        if (current_value < value_min)
+                        {
+                            result_min = tensor_pos(dim5, dim4, y, x, z);
+                            value_min = current_value;
+                        }
+                    }
                 }
             }
         }
     }
-    return std::make_pair(result_min, result_max);
+    return std::make_pair(
+        tensor_pos_with_changed_rank(result_min, vol.shape().rank_),
+        tensor_pos_with_changed_rank(result_max, vol.shape().rank_));
 }
 
 inline std::vector<std::vector<std::size_t>> get_tensors_shape_sizes(const tensors& ts)
@@ -394,7 +404,8 @@ inline tensor concatenate_tensors_depth(const tensors& in)
                     {
                         for (std::size_t x = 0; x < t.shape().width_; ++x)
                         {
-                            result.set(tensor_pos(dim5, dim4, y, x, out_dim1), t.get(tensor_pos(dim5, dim4, y, x, z)));
+                            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, out_dim1),
+                            t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                         }
                     }
                 }
@@ -430,7 +441,8 @@ inline tensor concatenate_tensors_width(const tensors& in)
                     {
                         for (std::size_t z = 0; z < t.shape().depth_; ++z)
                         {
-                            result.set(tensor_pos(dim5, dim4, y, out_dim2, z), t.get(tensor_pos(dim5, dim4, y, x, z)));
+                            result.set_ignore_rank(tensor_pos(dim5, dim4, y, out_dim2, z),
+                                t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                         }
                     }
                 }
@@ -466,7 +478,8 @@ inline tensor concatenate_tensors_height(const tensors& in)
                     {
                         for (std::size_t z = 0; z < t.shape().depth_; ++z)
                         {
-                            result.set(tensor_pos(dim5, dim4, out_dim3, x, z), t.get(tensor_pos(dim5, dim4, y, x, z)));
+                            result.set_ignore_rank(tensor_pos(dim5, dim4, out_dim3, x, z),
+                                t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                         }
                     }
                 }
@@ -501,7 +514,8 @@ inline tensor concatenate_tensors_dim4(const tensors& in)
                     {
                         for (std::size_t z = 0; z < t.shape().depth_; ++z)
                         {
-                            result.set(tensor_pos(dim5, out_dim4, y, x, z), t.get(tensor_pos(dim5, dim4, y, x, z)));
+                            result.set_ignore_rank(tensor_pos(dim5, out_dim4, y, x, z),
+                                t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                         }
                     }
                 }
@@ -537,7 +551,8 @@ inline tensor concatenate_tensors_dim5(const tensors& in)
                     {
                         for (std::size_t z = 0; z < t.shape().depth_; ++z)
                         {
-                            result.set(tensor_pos(out_dim5, dim4, y, x, z), t.get(tensor_pos(dim5, dim4, y, x, z)));
+                            result.set_ignore_rank(tensor_pos(out_dim5, dim4, y, x, z),
+                                t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                         }
                     }
                 }
@@ -590,17 +605,18 @@ inline tensor pad_tensor(float_type val,
     std::size_t left_pad, std::size_t right_pad,
     const tensor& in)
 {
-    tensor result(tensor_shape(
+    tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,
-        in.shape().depth_), val);
+        in.shape().depth_), in.shape().rank_), val);
     for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set(0, 0, y + top_pad, x + left_pad, z, in.get(0, 0, y, x, z));
+                result.set_ignore_rank(tensor_pos(y + top_pad, x + left_pad, z),
+                    in.get_ignore_rank(tensor_pos(y, x, z)));
             }
         }
     }
@@ -652,7 +668,7 @@ inline tensor permute_tensor(const tensor& in,
                             out_pos = change_tensor_pos_dimension_by_index(out_pos, i,
                                 get_tensor_pos_dimension_by_index(in_pos, dims[i]));
                         }
-                        out.set(out_pos, in.get(in_pos));
+                        out.set_ignore_rank(out_pos, in.get_ignore_rank(in_pos));
                     }
                 }
             }
@@ -666,17 +682,18 @@ inline tensor crop_tensor(
     std::size_t left_crop, std::size_t right_crop,
     const tensor& in)
 {
-    tensor result(tensor_shape(
+    tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ - (top_crop + bottom_crop),
         in.shape().width_ - (left_crop + right_crop),
-        in.shape().depth_), 0);
+        in.shape().depth_), in.shape().rank_), 0);
     for (std::size_t y = 0; y < result.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < result.shape().width_; ++x)
         {
             for (std::size_t z = 0; z < result.shape().depth_; ++z)
             {
-                result.set(0, 0, y, x, z, in.get(0, 0, y + top_crop, x + left_crop, z));
+                result.set_ignore_rank(tensor_pos(y, x, z),
+                    in.get_ignore_rank(tensor_pos(y + top_crop, x + left_crop, z)));
             }
         }
     }
@@ -685,6 +702,7 @@ inline tensor crop_tensor(
 
 inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
 {
+    assertion(in.shape().rank_ <= 3, "Invalid rank for dilation");
     if (dilation_rate == shape2(1, 1))
     {
         return in;
@@ -697,11 +715,11 @@ inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set(0, 0,
+                result.set(tensor_pos(
                     y * dilation_rate.height_,
                     x * dilation_rate.width_,
-                    z,
-                    in.get(0, 0, y, x, z));
+                    z),
+                    in.get(tensor_pos(y, x, z)));
             }
         }
     }

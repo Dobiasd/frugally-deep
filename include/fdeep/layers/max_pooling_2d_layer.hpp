@@ -49,6 +49,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
+    // todo: Do we still need to support this in any of the layers using it?
     if (channels_first)
     {
         tensor out(tensor_shape(feature_count, out_height, out_width), 0);
@@ -71,7 +72,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, z, y, x, val);
+                    out.set(tensor_pos(z, y, x), val);
                 }
             }
         }
@@ -99,7 +100,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, y, x, z, val);
+                    out.set(tensor_pos(y, x, z), val);
                 }
             }
         }

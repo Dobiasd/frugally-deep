@@ -50,15 +50,12 @@ protected:
         tensor out_vol(tensor_shape(
             input.shape().width_ * size_,
             input.shape().depth_), 0);
-        for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+        for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
         {
-            for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+            for (std::size_t z = 0; z < out_vol.shape().depth_; ++z)
             {
-                for (std::size_t z = 0; z < out_vol.shape().depth_; ++z)
-                {
-                    const std::size_t x_in = x / size_;
-                    out_vol.set(0, 0, y, x, z, input.get(0, 0, y, x_in, z));
-                }
+                const std::size_t x_in = x / size_;
+                out_vol.set(tensor_pos(x, z), input.get(tensor_pos(x_in, z)));
             }
         }
         return {out_vol};

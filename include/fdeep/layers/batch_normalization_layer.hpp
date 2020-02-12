@@ -73,14 +73,14 @@ protected:
                     {
                         for (std::size_t x = 0; x < output.shape().width_; ++x)
                         {
-                            float_type val = input.get(dim5, dim4, y, x, z);
+                            float_type val = input.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z));
                             val -= moving_mean_[z];
                             if (use_gamma)
                                 val *= gamma_[z];
                             val /= denom;
                             if (use_beta)
                                 val += beta_[z];
-                            output.set(dim5, dim4, y, x, z, val);
+                            output.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z), val);
                         }
                     }
                 }

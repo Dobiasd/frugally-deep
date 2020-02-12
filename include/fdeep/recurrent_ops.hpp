@@ -117,7 +117,7 @@ inline tensors lstm_impl(const tensor& input,
 
     for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
         for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-            in(EigenIndex(a_t), EigenIndex(a_f)) = input.get(0, 0, 0, a_t, a_f);
+            in(EigenIndex(a_t), EigenIndex(a_f)) = input.get(tensor_pos(a_t, a_f));
 
     RowMajorMatrixXf X = in * W;
 
@@ -159,19 +159,19 @@ inline tensors lstm_impl(const tensor& input,
 
         if (return_sequences)
             for (EigenIndex idx = 0; idx < n; ++idx)
-                lstm_result.front().set(0, 0, 0, std::size_t(k), std::size_t(idx), h(idx));
+                lstm_result.front().set(tensor_pos(std::size_t(k), std::size_t(idx)), h(idx));
         else if (k == EigenIndex(n_timesteps) - 1)
             for (EigenIndex idx = 0; idx < n; ++idx)
-                lstm_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
+                lstm_result.front().set(tensor_pos(std::size_t(idx)), h(idx));
         }
 
     if (return_state) {
         auto state_h = tensor(tensor_shape(n_units), float_type(0));
         auto state_c = tensor(tensor_shape(n_units), float_type(0));
         for (EigenIndex idx = 0; idx < n; ++idx)
-            state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+            state_h.set(tensor_pos(std::size_t(idx)), h(idx));
         for (EigenIndex idx = 0; idx < n; ++idx)
-            state_c.set(0, 0, 0, 0, std::size_t(idx), c(idx));
+            state_c.set(tensor_pos(std::size_t(idx)), c(idx));
         lstm_result.push_back(state_h);
         lstm_result.push_back(state_c);
     }
@@ -226,7 +226,7 @@ inline tensors gru_impl(const tensor& input,
 
     for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
         for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-            x(EigenIndex(a_t), EigenIndex(a_f)) = input.get(0, 0, 0, a_t, a_f);
+            x(EigenIndex(a_t), EigenIndex(a_f)) = input.get(tensor_pos(a_t, a_f));
 
     // kernel applied to inputs (with bias), produces shape (timesteps, n_units * 3)
     RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
@@ -290,16 +290,16 @@ inline tensors gru_impl(const tensor& input,
 
         if (return_sequences)
             for (EigenIndex idx = 0; idx < n; ++idx)
-                gru_result.front().set(0, 0, 0, std::size_t(k), std::size_t(idx), h(idx));
+                gru_result.front().set(tensor_pos(std::size_t(k), std::size_t(idx)), h(idx));
         else if (k == EigenIndex(n_timesteps) - 1)
             for (EigenIndex idx = 0; idx < n; ++idx)
-                gru_result.front().set(0, 0, 0, 0, std::size_t(idx), h(idx));
+                gru_result.front().set(tensor_pos(std::size_t(idx)), h(idx));
 
 
         if (return_state) {
             auto state_h = tensor(tensor_shape(n_units), float_type(0));
             for (EigenIndex idx = 0; idx < n; ++idx)
-                state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
+                state_h.set(tensor_pos(std::size_t(idx)), h(idx));
             gru_result.push_back(state_h);
         }
         // Copy the final state back into the initial state in the event of a stateful LSTM call
@@ -316,7 +316,7 @@ inline tensor reverse_time_series_in_tensor(const tensor& ts)
     for (std::size_t x = ts.shape().width_; x--> 0;)
     {
         for (std::size_t z = 0; z < ts.shape().depth_; ++z)
-            reversed.set(0, 0, 0, n, z ,ts.get(0, 0, 0, x, z));
+            reversed.set(tensor_pos(n, z) ,ts.get(tensor_pos(x, z)));
         n++;
     }
     return reversed;

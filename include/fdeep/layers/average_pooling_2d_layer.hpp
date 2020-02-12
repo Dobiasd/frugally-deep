@@ -75,7 +75,7 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, z, y, x, val / static_cast<float_type>(divisor));
+                    out.set(tensor_pos(z, y, x), val / static_cast<float_type>(divisor));
                 }
             }
         }
@@ -109,7 +109,7 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, y, x, z, val / static_cast<float_type>(divisor));
+                    out.set(tensor_pos(y, x, z), val / static_cast<float_type>(divisor));
                 }
             }
         }

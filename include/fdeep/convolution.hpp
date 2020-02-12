@@ -48,7 +48,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
             {
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_y, b_x++) = filter.get(yf, xf, zf);
+                    b(b_y, b_x++) = filter.get(tensor_pos(yf, xf, zf));
                 }
             }
         }
@@ -92,10 +92,10 @@ inline tensor convolve_im2col(
                 {
                     for (std::size_t zf = 0; zf < fz; ++zf)
                     {
-                        a(a_y++, a_x) = in_padded.get(0, 0,
+                        a(a_y++, a_x) = in_padded.get_ignore_rank(tensor_pos(
                                 strides_y * y + yf,
                                 strides_x * x + xf,
-                                zf);
+                                zf));
                     }
                 }
                 a(a_y, a_x) = static_cast<float_type>(1);

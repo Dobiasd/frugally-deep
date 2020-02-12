@@ -190,31 +190,9 @@ inline bool operator == (const tensor_shape& lhs, const tensor_shape& rhs)
         lhs.depth_ == rhs.depth_;
 }
 
-inline tensor_shape dilate_tensor_shape(
-    const shape2& dilation_rate, const tensor_shape& s)
-{
-    assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
-    assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
-
-    const std::size_t height = s.height_ +
-        (s.height_ - 1) * (dilation_rate.height_ - 1);
-    const std::size_t width = s.width_ +
-        (s.width_ - 1) * (dilation_rate.width_ - 1);
-    if (s.rank_ == 1)
-        return tensor_shape(s.depth_);
-    if (s.rank_ == 2)
-        return tensor_shape(width, s.depth_);
-    if (s.rank_ == 3)
-        return tensor_shape(height, width, s.depth_);
-    if (s.rank_ == 4)
-        return tensor_shape(s.size_dim_4_, height, width, s.depth_);
-    else
-        return tensor_shape(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
-}
-
 inline tensor_shape tensor_shape_with_changed_rank(const tensor_shape& s, std::size_t rank)
 {
-    assertion(rank > 1 && rank < 6, "Invalid target rank");
+    assertion(rank >= 1 && rank <= 5, "Invalid target rank");
     if (rank == 4)
     {
         assertion(s.size_dim_5_ == 1, "Invalid target rank");
@@ -242,6 +220,22 @@ inline tensor_shape tensor_shape_with_changed_rank(const tensor_shape& s, std::s
         return tensor_shape(s.depth_);
     }
     return tensor_shape(s.size_dim_5_, s.size_dim_4_, s.height_, s.width_, s.depth_);
+}
+
+inline tensor_shape dilate_tensor_shape(
+    const shape2& dilation_rate, const tensor_shape& s)
+{
+    assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
+    assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
+
+    const std::size_t height = s.height_ +
+        (s.height_ - 1) * (dilation_rate.height_ - 1);
+    const std::size_t width = s.width_ +
+        (s.width_ - 1) * (dilation_rate.width_ - 1);
+    return tensor_shape_with_changed_rank(
+        tensor_shape(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_),
+        s.rank_
+    );
 }
 
 inline std::size_t get_tensor_shape_dimension_by_index(const tensor_shape& s,

@@ -132,4 +132,37 @@ inline tensor_pos change_tensor_pos_dimension_by_index(const tensor_pos& in,
     return out;
 }
 
+inline tensor_pos tensor_pos_with_changed_rank(const tensor_pos& s, std::size_t rank)
+{
+    assertion(rank >= 1 && rank <= 5, "Invalid target rank");
+    if (rank == 4)
+    {
+        assertion(s.pos_dim_5_ == 0, "Invalid target rank");
+        return tensor_pos(s.pos_dim_4_, s.y_, s.x_, s.z_);
+    }
+    if (rank == 3)
+    {
+        assertion(s.pos_dim_5_ == 0, "Invalid target rank");
+        assertion(s.pos_dim_4_ == 0, "Invalid target rank");
+        return tensor_pos(s.y_, s.x_, s.z_);
+    }
+    if (rank == 2)
+    {
+        assertion(s.pos_dim_5_ == 0, "Invalid target rank");
+        assertion(s.pos_dim_4_ == 0, "Invalid target rank");
+        assertion(s.y_ == 0, "Invalid target rank");
+        return tensor_pos(s.x_, s.z_);
+    }
+    if (rank == 1)
+    {
+        assertion(s.pos_dim_5_ == 0, "Invalid target rank");
+        assertion(s.pos_dim_4_ == 0, "Invalid target rank");
+        assertion(s.y_ == 0, "Invalid target rank");
+        assertion(s.x_ == 0, "Invalid target rank");
+        return tensor_pos(s.z_);
+    }
+    return tensor_pos(s.pos_dim_5_, s.pos_dim_4_, s.y_, s.x_, s.z_);
+}
+
+
 } } // namespace fdeep, namespace internal

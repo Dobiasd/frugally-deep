@@ -50,7 +50,7 @@ class embedding_layer : public layer
 
             for (std::size_t i = 0; i < sequence_len; ++i)
             {
-                std::size_t index = static_cast<std::size_t>(input.get(0, 0, 0, 0, i));
+                std::size_t index = static_cast<std::size_t>(input.get(tensor_pos(i)));
                 assertion(index < input_dim_, "vocabulary item indices must all be strictly less than the value of input_dim");
                 it = std::copy_n(weights_.cbegin() + static_cast<float_vec::const_iterator::difference_type>(index * output_dim_), output_dim_, it);
             }

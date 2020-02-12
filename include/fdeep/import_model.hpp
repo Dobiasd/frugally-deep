@@ -385,7 +385,7 @@ inline layer_ptr create_conv_1d_or_2d_layer(const get_param_f& get_param,
         "invalid number of weights");
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
-    const tensor_shape filter_shape(1, 1,
+    const tensor_shape filter_shape(
         kernel_size.height_, kernel_size.width_, filter_depths);
 
     return std::make_shared<conv_2d_layer>(name,
@@ -438,7 +438,7 @@ inline layer_ptr create_separable_conv_1D_or_2D_layer(const get_param_f& get_par
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    const tensor_shape filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
+    const tensor_shape filter_shape(kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
@@ -475,7 +475,7 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
-    const tensor_shape filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
+    const tensor_shape filter_shape(kernel_size.height_, kernel_size.width_, 1);
     const std::size_t filter_count = input_depth;
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
@@ -702,9 +702,9 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
-inline layer_ptr create_zero_padding_1d_or_2d_layer(
+inline layer_ptr create_zero_padding_2d_layer(
     const get_param_f&, const nlohmann::json& data,
-    const std::string& name, std::size_t dimensions)
+    const std::string& name)
 {
     const auto padding =
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
@@ -721,7 +721,7 @@ inline layer_ptr create_zero_padding_1d_or_2d_layer(
         const std::size_t left_pad = padding[0][0];
         const std::size_t right_pad = padding[1][0];
         return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad, dimensions);
+            top_pad, bottom_pad, left_pad, right_pad);
     }
     else
     {
@@ -730,27 +730,13 @@ inline layer_ptr create_zero_padding_1d_or_2d_layer(
         const std::size_t left_pad = padding[1][0];
         const std::size_t right_pad = padding[1][1];
         return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad, dimensions);
+            top_pad, bottom_pad, left_pad, right_pad);
     }
 }
 
-inline layer_ptr create_zero_padding_2d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_zero_padding_1d_or_2d_layer(get_param, data, name, 2);
-}
-
-inline layer_ptr create_zero_padding_1d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_zero_padding_1d_or_2d_layer(get_param, data, name, 1);
-}
-
-inline layer_ptr create_cropping_1d_or_2d_layer(
+inline layer_ptr create_cropping_2d_layer(
     const get_param_f&, const nlohmann::json& data,
-    const std::string& name, std::size_t dimensions)
+    const std::string& name)
 {
     const auto cropping =
         create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
@@ -767,7 +753,7 @@ inline layer_ptr create_cropping_1d_or_2d_layer(
         const std::size_t left_crop = cropping[0][0];
         const std::size_t right_crop = cropping[1][0];
         return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop, dimensions);
+            top_crop, bottom_crop, left_crop, right_crop);
     }
     else
     {
@@ -776,22 +762,8 @@ inline layer_ptr create_cropping_1d_or_2d_layer(
         const std::size_t left_crop = cropping[1][0];
         const std::size_t right_crop = cropping[1][1];
         return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop, dimensions);
+            top_crop, bottom_crop, left_crop, right_crop);
     }
-}
-
-inline layer_ptr create_cropping_2d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_cropping_1d_or_2d_layer(get_param, data, name, 2);
-}
-
-inline layer_ptr create_cropping_1d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_cropping_1d_or_2d_layer(get_param, data, name, 1);
 }
 
 inline layer_ptr create_reshape_layer(
@@ -1180,9 +1152,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Average", create_average_layer},
             {"Subtract", create_subtract_layer},
             {"Flatten", create_flatten_layer},
-            {"ZeroPadding1D", create_zero_padding_1d_layer},
+            {"ZeroPadding1D", create_zero_padding_2d_layer},
             {"ZeroPadding2D", create_zero_padding_2d_layer},
-            {"Cropping1D", create_cropping_1d_layer},
+            {"Cropping1D", create_cropping_2d_layer},
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
             {"Reshape", create_reshape_layer},
@@ -1268,25 +1240,34 @@ inline void check_test_outputs(float_type epsilon,
         assertion(output.shape() == target.shape(),
             "Wrong output size. Is " + show_tensor_shape(output.shape()) +
             ", should be " + show_tensor_shape(target.shape()) + ".");
-        for (std::size_t y = 0; y < output.shape().height_; ++y)
+        for (std::size_t pos_dim_5 = 0; pos_dim_5 < output.shape().size_dim_5_; ++pos_dim_5)
         {
-            for (std::size_t x = 0; x < output.shape().width_; ++x)
+            for (std::size_t pos_dim_4 = 0; pos_dim_4 < output.shape().size_dim_4_; ++pos_dim_4)
             {
-                for (std::size_t z = 0; z < output.shape().depth_; ++z)
+                for (std::size_t y = 0; y < output.shape().height_; ++y)
                 {
-                    if (!fplus::is_in_closed_interval_around(epsilon,
-                        target.get(0, 0, y, x, z), output.get(0, 0, y, x, z)))
+                    for (std::size_t x = 0; x < output.shape().width_; ++x)
                     {
-                        const std::string msg =
-                            std::string("test failed: ") +
-                            "output=" + fplus::show(i) + " " +
-                            "pos=" +
-                            fplus::show(y) + "," +
-                            fplus::show(x) + "," +
-                            fplus::show(z) + " " +
-                            "value=" + fplus::show(output.get(0, 0, y, x, z)) + " "
-                            "target=" + fplus::show(target.get(0, 0, y, x, z));
-                        internal::raise_error(msg);
+                        for (std::size_t z = 0; z < output.shape().depth_; ++z)
+                        {
+                            const tensor_pos pos(pos_dim_5, pos_dim_4, y, x, z);
+                            const auto target_val = target.get_ignore_rank(pos);
+                            const auto output_val = output.get_ignore_rank(pos);
+                            if (!fplus::is_in_closed_interval_around(epsilon,
+                                target_val, output_val))
+                            {
+                                const std::string msg =
+                                    std::string("test failed: ") +
+                                    "output=" + fplus::show(i) + " " +
+                                    "pos=" +
+                                    fplus::show(y) + "," +
+                                    fplus::show(x) + "," +
+                                    fplus::show(z) + " " +
+                                    "value=" + fplus::show(output_val) + " "
+                                    "target=" + fplus::show(target_val);
+                                internal::raise_error(msg);
+                            }
+                        }
                     }
                 }
             }

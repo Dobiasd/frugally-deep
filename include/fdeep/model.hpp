@@ -224,7 +224,7 @@ private:
         const auto output_shape = outputs.front().shape();
         internal::assertion(output_shape.volume() == 1,
             "invalid output shape");
-        return outputs.front().get(0, 0, 0, 0, 0);
+        return to_singleton_value(outputs.front());
     }
 
     std::vector<tensor_shape_variable> input_shapes_;

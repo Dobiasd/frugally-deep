@@ -36,9 +36,9 @@ public:
     {
         return m_;
     }
-    float_type get(std::size_t y, size_t x, std::size_t z) const
+    float_type get(const tensor_pos& pos) const
     {
-        return m_.get(0, 0, y, x, z);
+        return m_.get_ignore_rank(pos);
     }
     float_type get_bias() const
     {

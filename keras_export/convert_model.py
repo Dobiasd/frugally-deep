@@ -84,7 +84,12 @@ def get_layer_input_shape_shape5(layer):
 def show_tensor5(tens):
     """Serialize 3-tensor to a dict"""
     return {
-        'shape': tens.shape,
+        # todo:
+        # It would be better to actually understand
+        # under which circumstances Keras adds a 1 to the front
+        # and than handle this cleanly.
+        # Maybe it's even a but and future TensorFlow versions (after 2.0.0) will have it fixed.
+        'shape': tens.shape[1:] if len(tens.shape) > 1 and tens.shape[0] == 1 else tens.shape,
         'values': encode_floats(tens.flatten())
     }
 

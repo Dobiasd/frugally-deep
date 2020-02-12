@@ -8,6 +8,7 @@ To execute this test, just run the following commands:
 mkdir models
 g++ -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
 python3 stateful_recurrent_tests.py
+rm -rf models
 ```
 
 This does the following:
@@ -16,5 +17,3 @@ This does the following:
 2. Runs the `../../keras_export/convert_model.py ` script to convert all of the generated Keras models. The resulting json files also are written to the `models` subdirectory.
 3. Compiles and runs `stateful_recurrent_tests.cpp` which loads each of the json model files and generates test vectors using frugrally-deep that correspond to those in step 1.
 4. Compares the test vectors from Keras and frugally-deep to report PASS/FAIL on the tests.
-
-The main Python script also creates the models directory as needed and clears it at the start of its execution.

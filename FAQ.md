@@ -48,8 +48,8 @@ int main()
 {
     const auto model = fdeep::load_model("multi_input_and_output_model.json");
     const auto result = model.predict({
-        fdeep::tensor5(fdeep::shape5(1, 1, 240, 320, 3), 42),
-        fdeep::tensor5(fdeep::shape5(1, 1, 240, 320, 3), 43)
+        fdeep::tensor5(fdeep::shape5(240, 320, 3), 42),
+        fdeep::tensor5(fdeep::shape5(240, 320, 3), 43)
         });
     std::cout << fdeep::show_tensor5s(result) << std::endl;
 }
@@ -395,7 +395,7 @@ Of course one can use `fdeep::tensor5` as the primary data structure and fill it
 #include <fdeep/fdeep.hpp>
 int main()
 {
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), 0);
+    fdeep::tensor5 t(fdeep::shape5(3, 1, 1), 0);
     t.set(0, 0, 0, 0, 0, 1);
     t.set(0, 0, 1, 0, 0, 2);
     t.set(0, 0, 2, 0, 0, 3);
@@ -414,7 +414,7 @@ int main()
 {
     const std::vector<float> v = {1, 2, 3};
     const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(v));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
+    fdeep::tensor5 t(fdeep::shape5(3, 1, 1), sv);
 }
 ```
 
@@ -426,7 +426,7 @@ int main()
 {
     const std::vector<float> v = {1, 2, 3};
     const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(std::move(v)));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
+    fdeep::tensor5 t(fdeep::shape5(3, 1, 1), sv);
 }
 ```
 
@@ -437,7 +437,7 @@ How to convert an `fdeep::tensor5` to an `std::vector<float>`?
 #include <fdeep/fdeep.hpp>
 int main()
 {
-    const fdeep::tensor5 tensor(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4});
+    const fdeep::tensor5 tensor(fdeep::shape5(4), {1, 2, 3, 4});
     const std::vector<float> vec = *tensor.as_vector();
 }
 ```

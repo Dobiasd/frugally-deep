@@ -176,13 +176,13 @@ inline shape5 create_shape5(const nlohmann::json& data)
     assertion(data.is_array(), "shape5 needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return shape5(1, 1, 1, 1, data[0]);
+        return shape5(data[0]);
     if (data.size() == 2)
-        return shape5(1, 1, 1, data[0], data[1]);
+        return shape5(data[0], data[1]);
     if (data.size() == 3)
-        return shape5(1, 1, data[0], data[1], data[2]);
+        return shape5(data[0], data[1], data[2]);
     if (data.size() == 4)
-        return shape5(1, data[0], data[1], data[2], data[3]);
+        return shape5(data[0], data[1], data[2], data[3]);
     if (data.size() == 5)
         return shape5(data[0], data[1], data[2], data[3], data[4]);
     raise_error("shape5 needs 1, 2, 3, 4 or 5 dimensions");

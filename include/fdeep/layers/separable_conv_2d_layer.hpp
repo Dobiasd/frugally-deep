@@ -40,7 +40,7 @@ public:
                 input_depth, depthwise_weights, bias_0))),
         filters_pointwise_(generate_im2col_filter_matrix(
             generate_filters(shape2(1, 1),
-                shape5(1, 1, 1, 1, input_depth), k, pointwise_weights, bias))),
+                shape5(input_depth), k, pointwise_weights, bias))),
         strides_(strides),
         padding_(p)
     {

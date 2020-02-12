@@ -555,7 +555,7 @@ inline tensor5 concatenate_tensor5s_dim5(const tensor5s& in)
 
 inline tensor5 concatenate_tensor5s(const tensor5s& ts, std::int32_t axis)
 {
-    const auto rank = ts.front().shape().rank();
+    const auto rank = ts.front().shape().rank_;
     if (axis < 0)
     {
         axis = axis + static_cast<std::int32_t>(rank) + 1;

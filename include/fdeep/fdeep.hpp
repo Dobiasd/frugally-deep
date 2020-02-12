@@ -14,7 +14,6 @@
 #include "fdeep/tensor5_pos.hpp"
 #include "fdeep/node.hpp"
 #include "fdeep/shape2.hpp"
-#include "fdeep/shape2_variable.hpp"
 #include "fdeep/shape5.hpp"
 #include "fdeep/shape5_variable.hpp"
 #include "fdeep/recurrent_ops.hpp"

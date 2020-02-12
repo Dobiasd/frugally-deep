@@ -33,11 +33,11 @@ protected:
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
 
-        if (input.shape().rank() == 1)
+        if (input.shape().rank_ == 1)
         {
             return {upsampling_1d_rank_1(input)};
         }
-        else if (input.shape().rank() == 2)
+        else if (input.shape().rank_ == 2)
         {
             return {upsampling_1d_rank_2(input)};
         }

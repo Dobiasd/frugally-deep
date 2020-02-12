@@ -32,10 +32,61 @@ public:
         std::size_t height,
         std::size_t width,
         std::size_t depth) :
+            rank_(5),
             size_dim_5_(size_dim_5),
             size_dim_4_(size_dim_4),
             height_(height),
             width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5(
+        std::size_t size_dim_4,
+        std::size_t height,
+        std::size_t width,
+        std::size_t depth) :
+            rank_(4),
+            size_dim_5_(1),
+            size_dim_4_(size_dim_4),
+            height_(height),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5(
+        std::size_t height,
+        std::size_t width,
+        std::size_t depth) :
+            rank_(3),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(height),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5(
+        std::size_t width,
+        std::size_t depth) :
+            rank_(2),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(1),
+            width_(width),
+            depth_(depth)
+    {
+    }
+
+        explicit shape5(
+        std::size_t depth) :
+            rank_(1),
+            size_dim_5_(1),
+            size_dim_4_(1),
+            height_(1),
+            width_(1),
             depth_(depth)
     {
     }
@@ -59,36 +110,13 @@ public:
             "Only height, width and depth may be not equal 1.");
     }
 
-    std::size_t get_not_one_dimension_count() const
-    {
-        std::size_t non_one_count = 0;
-        if (size_dim_5_ != 1) ++non_one_count;
-        if (size_dim_4_ != 1) ++non_one_count;
-        if (height_ != 1) ++non_one_count;
-        if (width_ != 1) ++non_one_count;
-        if (depth_ != 1) ++non_one_count;
-        return non_one_count;
-    }
-
-    std::size_t rank() const
-    {
-        if (size_dim_5_ > 1)
-            return 5;
-        if (size_dim_4_ > 1)
-            return 4;
-        if (height_ > 1)
-            return 3;
-        if (width_ > 1)
-            return 2;
-        return 1;
-    }
-
     shape2 without_depth() const
     {
         assert_is_shape_3();
         return shape2(height_, width_);
     }
 
+    std::size_t rank_;
     std::size_t size_dim_5_;
     std::size_t size_dim_4_;
     std::size_t height_;
@@ -151,7 +179,16 @@ inline shape5 dilate_shape5(
         (s.height_ - 1) * (dilation_rate.height_ - 1);
     const std::size_t width = s.width_ +
         (s.width_ - 1) * (dilation_rate.width_ - 1);
-    return shape5(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
+    if (s.rank_ == 1)
+        return shape5(s.depth_);
+    if (s.rank_ == 2)
+        return shape5(width, s.depth_);
+    if (s.rank_ == 3)
+        return shape5(height, width, s.depth_);
+    if (s.rank_ == 4)
+        return shape5(s.size_dim_4_, height, width, s.depth_);
+    else
+        return shape5(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
 }
 
 inline std::size_t get_shape5_dimension_by_index(const shape5& s,

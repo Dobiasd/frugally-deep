@@ -121,7 +121,7 @@ public:
     {
         return fplus::transform(
             fplus::bind_1st_of_2(internal::make_shape5_with,
-                                 shape5(1, 1, 42, 42, 42)),
+                                 shape5(42, 42, 42)),
             get_input_shapes());
     }
 

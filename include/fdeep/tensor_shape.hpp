@@ -9,7 +9,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/shape2.hpp"
-#include "fdeep/shape5_variable.hpp"
+#include "fdeep/tensor_shape_variable.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -20,13 +20,13 @@
 namespace fdeep { namespace internal
 {
 
-class shape5
+class tensor_shape
 {
 public:
     // The outer (left-most) dimensions are not used for batch prediction.
     // If you like to do multiple forward passes on a model at once,
     // use fdeep::model::predict_multi instead.
-    explicit shape5(
+    explicit tensor_shape(
         std::size_t size_dim_5,
         std::size_t size_dim_4,
         std::size_t height,
@@ -41,7 +41,7 @@ public:
     {
     }
 
-        explicit shape5(
+        explicit tensor_shape(
         std::size_t size_dim_4,
         std::size_t height,
         std::size_t width,
@@ -55,7 +55,7 @@ public:
     {
     }
 
-        explicit shape5(
+        explicit tensor_shape(
         std::size_t height,
         std::size_t width,
         std::size_t depth) :
@@ -68,7 +68,7 @@ public:
     {
     }
 
-        explicit shape5(
+        explicit tensor_shape(
         std::size_t width,
         std::size_t depth) :
             rank_(2),
@@ -80,7 +80,7 @@ public:
     {
     }
 
-        explicit shape5(
+        explicit tensor_shape(
         std::size_t depth) :
             rank_(1),
             size_dim_5_(1),
@@ -124,30 +124,30 @@ public:
     std::size_t depth_;
 };
 
-inline shape5 make_shape5_with(
-    const shape5& default_shape,
-    const shape5_variable shape)
+inline tensor_shape make_tensor_shape_with(
+    const tensor_shape& default_shape,
+    const tensor_shape_variable shape)
 {
     if (shape.rank_ == 1)
-        return shape5(
+        return tensor_shape(
             fplus::just_with_default(default_shape.depth_, shape.depth_));
     if (shape.rank_ == 2)
-        return shape5(
+        return tensor_shape(
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
     if (shape.rank_ == 3)
-        return shape5(
+        return tensor_shape(
             fplus::just_with_default(default_shape.height_, shape.height_),
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
     if (shape.rank_ == 4)
-        return shape5(
+        return tensor_shape(
             fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
             fplus::just_with_default(default_shape.height_, shape.height_),
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
     else
-        return shape5(
+        return tensor_shape(
             fplus::just_with_default(default_shape.size_dim_5_, shape.size_dim_5_),
             fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
             fplus::just_with_default(default_shape.height_, shape.height_),
@@ -155,8 +155,8 @@ inline shape5 make_shape5_with(
             fplus::just_with_default(default_shape.depth_, shape.depth_));
 }
 
-inline bool shape5_equals_shape5_variable(
-    const shape5& lhs, const shape5_variable& rhs)
+inline bool tensor_shape_equals_tensor_shape_variable(
+    const tensor_shape& lhs, const tensor_shape_variable& rhs)
 {
     return
         (rhs.rank_ == lhs.rank_) &&
@@ -167,19 +167,19 @@ inline bool shape5_equals_shape5_variable(
         (rhs.depth_.is_nothing() || lhs.depth_ == rhs.depth_.unsafe_get_just());
 }
 
-inline bool operator == (const shape5& lhs, const shape5_variable& rhs)
+inline bool operator == (const tensor_shape& lhs, const tensor_shape_variable& rhs)
 {
-    return shape5_equals_shape5_variable(lhs, rhs);
+    return tensor_shape_equals_tensor_shape_variable(lhs, rhs);
 }
 
-inline bool operator == (const std::vector<shape5>& lhss,
-    const std::vector<shape5_variable>& rhss)
+inline bool operator == (const std::vector<tensor_shape>& lhss,
+    const std::vector<tensor_shape_variable>& rhss)
 {
-    return fplus::all(fplus::zip_with(shape5_equals_shape5_variable,
+    return fplus::all(fplus::zip_with(tensor_shape_equals_tensor_shape_variable,
         lhss, rhss));
 }
 
-inline bool operator == (const shape5& lhs, const shape5& rhs)
+inline bool operator == (const tensor_shape& lhs, const tensor_shape& rhs)
 {
     return
         lhs.rank_ == rhs.rank_ &&
@@ -190,8 +190,8 @@ inline bool operator == (const shape5& lhs, const shape5& rhs)
         lhs.depth_ == rhs.depth_;
 }
 
-inline shape5 dilate_shape5(
-    const shape2& dilation_rate, const shape5& s)
+inline tensor_shape dilate_tensor_shape(
+    const shape2& dilation_rate, const tensor_shape& s)
 {
     assertion(dilation_rate.height_ >= 1, "invalid dilation rate");
     assertion(dilation_rate.width_ >= 1, "invalid dilation rate");
@@ -201,37 +201,37 @@ inline shape5 dilate_shape5(
     const std::size_t width = s.width_ +
         (s.width_ - 1) * (dilation_rate.width_ - 1);
     if (s.rank_ == 1)
-        return shape5(s.depth_);
+        return tensor_shape(s.depth_);
     if (s.rank_ == 2)
-        return shape5(width, s.depth_);
+        return tensor_shape(width, s.depth_);
     if (s.rank_ == 3)
-        return shape5(height, width, s.depth_);
+        return tensor_shape(height, width, s.depth_);
     if (s.rank_ == 4)
-        return shape5(s.size_dim_4_, height, width, s.depth_);
+        return tensor_shape(s.size_dim_4_, height, width, s.depth_);
     else
-        return shape5(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
+        return tensor_shape(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_);
 }
 
-inline shape5 shape5_with_changed_rank(const shape5& s, std::size_t rank)
+inline tensor_shape tensor_shape_with_changed_rank(const tensor_shape& s, std::size_t rank)
 {
     assertion(rank > 1 && rank < 6, "Invalid target rank");
     if (rank == 4)
     {
         assertion(s.size_dim_5_ == 1, "Invalid target rank");
-        return shape5(s.size_dim_4_, s.height_, s.width_, s.depth_);
+        return tensor_shape(s.size_dim_4_, s.height_, s.width_, s.depth_);
     }
     if (rank == 3)
     {
         assertion(s.size_dim_5_ == 1, "Invalid target rank");
         assertion(s.size_dim_4_ == 1, "Invalid target rank");
-        return shape5(s.height_, s.width_, s.depth_);
+        return tensor_shape(s.height_, s.width_, s.depth_);
     }
     if (rank == 2)
     {
         assertion(s.size_dim_5_ == 1, "Invalid target rank");
         assertion(s.size_dim_4_ == 1, "Invalid target rank");
         assertion(s.height_ == 1, "Invalid target rank");
-        return shape5(s.width_, s.depth_);
+        return tensor_shape(s.width_, s.depth_);
     }
     if (rank == 1)
     {
@@ -239,12 +239,12 @@ inline shape5 shape5_with_changed_rank(const shape5& s, std::size_t rank)
         assertion(s.size_dim_4_ == 1, "Invalid target rank");
         assertion(s.height_ == 1, "Invalid target rank");
         assertion(s.width_ == 1, "Invalid target rank");
-        return shape5(s.depth_);
+        return tensor_shape(s.depth_);
     }
-    return shape5(s.size_dim_5_, s.size_dim_4_, s.height_, s.width_, s.depth_);
+    return tensor_shape(s.size_dim_5_, s.size_dim_4_, s.height_, s.width_, s.depth_);
 }
 
-inline std::size_t get_shape5_dimension_by_index(const shape5& s,
+inline std::size_t get_tensor_shape_dimension_by_index(const tensor_shape& s,
     const std::size_t idx)
 {
     if (idx == 0)
@@ -257,14 +257,14 @@ inline std::size_t get_shape5_dimension_by_index(const shape5& s,
         return s.width_;
     if (idx == 4)
         return s.depth_;
-    raise_error("Invalid shape5 index.");
+    raise_error("Invalid tensor_shape index.");
     return 0;
 }
 
-inline shape5 change_shape5_dimension_by_index(const shape5& in,
+inline tensor_shape change_tensor_shape_dimension_by_index(const tensor_shape& in,
     const std::size_t idx, const std::size_t dim)
 {
-    shape5 out = in;
+    tensor_shape out = in;
     if (idx == 0)
     {
         out.size_dim_5_ = dim;
@@ -291,15 +291,15 @@ inline shape5 change_shape5_dimension_by_index(const shape5& in,
         out.rank_ = std::max<std::size_t>(in.rank_, 1);
     }
     else
-        raise_error("Invalid shape5 index.");
+        raise_error("Invalid tensor_shape index.");
     return out;
 }
 
 } // namespace internal
 
-using shape5 = internal::shape5;
+using tensor_shape = internal::tensor_shape;
 
-inline std::string show_shape5(const shape5& s)
+inline std::string show_tensor_shape(const tensor_shape& s)
 {
     const std::vector<std::size_t> dimensions = {
         s.size_dim_5_,
@@ -311,10 +311,10 @@ inline std::string show_shape5(const shape5& s)
     return std::to_string(s.rank_) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
-inline std::string show_shape5s(
-    const std::vector<shape5>& shapes)
+inline std::string show_tensor_shapes(
+    const std::vector<tensor_shape>& shapes)
 {
-    return fplus::show_cont(fplus::transform(show_shape5, shapes));
+    return fplus::show_cont(fplus::transform(show_tensor_shape, shapes));
 }
 
 } // namespace fdeep

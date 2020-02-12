@@ -14,12 +14,12 @@
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE tensor5 average_pool_2d(
+FDEEP_FORCE_INLINE tensor average_pool_2d(
     std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_y, std::size_t strides_x,
     bool channels_first,
     padding pad_type,
-    const tensor5& in)
+    const tensor& in)
 {
     const float_type invalid = std::numeric_limits<float_type>::lowest();
 
@@ -50,7 +50,7 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
 
     if (channels_first)
     {
-        tensor5 out(shape5(feature_count, out_height, out_width), 0);
+        tensor out(tensor_shape(feature_count, out_height, out_width), 0);
 
         for (std::size_t z = 0; z < feature_count; ++z)
         {
@@ -83,7 +83,7 @@ FDEEP_FORCE_INLINE tensor5 average_pool_2d(
     }
     else
     {
-        tensor5 out(shape5(out_height, out_width, feature_count), 0);
+        tensor out(tensor_shape(out_height, out_width, feature_count), 0);
 
         for (std::size_t y = 0; y < out_height; ++y)
         {
@@ -127,7 +127,7 @@ public:
     {
     }
 protected:
-    tensor5 pool(const tensor5& in) const override
+    tensor pool(const tensor& in) const override
     {
         if (pool_size_ == shape2(2, 2) && strides_ == shape2(2, 2))
             return average_pool_2d(2, 2, 2, 2, channels_first_, padding_, in);

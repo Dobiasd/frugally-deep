@@ -9,7 +9,7 @@
 #include "fdeep/import_model.hpp"
 #include "fdeep/common.hpp"
 #include "fdeep/layers/layer.hpp"
-#include "fdeep/tensor5.hpp"
+#include "fdeep/tensor.hpp"
 
 #include <algorithm>
 #include <string>
@@ -24,7 +24,7 @@ public:
     // A single forward pass (no batches).
     // Will raise an exception when used with a stateful model.
     // For those, use predict_stateful instead.
-    tensor5s predict(const tensor5s& inputs) const
+    tensors predict(const tensors& inputs) const
     {
         internal::assertion(!is_stateful(),
             "Prediction on stateful models is not const. Use predict_stateful instead.");
@@ -32,7 +32,7 @@ public:
     }
 
     // A single forward pass, supporting stateful models.
-    tensor5s predict_stateful(const tensor5s& inputs)
+    tensors predict_stateful(const tensors& inputs)
     {
         return predict_impl(inputs);
     }
@@ -40,12 +40,12 @@ public:
     // Forward pass multiple data.
     // When parallelly == true, the work is distributed to up to
     // as many CPUs as data entries are provided.
-    std::vector<tensor5s> predict_multi(const std::vector<tensor5s>& inputs_vec,
+    std::vector<tensors> predict_multi(const std::vector<tensors>& inputs_vec,
         bool parallelly) const
     {
         internal::assertion(!is_stateful(),
             "Prediction on stateful models is not thread-safe.");
-        const auto f = [this](const tensor5s& inputs) -> tensor5s
+        const auto f = [this](const tensors& inputs) -> tensors
         {
             return predict(inputs);
         };
@@ -63,14 +63,14 @@ public:
     // single tensor outputs of shape (1, 1, z).
     // Suitable for classification models with more than one output neuron.
     // Returns the index of the output neuron with the maximum activation.
-    std::size_t predict_class(const tensor5s& inputs) const
+    std::size_t predict_class(const tensors& inputs) const
     {
         internal::assertion(!is_stateful(),
             "Prediction on stateful models is not const. Use predict_class_stateful instead.");
         return predict_class_with_confidence_impl(inputs).first;
     }
 
-    std::size_t predict_class_stateful(const tensor5s& inputs)
+    std::size_t predict_class_stateful(const tensors& inputs)
     {
         return predict_class_with_confidence_impl(inputs).first;
     }
@@ -78,7 +78,7 @@ public:
     // Like predict_class,
     // but also returns the value of the maximally activated output neuron.
     std::pair<std::size_t, float_type>
-    predict_class_with_confidence(const tensor5s& inputs) const
+    predict_class_with_confidence(const tensors& inputs) const
     {
         internal::assertion(!is_stateful(),
             "Prediction on stateful models is not const. Use predict_class_with_confidence_stateful instead.");
@@ -86,7 +86,7 @@ public:
     }
 
     std::pair<std::size_t, float_type>
-    predict_class_with_confidence_stateful(const tensor5s& inputs)
+    predict_class_with_confidence_stateful(const tensors& inputs)
     {
         return predict_class_with_confidence_impl(inputs);
     }
@@ -95,42 +95,42 @@ public:
     // single tensor outputs of shape (1, 1, 1),
     // typically used for regression or binary classification.
     // Returns this one activation value.
-    float_type predict_single_output(const tensor5s& inputs) const
+    float_type predict_single_output(const tensors& inputs) const
     {
         internal::assertion(!is_stateful(),
             "Prediction on stateful models is not const. Use predict_single_output_stateful instead.");
         return predict_single_output_impl(inputs);
     }
 
-    float_type predict_single_output_stateful(const tensor5s& inputs)
+    float_type predict_single_output_stateful(const tensors& inputs)
     {
         return predict_single_output_impl(inputs);
     }
 
-    const std::vector<shape5_variable>& get_input_shapes() const
+    const std::vector<tensor_shape_variable>& get_input_shapes() const
     {
         return input_shapes_;
     }
 
-    const std::vector<shape5_variable>& get_output_shapes() const
+    const std::vector<tensor_shape_variable>& get_output_shapes() const
     {
         return output_shapes_;
     }
 
-    const std::vector<shape5> get_dummy_input_shapes() const
+    const std::vector<tensor_shape> get_dummy_input_shapes() const
     {
         return fplus::transform(
-            fplus::bind_1st_of_2(internal::make_shape5_with,
-                                 shape5(42, 42, 42)),
+            fplus::bind_1st_of_2(internal::make_tensor_shape_with,
+                                 tensor_shape(42, 42, 42)),
             get_input_shapes());
     }
 
     // Returns zero-filled tensors with the models input shapes.
-    tensor5s generate_dummy_inputs() const
+    tensors generate_dummy_inputs() const
     {
-        return fplus::transform([](const shape5& shape) -> tensor5
+        return fplus::transform([](const tensor_shape& shape) -> tensor
         {
-            return tensor5(shape, 0);
+            return tensor(shape, 0);
         }, get_dummy_input_shapes());
     }
 
@@ -165,8 +165,8 @@ public:
 
 private:
     model(const internal::layer_ptr& model_layer,
-        const std::vector<shape5_variable>& input_shapes,
-        const std::vector<shape5_variable>& output_shapes,
+        const std::vector<tensor_shape_variable>& input_shapes,
+        const std::vector<tensor_shape_variable>& output_shapes,
         const std::string& hash) :
             input_shapes_(input_shapes),
             output_shapes_(output_shapes),
@@ -177,34 +177,34 @@ private:
         const std::function<void(std::string)>&, float_type,
         const internal::layer_creators&);
 
-    tensor5s predict_impl(const tensor5s& inputs) const {
+    tensors predict_impl(const tensors& inputs) const {
         const auto input_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor5, shape, shape5),
+            fplus_c_mem_fn_t(tensor, shape, tensor_shape),
             inputs);
         internal::assertion(input_shapes
             == get_input_shapes(),
             std::string("Invalid inputs shape.\n") +
-                "The model takes " + show_shape5s_variable(get_input_shapes()) +
-                " but provided was: " + show_shape5s(input_shapes));
+                "The model takes " + show_tensor_shapes_variable(get_input_shapes()) +
+                " but provided was: " + show_tensor_shapes(input_shapes));
 
         const auto outputs = model_layer_->apply(inputs);
 
         const auto output_shapes = fplus::transform(
-            fplus_c_mem_fn_t(tensor5, shape, shape5),
+            fplus_c_mem_fn_t(tensor, shape, tensor_shape),
             outputs);
         internal::assertion(output_shapes
             == get_output_shapes(),
             std::string("Invalid outputs shape.\n") +
-                "The model should return " + show_shape5s_variable(get_output_shapes()) +
-                " but actually returned: " + show_shape5s(output_shapes));
+                "The model should return " + show_tensor_shapes_variable(get_output_shapes()) +
+                " but actually returned: " + show_tensor_shapes(output_shapes));
 
         return outputs;
     }
 
     std::pair<std::size_t, float_type>
-    predict_class_with_confidence_impl(const tensor5s& inputs) const
+    predict_class_with_confidence_impl(const tensors& inputs) const
     {
-        const tensor5s outputs = predict(inputs);
+        const tensors outputs = predict(inputs);
         internal::assertion(outputs.size() == 1,
             std::string("invalid number of outputs.\n") +
             "Use model::predict instead of model::predict_class.");
@@ -212,13 +212,13 @@ private:
         internal::assertion(output_shape.without_depth().area() == 1,
             std::string("invalid output shape.\n") +
             "Use model::predict instead of model::predict_class.");
-        const auto pos = internal::tensor5_max_pos(outputs.front());
+        const auto pos = internal::tensor_max_pos(outputs.front());
         return std::make_pair(pos.z_, outputs.front().get(pos));
     }
 
-    float_type predict_single_output_impl(const tensor5s& inputs) const
+    float_type predict_single_output_impl(const tensors& inputs) const
     {
-        const tensor5s outputs = predict(inputs);
+        const tensors outputs = predict(inputs);
         internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
         const auto output_shape = outputs.front().shape();
@@ -227,8 +227,8 @@ private:
         return outputs.front().get(0, 0, 0, 0, 0);
     }
 
-    std::vector<shape5_variable> input_shapes_;
-    std::vector<shape5_variable> output_shapes_;
+    std::vector<tensor_shape_variable> input_shapes_;
+    std::vector<tensor_shape_variable> output_shapes_;
     internal::layer_ptr model_layer_;
     std::string hash_;
 };
@@ -300,8 +300,8 @@ inline model read_model(std::istream& model_file_stream,
         get_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"],
         custom_layer_creators),
-        internal::create_shape5s_variable(json_data["input_shapes"]),
-        internal::create_shape5s_variable(json_data["output_shapes"]),
+        internal::create_tensor_shapes_variable(json_data["input_shapes"]),
+        internal::create_tensor_shapes_variable(json_data["output_shapes"]),
         internal::json_object_get<std::string, std::string>(
             json_data, "hash", ""));
     log_duration();

@@ -36,33 +36,33 @@ public:
     }
 
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
-        const tensor5 input = inputs.front();
-        tensor5s result_time_step = {};
+        const tensor input = inputs.front();
+        tensors result_time_step = {};
         std::size_t len_series = 0;
-        tensor5s slices = {};
+        tensors slices = {};
         std::int32_t concat_axis;
 
         if (td_input_len_ == 2)
         {
             len_series = input.shape().width_;
-            slices = tensor5_to_tensor5s_width_slices(input);
+            slices = tensor_to_tensors_width_slices(input);
         }
         else if(td_input_len_ == 3)
         {
             len_series = input.shape().height_;
-            slices = tensor5_to_tensor5s_height_slices(input);
+            slices = tensor_to_tensors_height_slices(input);
         }
         else if(td_input_len_ == 4)
         {
             len_series = input.shape().size_dim_4_;
-            slices = tensor5_to_tensor5s_dim4_slices(input);
+            slices = tensor_to_tensors_dim4_slices(input);
         }
         else if(td_input_len_ == 5)
         {
             len_series = input.shape().size_dim_5_;
-            slices = tensor5_to_tensor5s_dim5_slices(input);
+            slices = tensor_to_tensors_dim5_slices(input);
         }
         else
             raise_error("invalid input dim for TimeDistributed");
@@ -86,19 +86,19 @@ protected:
 
         if (concat_axis == 1)
         {
-            return {concatenate_tensor5s_height(result_time_step)};
+            return {concatenate_tensors_height(result_time_step)};
         }
         if (concat_axis == 2)
         {
-            return {concatenate_tensor5s_width(result_time_step)};
+            return {concatenate_tensors_width(result_time_step)};
         }
         if (concat_axis == 3)
         {
-            return {concatenate_tensor5s_dim4(result_time_step)};
+            return {concatenate_tensors_dim4(result_time_step)};
         }
         if (concat_axis == 4)
         {
-            return {concatenate_tensor5s_dim5(result_time_step)};
+            return {concatenate_tensors_dim5(result_time_step)};
         }
         raise_error("Invalid concat_axis in time_distributed_layer.");
         return {};

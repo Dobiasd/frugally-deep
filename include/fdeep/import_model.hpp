@@ -70,9 +70,9 @@
 #include "fdeep/layers/upsampling_1d_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
 #include "fdeep/layers/zero_padding_2d_layer.hpp"
-#include "fdeep/shape5.hpp"
-#include "fdeep/shape5_variable.hpp"
-#include "fdeep/tensor5.hpp"
+#include "fdeep/tensor_shape.hpp"
+#include "fdeep/tensor_shape_variable.hpp"
+#include "fdeep/tensor.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -115,38 +115,38 @@ inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
     return fplus::just(result);
 }
 
-inline shape5_variable create_shape5_variable(const nlohmann::json& data)
+inline tensor_shape_variable create_tensor_shape_variable(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape5_variable needs to be an array");
+    assertion(data.is_array(), "tensor_shape_variable needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[0]));
     if (data.size() == 2)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]));
     if (data.size() == 3)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]));
     if (data.size() == 4)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]));
     if (data.size() == 5)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[0]),
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]),
             create_maybe_size_t(data[4]));
 
-    raise_error("shape5_variable needs 1, 2, 3, 4 or 5 dimensions");
-    return shape5_variable(
+    raise_error("tensor_shape_variable needs 1, 2, 3, 4 or 5 dimensions");
+    return tensor_shape_variable(
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
@@ -154,38 +154,38 @@ inline shape5_variable create_shape5_variable(const nlohmann::json& data)
         fplus::nothing<std::size_t>()); // Should never be called
 }
 
-inline shape5_variable create_shape5_variable_leading_null(const nlohmann::json& data)
+inline tensor_shape_variable create_tensor_shape_variable_leading_null(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape5_variable needs to be an array");
+    assertion(data.is_array(), "tensor_shape_variable needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 2)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[1]));
     if (data.size() == 3)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]));
     if (data.size() == 4)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]));
     if (data.size() == 5)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]),
             create_maybe_size_t(data[4]));
     if (data.size() == 6)
-        return shape5_variable(
+        return tensor_shape_variable(
             create_maybe_size_t(data[1]),
             create_maybe_size_t(data[2]),
             create_maybe_size_t(data[3]),
             create_maybe_size_t(data[4]),
             create_maybe_size_t(data[5]));
 
-    raise_error("shape5_variable needs 1, 2, 3, 4 or 5 dimensions");
-    return shape5_variable(
+    raise_error("tensor_shape_variable needs 1, 2, 3, 4 or 5 dimensions");
+    return tensor_shape_variable(
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
@@ -193,22 +193,22 @@ inline shape5_variable create_shape5_variable_leading_null(const nlohmann::json&
         fplus::nothing<std::size_t>()); // Should never be called
 }
 
-inline shape5 create_shape5(const nlohmann::json& data)
+inline tensor_shape create_tensor_shape(const nlohmann::json& data)
 {
-    assertion(data.is_array(), "shape5 needs to be an array");
+    assertion(data.is_array(), "tensor_shape needs to be an array");
     assertion(data.size() > 0, "need at least one dimension");
     if (data.size() == 1)
-        return shape5(data[0]);
+        return tensor_shape(data[0]);
     if (data.size() == 2)
-        return shape5(data[0], data[1]);
+        return tensor_shape(data[0], data[1]);
     if (data.size() == 3)
-        return shape5(data[0], data[1], data[2]);
+        return tensor_shape(data[0], data[1], data[2]);
     if (data.size() == 4)
-        return shape5(data[0], data[1], data[2], data[3]);
+        return tensor_shape(data[0], data[1], data[2], data[3]);
     if (data.size() == 5)
-        return shape5(data[0], data[1], data[2], data[3], data[4]);
-    raise_error("shape5 needs 1, 2, 3, 4 or 5 dimensions");
-    return shape5(0); // Should never be called
+        return tensor_shape(data[0], data[1], data[2], data[3], data[4]);
+    raise_error("tensor_shape needs 1, 2, 3, 4 or 5 dimensions");
+    return tensor_shape(0); // Should never be called
 }
 
 inline shape2 create_shape2(const nlohmann::json& data)
@@ -269,10 +269,10 @@ inline float_vec decode_floats(const nlohmann::json& data)
     return out;
 }
 
-inline tensor5 create_tensor5(const nlohmann::json& data)
+inline tensor create_tensor(const nlohmann::json& data)
 {
-    const shape5 shape = create_shape5(data["shape"]);
-    return tensor5(shape, decode_floats(data["values"]));
+    const tensor_shape shape = create_tensor_shape(data["shape"]);
+    return tensor(shape, decode_floats(data["values"]));
 }
 
 template <typename T, typename F>
@@ -284,9 +284,9 @@ std::vector<T> create_vector(F f, const nlohmann::json& data)
         return fplus::singleton_seq(f(data));
 }
 
-inline std::vector<shape5_variable> create_shape5s_variable(const nlohmann::json& data)
+inline std::vector<tensor_shape_variable> create_tensor_shapes_variable(const nlohmann::json& data)
 {
-    return create_vector<shape5_variable>(create_shape5_variable, data);
+    return create_vector<tensor_shape_variable>(create_tensor_shape_variable, data);
 }
 
 inline node_connection create_node_connection(const nlohmann::json& data)
@@ -385,7 +385,7 @@ inline layer_ptr create_conv_1d_or_2d_layer(const get_param_f& get_param,
         "invalid number of weights");
     const std::size_t filter_depths =
         weights.size() / (kernel_size.area() * filter_count);
-    const shape5 filter_shape(1, 1,
+    const tensor_shape filter_shape(1, 1,
         kernel_size.height_, kernel_size.width_, filter_depths);
 
     return std::make_shared<conv_2d_layer>(name,
@@ -438,7 +438,7 @@ inline layer_ptr create_separable_conv_1D_or_2D_layer(const get_param_f& get_par
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    const shape5 filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
+    const tensor_shape filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
@@ -475,7 +475,7 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
     assertion(slice_weights.size() % kernel_size.area() == 0,
         "invalid number of weights");
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
-    const shape5 filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
+    const tensor_shape filter_shape(1, 1, kernel_size.height_, kernel_size.width_, 1);
     const std::size_t filter_count = input_depth;
     float_vec bias(filter_count, 0);
     const bool use_bias = data["config"]["use_bias"];
@@ -492,7 +492,7 @@ inline layer_ptr create_input_layer(
 {
     assertion(data["inbound_nodes"].empty(),
         "input layer is not allowed to have inbound nodes");
-    const auto input_shape = create_shape5_variable_leading_null(data["config"]["batch_input_shape"]);
+    const auto input_shape = create_tensor_shape_variable_leading_null(data["config"]["batch_input_shape"]);
     return std::make_shared<input_layer>(name, input_shape);
 }
 
@@ -1236,8 +1236,8 @@ inline layer_ptr create_layer(const get_param_f& get_param,
 
 struct test_case
 {
-    tensor5s input_;
-    tensor5s output_;
+    tensors input_;
+    tensors output_;
 };
 
 using test_cases = std::vector<test_case>;
@@ -1247,8 +1247,8 @@ inline test_case load_test_case(const nlohmann::json& data)
     assertion(data["inputs"].is_array(), "test needs inputs");
     assertion(data["outputs"].is_array(), "test needs outputs");
     return {
-        create_vector<tensor5>(create_tensor5, data["inputs"]),
-        create_vector<tensor5>(create_tensor5, data["outputs"])
+        create_vector<tensor>(create_tensor, data["inputs"]),
+        create_vector<tensor>(create_tensor, data["outputs"])
     };
 }
 
@@ -1258,7 +1258,7 @@ inline test_cases load_test_cases(const nlohmann::json& data)
 }
 
 inline void check_test_outputs(float_type epsilon,
-    const tensor5s& outputs, const tensor5s& targets)
+    const tensors& outputs, const tensors& targets)
 {
     assertion(outputs.size() == targets.size(), "invalid output count");
     for (std::size_t i = 0; i < outputs.size(); ++i)
@@ -1266,8 +1266,8 @@ inline void check_test_outputs(float_type epsilon,
         const auto& output = outputs[i];
         const auto& target = targets[i];
         assertion(output.shape() == target.shape(),
-            "Wrong output size. Is " + show_shape5(output.shape()) +
-            ", should be " + show_shape5(target.shape()) + ".");
+            "Wrong output size. Is " + show_tensor_shape(output.shape()) +
+            ", should be " + show_tensor_shape(target.shape()) + ".");
         for (std::size_t y = 0; y < output.shape().height_; ++y)
         {
             for (std::size_t x = 0; x < output.shape().width_; ++x)

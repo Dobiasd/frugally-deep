@@ -86,9 +86,9 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
     return {}; //should never be called
 }
 
-inline tensor5s lstm_impl(const tensor5& input,
-                          tensor5& initial_state_h,
-                          tensor5& initial_state_c,
+inline tensors lstm_impl(const tensor& input,
+                          tensor& initial_state_h,
+                          tensor& initial_state_c,
                           const std::size_t n_units,
                           const bool use_bias,
                           const bool return_sequences,
@@ -137,12 +137,12 @@ inline tensor5s lstm_impl(const tensor5& input,
     // computing LSTM output
     const EigenIndex n = EigenIndex(n_units);
 
-    tensor5s lstm_result;
+    tensors lstm_result;
 
     if (return_sequences)
-        lstm_result = {tensor5(shape5(n_timesteps, n_units), float_type(0))};
+        lstm_result = {tensor(tensor_shape(n_timesteps, n_units), float_type(0))};
     else
-        lstm_result = {tensor5(shape5(n_units), float_type(0))};
+        lstm_result = {tensor(tensor_shape(n_units), float_type(0))};
 
     for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
     {
@@ -166,8 +166,8 @@ inline tensor5s lstm_impl(const tensor5& input,
         }
 
     if (return_state) {
-        auto state_h = tensor5(shape5(n_units), float_type(0));
-        auto state_c = tensor5(shape5(n_units), float_type(0));
+        auto state_h = tensor(tensor_shape(n_units), float_type(0));
+        auto state_c = tensor(tensor_shape(n_units), float_type(0));
         for (EigenIndex idx = 0; idx < n; ++idx)
             state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
         for (EigenIndex idx = 0; idx < n; ++idx)
@@ -176,13 +176,13 @@ inline tensor5s lstm_impl(const tensor5& input,
         lstm_result.push_back(state_c);
     }
     // Copy the final state back into the initial state in the event of a stateful LSTM call
-    initial_state_h = tensor5(shape5(n_units), eigen_row_major_mat_to_values(h));
-    initial_state_c = tensor5(shape5(n_units), eigen_row_major_mat_to_values(c));
+    initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
+    initial_state_c = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(c));
     return lstm_result;
 }
 
-inline tensor5s gru_impl(const tensor5& input,
-    tensor5& initial_state_h,
+inline tensors gru_impl(const tensor& input,
+    tensor& initial_state_h,
     const std::size_t n_units,
     const bool use_bias,
     const bool reset_after,
@@ -237,12 +237,12 @@ inline tensor5s gru_impl(const tensor5& input,
     auto act_func_recurrent = get_activation_func(recurrent_activation);
 
     // computing GRU output
-    tensor5s gru_result;
+    tensors gru_result;
 
     if (return_sequences)
-        gru_result = { tensor5(shape5(n_timesteps, n_units), float_type(0)) };
+        gru_result = { tensor(tensor_shape(n_timesteps, n_units), float_type(0)) };
     else
-        gru_result = { tensor5(shape5(n_units), float_type(0)) };
+        gru_result = { tensor(tensor_shape(n_units), float_type(0)) };
 
     for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
     {
@@ -297,21 +297,21 @@ inline tensor5s gru_impl(const tensor5& input,
 
 
         if (return_state) {
-            auto state_h = tensor5(shape5(n_units), float_type(0));
+            auto state_h = tensor(tensor_shape(n_units), float_type(0));
             for (EigenIndex idx = 0; idx < n; ++idx)
                 state_h.set(0, 0, 0, 0, std::size_t(idx), h(idx));
             gru_result.push_back(state_h);
         }
         // Copy the final state back into the initial state in the event of a stateful LSTM call
-        initial_state_h = tensor5(shape5(n_units), eigen_row_major_mat_to_values(h));
+        initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
     }
 
     return gru_result;
 }
 
-inline tensor5 reverse_time_series_in_tensor5(const tensor5& ts)
+inline tensor reverse_time_series_in_tensor(const tensor& ts)
 {
-    tensor5 reversed = tensor5(ts.shape(), float_type(0.0));
+    tensor reversed = tensor(ts.shape(), float_type(0.0));
     std::size_t n = 0;
     for (std::size_t x = ts.shape().width_; x--> 0;)
     {

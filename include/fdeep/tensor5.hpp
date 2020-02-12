@@ -107,7 +107,6 @@ public:
 private:
     std::size_t idx(const tensor_pos& pos) const
     {
-        assertion(pos.rank_ == shape().rank_, "Invalid position rank for tensor");
         return
             pos.pos_dim_5_ * shape().size_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +
             pos.pos_dim_4_ * shape().height_ * shape().width_ * shape().depth_ +

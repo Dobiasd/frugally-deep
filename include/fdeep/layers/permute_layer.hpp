@@ -20,14 +20,14 @@ public:
         const std::vector<std::size_t>& dims) :
             layer(name), dims_(dims)
     {
-        check_permute_tensor5_dims(dims);
+        check_permute_tensor_dims(dims);
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        return {permute_tensor5(input, dims_)};
+        return {permute_tensor(input, dims_)};
     }
     std::vector<std::size_t> dims_;
 };

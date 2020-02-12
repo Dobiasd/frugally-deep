@@ -31,16 +31,16 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        const auto result = pad_tensor5(0, top_pad_, bottom_pad_, left_pad_, right_pad_, input);
+        const auto result = pad_tensor(0, top_pad_, bottom_pad_, left_pad_, right_pad_, input);
         if (output_dimensions_ == 1)
         {
             // To support correct output rank for 1d version of layer.
             assertion(result.shape().rank_ == 3, "Invalid rank of conv output");
-            return {tensor5_with_changed_rank(result, 2)};
+            return {tensor_with_changed_rank(result, 2)};
         }
         return {result};
     }

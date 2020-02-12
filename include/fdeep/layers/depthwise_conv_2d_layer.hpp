@@ -9,7 +9,7 @@
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
 #include "fdeep/shape2.hpp"
-#include "fdeep/shape5.hpp"
+#include "fdeep/tensor_shape.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -28,7 +28,7 @@ class depthwise_conv_2d_layer : public layer
 public:
     explicit depthwise_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
-            const shape5& filter_shape,
+            const tensor_shape& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             const shape2& dilation_rate,
             const float_vec& depthwise_weights,
@@ -47,17 +47,17 @@ public:
             "invalid number of filters");
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
 
-        const auto input_slices = tensor5_to_depth_slices(inputs.front());
+        const auto input_slices = tensor_to_depth_slices(inputs.front());
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");
 
         const auto convolve_slice =
-            [&](const tensor5& slice, const im2col_filter_matrix& f) -> tensor5
+            [&](const tensor& slice, const im2col_filter_matrix& f) -> tensor
         {
             assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_, f, slice);
@@ -67,7 +67,7 @@ protected:
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid depthwise filter count");
-        return {concatenate_tensor5s_depth(fplus::zip_with(
+        return {concatenate_tensors_depth(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_))};
     }
 

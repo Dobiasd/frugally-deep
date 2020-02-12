@@ -32,7 +32,7 @@ public:
         );
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
@@ -52,9 +52,9 @@ protected:
     }
     shape2 scale_factor_;
     std::string interpolation_;
-    tensor5 upsampling2d_nearest(const tensor5& in_vol) const
+    tensor upsampling2d_nearest(const tensor& in_vol) const
     {
-        tensor5 out_vol(shape5(
+        tensor out_vol(tensor_shape(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
@@ -72,7 +72,7 @@ protected:
         }
         return out_vol;
     }
-    float_type get_interpolated_bilinearly(const tensor5& t,
+    float_type get_interpolated_bilinearly(const tensor& t,
         std::size_t pos_dim_5, std::size_t pos_dim_4,
         float_type y, float_type x, std::size_t z) const
     {
@@ -98,9 +98,9 @@ protected:
             y_factor_bottom * x_factor_left * val_bottom_left +
             y_factor_bottom * x_factor_right * val_bottom_right);
     }
-    tensor5 upsampling2d_bilinear(const tensor5& in_vol) const
+    tensor upsampling2d_bilinear(const tensor& in_vol) const
     {
-        tensor5 out_vol(shape5(
+        tensor out_vol(tensor_shape(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);

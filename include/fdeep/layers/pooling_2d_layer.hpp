@@ -35,7 +35,7 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
@@ -44,12 +44,12 @@ protected:
         {
             // To support correct output rank for 1d version of layer.
             assertion(result.shape().rank_ == 3, "Invalid rank of conv output");
-            return {tensor5_with_changed_rank(result, 2)};
+            return {tensor_with_changed_rank(result, 2)};
         }
         return {result};
     }
 
-    virtual tensor5 pool(const tensor5& input) const = 0;
+    virtual tensor pool(const tensor& input) const = 0;
 
     shape2 pool_size_;
     shape2 strides_;

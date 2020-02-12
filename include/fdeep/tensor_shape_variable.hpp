@@ -19,10 +19,10 @@
 namespace fdeep { namespace internal
 {
 
-class shape5_variable
+class tensor_shape_variable
 {
 public:
-    explicit shape5_variable(
+    explicit tensor_shape_variable(
         fplus::maybe<std::size_t> size_dim_5,
         fplus::maybe<std::size_t> size_dim_4,
         fplus::maybe<std::size_t> height,
@@ -37,7 +37,7 @@ public:
     {
     }
 
-        explicit shape5_variable(
+        explicit tensor_shape_variable(
         fplus::maybe<std::size_t> size_dim_4,
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
@@ -51,7 +51,7 @@ public:
     {
     }
 
-        explicit shape5_variable(
+        explicit tensor_shape_variable(
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
@@ -64,7 +64,7 @@ public:
     {
     }
 
-        explicit shape5_variable(
+        explicit tensor_shape_variable(
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
             rank_(2),
@@ -76,7 +76,7 @@ public:
     {
     }
 
-        explicit shape5_variable(
+        explicit tensor_shape_variable(
         fplus::maybe<std::size_t> depth) :
             rank_(1),
             size_dim_5_(1),
@@ -95,7 +95,7 @@ public:
     fplus::maybe<std::size_t> depth_;
 };
 
-inline bool operator == (const shape5_variable& lhs, const shape5_variable& rhs)
+inline bool operator == (const tensor_shape_variable& lhs, const tensor_shape_variable& rhs)
 {
     return
         lhs.size_dim_5_ == rhs.size_dim_5_ &&
@@ -105,16 +105,16 @@ inline bool operator == (const shape5_variable& lhs, const shape5_variable& rhs)
         lhs.depth_ == rhs.depth_;
 }
 
-inline bool operator != (const shape5_variable& lhs, const shape5_variable& rhs)
+inline bool operator != (const tensor_shape_variable& lhs, const tensor_shape_variable& rhs)
 {
     return !(lhs == rhs);
 }
 
 } // namespace internal
 
-using shape5_variable = internal::shape5_variable;
+using tensor_shape_variable = internal::tensor_shape_variable;
 
-inline std::string show_shape5_variable(const shape5_variable& s)
+inline std::string show_tensor_shape_variable(const tensor_shape_variable& s)
 {
     const std::vector<fplus::maybe<std::size_t>> dimensions = {
         s.size_dim_5_,
@@ -128,10 +128,10 @@ inline std::string show_shape5_variable(const shape5_variable& s)
     return std::to_string(s.rank_) + fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
 }
 
-inline std::string show_shape5s_variable(
-    const std::vector<shape5_variable>& shapes)
+inline std::string show_tensor_shapes_variable(
+    const std::vector<tensor_shape_variable>& shapes)
 {
-    return fplus::show_cont(fplus::transform(show_shape5_variable, shapes));
+    return fplus::show_cont(fplus::transform(show_tensor_shape_variable, shapes));
 }
 
 } // namespace fdeep

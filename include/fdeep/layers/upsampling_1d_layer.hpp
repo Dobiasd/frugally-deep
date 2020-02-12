@@ -28,7 +28,7 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
@@ -44,10 +44,10 @@ protected:
         }
     }
 
-    tensor5 upsampling_1d_rank_2(const tensor5& input) const
+    tensor upsampling_1d_rank_2(const tensor& input) const
     {
         assertion(input.shape().rank_ == 2, "invalid rank for upsampling");
-        tensor5 out_vol(shape5(
+        tensor out_vol(tensor_shape(
             input.shape().width_ * size_,
             input.shape().depth_), 0);
         for (std::size_t y = 0; y < out_vol.shape().height_; ++y)

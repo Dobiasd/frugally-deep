@@ -42,7 +42,7 @@ protected:
     float_vec gamma_;
     float_type epsilon_;
 
-    tensor5 apply_to_slices(const tensor5& input) const
+    tensor apply_to_slices(const tensor& input) const
     {
         assertion(moving_mean_.size() == input.shape().depth_,
             "invalid beta");
@@ -61,7 +61,7 @@ protected:
             assertion(beta_.size() == input.shape().depth_, "invalid beta");
         }
 
-        tensor5 output(input.shape(), 0);
+        tensor output(input.shape(), 0);
         for (std::size_t dim5 = 0; dim5 < output.shape().size_dim_5_; ++dim5)
         {
             for (std::size_t dim4 = 0; dim4 < output.shape().size_dim_4_; ++dim4)
@@ -89,7 +89,7 @@ protected:
         return output;
     }
 
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of tensors");
         const auto& input = inputs.front();
@@ -104,29 +104,29 @@ protected:
         }
         else if (adjusted_axis == 4)
         {
-            return {tensor5_with_changed_rank(
-                permute_tensor5(apply_to_slices(permute_tensor5(input,
+            return {tensor_with_changed_rank(
+                permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 2, 3, 5, 4})),
                     {1, 2, 3, 5, 4}), input.shape().rank_)};
         }
         else if (adjusted_axis == 3)
         {
-            return {tensor5_with_changed_rank(
-                permute_tensor5(apply_to_slices(permute_tensor5(input,
+            return {tensor_with_changed_rank(
+                permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 2, 5, 4, 3})),
                     {1, 2, 5, 4, 3}), input.shape().rank_)};
         }
         else if (adjusted_axis == 2)
         {
-            return {tensor5_with_changed_rank(
-                permute_tensor5(apply_to_slices(permute_tensor5(input,
+            return {tensor_with_changed_rank(
+                permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 5, 3, 4, 2})),
                     {1, 5, 3, 4, 2}), input.shape().rank_)};
         }
         else if (adjusted_axis == 1)
         {
-            return {tensor5_with_changed_rank(
-                permute_tensor5(apply_to_slices(permute_tensor5(input,
+            return {tensor_with_changed_rank(
+                permute_tensor(apply_to_slices(permute_tensor(input,
                     {5, 2, 3, 4, 1})),
                     {5, 2, 3, 4, 1}), input.shape().rank_)};
         }

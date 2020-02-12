@@ -13,7 +13,7 @@
 namespace fdeep { namespace internal
 {
 
-// Converts a volume into single column volume (shape5(n)).
+// Converts a volume into single column volume (tensor_shape(n)).
 class flatten_layer : public layer
 {
 public:
@@ -22,11 +22,11 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         const auto& input = inputs.front();
-        return {flatten_tensor5(input)};
+        return {flatten_tensor(input)};
     }
 };
 

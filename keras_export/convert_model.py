@@ -71,17 +71,17 @@ def int_or_none(value):
     return int(value)
 
 
-def keras_shape_to_fdeep_shape5(raw_shape):
+def keras_shape_to_fdeep_tensor_shape(raw_shape):
     """Convert a keras shape to an fdeep shape"""
     return singleton_list_to_value(raw_shape)[1:]
 
 
-def get_layer_input_shape_shape5(layer):
+def get_layer_input_shape_tensor_shape(layer):
     """Convert layer input shape to an fdeep shape"""
-    return keras_shape_to_fdeep_shape5(layer.input_shape)
+    return keras_shape_to_fdeep_tensor_shape(layer.input_shape)
 
 
-def show_tensor5(tens):
+def show_tensor(tens):
     """Serialize 3-tensor to a dict"""
     return {
         # todo: Understand why Keras sometimes prepends a 1 to the tensor shape
@@ -195,8 +195,8 @@ def gen_test_data(model):
     duration_avg = duration_sum / test_runs
     print('Forward pass took {} s on average.'.format(duration_avg))
     return {
-        'inputs': list(map(show_tensor5, data_in)),
-        'outputs': list(map(show_tensor5, data_out_test))
+        'inputs': list(map(show_tensor, data_in)),
+        'outputs': list(map(show_tensor, data_out_test))
     }
 
 
@@ -708,9 +708,9 @@ def check_operation_offset(depth, eval_f, padding):
     return result == [1, 4]
 
 
-def get_shapes(tensor5s):
+def get_shapes(tensors):
     """Return shapes of a list of tensors"""
-    return [t['shape'] for t in tensor5s]
+    return [t['shape'] for t in tensors]
 
 
 def calculate_hash(model):
@@ -758,8 +758,8 @@ def model_to_fdeep_json(model, no_tests=False):
     print('Converting model architecture.')
     json_output['architecture'] = json.loads(model.to_json())
     json_output['image_data_format'] = K.image_data_format()
-    json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
-    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_shape5, as_list(model.output_shape)))
+    json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, as_list(model.output_shape)))
 
     if test_data:
         json_output['tests'] = [test_data]

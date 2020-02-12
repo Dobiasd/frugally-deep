@@ -21,16 +21,16 @@ public:
     {
     }
 protected:
-    tensor5 transform_input(const tensor5& input) const override
+    tensor transform_input(const tensor& input) const override
     {
         // Get unnormalized values of exponent function.
         const auto ex = [](float_type x) -> float_type
         {
             return std::exp(x);
         };
-        const float_type m = input.get(tensor5_max_pos(input));
-        const auto inp_shifted = subtract_tensor5(input, tensor5(input.shape(), m));
-        auto output = transform_tensor5(ex, inp_shifted);
+        const float_type m = input.get(tensor_max_pos(input));
+        const auto inp_shifted = subtract_tensor(input, tensor(input.shape(), m));
+        auto output = transform_tensor(ex, inp_shifted);
 
         // Softmax function is applied along channel dimension.
         for (size_t y = 0; y < input.shape().height_; ++y)

@@ -30,12 +30,12 @@ int main()
     const shared_float_vec st2(fplus::make_shared_ref<float_vec>(state_2));
     const shared_float_vec st3(fplus::make_shared_ref<float_vec>(state_3));
 
-    const tensor5 test_in_0(shape5(4, 1), xt0);
-    const tensor5 test_in_1(shape5(4, 1), xt1);
-    const tensor5 test_state_0(shape5(2), st0);
-    const tensor5 test_state_1(shape5(2), st1);
-    const tensor5 test_state_2(shape5(2), st2);
-    const tensor5 test_state_3(shape5(2), st3);
+    const tensor test_in_0(tensor_shape(4, 1), xt0);
+    const tensor test_in_1(tensor_shape(4, 1), xt1);
+    const tensor test_state_0(tensor_shape(2), st0);
+    const tensor test_state_1(tensor_shape(2), st1);
+    const tensor test_state_2(tensor_shape(2), st2);
+    const tensor test_state_3(tensor_shape(2), st3);
 
     // *********** TEST 1: "GRU_nonstateful_no_init_state.json" ***********
     auto model = load_model("./models/GRU_nonstateful_no_init_state.json");

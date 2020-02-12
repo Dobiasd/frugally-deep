@@ -22,7 +22,7 @@ public:
     {
     }
 protected:
-    tensor5 transform_input(const tensor5& in_vol) const override
+    tensor transform_input(const tensor& in_vol) const override
     {
         auto activation_function = [](float_type x) -> float_type
         {
@@ -36,7 +36,7 @@ protected:
             else
                 return std::log1p(std::exp(x));
         };
-        return transform_tensor5(activation_function, in_vol);
+        return transform_tensor(activation_function, in_vol);
     }
 };
 

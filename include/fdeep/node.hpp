@@ -34,15 +34,15 @@ struct node_connection
 };
 using node_connections = std::vector<node_connection>;
 
-using output_dict = std::map<std::pair<std::string, std::size_t>, tensor5s>;
+using output_dict = std::map<std::pair<std::string, std::size_t>, tensors>;
 
 class layer;
 typedef std::shared_ptr<layer> layer_ptr;
 typedef std::vector<layer_ptr> layer_ptrs;
 layer_ptr get_layer(const layer_ptrs& layers, const std::string& layer_id);
-tensor5 get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
+tensor get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
     const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx);
-tensor5s apply_layer(const layer& layer, const tensor5s& inputs);
+tensors apply_layer(const layer& layer, const tensors& inputs);
 
 class node
 {
@@ -51,11 +51,11 @@ public:
             inbound_connections_(inbound_nodes)
     {
     }
-    tensor5s get_output(const layer_ptrs& layers, output_dict& output_cache,
+    tensors get_output(const layer_ptrs& layers, output_dict& output_cache,
         const layer& layer) const
     {
         const auto get_input = [&output_cache, &layers]
-            (const node_connection& conn) -> tensor5
+            (const node_connection& conn) -> tensor
         {
             return get_layer_output(layers, output_cache,
                 get_layer(layers, conn.layer_id_),

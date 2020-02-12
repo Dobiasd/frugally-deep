@@ -133,8 +133,8 @@ int main()
 {
     const auto model = fdeep::load_model("fdeep_model.json");
     const auto result = model.predict(
-        {fdeep::tensor5(fdeep::shape5(4), {1, 2, 3, 4})});
-    std::cout << fdeep::show_tensor5s(result) << std::endl;
+        {fdeep::tensor(fdeep::tensor_shape(4), {1, 2, 3, 4})});
+    std::cout << fdeep::show_tensors(result) << std::endl;
 }
 ```
 

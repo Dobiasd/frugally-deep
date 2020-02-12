@@ -26,7 +26,7 @@ public:
 protected:
     fdeep::shared_float_vec alpha_;
     std::vector<std::size_t> shared_axes_;
-    tensor5s apply_impl(const tensor5s& input) const override
+    tensors apply_impl(const tensors& input) const override
     {
         // We need to shift shared_axes if the original Keras tensor
         // was one or two dimensional.
@@ -52,7 +52,7 @@ protected:
         const size_t width = width_shared ? 1 : input[0].shape().width_;
         const size_t depth = channels_shared ? 1 : input[0].shape().depth_;
 
-        fdeep::tensor5 out(input[0].shape(), 1.0f);
+        fdeep::tensor out(input[0].shape(), 1.0f);
         for (std::size_t y = 0; y < out.shape().height_; ++y)
         {
             for (std::size_t x = 0; x < out.shape().width_; ++x)

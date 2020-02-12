@@ -7,7 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/layer.hpp"
-#include "fdeep/tensor5.hpp"
+#include "fdeep/tensor.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -16,7 +16,7 @@
 namespace fdeep { namespace internal
 {
 
-// Takes a single stack volume (shape5(n)) as input.
+// Takes a single stack volume (tensor_shape(n)) as input.
 class dense_layer : public layer
 {
 public:
@@ -39,7 +39,7 @@ public:
         assertion(weights.size() % units == 0, "invalid weight count");
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "invalid number of input tensors");
         auto input = inputs.front();
@@ -52,7 +52,7 @@ protected:
         // Otherwise the following would need to be done:
         // if (input.shape().get_not_one_dimension_count() > 1)
         // {
-        //     input = flatten_tensor5(input);
+        //     input = flatten_tensor(input);
         // }
         const auto input_parts = fplus::split_every(
             input.shape().depth_, *input.as_vector());
@@ -73,7 +73,7 @@ protected:
         assertion(result_values.size() % n_out_ == 0,
             "Invalid number of output values.");
 
-        return {tensor5(change_shape5_dimension_by_index(
+        return {tensor(change_tensor_shape_dimension_by_index(
                 input.shape(), 4, n_out_),
             fplus::make_shared_ref<fdeep::float_vec>(result_values))};
     }

@@ -35,15 +35,11 @@ public:
         assertion(shape.volume() == values->size(), "invalid number of values");
     }
     tensor5(const shape5& shape, float_vec&& values) :
-        shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(std::move(values)))
+        tensor5(shape, fplus::make_shared_ref<float_vec>(std::move(values)))
     {
-        assertion(shape.volume() == values_->size(),
-            "invalid number of values");
     }
     tensor5(const shape5& shape, float_type value) :
-        shape_(shape),
-        values_(fplus::make_shared_ref<float_vec>(shape.volume(), value))
+        tensor5(shape, fplus::make_shared_ref<float_vec>(shape.volume(), value))
     {
     }
     float_type get(const tensor5_pos& pos) const

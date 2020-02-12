@@ -84,7 +84,7 @@ def get_layer_input_shape_shape5(layer):
 def show_tensor5(tens):
     """Serialize 3-tensor to a dict"""
     return {
-        'shape': tens.shape[1:] if len(tens.shape) > 1 else tens.shape,
+        'shape': tens.shape,
         'values': encode_floats(tens.flatten())
     }
 

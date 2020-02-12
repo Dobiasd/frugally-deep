@@ -170,7 +170,8 @@ inline tensor tensor_from_depth_slices(const std::vector<tensor>& ms)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                m.set(tensor_pos(y, x, z), ms[z].get(tensor_pos(y, x, 0)));
+                m.set(tensor_pos(y, x, z),
+                    ms[z].get(tensor_pos(y, x, 0)));
             }
         }
     }
@@ -193,7 +194,8 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                ms[z].set(tensor_pos(y, x, 0), m.get(tensor_pos(y, x, z)));
+                ms[z].set(tensor_pos(y, x, 0),
+                    m.get(tensor_pos(y, x, z)));
             }
         }
     }
@@ -222,7 +224,8 @@ inline tensors tensor_to_tensors_width_slices(const tensor& m)
                 {
                     for (std::size_t z = 0; z < m.shape().depth_; ++z)
                     {
-                        ms[x].set(tensor_pos(dim5, dim4, y, 0, z), m.get(tensor_pos(dim5, dim4, y, x, z)));
+                        ms[x].set_ignore_rank(tensor_pos(dim5, dim4, y, 0, z),
+                            m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                     }
                 }
             }
@@ -253,7 +256,8 @@ inline tensors tensor_to_tensors_height_slices(const tensor& m)
                 {
                     for (std::size_t z = 0; z < m.shape().depth_; ++z)
                     {
-                        ms[y].set(tensor_pos(dim5, dim4, 0, x, z), m.get(tensor_pos(dim5, dim4, y, x, z)));
+                        ms[y].set_ignore_rank(tensor_pos(dim5, dim4, 0, x, z),
+                            m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                     }
                 }
             }
@@ -284,7 +288,8 @@ inline tensors tensor_to_tensors_dim4_slices(const tensor& m)
                 {
                     for (std::size_t z = 0; z < m.shape().depth_; ++z)
                     {
-                        ms[dim4].set(tensor_pos(dim5, 0, y, x, z), m.get(tensor_pos(dim5, dim4, y, x, z)));
+                        ms[dim4].set_ignore_rank(tensor_pos(dim5, 0, y, x, z),
+                            m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                     }
                 }
             }
@@ -315,7 +320,8 @@ inline tensors tensor_to_tensors_dim5_slices(const tensor& m)
                 {
                     for (std::size_t z = 0; z < m.shape().depth_; ++z)
                     {
-                        ms[dim5].set(tensor_pos(dim4, y, x, z), m.get(tensor_pos(dim5, dim4, y, x, z)));
+                        ms[dim5].set_ignore_rank(tensor_pos(dim4, y, x, z),
+                            m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
                     }
                 }
             }

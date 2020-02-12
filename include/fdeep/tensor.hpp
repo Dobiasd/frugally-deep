@@ -132,12 +132,12 @@ inline bool is_singleton_value(const tensor& t)
 inline float_type to_singleton_value(const tensor& t)
 {
     assertion(is_singleton_value(t), "Tensor must contain exactly one value.");
-    return t.get(tensor_pos(0));
+    return t.get(tensor_pos(static_cast<std::size_t>(0)));
 }
 
 inline tensor from_singleton_value(float_type value)
 {
-    return tensor(tensor_shape(1), value);
+    return tensor(tensor_shape(static_cast<std::size_t>(1)), value);
 }
 
 inline tensor tensor_with_changed_rank(const tensor& t, std::size_t rank)
@@ -598,7 +598,7 @@ inline tensor concatenate_tensors(const tensors& ts, std::int32_t axis)
     }
     raise_error("Invalid axis (" + std::to_string(axis) +
         ") for tensor concatenation.");
-    return tensor(tensor_shape(0), 0);
+    return tensor(tensor_shape(static_cast<std::size_t>(0)), 0);
 }
 
 inline tensor flatten_tensor(const tensor& vol)

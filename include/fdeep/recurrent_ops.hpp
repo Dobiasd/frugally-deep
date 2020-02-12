@@ -83,7 +83,7 @@ inline std::function<float_type(float_type)> get_activation_func(const std::stri
         return elu_activation;
 
     raise_error("activation function '" + activation_func_name + "' not yet implemented");
-    return {}; //should never be called
+    return {}; // Is never called
 }
 
 inline tensors lstm_impl(const tensor& input,

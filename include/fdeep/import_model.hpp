@@ -151,7 +151,7 @@ inline tensor_shape_variable create_tensor_shape_variable(const nlohmann::json& 
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
-        fplus::nothing<std::size_t>()); // Should never be called
+        fplus::nothing<std::size_t>()); // Is never called
 }
 
 inline tensor_shape_variable create_tensor_shape_variable_leading_null(const nlohmann::json& data)
@@ -190,7 +190,7 @@ inline tensor_shape_variable create_tensor_shape_variable_leading_null(const nlo
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
         fplus::nothing<std::size_t>(),
-        fplus::nothing<std::size_t>()); // Should never be called
+        fplus::nothing<std::size_t>()); // Is never called
 }
 
 inline tensor_shape create_tensor_shape(const nlohmann::json& data)
@@ -208,7 +208,7 @@ inline tensor_shape create_tensor_shape(const nlohmann::json& data)
     if (data.size() == 5)
         return tensor_shape(data[0], data[1], data[2], data[3], data[4]);
     raise_error("tensor_shape needs 1, 2, 3, 4 or 5 dimensions");
-    return tensor_shape(0); // Should never be called
+    return tensor_shape(static_cast<std::size_t>(0)); // Is never be called
 }
 
 inline shape2 create_shape2(const nlohmann::json& data)

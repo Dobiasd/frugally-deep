@@ -34,8 +34,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override final
     {
-        assertion(inputs.size() == 1, "invalid number of inputs tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         if (interpolation_ == "nearest")
         {
             return {upsampling2d_nearest(input)};

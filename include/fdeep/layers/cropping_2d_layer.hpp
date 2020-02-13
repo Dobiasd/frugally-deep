@@ -31,9 +31,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
-
+        const auto& input = single_tensor_from_tensors(inputs);
         return {crop_tensor(top_crop_, bottom_crop_, left_crop_, right_crop_, input)};
     }
     std::size_t top_crop_;

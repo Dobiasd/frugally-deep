@@ -30,8 +30,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override final
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         return {pool(input)};
     }
     virtual tensor pool(const tensor& input) const = 0;

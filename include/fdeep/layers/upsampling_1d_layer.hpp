@@ -30,18 +30,9 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override final
     {
-        assertion(inputs.size() == 1, "invalid number of inputs tensors");
-        const auto& input = inputs.front();
-
-        if (input.shape().rank() == 2)
-        {
-            return {upsampling_1d_rank_2(input)};
-        }
-        else
-        {
-            raise_error("invalid input shape for Upsampling1D");
-            return inputs;
-        }
+        const auto& input = single_tensor_from_tensors(inputs);
+        assertion(input.shape().rank() == 2, "invalid input shape for Upsampling1D");
+        return {upsampling_1d_rank_2(input)};
     }
 
     tensor upsampling_1d_rank_2(const tensor& input) const

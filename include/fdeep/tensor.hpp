@@ -149,6 +149,12 @@ private:
 typedef std::vector<tensor> tensors;
 typedef std::vector<tensors> tensors_vec;
 
+inline tensor single_tensor_from_tensors(const tensors& ts)
+{
+    assertion(ts.size() == 1, "invalid number of tensors");
+    return ts.front();
+}
+
 inline bool is_singleton_value(const tensor& t)
 {
     return t.shape().volume() == 1;

@@ -49,9 +49,9 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "only one input tensor allowed");
+        const auto& input = single_tensor_from_tensors(inputs);
 
-        const auto input_slices = tensor_to_depth_slices(inputs.front());
+        const auto input_slices = tensor_to_depth_slices(input);
 
         assertion(input_slices.size() == filters_depthwise_.size(),
             "invalid input depth");

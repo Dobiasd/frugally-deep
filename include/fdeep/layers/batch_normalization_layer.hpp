@@ -91,8 +91,7 @@ protected:
 
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         const int adjusted_axis =
             axis_ == -1
             ? 5

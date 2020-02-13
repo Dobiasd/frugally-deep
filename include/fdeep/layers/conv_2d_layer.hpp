@@ -42,8 +42,8 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "only one input tensor allowed");
-        return {convolve(strides_, padding_, filters_, inputs.front())};
+        const auto& input = single_tensor_from_tensors(inputs);
+        return {convolve(strides_, padding_, filters_, input)};
     }
     im2col_filter_matrix filters_;
     shape2 strides_;

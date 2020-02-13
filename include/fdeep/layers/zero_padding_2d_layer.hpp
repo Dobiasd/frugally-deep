@@ -31,8 +31,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         return {pad_tensor(0, top_pad_, bottom_pad_, left_pad_, right_pad_, input)};
     }
     std::size_t top_pad_;

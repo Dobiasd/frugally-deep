@@ -38,7 +38,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override final
     {
-        const tensor input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         tensors result_time_step = {};
         std::size_t len_series = 0;
         tensors slices = {};

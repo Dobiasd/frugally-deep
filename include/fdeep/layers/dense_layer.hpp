@@ -41,8 +41,7 @@ public:
 protected:
     tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        auto input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         // According to the Keras documentation
         // https://keras.io/layers/core/#dense
         // "if the input to the layer has a rank greater than 2,

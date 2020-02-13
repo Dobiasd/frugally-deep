@@ -209,8 +209,9 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
     ms.reserve(m.shape().depth_);
     for (std::size_t i = 0; i < m.shape().depth_; ++i)
     {
-        ms.push_back(tensor(tensor_shape(
-            m.shape().height_, m.shape().width_, 1), 0));
+        ms.push_back(tensor(change_tensor_shape_dimension_by_index(
+            m.shape(), 4, 1),
+            0));
     }
 
     for (std::size_t y = 0; y < m.shape().height_; ++y)
@@ -233,11 +234,9 @@ inline tensors tensor_to_tensors_width_slices(const tensor& m)
     ms.reserve(m.shape().width_);
     for (std::size_t i = 0; i < m.shape().width_; ++i)
     {
-        ms.push_back(tensor(tensor_shape(m.shape().size_dim_5_,
-                                    m.shape().size_dim_4_,
-                                    m.shape().height_,
-                                    1,
-                                    m.shape().depth_), 0));
+        ms.push_back(tensor(change_tensor_shape_dimension_by_index(
+            m.shape(), 3, 1),
+            0));
     }
     for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {
@@ -265,11 +264,9 @@ inline tensors tensor_to_tensors_height_slices(const tensor& m)
     ms.reserve(m.shape().height_);
     for (std::size_t i = 0; i < m.shape().height_; ++i)
     {
-        ms.push_back(tensor(tensor_shape(m.shape().size_dim_5_,
-                                    m.shape().size_dim_4_,
-                                    1,
-                                    m.shape().width_,
-                                    m.shape().depth_), 0));
+        ms.push_back(tensor(change_tensor_shape_dimension_by_index(
+            m.shape(), 2, 1),
+            0));
     }
     for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {
@@ -297,11 +294,9 @@ inline tensors tensor_to_tensors_dim4_slices(const tensor& m)
     ms.reserve(m.shape().size_dim_4_);
     for (std::size_t i = 0; i < m.shape().size_dim_4_; ++i)
     {
-        ms.push_back(tensor(tensor_shape(m.shape().size_dim_5_,
-                                    1,
-                                    m.shape().height_,
-                                    m.shape().width_,
-                                    m.shape().depth_), 0));
+        ms.push_back(tensor(change_tensor_shape_dimension_by_index(
+            m.shape(), 1, 1),
+            0));
     }
     for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {
@@ -329,11 +324,9 @@ inline tensors tensor_to_tensors_dim5_slices(const tensor& m)
     ms.reserve(m.shape().size_dim_5_);
     for (std::size_t i = 0; i < m.shape().size_dim_5_; ++i)
     {
-        ms.push_back(tensor(tensor_shape(
-            m.shape().size_dim_4_,
-            m.shape().height_,
-            m.shape().width_,
-            m.shape().depth_), 0));
+        ms.push_back(tensor(change_tensor_shape_dimension_by_index(
+            m.shape(), 0, 1),
+            0));
     }
     for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {

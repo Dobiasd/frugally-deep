@@ -18,7 +18,7 @@ from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
-from tensorflow.keras.layers import Permute
+from tensorflow.keras.layers import Permute, Reshape
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -214,6 +214,18 @@ def get_test_model_exhaustive():
     outputs.append(Dense(4, use_bias=False, activation='tanh')(inputs[18]))
     outputs.append(Dense(4, use_bias=False)(inputs[20]))
 
+    outputs.append(Reshape(((2 * 3 * 4 * 5 * 6),))(inputs[0]))
+    outputs.append(Reshape((2, 3 * 4 * 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4 * 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4, 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4, 5, 6))(inputs[0]))
+
+    outputs.append(Reshape((16,))(inputs[8]))
+    outputs.append(Reshape((2, 8))(inputs[8]))
+    outputs.append(Reshape((2, 2, 4))(inputs[8]))
+    outputs.append(Reshape((2, 2, 2, 2))(inputs[8]))
+    outputs.append(Reshape((2, 2, 1, 2, 2))(inputs[8]))
+
     outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
@@ -309,6 +321,7 @@ def get_test_model_exhaustive():
         Activation('selu')(inputs[25]),
         Activation('sigmoid')(inputs[25]),
         Activation('softplus')(inputs[25]),
+        Activation('softmax')(inputs[25]),
         Activation('softmax')(inputs[25]),
         Activation('relu')(inputs[25]),
         LeakyReLU()(inputs[25]),

@@ -756,33 +756,6 @@ inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
     return result;
 }
 
-inline tensor reshape_tensor(const tensor& in,
-    const std::vector<int>& target_shape)
-{
-    const auto shape = target_shape;
-    assertion(shape.size() > 0 && shape.size() < 4,
-        "Invalid shape in reshape");
-    assertion(fplus::count(-1, shape) < 2,
-        "Reshape can only infer one dimension");
-    const auto fixed_dims = fplus::keep_if(fplus::is_not_equal_to(-1), shape);
-    const auto fixes_dims_prod = fplus::product(fixed_dims);
-    const auto num_values = static_cast<int>(in.as_vector()->size());
-    assertion(num_values % fixes_dims_prod == 0,
-        "Invalid dimensions in reshape");
-    const auto deduced_dim = num_values / fixes_dims_prod;
-    const auto deduced_shape = fplus::replace_elems(-1, deduced_dim, shape);
-    assertion(fplus::product(deduced_shape) == num_values,
-        "Invalid input tensor size in reshape");
-    assertion(fplus::all_by(fplus::is_positive<int>, deduced_shape),
-        "Invalid shape values in reshape");
-
-    return tensor(tensor_shape(
-        static_cast<std::size_t>(deduced_shape[0]),
-        static_cast<std::size_t>(deduced_shape[1]),
-        static_cast<std::size_t>(deduced_shape[2])),
-        in.as_vector());
-}
-
 inline tensor sum_tensors(const tensors& ts)
 {
     assertion(!ts.empty(), "no tensors given");

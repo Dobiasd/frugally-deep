@@ -712,13 +712,8 @@ inline layer_ptr create_reshape_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto target_shape =
-        create_vector<int>(create_int, data["config"]["target_shape"]);
-
-    const auto filled_shape =
-        fplus::fill_left(1, 3, target_shape);
-
-    return std::make_shared<reshape_layer>(name, filled_shape);
+    const auto target_shape = create_tensor_shape(data["config"]["target_shape"]);
+    return std::make_shared<reshape_layer>(name, target_shape);
 }
 
 inline activation_layer_ptr create_linear_layer(

@@ -500,6 +500,12 @@ def show_softmax_layer(layer):
     assert layer.axis == -1
 
 
+def show_reshape_layer(layer):
+    """Serialize reshape layer to dict"""
+    for dim_size in layer.target_shape:
+        assert dim_size != -1, 'Reshape inference not supported'
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,

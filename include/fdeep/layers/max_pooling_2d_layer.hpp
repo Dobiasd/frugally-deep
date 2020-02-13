@@ -49,7 +49,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    // todo: Do we still need to support this in any of the layers using it?
+    // todo: Do we still need to support this, check test_model_exhaustive
     if (channels_first)
     {
         tensor out(tensor_shape(feature_count, out_height, out_width), 0);
@@ -80,7 +80,11 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
     }
     else
     {
-        tensor out(tensor_shape(out_height, out_width, feature_count), 0);
+        tensor out(
+            tensor_shape_with_changed_rank(
+                tensor_shape(out_height, out_width, feature_count),
+                in.shape().rank()),
+            0);
 
         for (std::size_t y = 0; y < out_height; ++y)
         {
@@ -100,7 +104,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
                         }
                     }
 
-                    out.set(tensor_pos(y, x, z), val);
+                    out.set_ignore_rank(tensor_pos(y, x, z), val);
                 }
             }
         }
@@ -113,8 +117,8 @@ class max_pooling_2d_layer : public pooling_2d_layer
 public:
     explicit max_pooling_2d_layer(const std::string& name,
         const shape2& pool_size, const shape2& strides, bool channels_first,
-        padding p, std::size_t output_dimensions) :
-        pooling_2d_layer(name, pool_size, strides, channels_first, p, output_dimensions)
+        padding p) :
+        pooling_2d_layer(name, pool_size, strides, channels_first, p)
     {
     }
 protected:

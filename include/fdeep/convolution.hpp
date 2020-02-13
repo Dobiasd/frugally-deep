@@ -124,7 +124,11 @@ inline tensor convolve_im2col(
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
     out_mat_map.noalias() = filter_mat.mat_ * a;
 
-    return tensor(tensor_shape(out_height, out_width, out_depth), res_vec);
+    return tensor(
+        tensor_shape_with_changed_rank(
+            tensor_shape(out_height, out_width, out_depth),
+            in_padded.shape().rank()),
+        res_vec);
 }
 
 enum class padding { valid, same, causal };

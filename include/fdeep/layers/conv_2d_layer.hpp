@@ -28,14 +28,12 @@ public:
             const std::string& name, const tensor_shape& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             const shape2& dilation_rate,
-            const float_vec& weights, const float_vec& bias,
-            std::size_t output_dimensions)
+            const float_vec& weights, const float_vec& bias)
         : layer(name),
         filters_(generate_im2col_filter_matrix(
             generate_filters(dilation_rate, filter_shape, k, weights, bias))),
         strides_(strides),
-        padding_(p),
-        output_dimensions_(output_dimensions)
+        padding_(p)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -45,19 +43,11 @@ protected:
     tensors apply_impl(const tensors& inputs) const override
     {
         assertion(inputs.size() == 1, "only one input tensor allowed");
-        const auto result = convolve(strides_, padding_, filters_, inputs.front());
-        if (output_dimensions_ == 1)
-        {
-            // To support correct output rank for 1d version of layer.
-            assertion(result.shape().rank() == 3, "Invalid rank of conv output");
-            return {tensor_with_changed_rank(result, 2)};
-        }
-        return {result};
+        return {convolve(strides_, padding_, filters_, inputs.front())};
     }
     im2col_filter_matrix filters_;
     shape2 strides_;
     padding padding_;
-    std::size_t output_dimensions_;
 };
 
 } } // namespace fdeep, namespace internal

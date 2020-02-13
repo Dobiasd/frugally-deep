@@ -33,8 +33,7 @@ public:
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
             const float_vec& bias_0,
-            const float_vec& bias,
-            std::size_t output_dimensions)
+            const float_vec& bias)
         : layer(name),
         filters_depthwise_(fplus::transform(generate_im2col_single_filter_matrix,
             generate_filters(dilation_rate, filter_shape,
@@ -43,8 +42,7 @@ public:
             generate_filters(shape2(1, 1),
                 tensor_shape(input_depth), k, pointwise_weights, bias))),
         strides_(strides),
-        padding_(p),
-        output_dimensions_(output_dimensions)
+        padding_(p)
     {
         assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
@@ -76,21 +74,13 @@ protected:
         const auto temp = concatenate_tensors_depth(fplus::zip_with(
             convolve_slice, input_slices, filters_depthwise_));
 
-        const auto result = convolve(shape2(1, 1), padding::valid, filters_pointwise_, temp);
-        if (output_dimensions_ == 1)
-        {
-            // To support correct output rank for 1d version of layer.
-            assertion(result.shape().rank() == 3, "Invalid rank of conv output");
-            return {tensor_with_changed_rank(result, 2)};
-        }
-        return {result};
+        return {convolve(shape2(1, 1), padding::valid, filters_pointwise_, temp)};
     }
 
     std::vector<im2col_filter_matrix> filters_depthwise_;
     im2col_filter_matrix filters_pointwise_;
     shape2 strides_;
     padding padding_;
-    std::size_t output_dimensions_;
 };
 
 } } // namespace fdeep, namespace internal

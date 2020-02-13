@@ -361,10 +361,9 @@ inline padding create_padding(const std::string& padding_str)
     }, padding_str));
 }
 
-inline layer_ptr create_conv_1d_or_2d_layer(const get_param_f& get_param,
+inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
     const nlohmann::json& data,
-    const std::string& name,
-    std::size_t dimensions)
+    const std::string& name)
 {
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
@@ -390,27 +389,12 @@ inline layer_ptr create_conv_1d_or_2d_layer(const get_param_f& get_param,
 
     return std::make_shared<conv_2d_layer>(name,
         filter_shape, filter_count, strides, pad_type,
-        dilation_rate, weights, bias, dimensions);
+        dilation_rate, weights, bias);
 }
 
-inline layer_ptr create_conv_1d_layer(const get_param_f& get_param,
+inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const nlohmann::json& data,
     const std::string& name)
-{
-    return create_conv_1d_or_2d_layer(get_param, data, name, 1);
-}
-
-inline layer_ptr create_conv_2d_layer(const get_param_f& get_param,
-    const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_conv_1d_or_2d_layer(get_param, data, name, 2);
-}
-
-inline layer_ptr create_separable_conv_1D_or_2D_layer(const get_param_f& get_param,
-    const nlohmann::json& data,
-    const std::string& name,
-    std::size_t dimensions)
 {
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
@@ -442,21 +426,7 @@ inline layer_ptr create_separable_conv_1D_or_2D_layer(const get_param_f& get_par
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
         filter_shape, filter_count, strides, pad_type,
-        dilation_rate, slice_weights, stack_weights, bias_0, bias, dimensions);
-}
-
-inline layer_ptr create_separable_conv_1D_layer(const get_param_f& get_param,
-    const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_separable_conv_1D_or_2D_layer(get_param, data, name, 1);
-}
-
-inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
-    const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_separable_conv_1D_or_2D_layer(get_param, data, name, 2);
+        dilation_rate, slice_weights, stack_weights, bias_0, bias);
 }
 
 inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
@@ -523,9 +493,9 @@ inline layer_ptr create_identity_layer(
     return std::make_shared<linear_layer>(name);
 }
 
-inline layer_ptr create_max_pooling_1d_or_2d_layer(
+inline layer_ptr create_max_pooling_2d_layer(
     const get_param_f&, const nlohmann::json& data,
-    const std::string& name, std::size_t dimensions)
+    const std::string& name)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
@@ -533,26 +503,12 @@ inline layer_ptr create_max_pooling_1d_or_2d_layer(
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<max_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type, dimensions);
+        pool_size, strides, channels_first, pad_type);
 }
 
-inline layer_ptr create_max_pooling_1d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_max_pooling_1d_or_2d_layer(get_param, data, name, 1);
-}
-
-inline layer_ptr create_max_pooling_2d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_max_pooling_1d_or_2d_layer(get_param, data, name, 2);
-}
-
-inline layer_ptr create_average_pooling_1d_or_2d_layer(
+inline layer_ptr create_average_pooling_2d_layer(
     const get_param_f&, const nlohmann::json& data,
-    const std::string& name, std::size_t dimensions)
+    const std::string& name)
 {
     const auto pool_size = create_shape2(data["config"]["pool_size"]);
     const auto strides = create_shape2(data["config"]["strides"]);
@@ -561,21 +517,7 @@ inline layer_ptr create_average_pooling_1d_or_2d_layer(
 
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<average_pooling_2d_layer>(name,
-        pool_size, strides, channels_first, pad_type, dimensions);
-}
-
-inline layer_ptr create_average_pooling_1d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_average_pooling_1d_or_2d_layer(get_param, data, name, 1);
-}
-
-inline layer_ptr create_average_pooling_2d_layer(
-    const get_param_f& get_param, const nlohmann::json& data,
-    const std::string& name)
-{
-    return create_average_pooling_1d_or_2d_layer(get_param, data, name, 2);
+        pool_size, strides, channels_first, pad_type);
 }
 
 inline layer_ptr create_global_max_pooling_1d_layer(
@@ -1115,9 +1057,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     const std::string name = data["name"];
 
     const layer_creators default_creators = {
-            {"Conv1D", create_conv_1d_layer},
+            {"Conv1D", create_conv_2d_layer},
             {"Conv2D", create_conv_2d_layer},
-            {"SeparableConv1D", create_separable_conv_1D_layer},
+            {"SeparableConv1D", create_separable_conv_2D_layer},
             {"SeparableConv2D", create_separable_conv_2D_layer},
             {"DepthwiseConv2D", create_depthwise_conv_2D_layer},
             {"InputLayer", create_input_layer},
@@ -1134,9 +1076,9 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
             {"ReLU", create_relu_layer_isolated},
-            {"MaxPooling1D", create_max_pooling_1d_layer},
+            {"MaxPooling1D", create_max_pooling_2d_layer},
             {"MaxPooling2D", create_max_pooling_2d_layer},
-            {"AveragePooling1D", create_average_pooling_1d_layer},
+            {"AveragePooling1D", create_average_pooling_2d_layer},
             {"AveragePooling2D", create_average_pooling_2d_layer},
             {"GlobalMaxPooling1D", create_global_max_pooling_1d_layer},
             {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},

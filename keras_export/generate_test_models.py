@@ -143,8 +143,12 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))

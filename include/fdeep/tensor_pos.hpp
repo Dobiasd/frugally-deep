@@ -27,12 +27,12 @@ public:
         std::size_t y,
         std::size_t x,
         std::size_t z) :
-            rank_(5),
             pos_dim_5_(pos_dim_5),
             pos_dim_4_(pos_dim_4),
             y_(y),
             x_(x),
-            z_(z)
+            z_(z),
+            rank_(5)
     {
     }
 
@@ -41,12 +41,12 @@ public:
         std::size_t y,
         std::size_t x,
         std::size_t z) :
-            rank_(4),
             pos_dim_5_(0),
             pos_dim_4_(pos_dim_4),
             y_(y),
             x_(x),
-            z_(z)
+            z_(z),
+            rank_(4)
     {
     }
 
@@ -54,50 +54,57 @@ public:
         std::size_t y,
         std::size_t x,
         std::size_t z) :
-            rank_(3),
             pos_dim_5_(0),
             pos_dim_4_(0),
             y_(y),
             x_(x),
-            z_(z)
+            z_(z),
+            rank_(3)
     {
     }
 
     explicit tensor_pos(
         std::size_t x,
         std::size_t z) :
-            rank_(2),
             pos_dim_5_(0),
             pos_dim_4_(0),
             y_(0),
             x_(x),
-            z_(z)
+            z_(z),
+            rank_(2)
     {
     }
 
     explicit tensor_pos(
         std::size_t z) :
-            rank_(1),
             pos_dim_5_(0),
             pos_dim_4_(0),
             y_(0),
             x_(0),
-            z_(z)
+            z_(z),
+            rank_(1)
     {
     }
 
-    std::size_t rank_;
+    std::size_t rank() const
+    {
+        return rank_;
+    }
+
     std::size_t pos_dim_5_;
     std::size_t pos_dim_4_;
     std::size_t y_;
     std::size_t x_;
     std::size_t z_;
+
+private:
+    std::size_t rank_;
 };
 
 inline std::size_t get_tensor_pos_dimension_by_index(const tensor_pos& p,
     const std::size_t idx)
 {
-    assertion(p.rank_ >= 4 - idx, "Invalid index for rank");
+    assertion(p.rank() >= 4 - idx, "Invalid index for rank");
     if (idx == 0)
         return p.pos_dim_5_;
     if (idx == 1)
@@ -115,7 +122,7 @@ inline std::size_t get_tensor_pos_dimension_by_index(const tensor_pos& p,
 inline tensor_pos change_tensor_pos_dimension_by_index(const tensor_pos& in,
     const std::size_t idx, const std::size_t dim)
 {
-    assertion(in.rank_ >= 4 - idx, "Invalid index for rank");
+    assertion(in.rank() >= 4 - idx, "Invalid index for rank");
     tensor_pos out = in;
     if (idx == 0)
         out.pos_dim_5_ = dim;

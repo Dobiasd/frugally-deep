@@ -28,12 +28,12 @@ public:
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
+            rank_(5),
             size_dim_5_(size_dim_5),
             size_dim_4_(size_dim_4),
             height_(height),
             width_(width),
-            depth_(depth),
-            rank_(5)
+            depth_(depth)
     {
     }
 
@@ -42,12 +42,12 @@ public:
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
+            rank_(4),
             size_dim_5_(1),
             size_dim_4_(size_dim_4),
             height_(height),
             width_(width),
-            depth_(depth),
-            rank_(4)
+            depth_(depth)
     {
     }
 
@@ -55,51 +55,44 @@ public:
         fplus::maybe<std::size_t> height,
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
+            rank_(3),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(height),
             width_(width),
-            depth_(depth),
-            rank_(3)
+            depth_(depth)
     {
     }
 
         explicit tensor_shape_variable(
         fplus::maybe<std::size_t> width,
         fplus::maybe<std::size_t> depth) :
+            rank_(2),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(1),
             width_(width),
-            depth_(depth),
-            rank_(2)
+            depth_(depth)
     {
     }
 
         explicit tensor_shape_variable(
         fplus::maybe<std::size_t> depth) :
+            rank_(1),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(1),
             width_(1),
-            depth_(depth),
-            rank_(1)
+            depth_(depth)
     {
     }
 
-    std::size_t rank() const
-    {
-        return rank_;
-    }
-
+    std::size_t rank_;
     fplus::maybe<std::size_t> size_dim_5_;
     fplus::maybe<std::size_t> size_dim_4_;
     fplus::maybe<std::size_t> height_;
     fplus::maybe<std::size_t> width_;
     fplus::maybe<std::size_t> depth_;
-
-private:
-    std::size_t rank_;
 };
 
 inline bool operator == (const tensor_shape_variable& lhs, const tensor_shape_variable& rhs)

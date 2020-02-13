@@ -43,7 +43,7 @@ protected:
         if (output_dimensions_ == 1)
         {
             // To support correct output rank for 1d version of layer.
-            assertion(result.shape().rank_ == 3, "Invalid rank of pooling output");
+            assertion(result.shape().rank() == 3, "Invalid rank of pooling output");
             return {tensor_with_changed_rank(result, 2)};
         }
         return {result};

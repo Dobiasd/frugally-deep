@@ -114,7 +114,7 @@ private:
     };
     std::size_t idx(const tensor_pos& pos) const
     {
-        assertion(pos.rank_ == shape().rank_, "Invalid position rank for tensor");
+        assertion(pos.rank() == shape().rank(), "Invalid position rank for tensor");
         return idx_ignore_rank(pos);
     };
     tensor_shape shape_;
@@ -364,8 +364,8 @@ inline std::pair<tensor_pos, tensor_pos> tensor_min_max_pos(
         }
     }
     return std::make_pair(
-        tensor_pos_with_changed_rank(result_min, vol.shape().rank_),
-        tensor_pos_with_changed_rank(result_max, vol.shape().rank_));
+        tensor_pos_with_changed_rank(result_min, vol.shape().rank()),
+        tensor_pos_with_changed_rank(result_max, vol.shape().rank()));
 }
 
 inline std::vector<std::vector<std::size_t>> get_tensors_shape_sizes(const tensors& ts)
@@ -570,7 +570,7 @@ inline tensor concatenate_tensors_dim5(const tensors& in)
 
 inline tensor concatenate_tensors(const tensors& ts, std::int32_t axis)
 {
-    const auto rank = ts.front().shape().rank_;
+    const auto rank = ts.front().shape().rank();
     if (axis < 0)
     {
         axis = axis + static_cast<std::int32_t>(rank) + 1;
@@ -614,7 +614,7 @@ inline tensor pad_tensor(float_type val,
     tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,
-        in.shape().depth_), in.shape().rank_), val);
+        in.shape().depth_), in.shape().rank()), val);
     for (std::size_t y = 0; y < in.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < in.shape().width_; ++x)
@@ -691,7 +691,7 @@ inline tensor crop_tensor(
     tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ - (top_crop + bottom_crop),
         in.shape().width_ - (left_crop + right_crop),
-        in.shape().depth_), in.shape().rank_), 0);
+        in.shape().depth_), in.shape().rank()), 0);
     for (std::size_t y = 0; y < result.shape().height_; ++y)
     {
         for (std::size_t x = 0; x < result.shape().width_; ++x)
@@ -708,7 +708,7 @@ inline tensor crop_tensor(
 
 inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
 {
-    assertion(in.shape().rank_ <= 3, "Invalid rank for dilation");
+    assertion(in.shape().rank() <= 3, "Invalid rank for dilation");
     if (dilation_rate == shape2(1, 1))
     {
         return in;

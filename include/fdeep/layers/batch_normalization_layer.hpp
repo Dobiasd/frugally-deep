@@ -96,7 +96,7 @@ protected:
         const int adjusted_axis =
             axis_ == -1
             ? 5
-            : 5 + axis_ - static_cast<int>(input.shape().rank_);
+            : 5 + axis_ - static_cast<int>(input.shape().rank());
 
         if (adjusted_axis == 5)
         {
@@ -107,28 +107,28 @@ protected:
             return {tensor_with_changed_rank(
                 permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 2, 3, 5, 4})),
-                    {1, 2, 3, 5, 4}), input.shape().rank_)};
+                    {1, 2, 3, 5, 4}), input.shape().rank())};
         }
         else if (adjusted_axis == 3)
         {
             return {tensor_with_changed_rank(
                 permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 2, 5, 4, 3})),
-                    {1, 2, 5, 4, 3}), input.shape().rank_)};
+                    {1, 2, 5, 4, 3}), input.shape().rank())};
         }
         else if (adjusted_axis == 2)
         {
             return {tensor_with_changed_rank(
                 permute_tensor(apply_to_slices(permute_tensor(input,
                     {1, 5, 3, 4, 2})),
-                    {1, 5, 3, 4, 2}), input.shape().rank_)};
+                    {1, 5, 3, 4, 2}), input.shape().rank())};
         }
         else if (adjusted_axis == 1)
         {
             return {tensor_with_changed_rank(
                 permute_tensor(apply_to_slices(permute_tensor(input,
                     {5, 2, 3, 4, 1})),
-                    {5, 2, 3, 4, 1}), input.shape().rank_)};
+                    {5, 2, 3, 4, 1}), input.shape().rank())};
         }
         else {
             raise_error("Invalid axis for batch normalization.");

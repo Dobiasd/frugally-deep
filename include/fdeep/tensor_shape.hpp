@@ -32,12 +32,12 @@ public:
         std::size_t height,
         std::size_t width,
         std::size_t depth) :
-            rank_(5),
             size_dim_5_(size_dim_5),
             size_dim_4_(size_dim_4),
             height_(height),
             width_(width),
-            depth_(depth)
+            depth_(depth),
+            rank_(5)
     {
     }
 
@@ -46,12 +46,12 @@ public:
         std::size_t height,
         std::size_t width,
         std::size_t depth) :
-            rank_(4),
             size_dim_5_(1),
             size_dim_4_(size_dim_4),
             height_(height),
             width_(width),
-            depth_(depth)
+            depth_(depth),
+            rank_(4)
     {
     }
 
@@ -59,35 +59,35 @@ public:
         std::size_t height,
         std::size_t width,
         std::size_t depth) :
-            rank_(3),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(height),
             width_(width),
-            depth_(depth)
+            depth_(depth),
+            rank_(3)
     {
     }
 
         explicit tensor_shape(
         std::size_t width,
         std::size_t depth) :
-            rank_(2),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(1),
             width_(width),
-            depth_(depth)
+            depth_(depth),
+            rank_(2)
     {
     }
 
         explicit tensor_shape(
         std::size_t depth) :
-            rank_(1),
             size_dim_5_(1),
             size_dim_4_(1),
             height_(1),
             width_(1),
-            depth_(depth)
+            depth_(depth),
+            rank_(1)
     {
     }
 
@@ -116,31 +116,38 @@ public:
         return shape2(height_, width_);
     }
 
-    std::size_t rank_;
+    std::size_t rank() const
+    {
+        return rank_;
+    }
+
     std::size_t size_dim_5_;
     std::size_t size_dim_4_;
     std::size_t height_;
     std::size_t width_;
     std::size_t depth_;
+
+private:
+    std::size_t rank_;
 };
 
 inline tensor_shape make_tensor_shape_with(
     const tensor_shape& default_shape,
     const tensor_shape_variable shape)
 {
-    if (shape.rank_ == 1)
+    if (shape.rank() == 1)
         return tensor_shape(
             fplus::just_with_default(default_shape.depth_, shape.depth_));
-    if (shape.rank_ == 2)
+    if (shape.rank() == 2)
         return tensor_shape(
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
-    if (shape.rank_ == 3)
+    if (shape.rank() == 3)
         return tensor_shape(
             fplus::just_with_default(default_shape.height_, shape.height_),
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
-    if (shape.rank_ == 4)
+    if (shape.rank() == 4)
         return tensor_shape(
             fplus::just_with_default(default_shape.size_dim_4_, shape.size_dim_4_),
             fplus::just_with_default(default_shape.height_, shape.height_),
@@ -159,7 +166,7 @@ inline bool tensor_shape_equals_tensor_shape_variable(
     const tensor_shape& lhs, const tensor_shape_variable& rhs)
 {
     return
-        (rhs.rank_ == lhs.rank_) &&
+        (rhs.rank() == lhs.rank()) &&
         (rhs.size_dim_5_.is_nothing() || lhs.size_dim_5_ == rhs.size_dim_5_.unsafe_get_just()) &&
         (rhs.size_dim_4_.is_nothing() || lhs.size_dim_4_ == rhs.size_dim_4_.unsafe_get_just()) &&
         (rhs.height_.is_nothing() || lhs.height_ == rhs.height_.unsafe_get_just()) &&
@@ -182,7 +189,7 @@ inline bool operator == (const std::vector<tensor_shape>& lhss,
 inline bool operator == (const tensor_shape& lhs, const tensor_shape& rhs)
 {
     return
-        lhs.rank_ == rhs.rank_ &&
+        lhs.rank() == rhs.rank() &&
         lhs.size_dim_5_ == rhs.size_dim_5_ &&
         lhs.size_dim_4_ == rhs.size_dim_4_ &&
         lhs.height_ == rhs.height_ &&
@@ -234,7 +241,7 @@ inline tensor_shape dilate_tensor_shape(
         (s.width_ - 1) * (dilation_rate.width_ - 1);
     return tensor_shape_with_changed_rank(
         tensor_shape(s.size_dim_5_, s.size_dim_4_, height, width, s.depth_),
-        s.rank_
+        s.rank()
     );
 }
 
@@ -258,35 +265,27 @@ inline std::size_t get_tensor_shape_dimension_by_index(const tensor_shape& s,
 inline tensor_shape change_tensor_shape_dimension_by_index(const tensor_shape& in,
     const std::size_t idx, const std::size_t dim)
 {
-    tensor_shape out = in;
-    if (idx == 0)
-    {
-        out.size_dim_5_ = dim;
-        out.rank_ = std::max<std::size_t>(in.rank_, 5);
-    }
-    else if (idx == 1)
-    {
-        out.size_dim_4_ = dim;
-        out.rank_ = std::max<std::size_t>(in.rank_, 4);
-    }
-    else if (idx == 2)
-    {
-        out.height_ = dim;
-        out.rank_ = std::max<std::size_t>(in.rank_, 3);
-    }
-    else if (idx == 3)
-    {
-        out.width_ = dim;
-        out.rank_ = std::max<std::size_t>(in.rank_, 2);
-    }
-    else if (idx == 4)
-    {
-        out.depth_ = dim;
-        out.rank_ = std::max<std::size_t>(in.rank_, 1);
-    }
-    else
-        raise_error("Invalid tensor_shape index.");
-    return out;
+    assertion(idx <= 4, "Invalid dimension index");
+    assertion(dim > 0, "Invalid dimension size");
+
+    const std::size_t out_rank = std::max<std::size_t>(5 - idx, in.rank());
+    assertion(out_rank >= 1 && out_rank <= 5, "Invalid target rank");
+
+    const std::size_t size_dim_5 = idx == 0 ? dim : in.size_dim_5_;
+    const std::size_t size_dim_4 = idx == 1 ? dim : in.size_dim_4_;
+    const std::size_t height = idx == 2 ? dim : in.height_;
+    const std::size_t width = idx == 3 ? dim : in.width_;
+    const std::size_t depth = idx == 4 ? dim : in.depth_;
+
+    if (out_rank == 1)
+        return tensor_shape(depth);
+    if (out_rank == 2)
+        return tensor_shape(width, depth);
+    if (out_rank == 3)
+        return tensor_shape(height, width, depth);
+    if (out_rank == 4)
+        return tensor_shape(size_dim_4, height, width, depth);
+    return tensor_shape(size_dim_5, size_dim_4, height, width, depth);
 }
 
 } // namespace internal
@@ -302,7 +301,7 @@ inline std::string show_tensor_shape(const tensor_shape& s)
         s.width_,
         s.depth_
         };
-    return std::to_string(s.rank_) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
+    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
 }
 
 inline std::string show_tensor_shapes(

@@ -33,7 +33,7 @@ protected:
         assertion(inputs.size() == 1, "invalid number of inputs tensors");
         const auto& input = inputs.front();
 
-        if (input.shape().rank_ == 2)
+        if (input.shape().rank() == 2)
         {
             return {upsampling_1d_rank_2(input)};
         }
@@ -46,7 +46,7 @@ protected:
 
     tensor upsampling_1d_rank_2(const tensor& input) const
     {
-        assertion(input.shape().rank_ == 2, "invalid rank for upsampling");
+        assertion(input.shape().rank() == 2, "invalid rank for upsampling");
         tensor out_vol(tensor_shape(
             input.shape().width_ * size_,
             input.shape().depth_), 0);

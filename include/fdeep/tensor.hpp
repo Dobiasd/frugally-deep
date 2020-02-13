@@ -226,8 +226,11 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
         {
             for (std::size_t z = 0; z < m.shape().depth_; ++z)
             {
-                ms[z].set(tensor_pos(y, x, 0),
-                    m.get(tensor_pos(y, x, z)));
+                // .set and .get would work here too
+                // but using _ignore_rank here for
+                // improved performance of depthwise_conv_2d_layer
+                ms[z].set_ignore_rank(tensor_pos(y, x, 0),
+                    m.get_ignore_rank(tensor_pos(y, x, z)));
             }
         }
     }

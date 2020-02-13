@@ -81,6 +81,31 @@ public:
     {
         (*values_)[idx_ignore_rank(pos)] = value;
     }
+
+    // Deprecated! Will likely be removed from the API soon.
+    // Please use
+    //     get(const tensor_pos&) const
+    // or
+    //     get_ignore_rank(const tensor_pos&) const
+    // instead.
+    float_type get(std::size_t pos_dim_5, std::size_t pos_dim_4,
+        std::size_t y, std::size_t x, std::size_t z) const
+    {
+        return get_ignore_rank(tensor_pos(pos_dim_5, pos_dim_4, y, x, z));
+    }
+
+    // Deprecated! Will likely be removed from the API soon.
+    // Please use
+    //     set(const tensor_pos, float_type)
+    // or
+    //     set_ignore_rank(const tensor_pos&, float_type)
+    // instead.
+    void set(std::size_t pos_dim_5, std::size_t pos_dim_4,
+        std::size_t y, std::size_t x, std::size_t z, float_type value)
+    {
+        set_ignore_rank(tensor_pos(pos_dim_5, pos_dim_4, y, x, z), value);
+    }
+
     const tensor_shape& shape() const
     {
         return shape_;

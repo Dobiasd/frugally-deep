@@ -176,4 +176,8 @@ inline tensor_pos tensor_pos_with_changed_rank(const tensor_pos& s, std::size_t 
     return tensor_pos(s.pos_dim_5_, s.pos_dim_4_, s.y_, s.x_, s.z_);
 }
 
-} } // namespace fdeep, namespace internal
+} // namespace internal
+
+using tensor_pos = internal::tensor_pos;
+
+} // namespace fdeep

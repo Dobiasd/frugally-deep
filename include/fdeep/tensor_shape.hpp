@@ -301,7 +301,8 @@ inline std::string show_tensor_shape(const tensor_shape& s)
         s.width_,
         s.depth_
         };
-    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
+    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")",
+        fplus::drop(5 - s.rank(), dimensions));
 }
 
 inline std::string show_tensor_shapes(

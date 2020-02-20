@@ -131,8 +131,9 @@ inline std::string show_tensor_shape_variable(const tensor_shape_variable& s)
         s.depth_
         };
     const auto dimensions_repr = fplus::transform(
-        fplus::show_maybe<std::size_t>, dimensions);
-    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")", dimensions_repr);
+        fplus::show_maybe<std::size_t>, fplus::drop(5 - s.rank(), dimensions));
+    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")",
+        dimensions_repr);
 }
 
 inline std::string show_tensor_shapes_variable(

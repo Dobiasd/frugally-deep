@@ -183,7 +183,7 @@ def gen_test_data(model):
             # store the results of first call for the test
             # this is because states of recurrent layers is 0.
             # cannot call model.reset_states() in some cases in keras without an error.
-            # an error occures when recurrent layer is stateful and the initial state is passed as input
+            # an error occurs when recurrent layer is stateful and the initial state is passed as input
             data_out_test, duration = measure_predict(model, data_in)
         else:
             measure_predict(model, data_in)

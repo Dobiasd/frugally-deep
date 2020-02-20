@@ -91,6 +91,19 @@ public:
         return rank_;
     }
 
+    std::vector<std::size_t> dimensions() const
+    {
+        if (rank() == 5)
+            return {pos_dim_5_, pos_dim_4_, y_, x_, z_};
+        if (rank() == 4)
+            return {pos_dim_4_, y_, x_, z_};
+        if (rank() == 3)
+            return {y_, x_, z_};
+        if (rank() == 2)
+            return {x_, z_};
+        return {z_};
+    }
+
     std::size_t pos_dim_5_;
     std::size_t pos_dim_4_;
     std::size_t y_;
@@ -101,42 +114,34 @@ private:
     std::size_t rank_;
 };
 
-inline std::size_t get_tensor_pos_dimension_by_index(const tensor_pos& p,
-    const std::size_t idx)
+inline tensor_pos create_tensor_pos_from_dims(
+    const std::vector<std::size_t>& dimensions)
 {
-    assertion(p.rank() >= 4 - idx, "Invalid index for rank");
-    if (idx == 0)
-        return p.pos_dim_5_;
-    if (idx == 1)
-        return p.pos_dim_4_;
-    if (idx == 2)
-        return p.y_;
-    if (idx == 3)
-        return p.x_;
-    if (idx == 4)
-        return p.z_;
-    raise_error("Invalid tensor_pos index.");
-    return 0;
-}
-
-inline tensor_pos change_tensor_pos_dimension_by_index(const tensor_pos& in,
-    const std::size_t idx, const std::size_t dim)
-{
-    assertion(in.rank() >= 4 - idx, "Invalid index for rank");
-    tensor_pos out = in;
-    if (idx == 0)
-        out.pos_dim_5_ = dim;
-    else if (idx == 1)
-        out.pos_dim_4_ = dim;
-    else if (idx == 2)
-        out.y_ = dim;
-    else if (idx == 3)
-        out.x_ = dim;
-    else if (idx == 4)
-        out.z_ = dim;
-    else
-        raise_error("Invalid tensor_pos index.");
-    return out;
+    assertion(dimensions.size() >= 1 && dimensions.size() <= 5,
+        "Invalid tensor-pos dimensions");
+    if (dimensions.size() == 5)
+        return tensor_pos(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2],
+            dimensions[3],
+            dimensions[4]);
+    if (dimensions.size() == 4)
+        return tensor_pos(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2],
+            dimensions[3]);
+    if (dimensions.size() == 3)
+        return tensor_pos(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2]);
+    if (dimensions.size() == 2)
+        return tensor_pos(
+            dimensions[0],
+            dimensions[1]);
+    return tensor_pos(dimensions[0]);
 }
 
 inline tensor_pos tensor_pos_with_changed_rank(const tensor_pos& s, std::size_t rank)
@@ -170,6 +175,5 @@ inline tensor_pos tensor_pos_with_changed_rank(const tensor_pos& s, std::size_t 
     }
     return tensor_pos(s.pos_dim_5_, s.pos_dim_4_, s.y_, s.x_, s.z_);
 }
-
 
 } } // namespace fdeep, namespace internal

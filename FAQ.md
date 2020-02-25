@@ -10,6 +10,16 @@ In case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.
 
+Why do I get some error when loading my `.json` file in C++?
+------------------------------------------------------------
+
+Most likely it's one of the following two reasons:
+
+- The TensorFlow version used is not the one listed in the [requirements](README.md#requirements-and-installation).
+- The conversion from `.h5` to `.json` (using `convert_model.py`) was done not done with the same version as used when loading the model in C++.
+
+In case you've made sure none of the above is the cause, please open [an issue](https://github.com/Dobiasd/frugally-deep/issues) with a minimal example to reproduce the problem.
+
 Why does `fdeep::model::predict` take and return multiple `fdeep::tensor`s and not just one tensor?
 ----------------------------------------------------------------------------------------------------
 

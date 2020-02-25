@@ -330,15 +330,15 @@ int main()
         {
            for (int c = 0; c < tensor_channels; ++c)
             {
-                t.set(tensor_pos(y, x, c), mat(y, x));
+                t.set(fdeep::tensor_pos(y, x, c), mat(y, x));
             }
         }
     }
 
     // print some values to make sure the mapping is correct
-    std::cout << t.get(tensor_pos(0, 0, 0)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 1, 1)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 4, 2)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
 }
 ```
 
@@ -380,9 +380,9 @@ int main()
     fdeep::tensor t(tensor_shape, data_vec);
 
     // print some values to make sure the mapping is correct
-    std::cout << t.get(tensor_pos(0, 0, 0)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 1, 1)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 4, 2)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
 }
 ```
 
@@ -396,9 +396,9 @@ Of course one can use `fdeep::tensor` as the primary data structure and fill it 
 int main()
 {
     fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), 0);
-    t.set(tensor_pos(0, 0, 0), 1);
-    t.set(tensor_pos(1, 0, 0), 2);
-    t.set(tensor_pos(2, 0, 0), 3);
+    t.set(fdeep::tensor_pos(0, 0, 0), 1);
+    t.set(fdeep::tensor_pos(1, 0, 0), 2);
+    t.set(fdeep::tensor_pos(2, 0, 0), 3);
 }
 ```
 

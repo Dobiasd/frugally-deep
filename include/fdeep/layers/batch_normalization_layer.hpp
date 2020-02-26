@@ -104,28 +104,32 @@ protected:
         else if (adjusted_axis == 4)
         {
             return {tensor_with_changed_rank(
-                permute_tensor(apply_to_slices(permute_tensor(input,
+                permute_tensor(apply_to_slices(permute_tensor(
+                    tensor_with_changed_rank(input, 5),
                     {1, 2, 3, 5, 4})),
                     {1, 2, 3, 5, 4}), input.shape().rank())};
         }
         else if (adjusted_axis == 3)
         {
             return {tensor_with_changed_rank(
-                permute_tensor(apply_to_slices(permute_tensor(input,
+                permute_tensor(apply_to_slices(permute_tensor(
+                    tensor_with_changed_rank(input, 5),
                     {1, 2, 5, 4, 3})),
                     {1, 2, 5, 4, 3}), input.shape().rank())};
         }
         else if (adjusted_axis == 2)
         {
             return {tensor_with_changed_rank(
-                permute_tensor(apply_to_slices(permute_tensor(input,
+                permute_tensor(apply_to_slices(permute_tensor(
+                    tensor_with_changed_rank(input, 5),
                     {1, 5, 3, 4, 2})),
                     {1, 5, 3, 4, 2}), input.shape().rank())};
         }
         else if (adjusted_axis == 1)
         {
             return {tensor_with_changed_rank(
-                permute_tensor(apply_to_slices(permute_tensor(input,
+                permute_tensor(apply_to_slices(permute_tensor(
+                    tensor_with_changed_rank(input, 5),
                     {5, 2, 3, 4, 1})),
                     {5, 2, 3, 4, 1}), input.shape().rank())};
         }

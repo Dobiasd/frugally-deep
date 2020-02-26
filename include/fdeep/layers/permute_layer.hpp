@@ -18,7 +18,7 @@ class permute_layer : public layer
 public:
     explicit permute_layer(const std::string& name,
         const std::vector<std::size_t>& dims) :
-            layer(name), dims_(dims)
+            layer(name), dims_raw_(dims)
     {
         check_permute_tensor_dims(dims);
     }
@@ -26,9 +26,9 @@ protected:
     tensors apply_impl(const tensors& inputs) const override
     {
         const auto& input = single_tensor_from_tensors(inputs);
-        return {permute_tensor(input, dims_)};
+        return {permute_tensor(input, dims_raw_)};
     }
-    std::vector<std::size_t> dims_;
+    std::vector<std::size_t> dims_raw_;
 };
 
 } } // namespace fdeep, namespace internal

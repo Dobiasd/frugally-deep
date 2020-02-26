@@ -10,6 +10,16 @@ In case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.
 
+Why do I get some error when loading my `.json` file in C++?
+------------------------------------------------------------
+
+Most likely it's one of the following two reasons:
+
+- The TensorFlow version used is not the one listed in the [requirements](README.md#requirements-and-installation).
+- The conversion from `.h5` to `.json` (using `convert_model.py`) was done not done with the same version as used when loading the model in C++.
+
+In case you've made sure none of the above is the cause, please open [an issue](https://github.com/Dobiasd/frugally-deep/issues) with a minimal example to reproduce the problem.
+
 Why does `fdeep::model::predict` take and return multiple `fdeep::tensor`s and not just one tensor?
 ----------------------------------------------------------------------------------------------------
 
@@ -330,15 +340,15 @@ int main()
         {
            for (int c = 0; c < tensor_channels; ++c)
             {
-                t.set(tensor_pos(y, x, c), mat(y, x));
+                t.set(fdeep::tensor_pos(y, x, c), mat(y, x));
             }
         }
     }
 
     // print some values to make sure the mapping is correct
-    std::cout << t.get(tensor_pos(0, 0, 0)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 1, 1)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 4, 2)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
 }
 ```
 
@@ -380,9 +390,9 @@ int main()
     fdeep::tensor t(tensor_shape, data_vec);
 
     // print some values to make sure the mapping is correct
-    std::cout << t.get(tensor_pos(0, 0, 0)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 1, 1)) << std::endl;
-    std::cout << t.get(tensor_pos(0, 4, 2)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
 }
 ```
 
@@ -396,9 +406,9 @@ Of course one can use `fdeep::tensor` as the primary data structure and fill it 
 int main()
 {
     fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), 0);
-    t.set(tensor_pos(0, 0, 0), 1);
-    t.set(tensor_pos(1, 0, 0), 2);
-    t.set(tensor_pos(2, 0, 0), 3);
+    t.set(fdeep::tensor_pos(0, 0, 0), 1);
+    t.set(fdeep::tensor_pos(1, 0, 0), 2);
+    t.set(fdeep::tensor_pos(2, 0, 0), 3);
 }
 ```
 

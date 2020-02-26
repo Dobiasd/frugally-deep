@@ -118,7 +118,21 @@ public:
 
     std::size_t rank() const
     {
+        assertion(rank_ >= 1 && rank_ <= 5, "Invalid rank");
         return rank_;
+    }
+
+    std::vector<std::size_t> dimensions() const
+    {
+        if (rank() == 5)
+            return {size_dim_5_, size_dim_4_, height_, width_, depth_};
+        if (rank() == 4)
+            return {size_dim_4_, height_, width_, depth_};
+        if (rank() == 3)
+            return {height_, width_, depth_};
+        if (rank() == 2)
+            return {width_, depth_};
+        return {depth_};
     }
 
     std::size_t size_dim_5_;
@@ -130,6 +144,36 @@ public:
 private:
     std::size_t rank_;
 };
+
+inline tensor_shape create_tensor_shape_from_dims(
+    const std::vector<std::size_t>& dimensions)
+{
+    assertion(dimensions.size() >= 1 && dimensions.size() <= 5,
+        "Invalid tensor-shape dimensions");
+    if (dimensions.size() == 5)
+        return tensor_shape(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2],
+            dimensions[3],
+            dimensions[4]);
+    if (dimensions.size() == 4)
+        return tensor_shape(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2],
+            dimensions[3]);
+    if (dimensions.size() == 3)
+        return tensor_shape(
+            dimensions[0],
+            dimensions[1],
+            dimensions[2]);
+    if (dimensions.size() == 2)
+        return tensor_shape(
+            dimensions[0],
+            dimensions[1]);
+    return tensor_shape(dimensions[0]);
+}
 
 inline tensor_shape make_tensor_shape_with(
     const tensor_shape& default_shape,
@@ -301,7 +345,8 @@ inline std::string show_tensor_shape(const tensor_shape& s)
         s.width_,
         s.depth_
         };
-    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")", dimensions);
+    return std::to_string(s.rank()) + fplus::show_cont_with_frame(", ", "(", ")",
+        fplus::drop(5 - s.rank(), dimensions));
 }
 
 inline std::string show_tensor_shapes(

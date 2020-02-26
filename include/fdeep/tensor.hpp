@@ -656,13 +656,14 @@ inline tensor pad_tensor(float_type val,
     return result;
 }
 
-inline void check_permute_tensor_dims(const std::vector<std::size_t>& dims)
+inline void check_permute_tensor_dims(const std::vector<std::size_t>& dims_raw)
 {
     assertion(
-        fplus::minimum(dims) >= 1 &&
-        fplus::maximum(dims) <= 5 &&
-        fplus::size_of_cont(fplus::nub(dims)) == fplus::size_of_cont(dims),
-        "Invalid dims for permute_tensor.");
+        fplus::minimum(dims_raw) >= 1 &&
+        fplus::maximum(dims_raw) <= 5 &&
+        fplus::size_of_cont(fplus::nub(dims_raw)) ==
+            fplus::size_of_cont(dims_raw),
+            "Invalid dims for permute_tensor.");
 }
 
 inline tensor permute_tensor(const tensor& in,
@@ -670,17 +671,13 @@ inline tensor permute_tensor(const tensor& in,
 {
     check_permute_tensor_dims(dims_raw);
 
-    const std::size_t offset = 5 - dims_raw.size();
-    const auto dims = fplus::append(
-        fplus::numbers<std::size_t>(0, offset),
-        fplus::transform(fplus::add_to(offset - 1), dims_raw));
+    const auto dims = fplus::transform(fplus::subtract<std::size_t>(1), dims_raw);
 
-    tensor_shape out_shape = in.shape();
-    for (std::size_t i = 0; i < 5; ++i)
-    {
-        out_shape = change_tensor_shape_dimension_by_index(out_shape, i,
-            get_tensor_shape_dimension_by_index(in.shape(), dims[i]));
-    }
+    const auto permute_idxs = [&dims](const std::vector<std::size_t>& idxs) {
+        return fplus::elems_at_idxs(dims, idxs);
+    };
+    const auto out_shape = create_tensor_shape_from_dims(
+        permute_idxs(in.shape().dimensions()));
 
     tensor out(out_shape, 0);
 
@@ -694,14 +691,11 @@ inline tensor permute_tensor(const tensor& in,
                 {
                     for (std::size_t z = 0; z < in.shape().depth_; ++z)
                     {
-                        const tensor_pos in_pos(dim5, dim4, y, x, z);
-                        tensor_pos out_pos = in_pos;
-                        for (std::size_t i = 0; i < 5; ++i)
-                        {
-                            out_pos = change_tensor_pos_dimension_by_index(out_pos, i,
-                                get_tensor_pos_dimension_by_index(in_pos, dims[i]));
-                        }
-                        out.set_ignore_rank(out_pos, in.get_ignore_rank(in_pos));
+                        const auto in_pos = tensor_pos_with_changed_rank(
+                            tensor_pos(dim5, dim4, y, x, z), dims.size());
+                        const auto out_pos = create_tensor_pos_from_dims(
+                            permute_idxs(in_pos.dimensions()));
+                        out.set(out_pos, in.get(in_pos));
                     }
                 }
             }

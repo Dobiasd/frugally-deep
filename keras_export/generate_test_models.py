@@ -73,10 +73,17 @@ def generate_integer_input_data(data_size, low, highs, input_shapes):
             for high, input_shape in zip(highs, input_shapes)]
 
 
+def as_list(value_or_values):
+    """Leave lists untouched, convert non-list types to a singleton list"""
+    if isinstance(value_or_values, list):
+        return value_or_values
+    return [value_or_values]
+
+
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
     return [generate_random_data(data_size, output.shape[1:])
-            for output in outputs]
+            for output in as_list(outputs)]
 
 
 def get_test_model_exhaustive():
@@ -113,6 +120,8 @@ def get_test_model_exhaustive():
         (1,),
         (1,),
         (2, 3),
+        (9, 16, 1),
+        (1, 9, 16)
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -155,6 +164,18 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
+
+    outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
+    outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))
+    outputs.append(Permute((3, 4, 1, 2))(inputs[2]))
+    outputs.append(Permute((2, 1, 3))(inputs[4]))
+    outputs.append(Permute((2, 1))(inputs[6]))
+    outputs.append(Permute((1,))(inputs[8]))
+
+    outputs.append(Permute((3, 1, 2))(inputs[31]))
+    outputs.append(Permute((3, 1, 2))(inputs[32]))
+    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[31])))
+    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[32])))
 
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(axis=1)(inputs[0]))

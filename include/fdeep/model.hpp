@@ -143,6 +143,15 @@ public:
         return stopwatch.elapsed();
     }
 
+    // Measure time of one single forward pass using dummy input data.
+    double test_speed_stateful()
+    {
+        const auto inputs = generate_dummy_inputs();
+        fplus::stopwatch stopwatch;
+        predict_stateful(inputs);
+        return stopwatch.elapsed();
+    }
+
     const std::string& name() const
     {
         return model_layer_->name_;

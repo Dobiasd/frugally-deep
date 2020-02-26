@@ -73,10 +73,17 @@ def generate_integer_input_data(data_size, low, highs, input_shapes):
             for high, input_shape in zip(highs, input_shapes)]
 
 
+def as_list(value_or_values):
+    """Leave lists untouched, convert non-list types to a singleton list"""
+    if isinstance(value_or_values, list):
+        return value_or_values
+    return [value_or_values]
+
+
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
     return [generate_random_data(data_size, output.shape[1:])
-            for output in outputs]
+            for output in as_list(outputs)]
 
 
 def get_test_model_exhaustive():

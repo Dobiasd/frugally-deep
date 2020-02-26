@@ -1174,8 +1174,7 @@ inline void check_test_outputs(float_type epsilon,
     {
         const auto& output = outputs[i];
         const auto& target = targets[i];
-        assertion(tensor_shape_with_changed_rank(output.shape(), 5) ==
-        tensor_shape_with_changed_rank(target.shape(), 5),
+        assertion(output.shape() == target.shape(),
             "Wrong output size. Is " + show_tensor_shape(output.shape()) +
             ", should be " + show_tensor_shape(target.shape()) + ".");
         for (std::size_t pos_dim_5 = 0; pos_dim_5 < output.shape().size_dim_5_; ++pos_dim_5)

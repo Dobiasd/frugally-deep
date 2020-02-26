@@ -84,10 +84,7 @@ def get_layer_input_shape_tensor_shape(layer):
 def show_tensor(tens):
     """Serialize 3-tensor to a dict"""
     return {
-        # todo: Understand why Keras sometimes prepends a 1 to the tensor shape
-        # Then we could handle this cleanly.
-        # But maybe it's just a bug in TF and future versions (after 2.0.0) will have it fixed.
-        'shape': tens.shape[1:] if len(tens.shape) > 1 and tens.shape[0] == 1 else tens.shape,
+        'shape': tens.shape[1:],
         'values': encode_floats(tens.flatten())
     }
 
@@ -195,8 +192,8 @@ def gen_test_data(model):
     duration_avg = duration_sum / test_runs
     print('Forward pass took {} s on average.'.format(duration_avg))
     return {
-        'inputs': list(map(show_tensor, data_in)),
-        'outputs': list(map(show_tensor, data_out_test))
+        'inputs': list(map(show_tensor, as_list(data_in))),
+        'outputs': list(map(show_tensor, as_list(data_out_test)))
     }
 
 

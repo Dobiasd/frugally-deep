@@ -158,7 +158,7 @@ int main()
     vec_append(all_results, *result[0].as_vector());
 
     // ************************* BIDIRECTIONAL TESTS ************************* //
-    #define TF_BIDI_BUG_FIXED false
+    #define TF_BIDI_BUG_FIXED true
     // *********** TEST 9: "bidi-GRU_nonstateful_no_init_state.json" ***********
     model = load_model("./models/bidi-GRU_nonstateful_no_init_state.json");
     /// state_reset = true

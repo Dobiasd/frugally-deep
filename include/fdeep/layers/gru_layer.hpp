@@ -44,7 +44,8 @@ class gru_layer : public layer
           weights_(weights),
           recurrent_weights_(recurrent_weights),
           bias_(bias),
-          state_h_(stateful ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>())
+          state_h_(stateful ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>()),
+          use_avail_input_state_for_stateful_(true)
 
     {
     }
@@ -53,6 +54,7 @@ class gru_layer : public layer
     {
         if (is_stateful()) {
             state_h_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            use_avail_input_state_for_stateful_ = true;
         }
     }
 
@@ -77,17 +79,26 @@ class gru_layer : public layer
         assertion(inputs.size() == 1 || inputs.size() == 2,
                 "Invalid number of input tensors.");
 
-        tensor state_h = inputs.size() == 2
-            ? inputs[1]
-            : is_stateful()
-                ? state_h_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+        // RNN behaivor since TF 2.1:
+        // If an *initial state input is provided*, this is used always for non-stateful models
+        // but only on reset for stateful models (including the very first call)
+        // If *no input state is provided*, then initial state is 0 for non-stateful
+        // and, for stateful, it carries the state from previous call, unless state-reset, in which case it set to 0
+        bool initial_state_provided = inputs.size() == 2;
+        bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
+        bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
+        // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
+        tensor state_h = use_input_initial_state ? inputs[1] :
+                        use_last_state_for_initial_state ? state_h_.unsafe_get_just() :
+                        tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state 
+      
         const auto result = gru_impl(input, state_h, n_units_, use_bias_,
             reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_,
             bias_, activation_, recurrent_activation_);
         if (is_stateful()) {
             state_h_ = state_h;
+            use_avail_input_state_for_stateful_ = false;
         }
         return result;
     }
@@ -104,6 +115,7 @@ class gru_layer : public layer
     const float_vec recurrent_weights_;
     const float_vec bias_;
     mutable fplus::maybe<tensor> state_h_;
+    mutable bool use_avail_input_state_for_stateful_;
 };
 
 } // namespace internal

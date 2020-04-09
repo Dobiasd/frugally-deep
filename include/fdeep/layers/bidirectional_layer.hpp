@@ -64,6 +64,9 @@ public:
 
     void reset_states() override
      {
+         // TF 2.1 Bug: reset_states() does nothing in TF 2.1.  
+         // the implementation below is how TF 2.1 should behave.
+         // to macth TF 2.1, just comment out the code below.  
         if (is_stateful()) {
             forward_state_h_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
             forward_state_c_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));

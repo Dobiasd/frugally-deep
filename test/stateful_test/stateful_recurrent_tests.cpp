@@ -275,7 +275,7 @@ int main()
     vec_append(all_results, *result[0].as_vector());
 
     // *********** TEST 16: "bidi-LSTM_stateful_init_state.json" ***********
-    model = load_model("./models/bidi-LSTM_nonstateful_init_state.json");
+    model = load_model("./models/bidi-LSTM_stateful_init_state.json");
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());

@@ -1,7 +1,7 @@
-
-import os
-os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES']=''
+# to hide any GPUs.
+# import os
+# os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
+# os.environ['CUDA_VISIBLE_DEVICES']=''
 
 import errno
 import os
@@ -181,10 +181,6 @@ def main():
             # Memory growth must be set before GPUs have been initialized
             print(e)
 
-    #### DEBUG....
-    # rm old ./models if there and create new one.
-    os.system('rm -rf ./models')
-    os.makedirs('./models')
     # generate toy data
     train_seq_length = 4
     feature_dim = 1
@@ -270,10 +266,6 @@ def main():
         print('\n\nAt least one test failed.')
         sys.exit(errno.EIO)
     print('\n\nPassed all stateful tests')
-
-    ## debug
-    all_results.to_file('models/keras_results.npy')
-
 
 if __name__ == "__main__":
     main()

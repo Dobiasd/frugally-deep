@@ -114,7 +114,7 @@ protected:
                 "Invalid number of input tensors.");
 
             bool initial_state_provided = inputs.size() == 5;
-            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_; 
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
@@ -156,7 +156,7 @@ protected:
                 "Invalid number of input tensors.");
 
             bool initial_state_provided = inputs.size() == 3;
-            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_; 
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 

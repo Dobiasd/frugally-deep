@@ -16,12 +16,22 @@ int main()
 
     const std::vector<float> x_inf_0 = {2.1, -1.2, 3.14, 1.2};
     const std::vector<float> x_inf_1 = {1, 3, -2, 10};
-    const std::vector<float> state_0 = {1.1, -2.1};
-    const std::vector<float> state_1 = {2.7, 3.1};
-    const std::vector<float> state_2 = {-2.5, 3.0};
-    const std::vector<float> state_3 = {-2.0, -10.0};
+    const std::vector<float> state_0 = {40.1, -25.1};
+    const std::vector<float> state_1 = {34.7, 56.1};
+    const std::vector<float> state_2 = {-62.5, 12.0};
+    const std::vector<float> state_3 = {-33.0, -100.0};
+
+
+
+    // const std::vector<float> state_0 = {1.1, -2.1};
+    // const std::vector<float> state_1 = {2.7, 3.1};
+    // const std::vector<float> state_2 = {-2.5, 3.0};
+    // const std::vector<float> state_3 = {-2.0, -10.0};
     std::vector<float> all_results = {};
     std::vector<float> one_result = {};
+
+// [40.1, -25.1, 34.7, 56.1, -62.5, 12.0, -33.0, -100.0]
+// [1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0]
 
     const shared_float_vec xt0(fplus::make_shared_ref<float_vec>(x_inf_0));
     const shared_float_vec xt1(fplus::make_shared_ref<float_vec>(x_inf_1));
@@ -158,16 +168,16 @@ int main()
     vec_append(all_results, *result[0].as_vector());
 
     // ************************* BIDIRECTIONAL TESTS ************************* //
-    #define TF_BIDI_BUG_FIXED true
+    #define TF_BIDI_STATE_RESET_WORKS false
     // *********** TEST 9: "bidi-GRU_nonstateful_no_init_state.json" ***********
     model = load_model("./models/bidi-GRU_nonstateful_no_init_state.json");
     /// state_reset = true
     result = model.predict({test_in_0});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict({test_in_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
     vec_append(all_results, *result[0].as_vector());
@@ -179,10 +189,10 @@ int main()
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict({test_in_1, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
@@ -194,10 +204,10 @@ int main()
     /// state_reset = true
     result = model.predict_stateful({test_in_0});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED)  model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS)  model.reset_states();
     result = model.predict_stateful({test_in_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
     vec_append(all_results, *result[0].as_vector());
@@ -209,10 +219,10 @@ int main()
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED)  model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS)  model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1});
     vec_append(all_results, *result[0].as_vector());
@@ -224,10 +234,10 @@ int main()
     /// state_reset = true
     result = model.predict({test_in_0});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict({test_in_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0});
     vec_append(all_results, *result[0].as_vector());
@@ -239,10 +249,10 @@ int main()
     /// state_reset = true
     result = model.predict({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
@@ -254,10 +264,10 @@ int main()
     /// state_reset = true
     result = model.predict_stateful({test_in_0});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict_stateful({test_in_1});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0});
     vec_append(all_results, *result[0].as_vector());
@@ -269,17 +279,17 @@ int main()
     /// state_reset = true
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
-    if(TF_BIDI_BUG_FIXED) model.reset_states();
+    if(TF_BIDI_STATE_RESET_WORKS) model.reset_states();
     /// state_reset = false
     result = model.predict_stateful({test_in_0, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
     result = model.predict_stateful({test_in_1, test_state_0, test_state_1, test_state_2, test_state_3});
     vec_append(all_results, *result[0].as_vector());
 
-    #undef TF_BIDI_BUG_FIXED
+    #undef TF_BIDI_STATE_RESET_WORKS
 
     if(verbose){
         std::cout << "\n\nOUTPUT ***" << std::endl;

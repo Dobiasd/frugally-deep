@@ -64,9 +64,9 @@ public:
 
     void reset_states() override
      {
-         // TF 2.1 Bug: reset_states() does nothing in TF 2.1.  
+         // TF 2.1 Bug: reset_states() does nothing in TF 2.1.
          // the implementation below is how TF 2.1 should behave.
-         // to macth TF 2.1, just comment out the code below.  
+         // to match TF 2.1, just comment out the code below.
         if (is_stateful()) {
             forward_state_h_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
             forward_state_c_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
@@ -117,7 +117,7 @@ protected:
                 "Invalid number of input tensors.");
 
             bool initial_state_provided = inputs.size() == 5;
-            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_; 
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
@@ -159,7 +159,7 @@ protected:
                 "Invalid number of input tensors.");
 
             bool initial_state_provided = inputs.size() == 3;
-            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_; 
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 

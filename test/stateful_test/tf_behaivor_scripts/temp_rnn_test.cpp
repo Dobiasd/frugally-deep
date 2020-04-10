@@ -1,5 +1,5 @@
 #include "fdeep/fdeep.hpp"
-#include <fstream> // looks like we need this too (edit by π)
+#include <fstream>
 
 using namespace fdeep;
 
@@ -19,7 +19,7 @@ int main()
     std::cout << "loading models" << std::endl;
     auto stateful_model = load_model("temp_stateful.json");
     auto stateless_model = load_model("temp_stateless.json");
-        
+
     // A
     std::cout << "starting A" << std::endl;
     auto non_stateful_out = stateless_model.predict({test_in_0, test_state_0});

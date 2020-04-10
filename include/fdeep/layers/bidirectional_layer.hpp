@@ -56,17 +56,23 @@ public:
         forward_state_h_(stateful ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>()),
         forward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>()),
         backward_state_h_(stateful ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>()),
-        backward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>())
+        backward_state_c_(stateful && wrapped_layer_type_has_state_c(wrapped_layer_type) ? tensor(tensor_shape(n_units), static_cast<float_type>(0)) : fplus::nothing<tensor>()),
+        use_avail_input_state_for_stateful_(true)
+
         {
     }
 
     void reset_states() override
      {
+         // TF 2.1 Bug: reset_states() does nothing in TF 2.1.
+         // the implementation below is how TF 2.1 should behave.
+         // to match TF 2.1, just comment out the code below.
         if (is_stateful()) {
             forward_state_h_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
             forward_state_c_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
             backward_state_h_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
             backward_state_c_ = tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            use_avail_input_state_for_stateful_ = true;
         }
      }
 
@@ -110,29 +116,26 @@ protected:
             assertion(inputs.size() == 1 || inputs.size() == 5,
                 "Invalid number of input tensors.");
 
-            tensor forward_state_h = inputs.size() == 5
-            ? inputs[1]
-            : is_stateful()
-                ? forward_state_h_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            bool initial_state_provided = inputs.size() == 5;
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
+            bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
+            // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-            tensor forward_state_c = inputs.size() == 5
-            ? inputs[2]
-            : is_stateful()
-                ? forward_state_c_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            tensor forward_state_h = use_input_initial_state ? inputs[1] :
+                use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-            tensor backward_state_h = inputs.size() == 5
-            ? inputs[3]
-            : is_stateful()
-                ? backward_state_h_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            tensor forward_state_c = use_input_initial_state ? inputs[2] :
+                use_last_state_for_initial_state ? forward_state_c_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-            tensor backward_state_c = inputs.size() == 5
-            ? inputs[4]
-            : is_stateful()
-                ? backward_state_c_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            tensor backward_state_h = use_input_initial_state ? inputs[3] :
+                use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+
+            tensor backward_state_c = use_input_initial_state ? inputs[4] :
+                use_last_state_for_initial_state ? backward_state_c_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
             result_forward = lstm_impl(input, forward_state_h, forward_state_c,
                                        n_units_, use_bias_, return_sequences_, stateful_,
@@ -147,6 +150,7 @@ protected:
                 forward_state_c_ = forward_state_c;
                 backward_state_h_ = backward_state_h;
                 backward_state_c_ = backward_state_c;
+                use_avail_input_state_for_stateful_ = false;
              }
         }
         else if (wrapped_layer_type_ == "GRU" || wrapped_layer_type_ == "CuDNNGRU")
@@ -154,17 +158,18 @@ protected:
             assertion(inputs.size() == 1 || inputs.size() == 3,
                 "Invalid number of input tensors.");
 
-            tensor forward_state_h = inputs.size() == 3
-            ? inputs[1]
-            : is_stateful()
-                ? forward_state_h_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            bool initial_state_provided = inputs.size() == 3;
+            bool use_last_state_for_initial_state = is_stateful() && !use_avail_input_state_for_stateful_;
+            bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
+            // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-            tensor backward_state_h = inputs.size() == 3
-            ? inputs[2]
-            : is_stateful()
-                ? backward_state_h_.unsafe_get_just()
-                : tensor(tensor_shape(n_units_), static_cast<float_type>(0));
+            tensor forward_state_h = use_input_initial_state ? inputs[1] :
+                use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+
+            tensor backward_state_h = use_input_initial_state ? inputs[2] :
+                use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just() :
+                tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
             result_forward = gru_impl(input, forward_state_h, n_units_, use_bias_, reset_after_, return_sequences_, false,
                                       forward_weights_, forward_recurrent_weights_,
@@ -175,6 +180,7 @@ protected:
             if (is_stateful()) {
                 forward_state_h_ = forward_state_h;
                 backward_state_h_ = backward_state_h;
+                use_avail_input_state_for_stateful_ = false;
              }
         }
         else
@@ -223,6 +229,7 @@ protected:
     mutable fplus::maybe<tensor> forward_state_c_;
     mutable fplus::maybe<tensor> backward_state_h_;
     mutable fplus::maybe<tensor> backward_state_c_;
+    mutable bool use_avail_input_state_for_stateful_;
 };
 
 } // namespace internal

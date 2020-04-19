@@ -16,7 +16,7 @@ Why do I get some error when loading my `.json` file in C++?
 Most likely it's one of the following two reasons:
 
 - The TensorFlow version used is not the one listed in the [requirements](README.md#requirements-and-installation).
-- The conversion from `.h5` to `.json` (using `convert_model.py`) was done not done with the same version as used when loading the model in C++.
+- The conversion from `.h5` to `.json` (using `convert_model.py`) was not done with the same version as used when loading the model in C++.
 
 In case you've made sure none of the above is the cause, please open [an issue](https://github.com/Dobiasd/frugally-deep/issues) with a minimal example to reproduce the problem.
 

@@ -109,7 +109,7 @@ inline tensors lstm_impl(const tensor& input,
     {
         // define eigen vector type to be able to use broadcasting
         typedef Eigen::Matrix<float_type, 1, Eigen::Dynamic> Vector_Xf;
-        Vector_Xf b = eigen_row_major_mat_from_values(1, n_units * 4, bias);
+        const Vector_Xf b = eigen_row_major_mat_from_shared_values(1, n_units * 4, const_cast<float_type*>(bias.data()));
 
         X.rowwise() += b;
     }

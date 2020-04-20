@@ -94,6 +94,9 @@ inline tensors lstm_impl(const tensor& input,
     const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
+    // Memory sharing can't be used here, because the state can come from an input to the calling layer.
+    // This input tensor might share memory with the input used in other layers.
+    // Thus, the state values can not be modified in place.
     RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
     RowMajorMatrixXf c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
 
@@ -204,6 +207,9 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
+    // Memory sharing can't be used here, because the state can come from an input to the calling layer.
+    // This input tensor might share memory with the input used in other layers.
+    // Thus, the state values can not be modified in place.
     RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *(initial_state_h.as_vector()));
 
     // use input as eigen matrix of shape (timesteps, n_features)

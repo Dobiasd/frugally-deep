@@ -77,7 +77,7 @@ class lstm_layer : public layer
         assertion(inputs.size() == 1 || inputs.size() == 3,
                 "Invalid number of input tensors.");
 
-        // RNN behaivor since TF 2.1:
+        // RNN behavior since TF 2.1:
         // If an *initial state input is provided*, this is used always for non-stateful models
         // but only on reset for stateful models (including the very first call)
         // If *no input state is provided*, then initial state is 0 for non-stateful

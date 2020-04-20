@@ -199,8 +199,8 @@ inline tensors gru_impl(const tensor& input,
 
     // weight matrices
     const EigenIndex n = EigenIndex(n_units);
-    const RowMajorMatrix<Dynamic, Dynamic> W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
-    const RowMajorMatrix<Dynamic, Dynamic> U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
+    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
+    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
 
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);
@@ -218,23 +218,20 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
-    RowMajorMatrixXf h(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
 
     // write input to eigen matrix of shape (timesteps, n_features)
-    RowMajorMatrix<Dynamic, Dynamic> x(n_timesteps, n_features);
+    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *input.as_vector());
 
-    for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-        for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-            x(EigenIndex(a_t), EigenIndex(a_f)) = input.get_ignore_rank(tensor_pos(a_t, a_f));
-
-    // kernel applied to inputs (with bias), produces shape (timesteps, n_units * 3)
+    // kernel applied to inputs, produces shape (timesteps, n_units * 3)
     RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
+
+    // add bias
     Wx.rowwise() += b_x;
 
     // get activation functions
-    auto act_func = get_activation_func(activation);
-    auto act_func_recurrent = get_activation_func(recurrent_activation);
+    const auto act_func = get_activation_func(activation);
+    const auto act_func_recurrent = get_activation_func(recurrent_activation);
 
     // computing GRU output
     tensors gru_result;

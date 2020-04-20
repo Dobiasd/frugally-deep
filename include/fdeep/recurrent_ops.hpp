@@ -283,9 +283,6 @@ inline tensors gru_impl(const tensor& input,
         }
     }
 
-    // Copy the final state back into the initial state in the event of a stateful LSTM call
-    initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
-
     return gru_result;
 }
 

@@ -102,10 +102,8 @@ inline tensors lstm_impl(const tensor& input,
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
 
-    RowMajorMatrixXf in(n_timesteps, n_features);
-
     // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
+    const RowMajorMatrixXf in = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
 
     RowMajorMatrixXf X = in * W;
 

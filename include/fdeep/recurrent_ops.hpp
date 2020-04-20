@@ -14,15 +14,6 @@ namespace fdeep { namespace internal
 
 using Eigen::Dynamic;
 
-template<int Rows, int Cols>
-using ColMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::ColMajor>;
-
-template<int Rows, int Cols>
-using RowMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::RowMajor>;
-
-template<int Count>
-using ColVector = Eigen::Matrix<float_type, Count, 1>;
-
 template<int Count>
 using RowVector = Eigen::Matrix<float_type, 1, Count>;
 
@@ -224,7 +215,7 @@ inline tensors gru_impl(const tensor& input,
     const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *input.as_vector());
 
     // kernel applied to inputs, produces shape (timesteps, n_units * 3)
-    RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
+    RowMajorMatrixXf Wx = x * W;
 
     // add bias
     Wx.rowwise() += b_x;
@@ -262,7 +253,7 @@ inline tensors gru_impl(const tensor& input,
         if (reset_after)
         {
             // recurrent kernel applied to timestep (with bias), produces shape (1, n_units * 3)
-            RowMajorMatrix<1, Dynamic> Uh = h * U;
+            RowMajorMatrixXf Uh = h * U;
             Uh += b_h;
 
             // z = sigmoid(W_{x,z} x + b_{i,z} + W_{h,z} h + b_{h,z})

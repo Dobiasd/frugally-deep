@@ -90,8 +90,8 @@ inline tensors lstm_impl(const tensor& input,
                           const std::string& activation,
                           const std::string& recurrent_activation)
 {
-    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
-    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
+    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(weights.size() / (n_units * 4), n_units * 4, const_cast<float_type*>(weights.data()));
+    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
     RowMajorMatrixXf h(1, n_units);
@@ -187,8 +187,8 @@ inline tensors gru_impl(const tensor& input,
 
     // weight matrices
     const EigenIndex n = EigenIndex(n_units);
-    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
-    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
+    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(n_features, n_units * 3, const_cast<float_type*>(weights.data()));
+    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 3, const_cast<float_type*>(recurrent_weights.data()));
 
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);

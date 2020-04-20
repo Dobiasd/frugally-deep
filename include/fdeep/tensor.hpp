@@ -851,6 +851,8 @@ inline tensor max_tensors(const tensors& ts)
     return tensor(ts.front().shape(), std::move(result_values));
 }
 
+// When using this function, make sure the data pointer is not invalidated
+// before the last access to the returned matrix happens.
 inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,
     std::size_t width, float_type* data)
 {

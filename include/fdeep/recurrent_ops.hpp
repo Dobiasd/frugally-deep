@@ -90,8 +90,8 @@ inline tensors lstm_impl(const tensor& input,
                           const std::string& activation,
                           const std::string& recurrent_activation)
 {
-    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(weights.size() / (n_units * 4), n_units * 4, const_cast<float_type*>(weights.data()));
-    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
+    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
+    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
     RowMajorMatrixXf h(1, n_units);
@@ -105,7 +105,7 @@ inline tensors lstm_impl(const tensor& input,
     RowMajorMatrixXf in(n_timesteps, n_features);
 
     // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
+    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
 
     RowMajorMatrixXf X = in * W;
 
@@ -189,8 +189,8 @@ inline tensors gru_impl(const tensor& input,
 
     // weight matrices
     const EigenIndex n = EigenIndex(n_units);
-    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(n_features, n_units * 3, const_cast<float_type*>(weights.data()));
-    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 3, const_cast<float_type*>(recurrent_weights.data()));
+    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
+    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
 
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);
@@ -208,10 +208,10 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
-    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *(initial_state_h.as_vector()));
 
     // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
+    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
 
     // kernel applied to inputs, produces shape (timesteps, n_units * 3)
     RowMajorMatrixXf Wx = x * W;

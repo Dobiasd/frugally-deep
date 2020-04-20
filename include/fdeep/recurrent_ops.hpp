@@ -94,10 +94,8 @@ inline tensors lstm_impl(const tensor& input,
     const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
-    RowMajorMatrixXf h(1, n_units);
-    RowMajorMatrixXf c(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
-    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
+    MappedRowMajorMatrixXf h = eigen_row_major_mat_from_shared_values(1, n_units, initial_state_h.as_vector()->data());
+    MappedRowMajorMatrixXf c = eigen_row_major_mat_from_shared_values(1, n_units, initial_state_c.as_vector()->data());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
@@ -166,9 +164,6 @@ inline tensors lstm_impl(const tensor& input,
         lstm_result.push_back(state_h);
         lstm_result.push_back(state_c);
     }
-    // Copy the final state back into the initial state in the event of a stateful LSTM call
-    initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
-    initial_state_c = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(c));
     return lstm_result;
 }
 
@@ -209,10 +204,10 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
-    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    RowMajorMatrixXf h = eigen_row_major_mat_from_shared_values(1, n_units, initial_state_h.as_vector()->data());
 
     // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *input.as_vector());
+    const RowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
     // kernel applied to inputs, produces shape (timesteps, n_units * 3)
     RowMajorMatrixXf Wx = x * W;
@@ -290,8 +285,6 @@ inline tensors gru_impl(const tensor& input,
                 state_h.set_ignore_rank(tensor_pos(std::size_t(idx)), h(idx));
             gru_result.push_back(state_h);
         }
-        // Copy the final state back into the initial state in the event of a stateful LSTM call
-        initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
     }
 
     return gru_result;

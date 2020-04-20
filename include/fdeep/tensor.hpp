@@ -126,6 +126,10 @@ public:
     {
         return values_;
     }
+    shared_float_vec& as_vector()
+    {
+        return values_;
+    }
 
 private:
     std::size_t idx_ignore_rank(const tensor_pos& pos) const

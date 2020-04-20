@@ -94,10 +94,8 @@ inline tensors lstm_impl(const tensor& input,
     const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
-    RowMajorMatrixXf h(1, n_units);
-    RowMajorMatrixXf c(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
-    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
+    RowMajorMatrixXf h(1, n_units) = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    RowMajorMatrixXf c(1, n_units) = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;

@@ -15,5 +15,5 @@ This does the following:
 
 1. Runs a series of RNN models in Keras and stores the models and some test vectors in the `models` subdirectory.
 2. Runs the `../../keras_export/convert_model.py ` script to convert all of the generated Keras models. The resulting json files also are written to the `models` subdirectory.
-3. Compiles and runs `stateful_recurrent_tests.cpp` which loads each of the json model files and generates test vectors using frugrally-deep that correspond to those in step 1.
+3. Compiles and runs `stateful_recurrent_tests.cpp` which loads each of the json model files and generates test vectors using frugally-deep that correspond to those in step 1.
 4. Compares the test vectors from Keras and frugally-deep to report PASS/FAIL on the tests.

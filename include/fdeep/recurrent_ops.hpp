@@ -190,14 +190,8 @@ inline tensors gru_impl(const tensor& input,
 
     // weight matrices
     const EigenIndex n = EigenIndex(n_units);
-    const Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> W(
-        const_cast<float_type*>(weights.data()),
-        static_cast<EigenIndex>(n_features),
-        static_cast<EigenIndex>(n_units * 3));
-    const Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> U(
-        const_cast<float_type*>(recurrent_weights.data()),
-        static_cast<EigenIndex>(n_units),
-        static_cast<EigenIndex>(n_units * 3));
+    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(n_units, n_units * 3, const_cast<float_type*>(weights.data()));
+    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_features, n_units * 3, const_cast<float_type*>(recurrent_weights.data()));
 
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);

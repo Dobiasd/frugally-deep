@@ -100,8 +100,8 @@ inline tensors lstm_impl(const tensor& input,
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
 
-    // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf in = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
+    // use input as eigen matrix of shape (timesteps, n_features)
+    const MappedRowMajorMatrixXf in = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
     RowMajorMatrixXf X = in * W;
 
@@ -206,8 +206,8 @@ inline tensors gru_impl(const tensor& input,
     // RowVector<Dynamic> h(1, n_units);
     RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *(initial_state_h.as_vector()));
 
-    // write input to eigen matrix of shape (timesteps, n_features)
-    const RowMajorMatrixXf x = eigen_row_major_mat_from_values(n_timesteps, n_features, *(input.as_vector()));
+    // use input as eigen matrix of shape (timesteps, n_features)
+    const MappedRowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
     // kernel applied to inputs, produces shape (timesteps, n_units * 3)
     RowMajorMatrixXf Wx = x * W;

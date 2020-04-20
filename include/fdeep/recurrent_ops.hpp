@@ -200,7 +200,7 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
-    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *(initial_state_h.as_vector()));
+    MappedRowMajorMatrixXf h = eigen_row_major_mat_from_shared_values(1, n_units, const_cast<float_type*>(initial_state_h.as_vector()->data()));
 
     // use input as eigen matrix of shape (timesteps, n_features)
     const MappedRowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));

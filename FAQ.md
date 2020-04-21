@@ -164,6 +164,15 @@ before your first include of `fdeep.hpp`:
 #include <fdeep/fdeep.hpp>
 ```
 
+How to silence the logging output of `fdeep::model::load`?
+----------------------------------------------------------
+
+You can use `fdeep::dev_null_logger` for this:
+
+```cpp
+const auto model = fdeep::load_model("model.json", true, fdeep::dev_null_logger);
+```
+
 Why does `fdeep::model` not have a default constructor?
 -------------------------------------------------------
 

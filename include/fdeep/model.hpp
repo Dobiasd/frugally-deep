@@ -248,6 +248,12 @@ inline void cout_logger(const std::string& str)
     std::cout << str << std::flush;
 }
 
+// Take an std::string and do nothing.
+// Useful for silencing the logging when loading a model.
+inline void dev_null_logger(const std::string&)
+{
+}
+
 // Load and construct an fdeep::model from an istream
 // providing the exported json content.
 // Throws an exception if a problem occurs.

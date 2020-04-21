@@ -6,9 +6,8 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
-#include <fdeep/fdeep.hpp>
-
 #define FDEEP_FLOAT_TYPE double
+#include <fdeep/fdeep.hpp>
 
 TEST_CASE("test_model_recurrent_test, load_model")
 {

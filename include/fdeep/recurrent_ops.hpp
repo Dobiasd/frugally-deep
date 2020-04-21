@@ -14,15 +14,6 @@ namespace fdeep { namespace internal
 
 using Eigen::Dynamic;
 
-template<int Rows, int Cols>
-using ColMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::ColMajor>;
-
-template<int Rows, int Cols>
-using RowMajorMatrix = Eigen::Matrix<float_type, Rows, Cols, Eigen::RowMajor>;
-
-template<int Count>
-using ColVector = Eigen::Matrix<float_type, Count, 1>;
-
 template<int Count>
 using RowVector = Eigen::Matrix<float_type, 1, Count>;
 
@@ -99,25 +90,21 @@ inline tensors lstm_impl(const tensor& input,
                           const std::string& activation,
                           const std::string& recurrent_activation)
 {
-    const RowMajorMatrixXf W = eigen_row_major_mat_from_values(weights.size() / (n_units * 4), n_units * 4, weights);
-    const RowMajorMatrixXf U = eigen_row_major_mat_from_values(n_units, n_units * 4, recurrent_weights);
+    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(weights.size() / (n_units * 4), n_units * 4, const_cast<float_type*>(weights.data()));
+    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
 
     // initialize cell output states h, and cell memory states c for t-1 with initial state values
-    RowMajorMatrixXf h(1, n_units);
-    RowMajorMatrixXf c(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
-    c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
+    // Memory sharing can't be used here, because the state can come from an input to the calling layer.
+    // This input tensor might share memory with the input used in other layers.
+    // Thus, the state values can not be modified in place.
+    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    RowMajorMatrixXf c = eigen_row_major_mat_from_values(1, n_units, *initial_state_c.as_vector());
 
     std::size_t n_timesteps = input.shape().width_;
     std::size_t n_features = input.shape().depth_;
 
-    RowMajorMatrixXf in(n_timesteps, n_features);
-
-    // write input to eigen matrix
-
-    for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-        for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-            in(EigenIndex(a_t), EigenIndex(a_f)) = input.get_ignore_rank(tensor_pos(a_t, a_f));
+    // use input as eigen matrix of shape (timesteps, n_features)
+    const MappedRowMajorMatrixXf in = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
     RowMajorMatrixXf X = in * W;
 
@@ -125,7 +112,7 @@ inline tensors lstm_impl(const tensor& input,
     {
         // define eigen vector type to be able to use broadcasting
         typedef Eigen::Matrix<float_type, 1, Eigen::Dynamic> Vector_Xf;
-        Vector_Xf b = eigen_row_major_mat_from_values(1, n_units * 4, bias);
+        const Vector_Xf b = eigen_row_major_mat_from_shared_values(1, n_units * 4, const_cast<float_type*>(bias.data()));
 
         X.rowwise() += b;
     }
@@ -175,9 +162,11 @@ inline tensors lstm_impl(const tensor& input,
         lstm_result.push_back(state_h);
         lstm_result.push_back(state_c);
     }
+
     // Copy the final state back into the initial state in the event of a stateful LSTM call
     initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
     initial_state_c = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(c));
+
     return lstm_result;
 }
 
@@ -199,8 +188,8 @@ inline tensors gru_impl(const tensor& input,
 
     // weight matrices
     const EigenIndex n = EigenIndex(n_units);
-    const RowMajorMatrix<Dynamic, Dynamic> W = eigen_row_major_mat_from_values(n_features, n_units * 3, weights);
-    const RowMajorMatrix<Dynamic, Dynamic> U = eigen_row_major_mat_from_values(n_units, n_units * 3, recurrent_weights);
+    const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(n_features, n_units * 3, const_cast<float_type*>(weights.data()));
+    const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(n_units, n_units * 3, const_cast<float_type*>(recurrent_weights.data()));
 
     // kernel bias
     RowVector<Dynamic> b_x(n_units * 3);
@@ -218,23 +207,23 @@ inline tensors gru_impl(const tensor& input,
 
     // initialize cell output states h
     // RowVector<Dynamic> h(1, n_units);
-    RowMajorMatrixXf h(1, n_units);
-    h = eigen_row_major_mat_from_values(1, n_units, *initial_state_h.as_vector());
+    // Memory sharing can't be used here, because the state can come from an input to the calling layer.
+    // This input tensor might share memory with the input used in other layers.
+    // Thus, the state values can not be modified in place.
+    RowMajorMatrixXf h = eigen_row_major_mat_from_values(1, n_units, *(initial_state_h.as_vector()));
 
-    // write input to eigen matrix of shape (timesteps, n_features)
-    RowMajorMatrix<Dynamic, Dynamic> x(n_timesteps, n_features);
+    // use input as eigen matrix of shape (timesteps, n_features)
+    const MappedRowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
-    for (std::size_t a_t = 0; a_t < n_timesteps; ++a_t)
-        for (std::size_t a_f = 0; a_f < n_features; ++a_f)
-            x(EigenIndex(a_t), EigenIndex(a_f)) = input.get_ignore_rank(tensor_pos(a_t, a_f));
+    // kernel applied to inputs, produces shape (timesteps, n_units * 3)
+    RowMajorMatrixXf Wx = x * W;
 
-    // kernel applied to inputs (with bias), produces shape (timesteps, n_units * 3)
-    RowMajorMatrix<Dynamic, Dynamic> Wx = x * W;
+    // add bias
     Wx.rowwise() += b_x;
 
     // get activation functions
-    auto act_func = get_activation_func(activation);
-    auto act_func_recurrent = get_activation_func(recurrent_activation);
+    const auto act_func = get_activation_func(activation);
+    const auto act_func_recurrent = get_activation_func(recurrent_activation);
 
     // computing GRU output
     tensors gru_result;
@@ -265,7 +254,7 @@ inline tensors gru_impl(const tensor& input,
         if (reset_after)
         {
             // recurrent kernel applied to timestep (with bias), produces shape (1, n_units * 3)
-            RowMajorMatrix<1, Dynamic> Uh = h * U;
+            RowMajorMatrixXf Uh = h * U;
             Uh += b_h;
 
             // z = sigmoid(W_{x,z} x + b_{i,z} + W_{h,z} h + b_{h,z})
@@ -302,9 +291,10 @@ inline tensors gru_impl(const tensor& input,
                 state_h.set_ignore_rank(tensor_pos(std::size_t(idx)), h(idx));
             gru_result.push_back(state_h);
         }
-        // Copy the final state back into the initial state in the event of a stateful LSTM call
-        initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
     }
+
+    // Copy the final state back into the initial state in the event of a stateful GRU call
+    initial_state_h = tensor(tensor_shape(n_units), eigen_row_major_mat_to_values(h));
 
     return gru_result;
 }

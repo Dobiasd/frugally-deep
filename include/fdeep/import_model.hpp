@@ -1191,7 +1191,8 @@ inline void check_test_outputs(float_type epsilon,
                             const auto target_val = target.get_ignore_rank(pos);
                             const auto output_val = output.get_ignore_rank(pos);
                             if (!fplus::is_in_closed_interval_around(epsilon,
-                                target_val, output_val))
+                                target_val, output_val) &&
+                                !(std::isnan(target_val) && std::isnan(output_val)))
                             {
                                 const std::string msg =
                                     std::string("test failed: ") +

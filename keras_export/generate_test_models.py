@@ -361,7 +361,7 @@ def get_test_model_exhaustive():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -400,7 +400,7 @@ def get_test_model_embedding():
     model.compile(loss='mse', optimizer='adam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -469,7 +469,7 @@ def get_test_model_recurrent():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -552,7 +552,7 @@ def get_test_model_lstm():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -644,7 +644,7 @@ def get_test_model_gru_stateful_optional(stateful):
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -682,7 +682,7 @@ def get_test_model_variable():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -715,7 +715,7 @@ def get_test_model_sequential():
     model.compile(loss='categorical_crossentropy', optimizer='sgd')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = [np.random.random(size=(training_data_size, 32, 32, 3))]
     data_out = [np.random.random(size=(training_data_size, 10))]
     model.fit(data_in, data_out, epochs=10)

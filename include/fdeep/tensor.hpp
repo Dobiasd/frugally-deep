@@ -126,6 +126,10 @@ public:
     {
         return values_;
     }
+    shared_float_vec& as_vector()
+    {
+        return values_;
+    }
 
 private:
     std::size_t idx_ignore_rank(const tensor_pos& pos) const
@@ -845,6 +849,17 @@ inline tensor max_tensors(const tensors& ts)
         result_values.push_back(max_val);
     }
     return tensor(ts.front().shape(), std::move(result_values));
+}
+
+// When using this function, make sure the data pointer is not invalidated
+// before the last access to the returned matrix happens.
+inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,
+    std::size_t width, float_type* data)
+{
+    return MappedRowMajorMatrixXf(
+        data,
+        static_cast<EigenIndex>(height),
+        static_cast<EigenIndex>(width));
 }
 
 inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,

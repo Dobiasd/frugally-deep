@@ -20,7 +20,6 @@
 #pragma warning(disable : 4706)
 #pragma warning(disable : 4996)
 #endif
-#define EIGEN_MAX_ALIGN_BYTES 128
 #include <Eigen/Core>
 #if defined _MSC_VER
 #pragma warning(pop)
@@ -88,7 +87,7 @@ typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned128>;
-using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf, Eigen::Aligned128>;
+using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
+using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf, Eigen::Aligned>;
 
 } } // namespace fdeep, namespace internal

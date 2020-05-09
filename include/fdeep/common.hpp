@@ -20,6 +20,7 @@
 #pragma warning(disable : 4706)
 #pragma warning(disable : 4996)
 #endif
+#define EIGEN_MAX_ALIGN_BYTES 64
 #include <Eigen/Core>
 #if defined _MSC_VER
 #pragma warning(pop)
@@ -77,7 +78,12 @@ inline void assertion(bool cond, const std::string& error)
     typedef Eigen::DenseIndex EigenIndex;
 #endif
 
-typedef std::vector<float_type> float_vec;
+typedef std::vector<float_type> float_vec_unaligned;
+
+template <typename T>
+using aligned_vector = std::vector<T, Eigen::aligned_allocator<T>>;
+
+typedef aligned_vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;

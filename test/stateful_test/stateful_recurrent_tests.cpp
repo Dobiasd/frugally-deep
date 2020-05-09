@@ -3,7 +3,7 @@
 
 using namespace fdeep;
 
-void vec_append(std::vector<float>& results, const std::vector<float>& x){
+void vec_append(fdeep::float_vec& results, const fdeep::float_vec& x){
     results.insert(std::end(results), std::begin(x), std::end(x));
     return;
 }
@@ -14,21 +14,21 @@ int main()
     outFile.open("./models/fd_results.bin", std::ios::binary);
     const bool verbose = false;
 
-    const std::vector<float> x_inf_0 = {2.1, -1.2, 3.14, 1.2};
-    const std::vector<float> x_inf_1 = {1, 3, -2, 10};
-    const std::vector<float> state_0 = {40.1, -25.1};
-    const std::vector<float> state_1 = {34.7, 56.1};
-    const std::vector<float> state_2 = {-62.5, 12.0};
-    const std::vector<float> state_3 = {-33.0, -100.0};
+    const fdeep::float_vec x_inf_0 = {2.1, -1.2, 3.14, 1.2};
+    const fdeep::float_vec x_inf_1 = {1, 3, -2, 10};
+    const fdeep::float_vec state_0 = {40.1, -25.1};
+    const fdeep::float_vec state_1 = {34.7, 56.1};
+    const fdeep::float_vec state_2 = {-62.5, 12.0};
+    const fdeep::float_vec state_3 = {-33.0, -100.0};
 
 
 
-    // const std::vector<float> state_0 = {1.1, -2.1};
-    // const std::vector<float> state_1 = {2.7, 3.1};
-    // const std::vector<float> state_2 = {-2.5, 3.0};
-    // const std::vector<float> state_3 = {-2.0, -10.0};
-    std::vector<float> all_results = {};
-    std::vector<float> one_result = {};
+    // const fdeep::float_vec state_0 = {1.1, -2.1};
+    // const fdeep::float_vec state_1 = {2.7, 3.1};
+    // const fdeep::float_vec state_2 = {-2.5, 3.0};
+    // const fdeep::float_vec state_3 = {-2.0, -10.0};
+    fdeep::float_vec all_results = {};
+    fdeep::float_vec one_result = {};
 
 // [40.1, -25.1, 34.7, 56.1, -62.5, 12.0, -33.0, -100.0]
 // [1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0]

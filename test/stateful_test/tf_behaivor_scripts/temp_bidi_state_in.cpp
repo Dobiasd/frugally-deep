@@ -15,11 +15,11 @@ int main()
     // bwd_initial_h = np.asarray(-2.0).reshape(1,1)
     // bwd_initial_c = np.asarray(-1.2).reshape(1,1)
 
-    const std::vector<float> x_inf_0 = {1.0, 0.0, 0.0};
-    const std::vector<float> state_0 = {2.75};
-    const std::vector<float> state_1 = {1.3};
-    const std::vector<float> state_2 = {-2.0};
-    const std::vector<float> state_3 = {-1.2};
+    const fdeep::float_vec x_inf_0 = {1.0, 0.0, 0.0};
+    const fdeep::float_vec state_0 = {2.75};
+    const fdeep::float_vec state_1 = {1.3};
+    const fdeep::float_vec state_2 = {-2.0};
+    const fdeep::float_vec state_3 = {-1.2};
 
     const shared_float_vec xt0(fplus::make_shared_ref<float_vec>(x_inf_0));
     const shared_float_vec st0(fplus::make_shared_ref<float_vec>(state_0));

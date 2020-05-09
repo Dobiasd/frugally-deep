@@ -90,4 +90,27 @@ using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynami
 using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
 using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf, Eigen::Aligned>;
 
+// https://gist.github.com/Dobiasd/a678c7b06aa58346993a402b54ea00e5
+inline void multiply_row_major_as_col_major(const RowMajorMatrixXf& a, const RowMajorMatrixXf& b, MappedRowMajorMatrixXf& c)
+{
+    const MappedColMajorMatrixXf at(const_cast<float_type*>(a.data()), a.cols(), a.rows());
+    const MappedColMajorMatrixXf bt(const_cast<float_type*>(b.data()), b.cols(), b.rows());
+    MappedColMajorMatrixXf ct(c.data(), c.cols(), c.rows());
+    ct = bt * at;
+}
+
+inline void multiply_row_major_as_col_major(const RowMajorMatrixXf& a, const RowMajorMatrixXf& b, RowMajorMatrixXf& c)
+{
+    MappedRowMajorMatrixXf c_map(c.data(), c.rows(), c.cols());
+    return multiply_row_major_as_col_major(a, b, c_map);
+}
+
+inline RowMajorMatrixXf multiply_row_major_as_col_major(const RowMajorMatrixXf& a, const RowMajorMatrixXf& b)
+{
+    RowMajorMatrixXf c(a.rows(), b.cols());
+    MappedRowMajorMatrixXf c_map(c.data(), c.rows(), c.cols());
+    multiply_row_major_as_col_major(a, b, c_map);
+    return c;
+}
+
 } } // namespace fdeep, namespace internal

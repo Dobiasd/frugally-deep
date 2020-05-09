@@ -106,7 +106,7 @@ inline tensors lstm_impl(const tensor& input,
     // use input as eigen matrix of shape (timesteps, n_features)
     const MappedRowMajorMatrixXf in = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
-    RowMajorMatrixXf X = in * W;
+    RowMajorMatrixXf X = multiply_row_major_as_col_major(in, W);
 
     if (use_bias)
     {
@@ -133,7 +133,7 @@ inline tensors lstm_impl(const tensor& input,
 
     for (EigenIndex k = 0; k < EigenIndex(n_timesteps); ++k)
     {
-        const RowMajorMatrixXf ifco = h * U;
+        const RowMajorMatrixXf ifco = multiply_row_major_as_col_major(h, U);
 
         // Use of Matrix.block(): Block of size (p,q), starting at (i,j) matrix.block(i,j,p,q);  matrix.block<p,q>(i,j);
         const RowMajorMatrixXf i = (X.block(k, 0, 1, n) + ifco.block(0, 0, 1, n)).unaryExpr(act_func_recurrent);
@@ -216,7 +216,7 @@ inline tensors gru_impl(const tensor& input,
     const MappedRowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
 
     // kernel applied to inputs, produces shape (timesteps, n_units * 3)
-    RowMajorMatrixXf Wx = x * W;
+    RowMajorMatrixXf Wx = multiply_row_major_as_col_major(x, W);
 
     // add bias
     Wx.rowwise() += b_x;

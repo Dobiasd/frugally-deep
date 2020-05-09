@@ -61,10 +61,12 @@ protected:
             {
                 assertion(input_part.size() == n_in_,
                     "Invalid input value count.");
+                float_vec result_vec(n_out_);
+                MappedRowMajorMatrixXf result_map(result_vec.data(),
+                    1, static_cast<EigenIndex>(n_out_));
                 const auto bias_padded_input = bias_pad_input(input_part);
-                const auto result = bias_padded_input * params_;
-                assertion(result.rows() == 1, "invalid result size.");
-                return *eigen_row_major_mat_to_values(result);
+                multiply_row_major_as_col_major(bias_padded_input, params_, result_map);
+                return result_vec;
             },
             input_parts);
 

@@ -88,6 +88,7 @@ typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned>;
+using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf>;
+using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf>;
 
 } } // namespace fdeep, namespace internal

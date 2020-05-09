@@ -116,7 +116,7 @@ inline tensor convolve_im2col(
     shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
-    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned> out_mat_map(
+    MappedColMajorMatrixXf out_mat_map(
         res_vec->data(),
         static_cast<EigenIndex>(filter_mat.mat_.rows()),
         static_cast<EigenIndex>(a.cols()));

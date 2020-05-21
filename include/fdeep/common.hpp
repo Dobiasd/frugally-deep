@@ -77,11 +77,17 @@ inline void assertion(bool cond, const std::string& error)
     typedef Eigen::DenseIndex EigenIndex;
 #endif
 
-typedef std::vector<float_type> float_vec;
+typedef std::vector<float_type> float_vec_unaligned;
+
+template <typename T>
+using aligned_vector = std::vector<T, Eigen::aligned_allocator<T>>;
+
+typedef aligned_vector<float_type> float_vec;
 typedef fplus::shared_ref<float_vec> shared_float_vec;
 
 using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned>;
+using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
+using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf, Eigen::Aligned>;
 
 } } // namespace fdeep, namespace internal

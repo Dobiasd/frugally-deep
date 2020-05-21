@@ -41,6 +41,11 @@ public:
         tensor(shape, fplus::make_shared_ref<float_vec>(std::move(values)))
     {
     }
+    tensor(const tensor_shape& shape, const float_vec_unaligned& values) :
+        tensor(shape, fplus::make_shared_ref<float_vec>(
+            fplus::convert_container<float_vec>(values)))
+    {
+    }
     tensor(const tensor_shape& shape, float_type value) :
         tensor(shape, fplus::make_shared_ref<float_vec>(shape.volume(), value))
     {
@@ -130,6 +135,10 @@ public:
     {
         return values_;
     }
+    float_vec_unaligned to_vector()
+    {
+        return float_vec_unaligned(fplus::convert_container<float_vec_unaligned>(*values_));
+    }    
 
 private:
     std::size_t idx_ignore_rank(const tensor_pos& pos) const
@@ -183,7 +192,7 @@ inline tensor tensor_with_changed_rank(const tensor& t, std::size_t rank)
 template <typename F>
 tensor transform_tensor(F f, const tensor& m)
 {
-    return tensor(m.shape(), fplus::transform(f, *m.as_vector()));
+    return tensor(m.shape(), fplus::transform_convert<float_vec>(f, *m.as_vector()));
 }
 
 inline tensor tensor_from_depth_slices(const std::vector<tensor>& ms)
@@ -807,7 +816,7 @@ inline tensor multiply_tensors(const tensors& ts_all)
     if (factors_and_tensors.first.size() > 0) {
         const auto factor = fplus::product(
             fplus::transform(to_singleton_value, factors_and_tensors.first));
-        result_values = fplus::transform(
+        result_values = fplus::transform_convert<float_vec>(
             fplus::multiply_with<float_type>(factor), result_values);
     }
     return tensor(ts.front().shape(), std::move(result_values));
@@ -819,7 +828,7 @@ inline tensor subtract_tensor(const tensor& a, const tensor& b)
         "both tensors must have the same size");
     auto result_values = fplus::zip_with(std::minus<float_type>(),
         *a.as_vector(), *b.as_vector());
-    return tensor(a.shape(), std::move(result_values));
+    return tensor(a.shape(), result_values);
 }
 
 inline tensor average_tensors(const tensors& ts)

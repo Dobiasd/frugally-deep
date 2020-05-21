@@ -58,7 +58,7 @@ protected:
 
         const auto result_value_vectors = fplus::transform(
             [this](const auto& input_part) -> float_vec
-            {
+                        {
                 assertion(input_part.size() == n_in_,
                     "Invalid input value count.");
                 const auto bias_padded_input = bias_pad_input(input_part);

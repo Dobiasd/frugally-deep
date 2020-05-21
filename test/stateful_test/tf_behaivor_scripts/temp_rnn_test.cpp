@@ -5,8 +5,8 @@ using namespace fdeep;
 
 int main()
 {
-    const std::vector<float> x_inf_0 = {1.0, 0.0, 0.0};
-    const std::vector<float> state_0 = {10.0};
+    const fdeep::float_vec x_inf_0 = {1.0, 0.0, 0.0};
+    const fdeep::float_vec state_0 = {10.0};
 
     const shared_float_vec xt0(fplus::make_shared_ref<float_vec>(x_inf_0));
     const shared_float_vec st0(fplus::make_shared_ref<float_vec>(state_0));

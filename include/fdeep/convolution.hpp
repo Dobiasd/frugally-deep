@@ -93,8 +93,12 @@ inline tensor convolve_im2col(
     shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
-    ColMajorMatrixXf a(fy * fx * fz + 1, 1);
+    const EigenIndex a_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
+    const EigenIndex a_max_size_bytes = 1024 * 1024;
+    const EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
+    ColMajorMatrixXf a(a_rows, step_size);
     EigenIndex a_x = 0;
+    EigenIndex last_gem_a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
         for (std::size_t x = 0; x < out_width; ++x)
@@ -106,19 +110,33 @@ inline tensor convolve_im2col(
                         strides_y * y + yf,
                         strides_x * x,
                         0)));
-                std::memcpy(&a(a_y, 0), p, fx * fz * sizeof(float_type));
-                //std::copy(p, p + fx * fz, &a(a_y, a_x));
+                std::memcpy(&a(a_y, a_x % step_size), p, fx * fz * sizeof(float_type));
+                //std::copy(p, p + fx * fz, &a(a_y, a_x % step_size));
                 a_y += static_cast<EigenIndex>(fx * fz);
-                a(a_y, 0) = static_cast<float_type>(1);
+                a(a_y, a_x % step_size) = static_cast<float_type>(1);
             }
-            MappedColMajorMatrixXf out_mat_map(
-            res_vec->data() + filter_mat.mat_.rows() * a_x,
-            static_cast<EigenIndex>(filter_mat.mat_.rows()),
-            static_cast<EigenIndex>(1));
-            // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-            out_mat_map.noalias() = filter_mat.mat_ * a;
             ++a_x;
+            if (a_x >= last_gem_a_x + step_size)
+            {
+                MappedColMajorMatrixXf out_mat_map(
+                    res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
+                    static_cast<EigenIndex>(filter_mat.mat_.rows()),
+                    static_cast<EigenIndex>(a_x - last_gem_a_x));
+                out_mat_map.noalias() = filter_mat.mat_ * a;
+                last_gem_a_x = a_x;
+            }
         }
+    }
+    if (a_x != last_gem_a_x)
+    {
+        EigenIndex fields_left = a_x - last_gem_a_x;
+        MappedColMajorMatrixXf a_map(a.data(), a.rows(), fields_left);
+        MappedColMajorMatrixXf out_mat_map(
+            res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
+            static_cast<EigenIndex>(filter_mat.mat_.rows()),
+            static_cast<EigenIndex>(fields_left));
+        // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
+        out_mat_map.noalias() = filter_mat.mat_ * a_map;
     }
 
     return tensor(

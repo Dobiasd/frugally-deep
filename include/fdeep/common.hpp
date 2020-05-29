@@ -89,7 +89,5 @@ using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynami
 using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
 using MappedColMajorMatrixXf = Eigen::Map<ColMajorMatrixXf, Eigen::Aligned>;
-using MappedRowMajorMatrixXfUnaligned = Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned>;
-using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
 
 } } // namespace fdeep, namespace internal

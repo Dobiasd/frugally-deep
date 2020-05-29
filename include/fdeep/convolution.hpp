@@ -96,7 +96,8 @@ inline tensor convolve_im2col(
     const EigenIndex a_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
     const EigenIndex a_max_size_bytes = 16 * 1024 * 1024;
     EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
-    step_size = (step_size / 16) * 16;
+    EigenIndex AlignmentStep = 64 / sizeof(float_type);
+    step_size = (step_size / AlignmentStep) * AlignmentStep;
 
     ColMajorMatrixXf a(a_rows, step_size);
     EigenIndex a_x_virtual = 0;

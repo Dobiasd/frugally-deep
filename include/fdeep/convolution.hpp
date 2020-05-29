@@ -111,13 +111,13 @@ inline tensor convolve_im2col(
                 a_y += static_cast<EigenIndex>(fx * fz);
                 a(a_y, 0) = static_cast<float_type>(1);
             }
-            ++a_x;
             MappedColMajorMatrixXf out_mat_map(
-            res_vec->data() + filter_mat.mat_.rows() * (a_x - 1),
+            res_vec->data() + filter_mat.mat_.rows() * a_x,
             static_cast<EigenIndex>(filter_mat.mat_.rows()),
             static_cast<EigenIndex>(1));
             // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
             out_mat_map.noalias() = filter_mat.mat_ * a;
+            ++a_x;
         }
     }
 

@@ -118,7 +118,7 @@ inline tensor convolve_im2col(
             ++a_x;
             if (a_x >= last_gem_a_x + step_size)
             {
-                MappedColMajorMatrixXf out_mat_map(
+                MappedColMajorMatrixXfUnaligned out_mat_map(
                     res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
                     static_cast<EigenIndex>(filter_mat.mat_.rows()),
                     static_cast<EigenIndex>(a_x - last_gem_a_x));
@@ -130,8 +130,8 @@ inline tensor convolve_im2col(
     if (a_x != last_gem_a_x)
     {
         EigenIndex fields_left = a_x - last_gem_a_x;
-        MappedColMajorMatrixXf a_map(a.data(), a.rows(), fields_left);
-        MappedColMajorMatrixXf out_mat_map(
+        MappedColMajorMatrixXfUnaligned a_map(a.data(), a.rows(), fields_left);
+        MappedColMajorMatrixXfUnaligned out_mat_map(
             res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
             static_cast<EigenIndex>(filter_mat.mat_.rows()),
             static_cast<EigenIndex>(fields_left));

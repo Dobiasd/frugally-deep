@@ -20,7 +20,7 @@ namespace fdeep { namespace internal
 
 struct im2col_filter_matrix
 {
-    RowMajorMatrixXf mat_;
+    ColMajorMatrixXf mat_;
     tensor_shape filter_shape_;
     std::size_t filter_count_;
 };
@@ -35,7 +35,7 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::size_t fy = filters.front().shape().height_;
     const std::size_t fx = filters.front().shape().width_;
     const std::size_t fz = filters.front().shape().depth_;
-    RowMajorMatrixXf b(fy * fx * fz + 1, filters.size());
+    ColMajorMatrixXf b(filters.size(), fy * fx * fz + 1);
     EigenIndex b_y = 0;
     EigenIndex b_x = 0;
     for (std::size_t f = 0; f < filters.size(); ++f)
@@ -48,11 +48,11 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
             {
                 for (std::size_t zf = 0; zf < fz; ++zf)
                 {
-                    b(b_x++, b_y) = filter.get(tensor_pos(yf, xf, zf));
+                    b(b_y, b_x++) = filter.get(tensor_pos(yf, xf, zf));
                 }
             }
         }
-        b(b_x++, b_y) = filter.get_bias();
+        b(b_y, b_x++) = filter.get_bias();
         ++b_y;
     }
     return {b, filters.front().shape(), filters.size()};
@@ -79,7 +79,7 @@ inline tensor convolve_im2col(
     const auto fy = filter_mat.filter_shape_.height_;
     const auto fx = filter_mat.filter_shape_.width_;
     const auto fz = filter_mat.filter_shape_.depth_;
-    RowMajorMatrixXf a(out_height * out_width, fy * fx * fz + 1);
+    ColMajorMatrixXf a(fy * fx * fz + 1, out_height * out_width);
     EigenIndex a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
@@ -92,17 +92,17 @@ inline tensor convolve_im2col(
                         strides_y * y + yf,
                         strides_x * x,
                         0)));
-                std::memcpy(&a(a_x, a_y), p, fx * fz * sizeof(float_type));
+                std::memcpy(&a(a_y, a_x), p, fx * fz * sizeof(float_type));
                 //std::copy(p, p + fx * fz, &a(a_y, a_x));
                 a_y += static_cast<EigenIndex>(fx * fz);
-                a(a_x, a_y) = static_cast<float_type>(1);
+                a(a_y, a_x) = static_cast<float_type>(1);
             }
             ++a_x;
         }
     }
 
     const std::size_t val_cnt =
-        static_cast<std::size_t>(filter_mat.mat_.cols() * a.rows());
+        static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
     assertion(val_cnt % (out_height * out_width) == 0,
         "Can not calculate out_depth");
 
@@ -113,13 +113,13 @@ inline tensor convolve_im2col(
     shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
-    MappedRowMajorMatrixXf out_mat_map(
+    MappedColMajorMatrixXf out_mat_map(
         res_vec->data(),
-        static_cast<EigenIndex>(a.rows()),
-        static_cast<EigenIndex>(filter_mat.mat_.cols()));
+        static_cast<EigenIndex>(filter_mat.mat_.rows()),
+        static_cast<EigenIndex>(a.cols()));
 
     // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-    out_mat_map.noalias() = a * filter_mat.mat_;
+    out_mat_map.noalias() = filter_mat.mat_ * a;
 
     return tensor(
         tensor_shape_with_changed_rank(

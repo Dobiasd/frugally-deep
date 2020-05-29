@@ -113,8 +113,8 @@ inline tensor convolve_im2col(
                         strides_y * y + yf,
                         strides_x * x,
                         0)));
-                // https://stackoverflow.com/a/9980859/1866775
                 const auto a_x = a_x_virtual % step_size;
+                // https://stackoverflow.com/a/9980859/1866775
                 std::copy(p, p + fx * fz, &a(a_y, a_x));
                 a_y += static_cast<EigenIndex>(fx * fz);
                 a(a_y, a_x) = static_cast<float_type>(1);

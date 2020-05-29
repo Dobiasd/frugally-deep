@@ -98,16 +98,6 @@ inline tensor convolve_im2col(
     EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
     step_size = (step_size / 16) * 16;
 
-/*
-    // todo: debug remove
-    const EigenIndex a_debug_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
-    const EigenIndex a_debug_cols = static_cast<EigenIndex>(out_height * out_width);
-    const EigenIndex f_debug_rows = filter_mat.mat_.rows();
-    const EigenIndex f_debug_cols = filter_mat.mat_.cols();
-    const EigenIndex steps = static_cast<EigenIndex>(out_height * out_width) / step_size;
-    std::cout << "(" << f_debug_rows << "," << f_debug_cols << ")X(" << a_debug_rows << "," << a_debug_cols << ") = " << f_debug_rows * f_debug_cols << "x" << a_debug_rows * a_debug_cols << " " << out_height << " " << out_width << " " << fy << " " << fx << " " << fz << " " << in_padded.height() << " " << in_padded.width() << " " << step_size << " " << steps << std::endl;
-*/
-
     ColMajorMatrixXf a(a_rows, step_size);
     EigenIndex a_x_virtual = 0;
     EigenIndex last_gem_a_x = 0;

@@ -58,6 +58,10 @@ public:
     {
         return (*values_)[idx_ignore_rank(pos)];
     }
+    const float_type& get_ref_ignore_rank(const tensor_pos& pos) const
+    {
+        return (*values_)[idx_ignore_rank(pos)];
+    }
     float_type get_y_x_padded(float_type pad_value,
         int y, int x, std::size_t z) const
     {

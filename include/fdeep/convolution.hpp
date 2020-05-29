@@ -88,16 +88,13 @@ inline tensor convolve_im2col(
             EigenIndex a_y = 0;
             for (std::size_t yf = 0; yf < fy; ++yf)
             {
-                for (std::size_t xf = 0; xf < fx; ++xf)
-                {
-                    for (std::size_t zf = 0; zf < fz; ++zf)
-                    {
-                        a(a_y++, a_x) = in_padded.get_ignore_rank(tensor_pos(
-                                strides_y * y + yf,
-                                strides_x * x + xf,
-                                zf));
-                    }
-                }
+                const auto p = &(in_padded.get_ref_ignore_rank(tensor_pos(
+                        strides_y * y + yf,
+                        strides_x * x,
+                        0)));
+                std::memcpy(&a(a_y, a_x), p, fx * fz * sizeof(float_type));
+                //std::copy(p, p + fx * fz, &a(a_y, a_x));
+                a_y += static_cast<EigenIndex>(fx * fz);
                 a(a_y, a_x) = static_cast<float_type>(1);
             }
             ++a_x;

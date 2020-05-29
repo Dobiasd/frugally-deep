@@ -94,10 +94,22 @@ inline tensor convolve_im2col(
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
     const EigenIndex a_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
-    const EigenIndex a_max_size_bytes = 1024 * 1024;
-    const EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
+    const EigenIndex a_max_size_bytes = 16 * 1024 * 1024;
+    EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
+    step_size = (step_size / 16) * 16;
+
+/*
+    // todo: debug remove
+    const EigenIndex a_debug_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
+    const EigenIndex a_debug_cols = static_cast<EigenIndex>(out_height * out_width);
+    const EigenIndex f_debug_rows = filter_mat.mat_.rows();
+    const EigenIndex f_debug_cols = filter_mat.mat_.cols();
+    const EigenIndex steps = static_cast<EigenIndex>(out_height * out_width) / step_size;
+    std::cout << "(" << f_debug_rows << "," << f_debug_cols << ")X(" << a_debug_rows << "," << a_debug_cols << ") = " << f_debug_rows * f_debug_cols << "x" << a_debug_rows * a_debug_cols << " " << out_height << " " << out_width << " " << fy << " " << fx << " " << fz << " " << in_padded.height() << " " << in_padded.width() << " " << step_size << " " << steps << std::endl;
+*/
+
     ColMajorMatrixXf a(a_rows, step_size);
-    EigenIndex a_x = 0;
+    EigenIndex a_x_virtual = 0;
     EigenIndex last_gem_a_x = 0;
     for (std::size_t y = 0; y < out_height; ++y)
     {
@@ -110,28 +122,29 @@ inline tensor convolve_im2col(
                         strides_y * y + yf,
                         strides_x * x,
                         0)));
-                std::memcpy(&a(a_y, a_x % step_size), p, fx * fz * sizeof(float_type));
-                //std::copy(p, p + fx * fz, &a(a_y, a_x % step_size));
+                // https://stackoverflow.com/a/9980859/1866775
+                const auto a_x = a_x_virtual % step_size;
+                std::copy(p, p + fx * fz, &a(a_y, a_x));
                 a_y += static_cast<EigenIndex>(fx * fz);
-                a(a_y, a_x % step_size) = static_cast<float_type>(1);
+                a(a_y, a_x) = static_cast<float_type>(1);
             }
-            ++a_x;
-            if (a_x >= last_gem_a_x + step_size)
+            ++a_x_virtual;
+            if (a_x_virtual >= last_gem_a_x + step_size)
             {
-                MappedColMajorMatrixXfUnaligned out_mat_map(
+                MappedColMajorMatrixXf out_mat_map(
                     res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
                     static_cast<EigenIndex>(filter_mat.mat_.rows()),
-                    static_cast<EigenIndex>(a_x - last_gem_a_x));
+                    static_cast<EigenIndex>(a_x_virtual - last_gem_a_x));
                 out_mat_map.noalias() = filter_mat.mat_ * a;
-                last_gem_a_x = a_x;
+                last_gem_a_x = a_x_virtual;
             }
         }
     }
-    if (a_x != last_gem_a_x)
+    if (a_x_virtual != last_gem_a_x)
     {
-        EigenIndex fields_left = a_x - last_gem_a_x;
-        MappedColMajorMatrixXfUnaligned a_map(a.data(), a.rows(), fields_left);
-        MappedColMajorMatrixXfUnaligned out_mat_map(
+        EigenIndex fields_left = a_x_virtual - last_gem_a_x;
+        MappedColMajorMatrixXf a_map(a.data(), a.rows(), fields_left);
+        MappedColMajorMatrixXf out_mat_map(
             res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
             static_cast<EigenIndex>(filter_mat.mat_.rows()),
             static_cast<EigenIndex>(fields_left));

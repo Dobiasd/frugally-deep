@@ -94,16 +94,6 @@ inline void gemm(
     output.noalias() += input * filter;
 }
 
-inline float_type dot_product(
-    const float_type* xs,
-    const float_type* ys,
-    EigenIndex n)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> vx(const_cast<float_type*>(xs), n);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Unaligned> vy(const_cast<float_type*>(ys), n);
-    return vx * vy;
-}
-
 inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -138,13 +128,6 @@ inline tensor5 convolve_accumulative(
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(f_width),
                     static_cast<EigenIndex>(f_depth));
-                /*
-                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
-                {
-                    const float_type* filter_ptr_inner = &filter_tensor.get_ref(0, y_filt, z_out, 0, 0);
-                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr_inner, input_ptr, static_cast<EigenIndex>(f_width * f_depth));
-                }
-                */
             }
         }
     }

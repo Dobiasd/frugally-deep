@@ -88,36 +88,20 @@ inline void gemm(
     EigenIndex filter_width,
     EigenIndex filter_depth)
 {
-
-/*
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_count, filter_width * filter_depth);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), filter_width * filter_depth, 1);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, filter_count, 1);
-    output.noalias() += filter * input;
-*/
-
-/*
     Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_width * filter_depth, filter_count);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
     output.noalias() += input * filter;
-*/
+}
 
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_width * filter_depth, filter_count);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
-    output.noalias() += input * filter;
-
-
-
-/*
-    //Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic> output = filter * input;
-    Eigen::Matrix<float_type, 1, Eigen::Dynamic> output_temp = input * filter;
-    for (EigenIndex i = 0; i < filter_count; ++i)
-    {
-        *(output_ptr + i) += output_temp(0, i);
-    }
-*/   
+inline float_type dot_product(
+    const float_type* xs,
+    const float_type* ys,
+    EigenIndex n)
+{
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> vx(const_cast<float_type*>(xs), n);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Unaligned> vy(const_cast<float_type*>(ys), n);
+    return vx * vy;
 }
 
 inline tensor5 convolve_accumulative(
@@ -154,6 +138,13 @@ inline tensor5 convolve_accumulative(
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(f_width),
                     static_cast<EigenIndex>(f_depth));
+                /*
+                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+                {
+                    const float_type* filter_ptr_inner = &filter_tensor.get_ref(0, y_filt, z_out, 0, 0);
+                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr_inner, input_ptr, static_cast<EigenIndex>(f_width * f_depth));
+                }
+                */
             }
         }
     }

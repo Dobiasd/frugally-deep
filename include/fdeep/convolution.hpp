@@ -79,61 +79,45 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
 }
 
 
-inline float_type dot_product(
-    // Adding __restrict__ here does not help either
-    const float_type* xs,
-    const float_type* ys,
-    int n_div_8)
-{
-    const auto xs_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(xs, EIGEN_MAX_ALIGN_BYTES));
-    const auto ys_aligned = reinterpret_cast<float_type*>(__builtin_assume_aligned(ys, EIGEN_MAX_ALIGN_BYTES));
-
-    // Naive version
-    /*
-    float result = 0;
-    for (int i = 0; i < 8 * n_div_8; ++i)
-    {
-        result += xs_aligned[i] * ys_aligned[i];
-    }
-    return result;
-    */
-
-    /*
-    // cblas version
-    return cblas_sdot(8*n_div_8, xs_aligned, 1, ys_aligned, 1);
-    */
-
-    // Eigen version
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned32> vx(xs_aligned, static_cast<EigenIndex>(8 * n_div_8));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, 1>, Eigen::Aligned32> vy(ys_aligned, static_cast<EigenIndex>(8 * n_div_8));
-    return vx * vy;
-
-    // AVX-256 version
-    // todo: respect float type, or drop support for double
-    // todo: if this is fast, maybe get rid of Eigen as dependency
-    float result = 0;
-    for (int i = 0; i < n_div_8; ++i)
-    {
-        const auto xs8 = _mm256_load_ps(&(xs_aligned[8*i]));
-        const auto ys8 = _mm256_load_ps(&(ys_aligned[8*i]));
-        const auto res = _mm256_dp_ps(xs8, ys8, 0xff);
-        result += res[0] + res[4];
-    }
-    return result;
-}
 
 inline void gemm(
     const float_type* filter_ptr,
     const float_type* input_ptr,
     float_type* output_ptr,
-    int n_div_8,
-    std::size_t depth)
+    EigenIndex filter_count,
+    EigenIndex filter_width,
+    EigenIndex filter_depth)
 {
-    // Eigen version
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned32> f(const_cast<float_type*>(filter_ptr), static_cast<EigenIndex>(8 * n_div_8));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned32> i(const_cast<float_type*>(input_ptr), static_cast<EigenIndex>(8 * n_div_8), static_cast<EigenIndex>(depth));
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned32> o(const_cast<float_type*>(output_ptr), static_cast<EigenIndex>(depth), 1);
-    o.noalias() = f * i;
+
+/*
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_count, filter_width * filter_depth);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), filter_width * filter_depth, 1);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, filter_count, 1);
+    output.noalias() += filter * input;
+*/
+
+/*
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_width * filter_depth, filter_count);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
+    output.noalias() += input * filter;
+*/
+
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_width * filter_depth, filter_count);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
+    output.noalias() += input * filter;
+
+
+
+/*
+    //Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic> output = filter * input;
+    Eigen::Matrix<float_type, 1, Eigen::Dynamic> output_temp = input * filter;
+    for (EigenIndex i = 0; i < filter_count; ++i)
+    {
+        *(output_ptr + i) += output_temp(0, i);
+    }
+*/   
 }
 
 inline tensor5 convolve_accumulative(
@@ -155,19 +139,8 @@ inline tensor5 convolve_accumulative(
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
 
-    const auto f_memory_depth = filter_mat.filter_shape_.depth_in_memory();
-    const auto in_memory_depth = in.shape().depth_in_memory();
-    assertion(f_memory_depth == in_memory_depth, "invalid alignment");
-
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
-    const int dot_product_dims = static_cast<int>(f_width * f_memory_depth);
-    assertion(dot_product_dims % 8 == 0, "alignment does not match dot-product dimensions");
-    const int dot_product_dims_div_8 = dot_product_dims / 8;
-
-    static_assert(EIGEN_MAX_ALIGN_BYTES % 32 == 0, "invalid alignment");
-
-    //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
-
+    
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const float_type* filter_ptr = &filter_tensor.get_ref(0, y_filt, 0, 0, 0);
@@ -177,7 +150,10 @@ inline tensor5 convolve_accumulative(
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
                 float_type* output_ptr = &output.get_ref(0, 0, y_out, x_out, 0);
-                gemm(filter_ptr, input_ptr, output_ptr, dot_product_dims_div_8, out_depth);
+                gemm(filter_ptr, input_ptr, output_ptr,
+                    static_cast<EigenIndex>(out_depth),
+                    static_cast<EigenIndex>(f_width),
+                    static_cast<EigenIndex>(f_depth));
             }
         }
     }

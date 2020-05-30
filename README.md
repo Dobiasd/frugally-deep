@@ -150,23 +150,23 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.14 s |        0.26 s |
+| `DenseNet121`     |     0.14 s |        0.25 s |
 | `DenseNet169`     |     0.15 s |        0.29 s |
 | `DenseNet201`     |     0.18 s |        0.36 s |
-| `InceptionV3`     |     0.17 s |        0.27 s |
-| `MobileNet`       |     0.05 s |        0.13 s |
-| `MobileNetV2`     |     0.05 s |        0.15 s |
-| `NASNetLarge`     |     1.08 s |        4.17 s |
-| `NASNetMobile`    |     0.12 s |        0.35 s |
+| `InceptionV3`     |     0.17 s |        0.26 s |
+| `MobileNet`       |     0.05 s |        0.15 s |
+| `MobileNetV2`     |     0.05 s |        0.17 s |
+| `NASNetLarge`     |     1.08 s |        3.48 s |
+| `NASNetMobile`    |     0.12 s |        0.30 s |
 | `ResNet101`       |     0.23 s |        0.31 s |
 | `ResNet101V2`     |     0.22 s |        0.28 s |
 | `ResNet152`       |     0.33 s |        0.45 s |
 | `ResNet152V2`     |     0.32 s |        0.41 s |
 | `ResNet50`        |     0.13 s |        0.19 s |
 | `ResNet50V2`      |     0.12 s |        0.16 s |
-| `VGG16`           |     0.40 s |        0.45 s |
-| `VGG19`           |     0.50 s |        0.54 s |
-| `Xception`        |     0.28 s |        1.05 s |
+| `VGG16`           |     0.40 s |        0.49 s |
+| `VGG19`           |     0.50 s |        0.57 s |
+| `Xception`        |     0.28 s |        1.06 s |
 
 Requirements and Installation
 -----------------------------

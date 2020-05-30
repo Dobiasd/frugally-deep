@@ -79,33 +79,10 @@ inline tensor convolve_im2col(
     const auto fy = filter_mat.filter_shape_.height_;
     const auto fx = filter_mat.filter_shape_.width_;
     const auto fz = filter_mat.filter_shape_.depth_;
-    ColMajorMatrixXf a(fy * fx * fz + 1, out_height * out_width);
-    EigenIndex a_x = 0;
-    for (std::size_t y = 0; y < out_height; ++y)
-    {
-        for (std::size_t x = 0; x < out_width; ++x)
-        {
-            EigenIndex a_y = 0;
-            for (std::size_t yf = 0; yf < fy; ++yf)
-            {
-                for (std::size_t xf = 0; xf < fx; ++xf)
-                {
-                    for (std::size_t zf = 0; zf < fz; ++zf)
-                    {
-                        a(a_y++, a_x) = in_padded.get_ignore_rank(tensor_pos(
-                                strides_y * y + yf,
-                                strides_x * x + xf,
-                                zf));
-                    }
-                }
-                a(a_y, a_x) = static_cast<float_type>(1);
-            }
-            ++a_x;
-        }
-    }
+    const EigenIndex a_cols = static_cast<EigenIndex>(out_height * out_width);
 
     const std::size_t val_cnt =
-        static_cast<std::size_t>(filter_mat.mat_.rows() * a.cols());
+        static_cast<std::size_t>(filter_mat.mat_.rows() * a_cols);
     assertion(val_cnt % (out_height * out_width) == 0,
         "Can not calculate out_depth");
 
@@ -116,13 +93,55 @@ inline tensor convolve_im2col(
     shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
     res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
 
-    MappedColMajorMatrixXf out_mat_map(
-        res_vec->data(),
-        static_cast<EigenIndex>(filter_mat.mat_.rows()),
-        static_cast<EigenIndex>(a.cols()));
+    const EigenIndex a_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
+    const EigenIndex a_max_size_bytes = 16 * 1024 * 1024;
+    EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
+    EigenIndex AlignmentStep = 64 / sizeof(float_type);
+    step_size = (step_size / AlignmentStep) * AlignmentStep;
 
-    // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-    out_mat_map.noalias() = filter_mat.mat_ * a;
+    ColMajorMatrixXf a(a_rows, step_size);
+    EigenIndex a_x_virtual = 0;
+    EigenIndex last_gem_a_x = 0;
+    for (std::size_t y = 0; y < out_height; ++y)
+    {
+        for (std::size_t x = 0; x < out_width; ++x)
+        {
+            EigenIndex a_y = 0;
+            for (std::size_t yf = 0; yf < fy; ++yf)
+            {
+                const auto p = &(in_padded.get_ref_ignore_rank(tensor_pos(
+                        strides_y * y + yf,
+                        strides_x * x,
+                        0)));
+                const auto a_x = a_x_virtual % step_size;
+                // https://stackoverflow.com/a/9980859/1866775
+                std::copy(p, p + fx * fz, &a(a_y, a_x));
+                a_y += static_cast<EigenIndex>(fx * fz);
+                a(a_y, a_x) = static_cast<float_type>(1);
+            }
+            ++a_x_virtual;
+            if (a_x_virtual >= last_gem_a_x + step_size)
+            {
+                MappedColMajorMatrixXf out_mat_map(
+                    res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
+                    static_cast<EigenIndex>(filter_mat.mat_.rows()),
+                    static_cast<EigenIndex>(a_x_virtual - last_gem_a_x));
+                out_mat_map.noalias() = filter_mat.mat_ * a;
+                last_gem_a_x = a_x_virtual;
+            }
+        }
+    }
+    if (a_x_virtual != last_gem_a_x)
+    {
+        EigenIndex fields_left = a_x_virtual - last_gem_a_x;
+        MappedColMajorMatrixXf a_map(a.data(), a.rows(), fields_left);
+        MappedColMajorMatrixXf out_mat_map(
+            res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
+            static_cast<EigenIndex>(filter_mat.mat_.rows()),
+            static_cast<EigenIndex>(fields_left));
+        // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
+        out_mat_map.noalias() = filter_mat.mat_ * a_map;
+    }
 
     return tensor(
         tensor_shape_with_changed_rank(

@@ -122,6 +122,20 @@ inline float_type dot_product(
     return result;
 }
 
+inline void gemm(
+    const float_type* filter_ptr,
+    const float_type* input_ptr,
+    float_type* output_ptr,
+    int n_div_8,
+    std::size_t depth)
+{
+    // Eigen version
+    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Aligned32> f(const_cast<float_type*>(filter_ptr), static_cast<EigenIndex>(8 * n_div_8));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned32> i(const_cast<float_type*>(input_ptr), static_cast<EigenIndex>(8 * n_div_8), static_cast<EigenIndex>(depth));
+    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned32> o(const_cast<float_type*>(output_ptr), static_cast<EigenIndex>(depth), 1);
+    o.noalias() = f * i;
+}
+
 inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -154,22 +168,16 @@ inline tensor5 convolve_accumulative(
 
     //std::cout << dot_product_dims << ": " << filter_mat.filter_shape_.volume() << " vs. " << in.shape().volume() << " vs. " << out_depth * out_height * out_width << std::endl;
 
-    // todo allow prefetch for other compilers too
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
+        const float_type* filter_ptr = &filter_tensor.get_ref(0, y_filt, 0, 0, 0);
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
-                __builtin_prefetch(input_ptr, 0, 3);
-                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
-                {
-                    __builtin_prefetch(&output.get_ref(0, 0, y_out, x_out, z_out) + 64, 1, 2);
-                    const float_type* filter_ptr = &filter_tensor.get_ref(0, y_filt, z_out, 0, 0);
-                    __builtin_prefetch(&filter_tensor.get_ref(0, y_filt, z_out, 0, 0) + 64, 0, 0);
-                    output.get_ref(0, 0, y_out, x_out, z_out) += dot_product(filter_ptr, input_ptr, dot_product_dims_div_8);
-                }
+                float_type* output_ptr = &output.get_ref(0, 0, y_out, x_out, 0);
+                gemm(filter_ptr, input_ptr, output_ptr, dot_product_dims_div_8, out_depth);
             }
         }
     }

@@ -18,7 +18,7 @@
 namespace fdeep { namespace internal
 {
 
-// todo: Remove. Just save raw filters on layers.
+// todo: Is this still needed, or do the raw filters already have the right format?
 struct im2col_filter_matrix
 {
     tensor_shape filter_shape_;
@@ -96,6 +96,7 @@ inline tensor convolve_accumulative(
 
     tensor output(tensor_shape(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
     
+    const EigenIndex times = static_cast<EigenIndex>((in.shape().width_ - f_width) / strides_x + 1);
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
@@ -103,8 +104,6 @@ inline tensor convolve_accumulative(
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             const float_type* input_ptr = &in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0));
-            EigenIndex times = static_cast<EigenIndex>((in.shape().width_ - f_width) / strides_x + 1);
-            
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>>
                 input(const_cast<float_type*>(input_ptr),
                     times,
@@ -112,7 +111,6 @@ inline tensor convolve_accumulative(
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             
             float_type* output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0));
-            
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>
                 output_map(output_ptr,
                 times,

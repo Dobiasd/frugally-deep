@@ -89,8 +89,6 @@ inline tensor5 convolve_accumulative(
     const im2col_filter_matrix& filter_mat,
     const tensor5& in)
 {
-    // todo thanks to negative OuterStride, strides_x != 1 probably is possible again
-    assertion(strides_x == 1, "invalid strides_x");
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
 
     const std::vector<filter>& filters = filter_mat.filters_;
@@ -112,10 +110,21 @@ inline tensor5 convolve_accumulative(
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, 0, 0);
-            EigenIndex times = static_cast<EigenIndex>(in.shape().width_ + 1 - f_width);
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>> input(const_cast<float_type*>(input_ptr), times, static_cast<EigenIndex>(f_width * f_depth), Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth)));
+            EigenIndex times = static_cast<EigenIndex>((in.shape().width_ - f_width) / strides_x + 1);
+            
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>>
+                input(const_cast<float_type*>(input_ptr),
+                    times,
+                    static_cast<EigenIndex>(f_width * f_depth),
+                    Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
+            
             float_type* output_ptr = &output.get_ref(0, 0, y_out, 0, 0);
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned> output_map(output_ptr, static_cast<EigenIndex>(out_width), static_cast<EigenIndex>(out_depth));
+            
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>
+                output_map(output_ptr,
+                times,
+                static_cast<EigenIndex>(out_depth));
+            
             output_map.noalias() += input * filter;
         }
     }

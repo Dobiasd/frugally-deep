@@ -18,7 +18,6 @@
 namespace fdeep { namespace internal
 {
 
-// todo: Is this still needed, or do the raw filters already have the right format?
 struct im2col_filter_matrix
 {
     tensor_shape filter_shape_;
@@ -93,27 +92,30 @@ inline tensor convolve_accumulative(
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
     assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
+    assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
 
-    tensor output(tensor_shape(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
-    
-    const EigenIndex times = static_cast<EigenIndex>((in.shape().width_ - f_width) / strides_x + 1);
+    tensor output(tensor_shape_with_changed_rank(
+            tensor_shape(out_height, out_width, out_depth),
+            in.shape().rank()),
+        static_cast<float_type>(0));
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
-        // todo: can we get rid of this loop too?
+        // todo: Would it help performance to get rid of that loop?
+        //       Rear VGG19 layers only have an input height of 14,
+        //       but are still faster with classical im2col,
+        //       so probably it would not help. But would need to be tested.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const float_type* input_ptr = &in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0));
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>>
-                input(const_cast<float_type*>(input_ptr),
-                    times,
+                input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
+                    static_cast<EigenIndex>(out_width),
                     static_cast<EigenIndex>(f_width * f_depth),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             
-            float_type* output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0));
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>
-                output_map(output_ptr,
-                times,
+                output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
+                static_cast<EigenIndex>(out_width),
                 static_cast<EigenIndex>(out_depth));
             
             output_map.noalias() += input * filter;
@@ -133,11 +135,7 @@ inline tensor convolve_accumulative(
         }
     }
 
-    return tensor(
-        tensor_shape_with_changed_rank(
-            tensor_shape(out_height, out_width, out_depth),
-            in.shape().rank()),
-        output.as_vector());
+    return output;
 }
 
 enum class padding { valid, same, causal };

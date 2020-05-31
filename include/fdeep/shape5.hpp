@@ -45,12 +45,6 @@ public:
         return size_dim_5_ * size_dim_4_ * height_ * width_ * depth_;
     }
 
-    static std::size_t round_up(std::size_t x, std::size_t multiple)
-    {
-        assert(multiple);
-        return ((x + multiple - 1) / multiple) * multiple;
-    }
-
     void assert_is_shape_2() const
     {
         assertion(

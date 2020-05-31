@@ -89,6 +89,7 @@ inline tensor5 convolve_accumulative(
     const im2col_filter_matrix& filter_mat,
     const tensor5& in)
 {
+    // todo thanks to negative OuterStride, strides_x != 1 probably is possible again
     assertion(strides_x == 1, "invalid strides_x");
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
 
@@ -107,6 +108,7 @@ inline tensor5 convolve_accumulative(
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
+        // todo: can we get rid of this loop too?
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, 0, 0);

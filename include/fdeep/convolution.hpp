@@ -47,8 +47,8 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
     std::vector<ColMajorMatrixXf> filter_mats(
         shape.height_,
         ColMajorMatrixXf::Zero(
-            static_cast<EigenIndex>(shape.width_ * shape.depth_),
-            static_cast<EigenIndex>(filters.size())));
+            static_cast<EigenIndex>(filters.size()),
+            static_cast<EigenIndex>(shape.width_ * shape.depth_)));
 
     for (std::size_t y = 0; y < shape.height_; ++y)
     {
@@ -59,8 +59,8 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
                 for (std::size_t z = 0; z < shape.depth_; ++z)
                 {
                     filter_mats[y](
-                        static_cast<EigenIndex>(x * shape.depth_ + z),
-                        static_cast<EigenIndex>(n)
+                        static_cast<EigenIndex>(n),
+                        static_cast<EigenIndex>(x * shape.depth_ + z)
                     ) = filters[n].get(tensor_pos(y, x, z));
                 }
             }
@@ -107,18 +107,18 @@ inline tensor convolve_accumulative(
         //       so probably it would not help. But would need to be tested.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>>
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
+                static_cast<EigenIndex>(f_width * f_depth),
                     static_cast<EigenIndex>(out_width),
-                    static_cast<EigenIndex>(f_width * f_depth),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned>
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
-                static_cast<EigenIndex>(out_width),
-                static_cast<EigenIndex>(out_depth));
+                static_cast<EigenIndex>(out_depth),
+                static_cast<EigenIndex>(out_width));
             
-            output_map.noalias() += input * filter;
+            output_map.noalias() += filter * input;
         }
     }
 

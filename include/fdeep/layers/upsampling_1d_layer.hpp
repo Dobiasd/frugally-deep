@@ -46,7 +46,7 @@ protected:
             for (std::size_t z = 0; z < out_vol.shape().depth_; ++z)
             {
                 const std::size_t x_in = x / size_;
-                out_vol.set(tensor_pos(x, z), input.get(tensor_pos(x_in, z)));
+                out_vol.set_ignore_rank(tensor_pos(x, z), input.get_ignore_rank(tensor_pos(x_in, z)));
             }
         }
         return {out_vol};

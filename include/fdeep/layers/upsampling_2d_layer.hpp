@@ -65,7 +65,7 @@ protected:
                 for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
-                    out_vol.set(tensor_pos(y, x, z), in_vol.get(tensor_pos(y_in, x_in, z)));
+                    out_vol.set_ignore_rank(tensor_pos(y, x, z), in_vol.get_ignore_rank(tensor_pos(y_in, x_in, z)));
                 }
             }
         }
@@ -82,10 +82,10 @@ protected:
         std::size_t y_bottom = static_cast<std::size_t>(fplus::min(t.height() - 1, y_top + 1));
         std::size_t x_left = static_cast<std::size_t>(fplus::max(0, fplus::floor(x)));
         std::size_t x_right = static_cast<std::size_t>(fplus::min(t.width() - 1, x_left + 1));
-        const auto val_top_left = t.get(tensor_pos(y_top, x_left, z));
-        const auto val_top_right = t.get(tensor_pos(y_top, x_right, z));
-        const auto val_bottom_left = t.get(tensor_pos(y_bottom, x_left, z));
-        const auto val_bottom_right = t.get(tensor_pos(y_bottom, x_right, z));
+        const auto val_top_left = t.get_ignore_rank(tensor_pos(y_top, x_left, z));
+        const auto val_top_right = t.get_ignore_rank(tensor_pos(y_top, x_right, z));
+        const auto val_bottom_left = t.get_ignore_rank(tensor_pos(y_bottom, x_left, z));
+        const auto val_bottom_right = t.get_ignore_rank(tensor_pos(y_bottom, x_right, z));
         const auto y_factor_top = static_cast<float_type>(y_bottom) - y;
         const auto y_factor_bottom = 1.0 - y_factor_top;
         const auto x_factor_left = static_cast<float_type>(x_right) - x;
@@ -110,7 +110,7 @@ protected:
                 for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     const auto x_in = (static_cast<float_type>(x) + 0.5f) / static_cast<float_type>(scale_factor_.width_) - 0.5f;
-                    out_vol.set(tensor_pos(y, x, z),
+                    out_vol.set_ignore_rank(tensor_pos(y, x, z),
                         get_interpolated_bilinearly(in_vol, y_in, x_in, z));
                 }
             }

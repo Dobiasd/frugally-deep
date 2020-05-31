@@ -40,11 +40,11 @@ protected:
             for (std::size_t x = 0; x < step_count; ++x)
             {
                 if (channels_first_)
-                    val += in.get(tensor_pos(z, x));
+                    val += in.get_ignore_rank(tensor_pos(z, x));
                 else
-                    val += in.get(tensor_pos(x, z));
+                    val += in.get_ignore_rank(tensor_pos(x, z));
             }
-            out.set(tensor_pos(z), val / static_cast<float_type>(step_count));
+            out.set_ignore_rank(tensor_pos(z), val / static_cast<float_type>(step_count));
         }
         return out;
     }

@@ -112,10 +112,9 @@ inline tensor5 convolve_accumulative(
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
                 float_type* output_ptr = &output.get_ref(0, 0, y_out, x_out, 0);
-
-                    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, static_cast<EigenIndex>(f_width * f_depth));
-                    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output_map(output_ptr, 1, static_cast<EigenIndex>(out_depth));
-                    output_map.noalias() += input * filter;
+                Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, static_cast<EigenIndex>(f_width * f_depth));
+                Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output_map(output_ptr, 1, static_cast<EigenIndex>(out_depth));
+                output_map.noalias() += input * filter;
             }
         }
     }

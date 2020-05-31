@@ -9,6 +9,9 @@
 int main()
 {
     std::vector<std::string> model_paths = {
+        "test_model_sequential.json",
+        "test_model_exhaustive.json",
+
         "densenet121.json",
         "densenet169.json",
         "densenet201.json",

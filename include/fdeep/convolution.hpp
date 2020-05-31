@@ -81,15 +81,6 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-static inline void prefetch_range(const void *addr, std::size_t len, int rw, int locality)
-{
-    const char *start = static_cast<const char*>(addr);
-    for (const char *cp = start; cp < start + len; cp += 64)
-    {
-        __builtin_prefetch(static_cast<const void*>(cp), rw, locality);
-    }
-}
-
 inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -116,20 +107,14 @@ inline tensor5 convolve_accumulative(
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
-        prefetch_range(filter.data(), static_cast<std::size_t>(filter.rows() * filter.cols()) * sizeof(float_type), 0, 3);
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            prefetch_range(&in.get_ref(0, 0, y + y_filt, 0, 0), in.shape().width_ * f_depth, 0, 3);
-            prefetch_range(&output.get_ref(0, 0, y_out, 0, 0), output.shape().width_ * f_depth, 1, 3);
-            for (std::size_t x = 0; x < f_width; ++x)
-            {
-                const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
-                EigenIndex times = static_cast<EigenIndex>((in.shape().width_ - x) / f_width);
-                Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), times, static_cast<EigenIndex>(f_width * f_depth));
-                float_type* output_ptr = &output.get_ref(0, 0, y_out, x, 0);
-                Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>> output_map(output_ptr, times, static_cast<EigenIndex>(out_depth), Eigen::OuterStride<>(static_cast<EigenIndex>(f_width * out_depth)));
-                output_map.noalias() += input * filter;
-            }
+            const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, 0, 0);
+            EigenIndex times = static_cast<EigenIndex>(in.shape().width_ + 1 - f_width);
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<>> input(const_cast<float_type*>(input_ptr), times, static_cast<EigenIndex>(f_width * f_depth), Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth)));
+            float_type* output_ptr = &output.get_ref(0, 0, y_out, 0, 0);
+            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned> output_map(output_ptr, static_cast<EigenIndex>(out_width), static_cast<EigenIndex>(out_depth));
+            output_map.noalias() += input * filter;
         }
     }
 

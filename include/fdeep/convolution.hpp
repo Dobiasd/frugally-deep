@@ -105,6 +105,7 @@ inline tensor convolve_accumulative(
         //       Rear VGG19 layers only have an input height of 14,
         //       but are still faster with classical im2col,
         //       so probably it would not help. But would need to be tested.
+        //       Seems VGG19 would go down from 0.69 s to 0.57 s.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>

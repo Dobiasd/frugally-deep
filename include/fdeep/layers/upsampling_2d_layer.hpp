@@ -32,10 +32,9 @@ public:
         );
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
-        assertion(inputs.size() == 1, "invalid number of inputs tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         if (interpolation_ == "nearest")
         {
             return {upsampling2d_nearest(input)};
@@ -52,9 +51,9 @@ protected:
     }
     shape2 scale_factor_;
     std::string interpolation_;
-    tensor5 upsampling2d_nearest(const tensor5& in_vol) const
+    tensor upsampling2d_nearest(const tensor& in_vol) const
     {
-        tensor5 out_vol(shape5(1, 1,
+        tensor out_vol(tensor_shape(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
@@ -66,14 +65,13 @@ protected:
                 for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     std::size_t x_in = x / scale_factor_.width_;
-                    out_vol.set(0, 0, y, x, z, in_vol.get(0, 0, y_in, x_in, z));
+                    out_vol.set(tensor_pos(y, x, z), in_vol.get(tensor_pos(y_in, x_in, z)));
                 }
             }
         }
         return out_vol;
     }
-    float_type get_interpolated_bilinearly(const tensor5& t,
-        std::size_t pos_dim_5, std::size_t pos_dim_4,
+    float_type get_interpolated_bilinearly(const tensor& t,
         float_type y, float_type x, std::size_t z) const
     {
         y = fplus::max(0, y);
@@ -84,10 +82,10 @@ protected:
         std::size_t y_bottom = static_cast<std::size_t>(fplus::min(t.height() - 1, y_top + 1));
         std::size_t x_left = static_cast<std::size_t>(fplus::max(0, fplus::floor(x)));
         std::size_t x_right = static_cast<std::size_t>(fplus::min(t.width() - 1, x_left + 1));
-        const auto val_top_left = t.get(pos_dim_5, pos_dim_4, y_top, x_left, z);
-        const auto val_top_right = t.get(pos_dim_5, pos_dim_4, y_top, x_right, z);
-        const auto val_bottom_left = t.get(pos_dim_5, pos_dim_4, y_bottom, x_left, z);
-        const auto val_bottom_right = t.get(pos_dim_5, pos_dim_4, y_bottom, x_right, z);
+        const auto val_top_left = t.get(tensor_pos(y_top, x_left, z));
+        const auto val_top_right = t.get(tensor_pos(y_top, x_right, z));
+        const auto val_bottom_left = t.get(tensor_pos(y_bottom, x_left, z));
+        const auto val_bottom_right = t.get(tensor_pos(y_bottom, x_right, z));
         const auto y_factor_top = static_cast<float_type>(y_bottom) - y;
         const auto y_factor_bottom = 1.0 - y_factor_top;
         const auto x_factor_left = static_cast<float_type>(x_right) - x;
@@ -98,9 +96,9 @@ protected:
             y_factor_bottom * x_factor_left * val_bottom_left +
             y_factor_bottom * x_factor_right * val_bottom_right);
     }
-    tensor5 upsampling2d_bilinear(const tensor5& in_vol) const
+    tensor upsampling2d_bilinear(const tensor& in_vol) const
     {
-        tensor5 out_vol(shape5(1, 1,
+        tensor out_vol(tensor_shape(
             in_vol.shape().height_ * scale_factor_.height_,
             in_vol.shape().width_ * scale_factor_.width_,
             in_vol.shape().depth_), 0);
@@ -112,8 +110,8 @@ protected:
                 for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
                 {
                     const auto x_in = (static_cast<float_type>(x) + 0.5f) / static_cast<float_type>(scale_factor_.width_) - 0.5f;
-                    out_vol.set(0, 0, y, x, z,
-                        get_interpolated_bilinearly(in_vol, 0, 0, y_in, x_in, z));
+                    out_vol.set(tensor_pos(y, x, z),
+                        get_interpolated_bilinearly(in_vol, y_in, x_in, z));
                 }
             }
         }

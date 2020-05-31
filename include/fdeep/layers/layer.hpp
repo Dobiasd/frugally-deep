@@ -8,7 +8,7 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/tensor5.hpp"
+#include "fdeep/tensor.hpp"
 
 #include "fdeep/node.hpp"
 
@@ -26,8 +26,8 @@ typedef std::vector<layer_ptr> layer_ptrs;
 
 class activation_layer;
 typedef std::shared_ptr<activation_layer> activation_layer_ptr;
-tensor5s apply_activation_layer(const activation_layer_ptr& ptr,
-    const tensor5s& input);
+tensors apply_activation_layer(const activation_layer_ptr& ptr,
+    const tensors& input);
 
 class layer
 {
@@ -50,7 +50,7 @@ public:
         nodes_ = layer_nodes;
     }
 
-    virtual tensor5s apply(const tensor5s& input) const final
+    virtual tensors apply(const tensors& input) const final
     {
         const auto result = apply_impl(input);
         if (activation_ == nullptr)
@@ -59,7 +59,7 @@ public:
             return apply_activation_layer(activation_, result);
     }
 
-    virtual tensor5 get_output(const layer_ptrs& layers,
+    virtual tensor get_output(const layer_ptrs& layers,
         output_dict& output_cache,
         std::size_t node_idx, std::size_t tensor_idx) const
     {
@@ -96,11 +96,11 @@ public:
     nodes nodes_;
 
 protected:
-    virtual tensor5s apply_impl(const tensor5s& input) const = 0;
+    virtual tensors apply_impl(const tensors& input) const = 0;
     activation_layer_ptr activation_;
 };
 
-inline tensor5 get_layer_output(const layer_ptrs& layers,
+inline tensor get_layer_output(const layer_ptrs& layers,
     output_dict& output_cache,
     const layer_ptr& layer,
     std::size_t node_idx, std::size_t tensor_idx)
@@ -108,7 +108,7 @@ inline tensor5 get_layer_output(const layer_ptrs& layers,
     return layer->get_output(layers, output_cache, node_idx, tensor_idx);
 }
 
-inline tensor5s apply_layer(const layer& layer, const tensor5s& inputs)
+inline tensors apply_layer(const layer& layer, const tensors& inputs)
 {
     return layer.apply(inputs);
 }

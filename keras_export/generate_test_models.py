@@ -18,7 +18,7 @@ from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
-from tensorflow.keras.layers import Permute
+from tensorflow.keras.layers import Permute, Reshape
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -73,10 +73,17 @@ def generate_integer_input_data(data_size, low, highs, input_shapes):
             for high, input_shape in zip(highs, input_shapes)]
 
 
+def as_list(value_or_values):
+    """Leave lists untouched, convert non-list types to a singleton list"""
+    if isinstance(value_or_values, list):
+        return value_or_values
+    return [value_or_values]
+
+
 def generate_output_data(data_size, outputs):
     """Random output data for training."""
     return [generate_random_data(data_size, output.shape[1:])
-            for output in outputs]
+            for output in as_list(outputs)]
 
 
 def get_test_model_exhaustive():
@@ -113,6 +120,8 @@ def get_test_model_exhaustive():
         (1,),
         (1,),
         (2, 3),
+        (9, 16, 1),
+        (1, 9, 16)
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -143,8 +152,12 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
@@ -152,7 +165,61 @@ def get_test_model_exhaustive():
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
 
+    outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
+    outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))
+    outputs.append(Permute((3, 4, 1, 2))(inputs[2]))
+    outputs.append(Permute((2, 1, 3))(inputs[4]))
+    outputs.append(Permute((2, 1))(inputs[6]))
+    outputs.append(Permute((1,))(inputs[8]))
+
+    outputs.append(Permute((3, 1, 2))(inputs[31]))
+    outputs.append(Permute((3, 1, 2))(inputs[32]))
+    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[31])))
+    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[32])))
+
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization(axis=1)(inputs[0]))
+    outputs.append(BatchNormalization(axis=2)(inputs[0]))
+    outputs.append(BatchNormalization(axis=3)(inputs[0]))
+    outputs.append(BatchNormalization(axis=4)(inputs[0]))
+    outputs.append(BatchNormalization(axis=5)(inputs[0]))
+    outputs.append(BatchNormalization()(inputs[2]))
+    outputs.append(BatchNormalization(axis=1)(inputs[2]))
+    outputs.append(BatchNormalization(axis=2)(inputs[2]))
+    outputs.append(BatchNormalization(axis=3)(inputs[2]))
+    outputs.append(BatchNormalization(axis=4)(inputs[2]))
     outputs.append(BatchNormalization()(inputs[4]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
+    outputs.append(BatchNormalization(axis=2)(inputs[4]))
+    outputs.append(BatchNormalization(axis=3)(inputs[4]))
+    outputs.append(BatchNormalization()(inputs[6]))
+    outputs.append(BatchNormalization(axis=1)(inputs[6]))
+    outputs.append(BatchNormalization(axis=2)(inputs[6]))
+    outputs.append(BatchNormalization()(inputs[8]))
+    outputs.append(BatchNormalization(axis=1)(inputs[8]))
+    outputs.append(BatchNormalization()(inputs[27]))
+    outputs.append(BatchNormalization(axis=1)(inputs[27]))
+    outputs.append(BatchNormalization()(inputs[14]))
+    outputs.append(BatchNormalization(axis=1)(inputs[14]))
+    outputs.append(BatchNormalization(axis=2)(inputs[14]))
+    outputs.append(BatchNormalization()(inputs[16]))
+    # todo: check if TensorFlow 2.1 supports this
+    #outputs.append(BatchNormalization(axis=1)(inputs[16])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
+    outputs.append(BatchNormalization(axis=2)(inputs[16]))
+    outputs.append(BatchNormalization(axis=3)(inputs[16]))
+    outputs.append(BatchNormalization()(inputs[18]))
+    outputs.append(BatchNormalization(axis=1)(inputs[18]))
+    outputs.append(BatchNormalization(axis=2)(inputs[18]))
+    outputs.append(BatchNormalization(axis=3)(inputs[18]))
+    outputs.append(BatchNormalization(axis=4)(inputs[18]))
+    outputs.append(BatchNormalization()(inputs[20]))
+    outputs.append(BatchNormalization(axis=1)(inputs[20]))
+    outputs.append(BatchNormalization(axis=2)(inputs[20]))
+    outputs.append(BatchNormalization(axis=3)(inputs[20]))
+    outputs.append(BatchNormalization(axis=4)(inputs[20]))
+    outputs.append(BatchNormalization(axis=5)(inputs[20]))
+
     outputs.append(Dropout(0.5)(inputs[4]))
 
     outputs.append(ZeroPadding2D(2)(inputs[4]))
@@ -167,6 +234,18 @@ def get_test_model_exhaustive():
     outputs.append(Dense(4, use_bias=False)(inputs[16]))
     outputs.append(Dense(4, use_bias=False, activation='tanh')(inputs[18]))
     outputs.append(Dense(4, use_bias=False)(inputs[20]))
+
+    outputs.append(Reshape(((2 * 3 * 4 * 5 * 6),))(inputs[0]))
+    outputs.append(Reshape((2, 3 * 4 * 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4 * 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4, 5 * 6))(inputs[0]))
+    outputs.append(Reshape((2, 3, 4, 5, 6))(inputs[0]))
+
+    outputs.append(Reshape((16,))(inputs[8]))
+    outputs.append(Reshape((2, 8))(inputs[8]))
+    outputs.append(Reshape((2, 2, 4))(inputs[8]))
+    outputs.append(Reshape((2, 2, 2, 2))(inputs[8]))
+    outputs.append(Reshape((2, 2, 1, 2, 2))(inputs[8]))
 
     outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
@@ -193,6 +272,7 @@ def get_test_model_exhaustive():
         outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))
 
     outputs.append(UpSampling1D(size=2)(inputs[6]))
+    # outputs.append(UpSampling1D(size=2)(inputs[8])) # ValueError: Input 0 of layer up_sampling1d_1 is incompatible with the layer: expected ndim=3, found ndim=2. Full shape received: [None, 16]
 
     outputs.append(Multiply()([inputs[10], inputs[11]]))
     outputs.append(Multiply()([inputs[11], inputs[10]]))
@@ -263,6 +343,7 @@ def get_test_model_exhaustive():
         Activation('sigmoid')(inputs[25]),
         Activation('softplus')(inputs[25]),
         Activation('softmax')(inputs[25]),
+        Activation('softmax')(inputs[25]),
         Activation('relu')(inputs[25]),
         LeakyReLU()(inputs[25]),
         ELU()(inputs[25]),
@@ -280,7 +361,7 @@ def get_test_model_exhaustive():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -319,7 +400,7 @@ def get_test_model_embedding():
     model.compile(loss='mse', optimizer='adam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -388,7 +469,7 @@ def get_test_model_recurrent():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -471,7 +552,7 @@ def get_test_model_lstm():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -563,7 +644,7 @@ def get_test_model_gru_stateful_optional(stateful):
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -601,7 +682,7 @@ def get_test_model_variable():
     model.compile(loss='mse', optimizer='nadam')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -634,7 +715,7 @@ def get_test_model_sequential():
     model.compile(loss='categorical_crossentropy', optimizer='sgd')
 
     # fit to dummy data
-    training_data_size = 1
+    training_data_size = 2
     data_in = [np.random.random(size=(training_data_size, 32, 32, 3))]
     data_out = [np.random.random(size=(training_data_size, 10))]
     model.fit(data_in, data_out, epochs=10)

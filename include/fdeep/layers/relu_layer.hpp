@@ -22,13 +22,13 @@ public:
     {
     }
 protected:
-    tensor5 transform_input(const tensor5& in_vol) const override
+    tensor transform_input(const tensor& in_vol) const override
     {
         auto activation_function = [&](float_type x) -> float_type
         {
             return std::min<float_type>(std::max<float_type>(x, 0), max_value_);
         };
-        return transform_tensor5(activation_function, in_vol);
+        return transform_tensor(activation_function, in_vol);
     }
     float_type max_value_;
 };

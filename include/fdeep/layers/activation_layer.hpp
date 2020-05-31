@@ -28,9 +28,9 @@ public:
         layer(name)
     {
     }
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
-        const auto f = [this](const tensor5& t) -> tensor5
+        const auto f = [this](const tensor& t) -> tensor
         {
             return transform_input(t);
         };
@@ -38,12 +38,12 @@ public:
     }
 
 protected:
-    virtual tensor5 transform_input(const tensor5& input) const = 0;
+    virtual tensor transform_input(const tensor& input) const = 0;
 };
 
-inline tensor5s apply_activation_layer(
+inline tensors apply_activation_layer(
     const activation_layer_ptr& ptr,
-    const tensor5s& input)
+    const tensors& input)
 {
     return ptr == nullptr ? input : ptr->apply(input);
 }

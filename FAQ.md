@@ -10,13 +10,23 @@ In case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.
 
-Why does `fdeep::model::predict` take and return multiple `fdeep::tensor5`s and not just one tensor?
+Why do I get some error when loading my `.json` file in C++?
+------------------------------------------------------------
+
+Most likely it's one of the following two reasons:
+
+- The TensorFlow version used is not the one listed in the [requirements](README.md#requirements-and-installation).
+- The conversion from `.h5` to `.json` (using `convert_model.py`) was not done with the same version as used when loading the model in C++.
+
+In case you've made sure none of the above is the cause, please open [an issue](https://github.com/Dobiasd/frugally-deep/issues) with a minimal example to reproduce the problem.
+
+Why does `fdeep::model::predict` take and return multiple `fdeep::tensor`s and not just one tensor?
 ----------------------------------------------------------------------------------------------------
 
 Only Keras models created with the [sequential API](https://keras.io/getting-started/sequential-model-guide/) must have only one input tensor and output tensor.
 Models make with the [functional API](https://keras.io/getting-started/functional-api-guide/) can have multiple inputs and outputs.
 
-This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor5` but an `std::vector` of them (`fdeep::tensor5s`).
+This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor` but an `std::vector` of them (`fdeep::tensors`).
 
 Example:
 
@@ -48,14 +58,14 @@ int main()
 {
     const auto model = fdeep::load_model("multi_input_and_output_model.json");
     const auto result = model.predict({
-        fdeep::tensor5(fdeep::shape5(1, 1, 240, 320, 3), 42),
-        fdeep::tensor5(fdeep::shape5(1, 1, 240, 320, 3), 43)
+        fdeep::tensor(fdeep::tensor_shape(240, 320, 3), 42),
+        fdeep::tensor(fdeep::tensor_shape(240, 320, 3), 43)
         });
-    std::cout << fdeep::show_tensor5s(result) << std::endl;
+    std::cout << fdeep::show_tensors(result) << std::endl;
 }
 ```
 
-Keep in mind, giving multiple `fdeep::tensor5`s to `fdeep::model::predict` this has nothing to do with batch processing, because it is not supported. However you can run multiple single predictions im parallel (see question "Does frugally-deep support multiple CPUs?"), if you want do to that.
+Keep in mind, giving multiple `fdeep::tensor`s to `fdeep::model::predict` this has nothing to do with batch processing, because it is not supported. However you can run multiple single predictions im parallel (see question "Does frugally-deep support multiple CPUs?"), if you want do to that.
 
 Does frugally-deep support multiple CPUs?
 -----------------------------------------
@@ -84,7 +94,7 @@ so you don't need to manually find the position in the output tensor with the hi
 
 In case you are doing regression resulting in one single value, you can use
 `fdeep::model::predict_single_output`,
-which will only return one single floating-point value instead of `tensor5`s.
+which will only return one single floating-point value instead of `tensor`s.
 
 Which data format is used internally?
 -------------------------------------
@@ -120,17 +130,17 @@ print(result.shape)  # result[0].shape in case of multiple output tensors
 ```
 
 ```cpp
-const fdeep::tensor5 input = ...
-std::cout << fdeep::show_tensor5(input);
-std::cout << fdeep::show_shape5(input.shape());
+const fdeep::tensor input = ...
+std::cout << fdeep::show_tensor(input);
+std::cout << fdeep::show_tensor_shape(input.shape());
 const auto result = model.predict({input});
-std::cout << fdeep::show_shape5(result.front().shape());
-std::cout << fdeep::show_tensor5s(result);
+std::cout << fdeep::show_tensor_shape(result.front().shape());
+std::cout << fdeep::show_tensors(result);
 ```
 
 And then check if they actually are identical.
 
-In case you are creating your `fdeep::tensor5 input` using `fdeep::tensor5_from_bytes`,
+In case you are creating your `fdeep::tensor input` using `fdeep::tensor_from_bytes`,
 this way you will also implicitly check if you are using the correct values for `high` and `low` in the call to it.
 
 What to do when loading my model with frugally-deep throws an `std::runtime_error` with `test failed`?
@@ -154,6 +164,15 @@ before your first include of `fdeep.hpp`:
 #include <fdeep/fdeep.hpp>
 ```
 
+How to silence the logging output of `fdeep::model::load`?
+----------------------------------------------------------
+
+You can use `fdeep::dev_null_logger` for this:
+
+```cpp
+const auto model = fdeep::load_model("model.json", true, fdeep::dev_null_logger);
+```
+
 Why does `fdeep::model` not have a default constructor?
 -------------------------------------------------------
 
@@ -174,7 +193,7 @@ How to use images loaded with [CImg](http://cimg.eu/) as input for a model?
 The following example code shows for how to:
 
 * load an image using CImg
-* convert it to a `fdeep::tensor5`
+* convert it to a `fdeep::tensor`
 * use it as input for a forward pass on an image-classification model
 * print the class number
 
@@ -182,7 +201,7 @@ The following example code shows for how to:
 #include <fdeep/fdeep.hpp>
 #include <CImg.h>
 
-fdeep::tensor5 cimg_to_tensor5(const cimg_library::CImg<unsigned char>& image,
+fdeep::tensor cimg_to_tensor(const cimg_library::CImg<unsigned char>& image,
     fdeep::float_type low = 0.0f, fdeep::float_type high = 1.0f)
 {
     const int width = image.width();
@@ -207,7 +226,7 @@ fdeep::tensor5 cimg_to_tensor5(const cimg_library::CImg<unsigned char>& image,
         }
     }
 
-    return fdeep::tensor5_from_bytes(pixels.data(), height, width, channels,
+    return fdeep::tensor_from_bytes(pixels.data(), height, width, channels,
         low, high);
 }
 
@@ -216,7 +235,7 @@ int main()
     const cimg_library::CImg<unsigned char> image("image.jpg");
     const auto model = fdeep::load_model("model.json");
     // Use the correct scaling, i.e., low and high.
-    const auto input = cimg_to_tensor5(image, 0.0f, 1.0f);
+    const auto input = cimg_to_tensor(image, 0.0f, 1.0f);
     const auto result = model.predict_class({input});
     std::cout << result << std::endl;
 }
@@ -228,7 +247,7 @@ How to use images loaded with [OpenCV](https://opencv.org/) as input for a model
 The following example code shows for how to:
 
 * load an image using OpenCV
-* convert it to a `fdeep::tensor5`
+* convert it to a `fdeep::tensor`
 * use it as input for a forward pass on an image-classification model
 * print the class number
 
@@ -243,7 +262,7 @@ int main()
     assert(image.isContinuous());
     const auto model = fdeep::load_model("model.json");
     // Use the correct scaling, i.e., low and high.
-    const auto input = fdeep::tensor5_from_bytes(image.ptr(),
+    const auto input = fdeep::tensor_from_bytes(image.ptr(),
         static_cast<std::size_t>(image.rows),
         static_cast<std::size_t>(image.cols),
         static_cast<std::size_t>(image.channels()),
@@ -253,13 +272,13 @@ int main()
 }
 ```
 
-How to convert an `fdeep::tensor5` to an (OpenCV) image?
+How to convert an `fdeep::tensor` to an (OpenCV) image?
 --------------------------------------------------------
 
 Example code for how to:
 
-* convert an OpenCV image to an `fdeep::tensor5`
-* convert an `fdeep::tensor5` to an OpenCV image
+* convert an OpenCV image to an `fdeep::tensor`
+* convert an `fdeep::tensor` to an OpenCV image
 
 ```cpp
 #include <fdeep/fdeep.hpp>
@@ -269,19 +288,19 @@ int main()
 {
     const cv::Mat image1 = cv::imread("image.jpg");
 
-    // convert cv::Mat to fdeep::tensor5 (image1 to tensor)
-    const fdeep::tensor5 tensor =
-        fdeep::tensor5_from_bytes(image1.ptr(),
+    // convert cv::Mat to fdeep::tensor (image1 to tensor)
+    const fdeep::tensor tensor =
+        fdeep::tensor_from_bytes(image1.ptr(),
             image1.rows, image1.cols, image1.channels());
 
     // choose the correct pixel type for cv::Mat (gray or RGB/BGR)
     assert(tensor.shape().depth_ == 1 || tensor.shape().depth_ == 3);
     const int mat_type = tensor.shape().depth_ == 1 ? CV_8UC1 : CV_8UC3;
 
-    // convert fdeep::tensor5 to cv::Mat (tensor to image2)
+    // convert fdeep::tensor to cv::Mat (tensor to image2)
     const cv::Mat image2(
         cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type);
-    fdeep::tensor5_into_bytes(tensor,
+    fdeep::tensor_into_bytes(tensor,
         image2.data, image2.rows * image2.cols * image2.channels());
 
     // show both images for visual verification
@@ -291,10 +310,10 @@ int main()
 }
 ```
 
-How to convert an `Eigen::Matrix` to `fdeep::tensor5`?
+How to convert an `Eigen::Matrix` to `fdeep::tensor`?
 ------------------------------------------------------
 
-You can copy the values from `Eigen::Matrix` to `fdeep::tensor5`:
+You can copy the values from `Eigen::Matrix` to `fdeep::tensor`:
 
 ```cpp
 #include <iostream>
@@ -315,130 +334,71 @@ int main()
     mat(1, 1) = 5.0f;
     mat(4, 2) = 6.0f;
 
-    // create fdeep::tensor5 with its own memory
-    const int tensor5_channels = 1;
-    const int tensor5_rows = rows;
-    const int tensor5_cols = cols;
-    fdeep::shape5 tensor5_shape(1, 1, tensor5_rows, tensor5_cols, tensor5_channels);
-    fdeep::tensor5 t(tensor5_shape, 0.0f);
+    // create fdeep::tensor with its own memory
+    const int tensor_channels = 1;
+    const int tensor_rows = rows;
+    const int tensor_cols = cols;
+    fdeep::tensor_shape tensor_shape(tensor_rows, tensor_cols, tensor_channels);
+    fdeep::tensor t(tensor_shape, 0.0f);
 
-    // copy the values into tensor5
+    // copy the values into tensor
 
-    for (int y = 0; y < tensor5_rows; ++y)
+    for (int y = 0; y < tensor_rows; ++y)
     {
-        for (int x = 0; x < tensor5_cols; ++x)
+        for (int x = 0; x < tensor_cols; ++x)
         {
-           for (int c = 0; c < tensor5_channels; ++c)
+           for (int c = 0; c < tensor_channels; ++c)
             {
-                t.set(0, 0, y, x, c, mat(y, x));
+                t.set(fdeep::tensor_pos(y, x, c), mat(y, x));
             }
         }
     }
 
     // print some values to make sure the mapping is correct
-    std::cout << t.get(0, 0, 0, 0, 0) << std::endl;
-    std::cout << t.get(0, 0, 0, 1, 1) << std::endl;
-    std::cout << t.get(0, 0, 0, 4, 2) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
 }
 ```
 
-Or you can reuse the memory, by sharing it between `Eigen::Matrix` and `fdeep::tensor5`.
-
-```cpp
-#include <iostream>
-#include <eigen3/Eigen/Dense>
-#include <fdeep/fdeep.hpp>
-
-int main()
-{
-    // use row major storage order for eigen matrix, since fdeep uses it too
-    using RowMajorMatrixXf = Eigen::Matrix<fdeep::float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-    // dimensions of the eigen matrix
-    const int rows = 640;
-    const int cols = 480;
-
-    // initialize memory shared between matrix and tensor
-    fdeep::shared_float_vec data_vec = fplus::make_shared_ref<fdeep::float_vec>();
-    data_vec->resize(static_cast<std::size_t>(rows * cols));
-
-    // create eigen matrix using the memory block from the vector above
-    Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> mapped_matrix(
-        data_vec->data(),
-        rows, cols);
-
-    // populate mapped_matrix some way
-    mapped_matrix(0, 0) = 4.0f;
-    mapped_matrix(1, 1) = 5.0f;
-    mapped_matrix(4, 2) = 6.0f;
-
-    // create fdeep::tensor5 also using the memory block of the vector
-    const int tensor5_channels = rows;
-    const int tensor5_rows = 1;
-    const int tensor5_cols = cols;
-    fdeep::shape5 tensor5_shape(1, 1, tensor5_rows, tensor5_cols, tensor5_channels);
-    fdeep::tensor5 t(tensor5_shape, data_vec);
-
-    // print some values to make sure the mapping is correct
-    std::cout << t.get(0, 0, 0, 0, 0) << std::endl;
-    std::cout << t.get(0, 0, 0, 1, 1) << std::endl;
-    std::cout << t.get(0, 0, 0, 4, 2) << std::endl;
-}
-```
-
-How to fill an `fdeep::tensor5` with values, e.g., from an `std::vector<float>`?
+How to fill an `fdeep::tensor` with values, e.g., from an `std::vector<float>`?
 --------------------------------------------------------------------------------
 
-Of course one can use `fdeep::tensor5` as the primary data structure and fill it with values like so:
+Of course one can use `fdeep::tensor` as the primary data structure and fill it with values like so:
 
 ```cpp
 #include <fdeep/fdeep.hpp>
 int main()
 {
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), 0);
-    t.set(0, 0, 0, 0, 0, 1);
-    t.set(0, 0, 1, 0, 0, 2);
-    t.set(0, 0, 2, 0, 0, 3);
+    fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), 0);
+    t.set(fdeep::tensor_pos(0, 0, 0), 1);
+    t.set(fdeep::tensor_pos(1, 0, 0), 2);
+    t.set(fdeep::tensor_pos(2, 0, 0), 3);
 }
 ```
 
-But in case one already has an `std::vector<float>` with values, one might want to re-use it.
-
-So the `std::vector<float>` needs to be converted to `fplus::shared_ref<std::vector<float>>` for `fdeep::tensor` to accept it in its constructor.
-
-`T` can be converted to `fplus::shared_ref<T>` by using `fplus::make_shared_ref<T>`:
-
-```cpp
-#include <fdeep/fdeep.hpp>
-int main()
-{
-    const std::vector<float> v = {1, 2, 3};
-    const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(v));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
-}
-```
-
-In case the original vector is no longer needed, the copy of the value can be avoided by making it an r-value with `std::move`:
+In case one already has an `std::vector<float>` with values, one can just construct a `fdeep::tensor` from it, holding a copy of the values:
 
 ```cpp
 #include <fdeep/fdeep.hpp>
 int main()
 {
     const std::vector<float> v = {1, 2, 3};
-    const fdeep::shared_float_vec sv(fplus::make_shared_ref<fdeep::float_vec>(std::move(v)));
-    fdeep::tensor5 t(fdeep::shape5(1, 1, 3, 1, 1), sv);
+    fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), v);
 }
 ```
 
-How to convert an `fdeep::tensor5` to an `std::vector<float>`?
+How to convert an `fdeep::tensor` to an `std::vector<float>`?
 --------------------------------------------------------------
 
 ```cpp
 #include <fdeep/fdeep.hpp>
 int main()
 {
-    const fdeep::tensor5 tensor(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4});
-    const std::vector<float> vec = *tensor.as_vector();
+    const fdeep::tensor tensor(
+        fdeep::tensor_shape(static_cast<std::size_t>(4)),
+        std::vector<float>{1, 2, 3, 4})});
+    const std::vector<float> vec = *tensor.to_vector();
 }
 ```
 

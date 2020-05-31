@@ -9,7 +9,7 @@
 #include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
 #include "fdeep/shape2.hpp"
-#include "fdeep/shape5.hpp"
+#include "fdeep/tensor_shape.hpp"
 #include "fdeep/layers/layer.hpp"
 
 #include <fplus/fplus.hpp>
@@ -25,7 +25,7 @@ class conv_2d_layer : public layer
 {
 public:
     explicit conv_2d_layer(
-            const std::string& name, const shape5& filter_shape,
+            const std::string& name, const tensor_shape& filter_shape,
             std::size_t k, const shape2& strides, padding p,
             const shape2& dilation_rate,
             const float_vec& weights, const float_vec& bias)
@@ -40,10 +40,10 @@ public:
         assertion(strides.area() > 0, "invalid strides");
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "only one input tensor allowed");
-        return {convolve(strides_, padding_, filters_, inputs.front())};
+        const auto& input = single_tensor_from_tensors(inputs);
+        return {convolve(strides_, padding_, filters_, input)};
     }
     im2col_filter_matrix filters_;
     shape2 strides_;

@@ -12,6 +12,7 @@ TEST_CASE("readme_example_main, main")
 {
     const auto model = fdeep::load_model("../readme_example_model.json");
     const auto result = model.predict(
-        {fdeep::tensor5(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4})});
-    std::cout << fdeep::show_tensor5s(result) << std::endl;
+        {fdeep::tensor(fdeep::tensor_shape(static_cast<std::size_t>(4)),
+        fdeep::float_vec{1, 2, 3, 4})});
+    std::cout << fdeep::show_tensors(result) << std::endl;
 }

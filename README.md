@@ -133,8 +133,9 @@ int main()
 {
     const auto model = fdeep::load_model("fdeep_model.json");
     const auto result = model.predict(
-        {fdeep::tensor5(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4})});
-    std::cout << fdeep::show_tensor5s(result) << std::endl;
+        {fdeep::tensor(fdeep::tensor_shape(static_cast<std::size_t>(4)),
+        std::vector<float>{1, 2, 3, 4})});
+    std::cout << fdeep::show_tensors(result) << std::endl;
 }
 ```
 
@@ -145,34 +146,34 @@ For more integration examples please have a look at the [FAQ](FAQ.md).
 Performance
 -----------
 
-Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow (`2.0.0`) were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
+Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.14 s |        0.26 s |
+| `DenseNet121`     |     0.14 s |        0.25 s |
 | `DenseNet169`     |     0.15 s |        0.29 s |
 | `DenseNet201`     |     0.18 s |        0.36 s |
-| `InceptionV3`     |     0.17 s |        0.27 s |
-| `MobileNet`       |     0.05 s |        0.13 s |
-| `MobileNetV2`     |     0.05 s |        0.15 s |
-| `NASNetLarge`     |     1.08 s |        4.17 s |
-| `NASNetMobile`    |     0.12 s |        0.35 s |
+| `InceptionV3`     |     0.17 s |        0.26 s |
+| `MobileNet`       |     0.05 s |        0.15 s |
+| `MobileNetV2`     |     0.05 s |        0.17 s |
+| `NASNetLarge`     |     1.08 s |        3.48 s |
+| `NASNetMobile`    |     0.12 s |        0.30 s |
 | `ResNet101`       |     0.23 s |        0.31 s |
 | `ResNet101V2`     |     0.22 s |        0.28 s |
 | `ResNet152`       |     0.33 s |        0.45 s |
 | `ResNet152V2`     |     0.32 s |        0.41 s |
 | `ResNet50`        |     0.13 s |        0.19 s |
 | `ResNet50V2`      |     0.12 s |        0.16 s |
-| `VGG16`           |     0.40 s |        0.45 s |
-| `VGG19`           |     0.50 s |        0.54 s |
-| `Xception`        |     0.28 s |        1.05 s |
+| `VGG16`           |     0.40 s |        0.49 s |
+| `VGG19`           |     0.50 s |        0.57 s |
+| `Xception`        |     0.28 s |        1.06 s |
 
 Requirements and Installation
 -----------------------------
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015.
 - Python 3.5 or higher.
-- TensorFlow 2.0.0
+- TensorFlow 2.1.0
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

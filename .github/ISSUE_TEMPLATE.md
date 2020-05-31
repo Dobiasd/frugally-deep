@@ -1,4 +1,4 @@
-- Before reporting an issue, please make sure you are using the latest versions of frugally-deep, TensorFlow and Keras.
+- Before reporting an issue, please make sure you are using the latest versions of frugally-deep, and [the right TensorFlow version](README.md#requirements-and-installation).
 
 - Also check out the [FAQ](../FAQ.md). Maybe your problem/question is common and there already is a canonical answer for it.
 

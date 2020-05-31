@@ -28,13 +28,12 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override final
+    tensors apply_impl(const tensors& inputs) const override final
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         return {pool(input)};
     }
-    virtual tensor5 pool(const tensor5& input) const = 0;
+    virtual tensor pool(const tensor& input) const = 0;
 
     bool channels_first_;
 };

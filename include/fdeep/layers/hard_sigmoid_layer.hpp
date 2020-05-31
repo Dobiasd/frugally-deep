@@ -23,9 +23,9 @@ public:
     {
     }
 protected:
-    tensor5 transform_input(const tensor5& in_vol) const override
+    tensor transform_input(const tensor& in_vol) const override
     {
-        return transform_tensor5(hard_sigmoid_activation, in_vol);
+        return transform_tensor(hard_sigmoid_activation, in_vol);
     }
 };
 

@@ -21,7 +21,7 @@ public:
     {
     }
 protected:
-    tensor5 pool(const tensor5& in) const override
+    tensor pool(const tensor& in) const override
     {
         const std::size_t feature_count = channels_first_
             ? in.shape().height_
@@ -38,7 +38,7 @@ protected:
             : in.shape().width_
             ;
 
-        tensor5 out(shape5(1, 1, 1, 1, feature_count), 0);
+        tensor out(tensor_shape(feature_count), 0);
         for (std::size_t z = 0; z < feature_count; ++z)
         {
             float_type val = 0;
@@ -47,12 +47,12 @@ protected:
                 for (std::size_t x = 0; x < in_width; ++x)
                 {
                     if (channels_first_)
-                        val += in.get(0, 0, z, y, x);
+                        val += in.get(tensor_pos(z, y, x));
                     else
-                        val += in.get(0, 0, y, x, z);
+                        val += in.get(tensor_pos(y, x, z));
                 }
             }
-            out.set(0, 0, 0, 0, z, val / static_cast<float_type>(in_height * in_width));
+            out.set(tensor_pos(z), val / static_cast<float_type>(in_height * in_width));
         }
         return out;
     }

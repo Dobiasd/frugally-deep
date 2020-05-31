@@ -21,7 +21,7 @@ public:
     {
     }
 protected:
-    tensor5 transform_input(const tensor5& in_vol) const override
+    tensor transform_input(const tensor& in_vol) const override
     {
         return in_vol;
     }

@@ -8,8 +8,8 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/tensor5.hpp"
-#include "fdeep/shape5.hpp"
+#include "fdeep/tensor.hpp"
+#include "fdeep/tensor_shape.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -21,10 +21,10 @@ namespace fdeep { namespace internal
 class filter
 {
 public:
-    filter(const tensor5& m, float_type bias) : m_(m), bias_(bias)
+    filter(const tensor& m, float_type bias) : m_(m), bias_(bias)
     {
     }
-    const shape5& shape() const
+    const tensor_shape& shape() const
     {
         return m_.shape();
     }
@@ -32,13 +32,13 @@ public:
     {
         return m_.shape().volume();
     }
-    const tensor5& get_tensor5() const
+    const tensor& get_tensor() const
     {
         return m_;
     }
-    float_type get(std::size_t y, size_t x, std::size_t z) const
+    float_type get(const tensor_pos& pos) const
     {
-        return m_.get(0, 0, y, x, z);
+        return m_.get_ignore_rank(pos);
     }
     float_type get_bias() const
     {
@@ -48,11 +48,11 @@ public:
     {
         assertion(weights.size() == m_.shape().volume(),
             "invalid parameter count");
-        m_ = tensor5(m_.shape(), float_vec(weights));
+        m_ = tensor(m_.shape(), float_vec(weights));
         bias_ = bias;
     }
 private:
-    tensor5 m_;
+    tensor m_;
     float_type bias_;
 };
 
@@ -60,16 +60,16 @@ typedef std::vector<filter> filter_vec;
 
 inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
 {
-    return filter(dilate_tensor5(dilation_rate, undilated.get_tensor5()),
+    return filter(dilate_tensor(dilation_rate, undilated.get_tensor()),
         undilated.get_bias());
 }
 
 inline filter_vec generate_filters(
     const shape2& dilation_rate,
-    const shape5& filter_shape, std::size_t k,
+    const tensor_shape& filter_shape, std::size_t k,
     const float_vec& weights, const float_vec& bias)
 {
-    filter_vec filters(k, filter(tensor5(filter_shape, 0), 0));
+    filter_vec filters(k, filter(tensor(filter_shape, 0), 0));
 
     assertion(!filters.empty(), "at least one filter needed");
     const std::size_t param_count = fplus::sum(fplus::transform(

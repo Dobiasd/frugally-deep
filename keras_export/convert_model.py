@@ -64,24 +64,6 @@ def write_text_file(path, text):
         print(text, file=text_file)
 
 
-def arr_as_arr5(arr):
-    """Convert an n-tensor to a 5-tensor"""
-    depth = len(arr.shape)
-    if depth == 1:
-        return arr.reshape(1, 1, 1, 1, arr.shape[0])
-    if depth == 2:
-        return arr.reshape(1, 1, 1, arr.shape[0], arr.shape[1])
-    if depth == 3:
-        return arr.reshape(1, 1, arr.shape[0], arr.shape[1], arr.shape[2])
-    if depth == 4:
-        return arr.reshape(1, arr.shape[0], arr.shape[1], arr.shape[2], arr.shape[3])
-    if depth == 5:
-        return arr
-    if depth == 6 and arr.shape[0] in [None, 1]:  # todo: Is this still needed?
-        return arr.reshape(arr.shape[1:])
-    raise ValueError('invalid number of dimensions')
-
-
 def int_or_none(value):
     """Leave None values as is, convert everything else to int"""
     if value is None:
@@ -89,40 +71,22 @@ def int_or_none(value):
     return int(value)
 
 
-def keras_shape_to_fdeep_shape5(raw_shape):
+def keras_shape_to_fdeep_tensor_shape(raw_shape):
     """Convert a keras shape to an fdeep shape"""
-    shape = singleton_list_to_value(raw_shape)[1:]
-    depth = len(shape)
-    if depth == 1:
-        return (1, 1, 1, 1, int_or_none(shape[0]))
-    if depth == 2:
-        return (1, 1, 1, int_or_none(shape[0]), int_or_none(shape[1]))
-    if depth == 3:
-        return (1, 1, int_or_none(shape[0]), int_or_none(shape[1]), int_or_none(shape[2]))
-    if depth == 4:
-        return (1, int_or_none(shape[0]), int_or_none(shape[1]), int_or_none(shape[2]), int_or_none(shape[3]))
-    if depth == 5:
-        return shape
-    raise ValueError('invalid number of dimensions')
+    return singleton_list_to_value(raw_shape)[1:]
 
 
-def get_layer_input_shape_shape5(layer):
+def get_layer_input_shape_tensor_shape(layer):
     """Convert layer input shape to an fdeep shape"""
-    return keras_shape_to_fdeep_shape5(layer.input_shape)
+    return keras_shape_to_fdeep_tensor_shape(layer.input_shape)
 
 
-def show_tensor5(tens):
+def show_tensor(tens):
     """Serialize 3-tensor to a dict"""
-    values = tens.flatten()
     return {
-        'shape': tens.shape,
-        'values': encode_floats(values)
+        'shape': tens.shape[1:],
+        'values': encode_floats(tens.flatten())
     }
-
-
-def show_test_data_as_tensor5(arr):
-    """Serialize model test data"""
-    return show_tensor5(arr_as_arr5(arr))
 
 
 def get_model_input_layers(model):
@@ -216,7 +180,7 @@ def gen_test_data(model):
             # store the results of first call for the test
             # this is because states of recurrent layers is 0.
             # cannot call model.reset_states() in some cases in keras without an error.
-            # an error occures when recurrent layer is stateful and the initial state is passed as input
+            # an error occurs when recurrent layer is stateful and the initial state is passed as input
             data_out_test, duration = measure_predict(model, data_in)
         else:
             measure_predict(model, data_in)
@@ -228,8 +192,8 @@ def gen_test_data(model):
     duration_avg = duration_sum / test_runs
     print('Forward pass took {} s on average.'.format(duration_avg))
     return {
-        'inputs': list(map(show_test_data_as_tensor5, data_in)),
-        'outputs': list(map(show_test_data_as_tensor5, data_out_test))
+        'inputs': list(map(show_tensor, as_list(data_in))),
+        'outputs': list(map(show_tensor, as_list(data_out_test)))
     }
 
 
@@ -348,13 +312,6 @@ def show_depthwise_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    layer_axis = None
-    if isinstance(layer.axis, int):
-        layer_axis = layer.axis
-    else:
-        assert len(layer.axis) == 1
-        layer_axis = layer.axis[0]
-    assert layer_axis == -1 or layer_axis + 1 == len(layer.input_shape)
     moving_mean = K.get_value(layer.moving_mean)
     moving_variance = K.get_value(layer.moving_variance)
     result = {}
@@ -538,6 +495,12 @@ def show_input_layer(layer):
 def show_softmax_layer(layer):
     """Serialize softmax layer to dict"""
     assert layer.axis == -1
+
+
+def show_reshape_layer(layer):
+    """Serialize reshape layer to dict"""
+    for dim_size in layer.target_shape:
+        assert dim_size != -1, 'Reshape inference not supported'
 
 
 def get_layer_functions_dict():
@@ -748,9 +711,9 @@ def check_operation_offset(depth, eval_f, padding):
     return result == [1, 4]
 
 
-def get_shapes(tensor5s):
+def get_shapes(tensors):
     """Return shapes of a list of tensors"""
-    return [t['shape'] for t in tensor5s]
+    return [t['shape'] for t in tensors]
 
 
 def calculate_hash(model):
@@ -798,8 +761,8 @@ def model_to_fdeep_json(model, no_tests=False):
     print('Converting model architecture.')
     json_output['architecture'] = json.loads(model.to_json())
     json_output['image_data_format'] = K.image_data_format()
-    json_output['input_shapes'] = list(map(get_layer_input_shape_shape5, get_model_input_layers(model)))
-    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_shape5, as_list(model.output_shape)))
+    json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, as_list(model.output_shape)))
 
     if test_data:
         json_output['tests'] = [test_data]

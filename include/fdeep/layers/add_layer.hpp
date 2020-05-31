@@ -21,9 +21,9 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& input) const override
+    tensors apply_impl(const tensors& input) const override
     {
-        return {sum_tensor5s(input)};
+        return {sum_tensors(input)};
     }
 };
 

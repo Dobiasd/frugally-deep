@@ -14,7 +14,7 @@ cmake ..
 make && sudo make install
 cd ../..
 
-git clone -b '3.3.5' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
+git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
 cd eigen-git-mirror
 mkdir -p build && cd build
 cmake ..
@@ -22,7 +22,7 @@ make && sudo make install
 sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 cd ../..
 
-git clone -b 'v3.7.1' --single-branch --depth 1 https://github.com/nlohmann/json
+git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json
 cd json
 mkdir -p build && cd build
 cmake -DBUILD_TESTING=OFF ..
@@ -63,7 +63,7 @@ Just add a *conanfile.txt* with frugally-deep as a requirement and chose the gen
 
 ```
 [requires]
-frugally-deep/v0.11.0-p0@dobiasd/stable
+frugally-deep/v0.14.2-p0@dobiasd/stable
 
 [generators]
 cmake

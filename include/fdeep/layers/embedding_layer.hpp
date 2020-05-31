@@ -30,18 +30,18 @@ class embedding_layer : public layer
     {}
 
   protected:
-    tensor5s apply_impl(const tensor5s &inputs) const override final
+    tensors apply_impl(const tensors &inputs) const override final
     {
-        const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor5, shape, shape5), inputs);
+        const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor, shape, tensor_shape), inputs);
 
-        // ensure that tensor5 shape is (1, 1, 1, 1, seq_len)
+        // ensure that tensor shape is (1, 1, 1, 1, seq_len)
         assertion(inputs.front().shape().size_dim_5_ == 1
                   && inputs.front().shape().size_dim_4_ == 1
                   && inputs.front().shape().height_ == 1
                   && inputs.front().shape().width_ == 1,
-                  "size_dim_5, size_dim_4, height and width dimension must be 1, but shape is '" + show_shape5s(input_shapes) + "'");
+                  "size_dim_5, size_dim_4, height and width dimension must be 1, but shape is '" + show_tensor_shapes(input_shapes) + "'");
 
-        tensor5s results;
+        tensors results;
         for (auto&& input : inputs)
         {
             const std::size_t sequence_len = input.shape().depth_;
@@ -50,12 +50,12 @@ class embedding_layer : public layer
 
             for (std::size_t i = 0; i < sequence_len; ++i)
             {
-                std::size_t index = static_cast<std::size_t>(input.get(0, 0, 0, 0, i));
+                std::size_t index = static_cast<std::size_t>(input.get(tensor_pos(i)));
                 assertion(index < input_dim_, "vocabulary item indices must all be strictly less than the value of input_dim");
                 it = std::copy_n(weights_.cbegin() + static_cast<float_vec::const_iterator::difference_type>(index * output_dim_), output_dim_, it);
             }
 
-            results.push_back(tensor5(shape5(1, 1, 1, sequence_len, output_dim_), std::move(output_vec)));
+            results.push_back(tensor(tensor_shape(sequence_len, output_dim_), std::move(output_vec)));
         }
         return results;
     }

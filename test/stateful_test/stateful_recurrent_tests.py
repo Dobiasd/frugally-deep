@@ -1,3 +1,8 @@
+# to hide any GPUs.
+# import os
+# os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
+# os.environ['CUDA_VISIBLE_DEVICES']=''
+
 import errno
 import os
 import sys
@@ -194,7 +199,8 @@ def main():
     x_inf = np.asarray([2.1, -1.2, 3.14, 1.2, 1, 3, -2, 10], dtype=np.float32)  # simple
     x_inf = x_inf.reshape((2, train_seq_length, 1))
 
-    initial_states = np.asarray([1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0], dtype=np.float32)
+    initial_states = np.asarray([40.1, -25.1, 34.7, 56.1, -62.5, 12.0, -33.0, -100.0], dtype=np.float32)
+    # initial_states = np.asarray([1.1, -2.1, 2.7, 3.1, -2.5, 3.0, -2.0, -10.0], dtype=np.float32)
     initial_states = initial_states.reshape((4, 1, 2))
 
     model_file_names = []
@@ -253,13 +259,13 @@ def main():
             print('********* FAILED !!!!!!!!!!!!\n\n')
             print('Keras: ', all_results[i], '\n')
             print('Frugally-deep: ', frugally_deep_results[i], '\n')
+            print('Difference: ', all_results[i] - frugally_deep_results[i], '\n')
             all_tests_passed = False
 
     if not all_tests_passed:
         print('\n\nAt least one test failed.')
         sys.exit(errno.EIO)
     print('\n\nPassed all stateful tests')
-
 
 if __name__ == "__main__":
     main()

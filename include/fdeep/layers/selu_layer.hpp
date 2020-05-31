@@ -27,9 +27,9 @@ protected:
         static_cast<float_type>(1.6732632423543772848170429916717);
     const float_type scale_ =
         static_cast<float_type>(1.0507009873554804934193349852946);
-    tensor5 transform_input(const tensor5& in_vol) const override
+    tensor transform_input(const tensor& in_vol) const override
     {
-        return transform_tensor5(selu_activation, in_vol);
+        return transform_tensor(selu_activation, in_vol);
     }
 };
 

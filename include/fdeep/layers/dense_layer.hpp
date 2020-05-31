@@ -7,7 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/layer.hpp"
-#include "fdeep/tensor5.hpp"
+#include "fdeep/tensor.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -16,7 +16,7 @@
 namespace fdeep { namespace internal
 {
 
-// Takes a single stack volume (shape5(1, 1, 1, 1, n)) as input.
+// Takes a single stack volume (tensor_shape(n)) as input.
 class dense_layer : public layer
 {
 public:
@@ -39,10 +39,9 @@ public:
         assertion(weights.size() % units == 0, "invalid weight count");
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        auto input = inputs.front();
+        const auto& input = single_tensor_from_tensors(inputs);
         // According to the Keras documentation
         // https://keras.io/layers/core/#dense
         // "if the input to the layer has a rank greater than 2,
@@ -52,14 +51,14 @@ protected:
         // Otherwise the following would need to be done:
         // if (input.shape().get_not_one_dimension_count() > 1)
         // {
-        //     input = flatten_tensor5(input);
+        //     input = flatten_tensor(input);
         // }
         const auto input_parts = fplus::split_every(
             input.shape().depth_, *input.as_vector());
 
         const auto result_value_vectors = fplus::transform(
             [this](const auto& input_part) -> float_vec
-            {
+                        {
                 assertion(input_part.size() == n_in_,
                     "Invalid input value count.");
                 const auto bias_padded_input = bias_pad_input(input_part);
@@ -73,12 +72,8 @@ protected:
         assertion(result_values.size() % n_out_ == 0,
             "Invalid number of output values.");
 
-        return {tensor5(shape5(
-            input.shape().size_dim_5_,
-            input.shape().size_dim_4_,
-            input.shape().height_,
-            input.shape().width_,
-            n_out_),
+        return {tensor(change_tensor_shape_dimension_by_index(
+                input.shape(), 4, n_out_),
             fplus::make_shared_ref<fdeep::float_vec>(result_values))};
     }
     static RowMajorMatrixXf bias_pad_input(const float_vec& input)

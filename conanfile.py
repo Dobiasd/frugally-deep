@@ -7,8 +7,8 @@ class FrugallyDeepConan(ConanFile):
     url = "https://github.com/Dobiasd/frugally-deep"
     description = "Use Keras models in C++ with ease"
     exports_sources = ["include*", "LICENSE"]
-    requires = ("eigen/3.3.4@conan/stable",
-                "functionalplus/v0.2.3-p0@dobiasd/stable",
+    requires = ("eigen/3.3.7@conan/stable",
+                "functionalplus/v0.2.6-p0@dobiasd/stable",
                 "jsonformoderncpp/3.1.0@vthiery/stable")
 
     def package(self):

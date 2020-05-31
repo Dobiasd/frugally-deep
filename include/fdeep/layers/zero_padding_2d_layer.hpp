@@ -29,12 +29,10 @@ public:
     {
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
-        return {pad_tensor5(0, top_pad_, bottom_pad_, left_pad_, right_pad_,
-            input)};
+        const auto& input = single_tensor_from_tensors(inputs);
+        return {pad_tensor(0, top_pad_, bottom_pad_, left_pad_, right_pad_, input)};
     }
     std::size_t top_pad_;
     std::size_t bottom_pad_;

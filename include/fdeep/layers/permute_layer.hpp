@@ -18,18 +18,17 @@ class permute_layer : public layer
 public:
     explicit permute_layer(const std::string& name,
         const std::vector<std::size_t>& dims) :
-            layer(name), dims_(dims)
+            layer(name), dims_raw_(dims)
     {
-        check_permute_tensor5_dims(dims);
+        check_permute_tensor_dims(dims);
     }
 protected:
-    tensor5s apply_impl(const tensor5s& inputs) const override
+    tensors apply_impl(const tensors& inputs) const override
     {
-        assertion(inputs.size() == 1, "invalid number of input tensors");
-        const auto& input = inputs.front();
-        return {permute_tensor5(input, dims_)};
+        const auto& input = single_tensor_from_tensors(inputs);
+        return {permute_tensor(input, dims_raw_)};
     }
-    std::vector<std::size_t> dims_;
+    std::vector<std::size_t> dims_raw_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -3,6 +3,8 @@
 
 int main()
 {
-    const fdeep::tensor5 t(fdeep::shape5(1, 1, 1, 1, 4), {1, 2, 3, 4});
-    std::cout << fdeep::show_tensor5(t) << std::endl;
+    const fdeep::tensor t(
+        fdeep::tensor_shape(static_cast<std::size_t>(4)),
+        fdeep::float_vec{1, 2, 3, 4});
+    std::cout << fdeep::show_tensor(t) << std::endl;
 }

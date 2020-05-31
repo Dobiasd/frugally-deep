@@ -15,12 +15,12 @@
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE tensor5 max_pool_2d(
+FDEEP_FORCE_INLINE tensor max_pool_2d(
     std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_y, std::size_t strides_x,
     bool channels_first,
     padding pad_type,
-    const tensor5& in)
+    const tensor& in)
 {
     const float_type invalid = std::numeric_limits<float_type>::lowest();
 
@@ -49,9 +49,10 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
+    // todo: Do we still need to support this, check test_model_exhaustive
     if (channels_first)
     {
-        tensor5 out(shape5(1, 1, feature_count, out_height, out_width), 0);
+        tensor out(tensor_shape(feature_count, out_height, out_width), 0);
 
         for (std::size_t z = 0; z < feature_count; ++z)
         {
@@ -71,7 +72,7 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, z, y, x, val);
+                    out.set(tensor_pos(z, y, x), val);
                 }
             }
         }
@@ -79,7 +80,11 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
     }
     else
     {
-        tensor5 out(shape5(1, 1, out_height, out_width, feature_count), 0);
+        tensor out(
+            tensor_shape_with_changed_rank(
+                tensor_shape(out_height, out_width, feature_count),
+                in.shape().rank()),
+            0);
 
         for (std::size_t y = 0; y < out_height; ++y)
         {
@@ -99,7 +104,7 @@ FDEEP_FORCE_INLINE tensor5 max_pool_2d(
                         }
                     }
 
-                    out.set(0, 0, y, x, z, val);
+                    out.set_ignore_rank(tensor_pos(y, x, z), val);
                 }
             }
         }
@@ -111,12 +116,13 @@ class max_pooling_2d_layer : public pooling_2d_layer
 {
 public:
     explicit max_pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first, padding p) :
+        const shape2& pool_size, const shape2& strides, bool channels_first,
+        padding p) :
         pooling_2d_layer(name, pool_size, strides, channels_first, p)
     {
     }
 protected:
-    tensor5 pool(const tensor5& in) const override
+    tensor pool(const tensor& in) const override
     {
         if (pool_size_ == shape2(2, 2) && strides_ == shape2(2, 2))
             return max_pool_2d(2, 2, 2, 2, channels_first_, padding_, in);

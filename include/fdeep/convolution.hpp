@@ -21,10 +21,8 @@ namespace fdeep { namespace internal
 // todo: Remove. Just save raw filters on layers.
 struct im2col_filter_matrix
 {
-    ColMajorMatrixXf mat_;
     tensor_shape filter_shape_;
     std::size_t filter_count_;
-    std::vector<filter> filters_;
     float_vec biases_;
     bool use_bias_;
     std::vector<ColMajorMatrixXf> filter_mats_;
@@ -33,36 +31,6 @@ struct im2col_filter_matrix
 inline im2col_filter_matrix generate_im2col_filter_matrix(
     const std::vector<filter>& filters)
 {
-    assertion(fplus::all_the_same_on(
-        fplus_c_mem_fn_t(filter, shape, tensor_shape), filters),
-        "all filters must have the same shape");
-
-    const std::size_t fy = filters.front().shape().height_;
-    const std::size_t fx = filters.front().shape().width_;
-    const std::size_t fz = filters.front().shape().depth_;
-    ColMajorMatrixXf b(filters.size(), fy * fx * fz + 1);
-    EigenIndex b_y = 0;
-    EigenIndex b_x = 0;
-    for (std::size_t f = 0; f < filters.size(); ++f)
-    {
-        b_x = 0;
-        const filter& filter = filters[f];
-        for (std::size_t yf = 0; yf < fy; ++yf)
-        {
-            for (std::size_t xf = 0; xf < fx; ++xf)
-            {
-                for (std::size_t zf = 0; zf < fz; ++zf)
-                {
-                    b(b_y, b_x++) = filter.get(tensor_pos(yf, xf, zf));
-                }
-            }
-        }
-        b(b_y, b_x++) = filter.get_bias();
-        ++b_y;
-    }
-
-
-
     assertion(fplus::all_the_same_on(
         fplus_c_mem_fn_t(filter, shape, tensor_shape), filters),
         "all filters must have the same shape");
@@ -100,100 +68,13 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
         }
     }
 
-    return {b, shape, filters.size(), filters, biases, use_bias, filter_mats};
+    return {shape, filters.size(), biases, use_bias, filter_mats};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     const filter& filter)
 {
     return generate_im2col_filter_matrix(filter_vec(1, filter));
-}
-
-// GEMM convolution, faster but uses more RAM
-// https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
-// https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
-// http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
-inline tensor convolve_im2col(
-    std::size_t out_height,
-    std::size_t out_width,
-    std::size_t strides_y,
-    std::size_t strides_x,
-    const im2col_filter_matrix& filter_mat,
-    const tensor& in_padded)
-{
-    const auto fy = filter_mat.filter_shape_.height_;
-    const auto fx = filter_mat.filter_shape_.width_;
-    const auto fz = filter_mat.filter_shape_.depth_;
-    const EigenIndex a_cols = static_cast<EigenIndex>(out_height * out_width);
-
-    const std::size_t val_cnt =
-        static_cast<std::size_t>(filter_mat.mat_.rows() * a_cols);
-    assertion(val_cnt % (out_height * out_width) == 0,
-        "Can not calculate out_depth");
-
-    const std::size_t out_depth = val_cnt / (out_height * out_width);
-    assertion(val_cnt == out_depth * out_height * out_width,
-        "Invalid target size");
-
-    shared_float_vec res_vec = fplus::make_shared_ref<float_vec>();
-    res_vec->resize(static_cast<std::size_t>(out_depth * out_height * out_width));
-
-    const EigenIndex a_rows = static_cast<EigenIndex>(fy * fx * fz + 1);
-    const EigenIndex a_max_size_bytes = 16 * 1024 * 1024;
-    EigenIndex step_size = a_max_size_bytes / (a_rows * static_cast<EigenIndex>(sizeof(float_type)));
-    EigenIndex alignment_step = 64 / sizeof(float_type);
-    step_size = (step_size / alignment_step) * alignment_step;
-    step_size = std::max(static_cast<EigenIndex>(1), step_size);
-
-    ColMajorMatrixXf a(a_rows, step_size);
-    EigenIndex a_x_virtual = 0;
-    EigenIndex last_gem_a_x = 0;
-    for (std::size_t y = 0; y < out_height; ++y)
-    {
-        for (std::size_t x = 0; x < out_width; ++x)
-        {
-            EigenIndex a_y = 0;
-            for (std::size_t yf = 0; yf < fy; ++yf)
-            {
-                const auto p = &(in_padded.get_ref_ignore_rank(tensor_pos(
-                        strides_y * y + yf,
-                        strides_x * x,
-                        0)));
-                const auto a_x = a_x_virtual % step_size;
-                // https://stackoverflow.com/a/9980859/1866775
-                std::copy(p, p + fx * fz, &a(a_y, a_x));
-                a_y += static_cast<EigenIndex>(fx * fz);
-                a(a_y, a_x) = static_cast<float_type>(1);
-            }
-            ++a_x_virtual;
-            if (a_x_virtual >= last_gem_a_x + step_size)
-            {
-                MappedColMajorMatrixXf out_mat_map(
-                    res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
-                    static_cast<EigenIndex>(filter_mat.mat_.rows()),
-                    static_cast<EigenIndex>(a_x_virtual - last_gem_a_x));
-                out_mat_map.noalias() = filter_mat.mat_ * a;
-                last_gem_a_x = a_x_virtual;
-            }
-        }
-    }
-    if (a_x_virtual != last_gem_a_x)
-    {
-        EigenIndex fields_left = a_x_virtual - last_gem_a_x;
-        MappedColMajorMatrixXf a_map(a.data(), a.rows(), fields_left);
-        MappedColMajorMatrixXf out_mat_map(
-            res_vec->data() + filter_mat.mat_.rows() * last_gem_a_x,
-            static_cast<EigenIndex>(filter_mat.mat_.rows()),
-            static_cast<EigenIndex>(fields_left));
-        // https://stackoverflow.com/questions/48644724/multiply-two-eigen-matrices-directly-into-memory-of-target-matrix
-        out_mat_map.noalias() = filter_mat.mat_ * a_map;
-    }
-
-    return tensor(
-        tensor_shape_with_changed_rank(
-            tensor_shape(out_height, out_width, out_depth),
-            in_padded.shape().rank()),
-        res_vec);
 }
 
 inline tensor convolve_accumulative(
@@ -204,12 +85,11 @@ inline tensor convolve_accumulative(
     const im2col_filter_matrix& filter_mat,
     const tensor& in)
 {
-    const std::vector<filter>& filters = filter_mat.filters_;
     const std::vector<ColMajorMatrixXf>& filter_mats = filter_mat.filter_mats_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
     const auto f_depth = filter_mat.filter_shape_.depth_;
-    const auto out_depth = filters.size();
+    const auto out_depth = filter_mat.filter_count_;
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
     assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
@@ -366,12 +246,6 @@ inline tensor convolve(
         input);
 
     return convolve_accumulative(
-        out_height, out_width,
-        strides.height_, strides.width_,
-        filter_mat,
-        in_padded);
-
-    return convolve_im2col(
         out_height, out_width,
         strides.height_, strides.width_,
         filter_mat,

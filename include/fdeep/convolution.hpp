@@ -98,27 +98,43 @@ inline tensor convolve_accumulative(
             tensor_shape(out_height, out_width, out_depth),
             in.shape().rank()),
         static_cast<float_type>(0));
-    for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
+
+    // todo: Would it help performance to get rid of that loop?
+    //       Rear VGG19 layers only have an input height of 14,
+    //       but are still faster with classical im2col,
+    //       so probably it would not help. But would need to be tested.
+    for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
     {
-        const ColMajorMatrixXf& filter = filter_mats[y_filt];
-        // todo: Would it help performance to get rid of that loop?
-        //       Rear VGG19 layers only have an input height of 14,
-        //       but are still faster with classical im2col,
-        //       so probably it would not help. But would need to be tested.
-        for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
+        std::vector<Eigen::Product<Eigen::MatrixXf, Eigen::Map<Eigen::MatrixXf, 0, Eigen::OuterStride<>>, 0>> res;
+
+        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
         {
+            const ColMajorMatrixXf& filter = filter_mats[y_filt];
+
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
                 static_cast<EigenIndex>(f_width * f_depth),
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
-            
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
-                output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
-                static_cast<EigenIndex>(out_depth),
-                static_cast<EigenIndex>(out_width));
-            
-            output_map.noalias() += filter * input;
+
+            res.push_back(filter * input);
+        }
+
+        Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+            output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
+            static_cast<EigenIndex>(out_depth),
+            static_cast<EigenIndex>(out_width));
+
+        if (res.size() == 3)
+        {
+            output_map = res[0] + res[1] + res[2];
+        }
+        else
+        {
+            for (const auto r : res)
+            {
+                output_map += r;
+            }
         }
     }
 

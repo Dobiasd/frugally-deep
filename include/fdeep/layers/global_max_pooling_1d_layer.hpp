@@ -42,11 +42,11 @@ protected:
             for (std::size_t x = 0; x < step_count; ++x)
             {
                 if (channels_first_)
-                    val = std::max(val, in.get(tensor_pos(z, x)));
+                    val = std::max(val, in.get_ignore_rank(tensor_pos(z, x)));
                 else
-                    val = std::max(val, in.get(tensor_pos(x, z)));
+                    val = std::max(val, in.get_ignore_rank(tensor_pos(x, z)));
             }
-            out.set(tensor_pos(z), val);
+            out.set_ignore_rank(tensor_pos(z), val);
         }
         return out;
     }

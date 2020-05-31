@@ -62,6 +62,10 @@ public:
     {
         return (*values_)[idx_ignore_rank(pos)];
     }
+    float_type& get_ref_ignore_rank(const tensor_pos& pos)
+    {
+        return (*values_)[idx_ignore_rank(pos)];
+    }
     float_type get_y_x_padded(float_type pad_value,
         int y, int x, std::size_t z) const
     {
@@ -197,33 +201,6 @@ template <typename F>
 tensor transform_tensor(F f, const tensor& m)
 {
     return tensor(m.shape(), fplus::transform_convert<float_vec>(f, *m.as_vector()));
-}
-
-inline tensor tensor_from_depth_slices(const std::vector<tensor>& ms)
-{
-    assertion(!ms.empty(), "no slices given");
-    assertion(
-        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor, shape, tensor_shape), ms),
-        "all slices must have the same size");
-    for (const auto& m : ms)
-    {
-        m.shape().assert_is_shape_2();
-    }
-    std::size_t height = ms.front().shape().height_;
-    std::size_t width = ms.front().shape().width_;
-    tensor m(tensor_shape(height, width, ms.size()), 0);
-    for (std::size_t y = 0; y < m.shape().height_; ++y)
-    {
-        for (std::size_t x = 0; x < m.shape().width_; ++x)
-        {
-            for (std::size_t z = 0; z < m.shape().depth_; ++z)
-            {
-                m.set(tensor_pos(y, x, z),
-                    ms[z].get(tensor_pos(y, x, 0)));
-            }
-        }
-    }
-    return m;
 }
 
 inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
@@ -712,7 +689,7 @@ inline tensor permute_tensor(const tensor& in,
                             tensor_pos(dim5, dim4, y, x, z), dims.size());
                         const auto out_pos = create_tensor_pos_from_dims(
                             permute_idxs(in_pos.dimensions()));
-                        out.set(out_pos, in.get(in_pos));
+                        out.set_ignore_rank(out_pos, in.get_ignore_rank(in_pos));
                     }
                 }
             }
@@ -759,11 +736,11 @@ inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
         {
             for (std::size_t z = 0; z < in.shape().depth_; ++z)
             {
-                result.set(tensor_pos(
+                result.set_ignore_rank(tensor_pos(
                     y * dilation_rate.height_,
                     x * dilation_rate.width_,
                     z),
-                    in.get(tensor_pos(y, x, z)));
+                    in.get_ignore_rank(tensor_pos(y, x, z)));
             }
         }
     }

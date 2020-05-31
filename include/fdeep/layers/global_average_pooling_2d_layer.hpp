@@ -47,12 +47,12 @@ protected:
                 for (std::size_t x = 0; x < in_width; ++x)
                 {
                     if (channels_first_)
-                        val += in.get(tensor_pos(z, y, x));
+                        val += in.get_ignore_rank(tensor_pos(z, y, x));
                     else
-                        val += in.get(tensor_pos(y, x, z));
+                        val += in.get_ignore_rank(tensor_pos(y, x, z));
                 }
             }
-            out.set(tensor_pos(z), val / static_cast<float_type>(in_height * in_width));
+            out.set_ignore_rank(tensor_pos(z), val / static_cast<float_type>(in_height * in_width));
         }
         return out;
     }

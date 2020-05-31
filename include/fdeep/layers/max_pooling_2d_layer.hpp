@@ -72,7 +72,7 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
                         }
                     }
 
-                    out.set(tensor_pos(z, y, x), val);
+                    out.set_ignore_rank(tensor_pos(z, y, x), val);
                 }
             }
         }

@@ -81,19 +81,6 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-inline void gemm(
-    const ColMajorMatrixXf& filter,
-    const float_type* input_ptr,
-    float_type* output_ptr,
-    EigenIndex filter_count,
-    EigenIndex filter_width,
-    EigenIndex filter_depth)
-{
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
-    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
-    output.noalias() += input * filter;
-}
-
 inline tensor5 convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -118,16 +105,17 @@ inline tensor5 convolve_accumulative(
     
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
+        const ColMajorMatrixXf& filter = filter_mats[y_filt];
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
                 float_type* output_ptr = &output.get_ref(0, 0, y_out, x_out, 0);
-                gemm(filter_mats[y_filt], input_ptr, output_ptr,
-                    static_cast<EigenIndex>(out_depth),
-                    static_cast<EigenIndex>(f_width),
-                    static_cast<EigenIndex>(f_depth));
+
+                    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, static_cast<EigenIndex>(f_width * f_depth));
+                    Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output_map(output_ptr, 1, static_cast<EigenIndex>(out_depth));
+                    output_map.noalias() += input * filter;
             }
         }
     }

@@ -47,12 +47,12 @@ int test_convolution()
 
 int main()
 {
-    test_convolution();
+    //test_convolution();
 
     std::vector<std::string> model_paths = {
         // todo: remove block
         "test_model_sequential.json",
-        "test_model_exhaustive.json",
+        //"test_model_exhaustive.json",
         "vgg19.json"
 
 /*

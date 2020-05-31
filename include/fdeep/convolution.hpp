@@ -29,7 +29,7 @@ struct im2col_filter_matrix
     std::vector<filter> filters_;
     float_vec biases_;
     bool use_bias_;
-    tensor5 filter_tensor_;
+    std::vector<ColMajorMatrixXf> filter_mats_;
 };
 
 inline im2col_filter_matrix generate_im2col_filter_matrix(
@@ -49,9 +49,11 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
 
     const auto shape = filters.front().shape();
 
-    tensor5 filter_tensor(
-        shape5(1, shape.height_, filters.size(), shape.width_, shape.depth_),
-        static_cast<float>(0));
+    std::vector<ColMajorMatrixXf> filter_mats(
+        shape.height_,
+        ColMajorMatrixXf::Zero(
+            static_cast<EigenIndex>(shape.width_ * shape.depth_),
+            static_cast<EigenIndex>(filters.size())));
 
     for (std::size_t y = 0; y < shape.height_; ++y)
     {
@@ -61,15 +63,16 @@ inline im2col_filter_matrix generate_im2col_filter_matrix(
             {
                 for (std::size_t z = 0; z < shape.depth_; ++z)
                 {
-                    filter_tensor.set(
-                        0, y, n, x, z,
-                        filters[n].get(y, x, z));
+                    filter_mats[y](
+                        static_cast<EigenIndex>(x * shape.depth_ + z),
+                        static_cast<EigenIndex>(n)
+                    ) = filters[n].get(y, x, z);
                 }
             }
         }
     }
 
-    return {shape, filters.size(), filters, biases, use_bias, filter_tensor};
+    return {shape, filters.size(), filters, biases, use_bias, filter_mats};
 }
 
 inline im2col_filter_matrix generate_im2col_single_filter_matrix(
@@ -78,17 +81,14 @@ inline im2col_filter_matrix generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
-
-
 inline void gemm(
-    const float_type* filter_ptr,
+    const ColMajorMatrixXf& filter,
     const float_type* input_ptr,
     float_type* output_ptr,
     EigenIndex filter_count,
     EigenIndex filter_width,
     EigenIndex filter_depth)
 {
-    Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned> filter(const_cast<float_type*>(filter_ptr), filter_width * filter_depth, filter_count);
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> input(const_cast<float_type*>(input_ptr), 1, filter_width * filter_depth);
     Eigen::Map<Eigen::Matrix<float_type, 1, Eigen::Dynamic>, Eigen::Unaligned> output(output_ptr, 1, filter_count);
     output.noalias() += input * filter;
@@ -105,26 +105,26 @@ inline tensor5 convolve_accumulative(
     assertion(in.shape().rank() <= 3, "invalid rank for input tensor");
 
     const std::vector<filter>& filters = filter_mat.filters_;
-    const tensor5& filter_tensor = filter_mat.filter_tensor_;
+    const std::vector<ColMajorMatrixXf>& filter_mats = filter_mat.filter_mats_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
     const auto f_depth = filter_mat.filter_shape_.depth_;
     const auto out_depth = filters.size();
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
+    assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
 
     tensor5 output(shape5(1, 1, out_height, out_width, out_depth), static_cast<float_type>(0));
     
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const float_type* filter_ptr = &filter_tensor.get_ref(0, y_filt, 0, 0, 0);
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             for (std::size_t x = 0, x_out = 0; x < in.shape().width_ + 1 - f_width; x += strides_x, ++x_out)
             {
                 const float_type* input_ptr = &in.get_ref(0, 0, y + y_filt, x, 0);
                 float_type* output_ptr = &output.get_ref(0, 0, y_out, x_out, 0);
-                gemm(filter_ptr, input_ptr, output_ptr,
+                gemm(filter_mats[y_filt], input_ptr, output_ptr,
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(f_width),
                     static_cast<EigenIndex>(f_depth));

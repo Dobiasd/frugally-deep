@@ -94,93 +94,48 @@ inline tensor convolve_accumulative(
     assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
 
-    // todo: would also with other strides if some width contition is met.
-    if (strides_x == 1 && filter_mat.use_bias_)
+    tensor output(tensor_shape_with_changed_rank(
+            tensor_shape(out_height, out_width, out_depth),
+            in.shape().rank()),
+        static_cast<float_type>(0));
+    for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const std::size_t out_width_temp = out_width + f_width - 1;
-        tensor output_temp(tensor_shape_with_changed_rank(
-                tensor_shape(out_height, out_width_temp, out_depth),
-                in.shape().rank()),
-            static_cast<float_type>(0));
-        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
+        const ColMajorMatrixXf& filter = filter_mats[y_filt];
+        // todo: Would it help performance to get rid of that loop?
+        //       Rear VGG19 layers only have an input height of 14,
+        //       but are still faster with classical im2col,
+        //       so probably it would not help. But would need to be tested.
+        for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const ColMajorMatrixXf& filter = filter_mats[y_filt];
-
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
-                input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y_filt, 0, 0))),
-                    static_cast<EigenIndex>(f_width * f_depth),
-                    static_cast<EigenIndex>(out_width_temp * (out_height - 1) + out_width),
+                input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
+                static_cast<EigenIndex>(f_width * f_depth),
+                    static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
-                output_temp_map(&output_temp.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0)),
+                output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                 static_cast<EigenIndex>(out_depth),
-                static_cast<EigenIndex>(out_width_temp * out_height));
+                static_cast<EigenIndex>(out_width));
             
-            output_temp_map.noalias() += filter * input;
+            output_map.noalias() += filter * input;
         }
+    }
 
-        tensor output(tensor_shape_with_changed_rank(
-                tensor_shape(out_height, out_width, out_depth),
-                in.shape().rank()),
-            static_cast<float_type>(0));
+    if (filter_mat.use_bias_) {
         for (std::size_t y_out = 0; y_out < out_height; ++y_out)
         {
             for (std::size_t x_out = 0; x_out < out_width; ++x_out)
             {
                 for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
                 {
-                    output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) =
-                    output_temp.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) + filter_mat.biases_[z_out];
+                    output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) += filter_mat.biases_[z_out];
                 }
             }
         }
-        return output;
     }
-    else
-    {
-        tensor output(tensor_shape_with_changed_rank(
-                tensor_shape(out_height, out_width, out_depth),
-                in.shape().rank()),
-            static_cast<float_type>(0));
-        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
-        {
-            const ColMajorMatrixXf& filter = filter_mats[y_filt];
-            // todo: Would it help performance to get rid of that loop?
-            //       Rear VGG19 layers only have an input height of 14,
-            //       but are still faster with classical im2col,
-            //       so probably it would not help. But would need to be tested.
-            for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
-            {
-                Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
-                    input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
-                    static_cast<EigenIndex>(f_width * f_depth),
-                        static_cast<EigenIndex>(out_width),
-                        Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
-                
-                Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
-                    output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
-                    static_cast<EigenIndex>(out_depth),
-                    static_cast<EigenIndex>(out_width));
-                
-                output_map.noalias() += filter * input;
-            }
-        }
 
-        if (filter_mat.use_bias_) {
-            for (std::size_t y_out = 0; y_out < out_height; ++y_out)
-            {
-                for (std::size_t x_out = 0; x_out < out_width; ++x_out)
-                {
-                    for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
-                    {
-                        output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) += filter_mat.biases_[z_out];
-                    }
-                }
-            }
-        }
-        return output;
-    }
+    return output;
 }
 
 enum class padding { valid, same, causal };

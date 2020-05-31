@@ -151,7 +151,7 @@ Below you can find the average durations of multiple consecutive forward passes 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
 | `DenseNet121`     |     0.14 s |        0.23 s |
-| `DenseNet169`     |     0.15 s |        0.3ß s |
+| `DenseNet169`     |     0.15 s |        0.30 s |
 | `DenseNet201`     |     0.18 s |        0.36 s |
 | `InceptionV3`     |     0.17 s |        0.28 s |
 | `MobileNet`       |     0.05 s |        0.14 s |

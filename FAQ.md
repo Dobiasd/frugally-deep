@@ -10,6 +10,35 @@ In case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.
 
+Why is my prediction roughly 10 times slower in C++ as in Python?
+-----------------------------------------------------------------
+
+Maybe you are using your GPU in TensorFlow?
+Frugally-deep does not support GPUs.
+If you'd like to compare the performance of both libraries,
+disable the CPU for TensorFlow (`CUDA_VISIBLE_DEVICES=''`).
+
+Why is my prediction roughly 4 times slower in C++ as in Python?
+----------------------------------------------------------------
+
+TensorFlow uses multiple CPU cores, even for one prediction, if available.
+Frugally-deep does not do that.
+If you'd like to compare the performance of both libraries,
+allow only one CPU core to be used for TensorFlow (`taskset --cpu-list 1`).
+
+If you want more overall throughput, you can parallelize more on the "outside".
+See ["Does frugally-deep support multiple CPUs?"](#does-frugally-deep-support-multiple-cpus) for details.
+
+Why is my prediction roughly 2 times slower in C++ as in Python?
+----------------------------------------------------------------
+
+With single 2D convolutions, frugally-deep is quite fast,
+depending on the dimensions even faster than TensorFlow.
+But on some models, TensorFlow applies some fancy runtime-optimizations,
+like kernel fusion, etc. Frugally-deep does not support such things,
+so on some model types, you might experience an insurmountable
+performance difference.
+
 Why do I get some error when loading my `.json` file in C++?
 ------------------------------------------------------------
 

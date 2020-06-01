@@ -116,11 +116,12 @@ inline tensor convolve_accumulative(
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
-        // todo: Would it help performance to get rid of that loop?
-        //       Rear VGG19 layers only have an input height of 14,
-        //       but are still faster with classical im2col,
-        //       so probably it would not help. But would need to be tested.
-        //       Seems VGG19 would go down from 0.69 s to 0.57 s.
+        // This inner loop costs some performance.
+        // Getting rid of it, i.e., merging it to one larger GEMM,
+        // and afterwards dropping the superfluous results from "between" the rows,
+        // saves the forward-pass runtime of VGG19 about 15%.
+        // However, getting it to work for strides_x != 1 is not trivial,
+        // so currently it's multiple smaller GEMMs
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>

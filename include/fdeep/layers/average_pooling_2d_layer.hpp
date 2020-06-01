@@ -48,7 +48,6 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
     const std::size_t out_height = conv_cfg.out_height_;
     const std::size_t out_width = conv_cfg.out_width_;
 
-    // todo: Do we still need to support this, check test_model_exhaustive
     if (channels_first)
     {
         tensor out(tensor_shape(feature_count, out_height, out_width), 0);

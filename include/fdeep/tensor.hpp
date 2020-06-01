@@ -632,6 +632,10 @@ inline tensor pad_tensor(float_type val,
     std::size_t left_pad, std::size_t right_pad,
     const tensor& in)
 {
+    if (top_pad == 0 && bottom_pad == 0 && left_pad == 0 && right_pad == 0)
+    {
+        return in;
+    }
     tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,
@@ -640,11 +644,10 @@ inline tensor pad_tensor(float_type val,
     {
         for (std::size_t x = 0; x < in.shape().width_; ++x)
         {
-            for (std::size_t z = 0; z < in.shape().depth_; ++z)
-            {
-                result.set_ignore_rank(tensor_pos(y + top_pad, x + left_pad, z),
-                    in.get_ignore_rank(tensor_pos(y, x, z)));
-            }
+            auto result_ptr = &result.get_ref_ignore_rank(tensor_pos(0, 0, y + top_pad, x + left_pad, 0));
+            auto input_ptr = &in.get_ref_ignore_rank(tensor_pos(0, 0, y, x, 0));
+            auto input_ptr_end = input_ptr + in.shape().depth_;
+            std::copy(input_ptr, input_ptr_end, result_ptr);
         }
     }
     return result;

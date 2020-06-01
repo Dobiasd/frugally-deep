@@ -147,6 +147,7 @@ Performance
 -----------
 
 Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
+(see used [`Dockerfile`](test/Dockerfile))
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|

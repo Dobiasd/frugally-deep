@@ -185,11 +185,11 @@ See [`FAQ.md`](FAQ.md)
 Disclaimer
 
 ----------
-The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](https://github.com/Dobiasd/frugally-deep/issues). Of course, [contributions](https://github.com/Dobiasd/frugally-deep/pulls) are also very welcome.
+The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
 
 License
 -------
 
 Distributed under the MIT License.
-(See accompanying file [`LICENSE`](https://github.com/Dobiasd/frugally-deep/blob/master/LICENSE) or at
+(See accompanying file [`LICENSE`](LICENSE) or at
 [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT))

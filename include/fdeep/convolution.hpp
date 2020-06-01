@@ -93,11 +93,26 @@ inline tensor convolve_accumulative(
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
     assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
+    assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
     tensor output(tensor_shape_with_changed_rank(
             tensor_shape(out_height, out_width, out_depth),
             in.shape().rank()),
         static_cast<float_type>(0));
+
+    if (filter_mat.use_bias_) {
+        const auto bias_ptr = &filter_mat.biases_.front();
+        const auto bias_ptr_end = bias_ptr + out_depth;
+        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
+        {
+            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
+            {
+                auto output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, 0));
+                std::copy(bias_ptr, bias_ptr_end, output_ptr);
+            }
+        }
+    }
+    
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const ColMajorMatrixXf& filter = filter_mats[y_filt];
@@ -122,20 +137,7 @@ inline tensor convolve_accumulative(
             output_map.noalias() += filter * input;
         }
     }
-
-    if (filter_mat.use_bias_) {
-        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
-        {
-            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
-            {
-                for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
-                {
-                    output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) += filter_mat.biases_[z_out];
-                }
-            }
-        }
-    }
-
+    
     return output;
 }
 

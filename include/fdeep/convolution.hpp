@@ -131,8 +131,8 @@ inline tensor convolve_accumulative(
             
             Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
-                static_cast<EigenIndex>(out_depth),
-                static_cast<EigenIndex>(out_width));
+                    static_cast<EigenIndex>(out_depth),
+                    static_cast<EigenIndex>(out_width));
             
             output_map.noalias() += filter * input;
         }

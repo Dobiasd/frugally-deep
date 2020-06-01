@@ -1,13 +1,8 @@
 FROM python:3.7
 
 RUN apt-get update
-
-RUN apt-get install -y build-essential
-RUN g++ --version
-
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get install -y cmake
-RUN cmake --version
+RUN apt-get install -y build-essential cmake
 
 RUN pip install -U pip six numpy wheel setuptools mock 'future>=0.17.1'
 RUN pip install -U keras_applications --no-deps
@@ -26,7 +21,7 @@ RUN pip install /tmp/tensorflow_pkg/tensorflow-2.1.1-cp37-cp37m-linux_x86_64.whl
 WORKDIR /
 
 RUN git clone -b 'v0.2.7-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
-RUN git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror && cd eigen-git-mirror && mkdir -p build && cd build && cmake .. && make && make install && ln -s /usr/lo$
+RUN git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror && cd eigen-git-mirror && mkdir -p build && cd build && cmake .. && make && make install && ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 RUN git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DBUILD_TESTING=OFF .. && make && make install
 RUN git clone -b 'v0.14.2-p0' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 
@@ -37,5 +32,7 @@ RUN git clone -b 'customconvolution' --single-branch --depth 1 https://github.co
 RUN g++ -std=c++14 -O3 -march=native frugally-deep/test/applications_performance.cpp -o applications_performance
 
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+RUN g++ --version
+RUN cat /proc/cpuinfo | grep 'name' | uniq
 RUN cat python_results.txt | grep -e "average" -e "writing"
 RUN ./applications_performance

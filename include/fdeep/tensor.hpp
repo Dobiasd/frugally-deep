@@ -632,6 +632,10 @@ inline tensor pad_tensor(float_type val,
     std::size_t left_pad, std::size_t right_pad,
     const tensor& in)
 {
+    if (top_pad == 0 && bottom_pad == 0 && left_pad == 0 && right_pad == 0)
+    {
+        return in;
+    }
     tensor result(tensor_shape_with_changed_rank(tensor_shape(
         in.shape().height_ + top_pad + bottom_pad,
         in.shape().width_ + left_pad + right_pad,

@@ -42,6 +42,62 @@ protected:
     float_vec gamma_;
     float_type epsilon_;
 
+    static float_type apply_to_value_gamma_beta(
+        const float_vec& moving_mean, const float_vec& beta, const float_vec& gamma,
+        float_type val, float_type denom, std::size_t z)
+    {
+        val -= moving_mean[z];
+        val *= gamma[z];
+        val /= denom;
+        val += beta[z];
+        return val;
+    }
+
+    static float_type apply_to_value_gamma(
+        const float_vec& moving_mean, const float_vec&, const float_vec& gamma,
+        float_type val, float_type denom, std::size_t z)
+    {
+        val -= moving_mean[z];
+        val *= gamma[z];
+        val /= denom;
+        return val;
+    }
+
+    static float_type apply_to_value_beta(
+        const float_vec& moving_mean, const float_vec& beta, const float_vec&,
+        float_type val, float_type denom, std::size_t z)
+    {
+        val -= moving_mean[z];
+        val /= denom;
+        val += beta[z];
+        return val;
+    }
+
+    static float_type apply_to_value(
+        const float_vec& moving_mean, const float_vec&, const float_vec&,
+        float_type val, float_type denom, std::size_t z)
+    {
+        val -= moving_mean[z];
+        val /= denom;
+        return val;
+    }
+
+    template <typename F>
+    static void apply_to_channel(const F f,
+        const float_vec& moving_mean, const float_vec& beta, const float_vec& gamma,
+        const tensor& input, tensor& output, float_type denom, std::size_t z, std::size_t dim5, std::size_t dim4)
+    {
+        for (std::size_t y = 0; y < output.shape().height_; ++y)
+        {
+            for (std::size_t x = 0; x < output.shape().width_; ++x)
+            {
+                output.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
+                    f(moving_mean, beta, gamma,
+                        input.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)), denom, z));
+            }
+        }
+    }
+
     tensor apply_to_slices(const tensor& input) const
     {
         assertion(moving_mean_.size() == input.shape().depth_,
@@ -69,19 +125,17 @@ protected:
                 for (std::size_t z = 0; z < output.shape().depth_; ++z)
                 {
                     const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
-                    for (std::size_t y = 0; y < output.shape().height_; ++y)
-                    {
-                        for (std::size_t x = 0; x < output.shape().width_; ++x)
-                        {
-                            float_type val = input.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z));
-                            val -= moving_mean_[z];
-                            if (use_gamma)
-                                val *= gamma_[z];
-                            val /= denom;
-                            if (use_beta)
-                                val += beta_[z];
-                            output.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z), val);
-                        }
+                    if (use_gamma && use_beta) {
+                        apply_to_channel(apply_to_value_gamma_beta, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                    }
+                    else if (use_gamma) {
+                        apply_to_channel(apply_to_value_gamma, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                    }
+                    else if (use_beta) {
+                        apply_to_channel(apply_to_value_beta, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                    }
+                    else {
+                        apply_to_channel(apply_to_value, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
                     }
                 }
             }

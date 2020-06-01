@@ -45,7 +45,7 @@ protected:
         const auto& input = single_tensor_from_tensors(inputs);
         return {convolve(strides_, padding_, filters_, input)};
     }
-    im2col_filter_matrix filters_;
+    convolution_filter_matrices filters_;
     shape2 strides_;
     padding padding_;
 };

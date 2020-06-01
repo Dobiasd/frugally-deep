@@ -57,7 +57,7 @@ protected:
             "invalid input depth");
 
         const auto convolve_slice =
-            [&](const tensor& slice, const im2col_filter_matrix& f) -> tensor
+            [&](const tensor& slice, const convolution_filter_matrices& f) -> tensor
         {
             assertion(f.filter_shape_.depth_ == 1, "invalid filter depth");
             const auto result = convolve(strides_, padding_, f, slice);
@@ -71,7 +71,7 @@ protected:
             convolve_slice, input_slices, filters_depthwise_))};
     }
 
-    std::vector<im2col_filter_matrix> filters_depthwise_;
+    std::vector<convolution_filter_matrices> filters_depthwise_;
     shape2 strides_;
     padding padding_;
 };

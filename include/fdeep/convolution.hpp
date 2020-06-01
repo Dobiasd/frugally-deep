@@ -108,10 +108,13 @@ inline tensor convolve_accumulative(
             }
         }
     }
+
+    using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
+    using MappedColMajorMatrixXfUnalignedOuterStride = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>;
     
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+        const MappedColMajorMatrixXfUnaligned
             filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(out_depth),
                 static_cast<EigenIndex>(f_width * f_depth));
@@ -123,13 +126,13 @@ inline tensor convolve_accumulative(
         // so currently it's multiple smaller GEMMs
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
+            const MappedColMajorMatrixXfUnalignedOuterStride
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
                     static_cast<EigenIndex>(f_width * f_depth),
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+            MappedColMajorMatrixXfUnaligned
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(out_width));

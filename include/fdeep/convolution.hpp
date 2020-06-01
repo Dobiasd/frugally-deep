@@ -24,7 +24,7 @@ struct convolution_filter_matrices
     std::size_t filter_count_;
     float_vec biases_;
     bool use_bias_;
-    std::vector<ColMajorMatrixXf> filter_mats_;
+    tensor filter_mats_;
 };
 
 inline convolution_filter_matrices generate_im2col_filter_matrix(
@@ -44,11 +44,9 @@ inline convolution_filter_matrices generate_im2col_filter_matrix(
 
     const auto shape = filters.front().shape();
 
-    std::vector<ColMajorMatrixXf> filter_mats(
-        shape.height_,
-        ColMajorMatrixXf::Zero(
-            static_cast<EigenIndex>(filters.size()),
-            static_cast<EigenIndex>(shape.width_ * shape.depth_)));
+    tensor filter_mats = tensor(
+        tensor_shape(shape.height_, shape.width_, shape.depth_, filters.size()),
+        static_cast<float_type>(0));
 
     for (std::size_t y = 0; y < shape.height_; ++y)
     {
@@ -58,10 +56,8 @@ inline convolution_filter_matrices generate_im2col_filter_matrix(
             {
                 for (std::size_t z = 0; z < shape.depth_; ++z)
                 {
-                    filter_mats[y](
-                        static_cast<EigenIndex>(n),
-                        static_cast<EigenIndex>(x * shape.depth_ + z)
-                    ) = filters[n].get(tensor_pos(y, x, z));
+                    filter_mats.set(tensor_pos(y, x, z, n),
+                        filters[n].get(tensor_pos(y, x, z)));
                 }
             }
         }
@@ -84,14 +80,14 @@ inline tensor convolve_accumulative(
     const convolution_filter_matrices& filter_mat,
     const tensor& in)
 {
-    const std::vector<ColMajorMatrixXf>& filter_mats = filter_mat.filter_mats_;
+    const tensor& filter_mats = filter_mat.filter_mats_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
     const auto f_depth = filter_mat.filter_shape_.depth_;
     const auto out_depth = filter_mat.filter_count_;
 
     assertion(f_depth == in.shape().depth_, "filter depth does not match input");
-    assertion(filter_mats.size() == f_height, "incorrect number of filter levels in y direction");
+    assertion(filter_mats.shape().size_dim_4_ == f_height, "incorrect number of filter levels in y direction");
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
     assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
@@ -115,8 +111,10 @@ inline tensor convolve_accumulative(
     
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const ColMajorMatrixXf& filter = filter_mats[y_filt];
-        // todo:
+        const Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+            filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
+                static_cast<EigenIndex>(out_depth),
+                static_cast<EigenIndex>(f_width * f_depth));
         // This inner loop costs some performance.
         // Getting rid of it, i.e., merging it to one larger GEMM,
         // and afterwards dropping the superfluous results from "between" the rows,
@@ -125,9 +123,9 @@ inline tensor convolve_accumulative(
         // so currently it's multiple smaller GEMMs
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
+            const Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned, Eigen::OuterStride<>>
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
-                static_cast<EigenIndex>(f_width * f_depth),
+                    static_cast<EigenIndex>(f_width * f_depth),
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
             

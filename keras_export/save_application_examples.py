@@ -25,6 +25,7 @@ def save_model(file_name_base, model):
 
 def main():
     """Save famous example models in Keras-h5 and fdeep-json format."""
+    print('Saving application examples')
     save_model('densenet121', tensorflow.keras.applications.densenet.DenseNet121())
     save_model('densenet169', tensorflow.keras.applications.densenet.DenseNet169())
     save_model('densenet201', tensorflow.keras.applications.densenet.DenseNet201())

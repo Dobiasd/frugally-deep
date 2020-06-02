@@ -147,33 +147,34 @@ Performance
 -----------
 
 Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
+(see used [`Dockerfile`](test/Dockerfile))
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.14 s |        0.24 s |
+| `DenseNet121`     |     0.14 s |        0.23 s |
 | `DenseNet169`     |     0.15 s |        0.28 s |
 | `DenseNet201`     |     0.18 s |        0.36 s |
-| `InceptionV3`     |     0.17 s |        0.27 s |
+| `InceptionV3`     |     0.17 s |        0.31 s |
 | `MobileNet`       |     0.05 s |        0.14 s |
-| `MobileNetV2`     |     0.05 s |        0.17 s |
-| `NASNetLarge`     |     1.08 s |        3.46 s |
-| `NASNetMobile`    |     0.12 s |        0.30 s |
-| `ResNet101`       |     0.23 s |        0.31 s |
-| `ResNet101V2`     |     0.22 s |        0.28 s |
-| `ResNet152`       |     0.33 s |        0.45 s |
-| `ResNet152V2`     |     0.32 s |        0.42 s |
-| `ResNet50`        |     0.13 s |        0.19 s |
-| `ResNet50V2`      |     0.12 s |        0.16 s |
-| `VGG16`           |     0.40 s |        0.50 s |
-| `VGG19`           |     0.50 s |        0.58 s |
-| `Xception`        |     0.28 s |        1.05 s |
+| `MobileNetV2`     |     0.05 s |        0.15 s |
+| `NASNetLarge`     |     1.08 s |        3.60 s |
+| `NASNetMobile`    |     0.12 s |        0.29 s |
+| `ResNet101`       |     0.23 s |        0.44 s |
+| `ResNet101V2`     |     0.22 s |        0.40 s |
+| `ResNet152`       |     0.33 s |        0.62 s |
+| `ResNet152V2`     |     0.32 s |        0.59 s |
+| `ResNet50`        |     0.13 s |        0.25 s |
+| `ResNet50V2`      |     0.12 s |        0.22 s |
+| `VGG16`           |     0.40 s |        0.54 s |
+| `VGG19`           |     0.50 s |        0.66 s |
+| `Xception`        |     0.28 s |        1.07 s |
 
 Requirements and Installation
 -----------------------------
 
-- A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015.
-- Python 3.5 or higher.
-- TensorFlow 2.1.0
+- A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
+- Python 3.7 or higher
+- TensorFlow 2.1.1
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 
@@ -185,11 +186,11 @@ See [`FAQ.md`](FAQ.md)
 Disclaimer
 
 ----------
-The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](https://github.com/Dobiasd/frugally-deep/issues). Of course, [contributions](https://github.com/Dobiasd/frugally-deep/pulls) are also very welcome.
+The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
 
 License
 -------
 
 Distributed under the MIT License.
-(See accompanying file [`LICENSE`](https://github.com/Dobiasd/frugally-deep/blob/master/LICENSE) or at
+(See accompanying file [`LICENSE`](LICENSE) or at
 [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT))

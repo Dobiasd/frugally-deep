@@ -426,8 +426,8 @@ int main()
 {
     const fdeep::tensor tensor(
         fdeep::tensor_shape(static_cast<std::size_t>(4)),
-        std::vector<float>{1, 2, 3, 4})});
-    const std::vector<float> vec = *tensor.to_vector();
+        std::vector<float>{1, 2, 3, 4});
+    const std::vector<float> vec = tensor.to_vector();
 }
 ```
 

@@ -31,10 +31,10 @@ RUN CUDA_VISIBLE_DEVICES='' python3 ./frugally-deep/keras_export/save_applicatio
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 
 RUN rm -rf frugally-deep
-RUN git clone -b 'customconvolution' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
-RUN CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 python3 ./frugally-deep/keras_export/save_application_examples.py
-
+RUN git clone -b 'master' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 RUN g++ -std=c++14 -O3 -DNDEBUG -march=native frugally-deep/test/applications_performance.cpp -o applications_performance
-RUN g++ --version
+
 RUN cat /proc/cpuinfo | grep 'name' | uniq
+RUN g++ --version
+RUN CUDA_VISIBLE_DEVICES='' PYTHONUNBUFFERED=TRUE taskset --cpu-list 1 python3 ./frugally-deep/keras_export/save_application_examples.py | grep --line-buffered -e 'on average' -e 'Conversion of model'
 RUN ./applications_performance | grep --line-buffered -e 'on average' -e 'Loading, constructing, testing'

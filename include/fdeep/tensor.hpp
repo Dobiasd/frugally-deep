@@ -143,7 +143,7 @@ public:
     {
         return values_;
     }
-    float_vec_unaligned to_vector()
+    float_vec_unaligned to_vector() const
     {
         return float_vec_unaligned(fplus::convert_container<float_vec_unaligned>(*values_));
     }    

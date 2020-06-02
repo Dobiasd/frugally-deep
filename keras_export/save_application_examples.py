@@ -20,7 +20,7 @@ def save_model(file_name_base, model):
     model.save(keras_file, include_optimizer=False)
     print(f'Converting {keras_file} to {fdeep_file}.')
     convert_model.convert(keras_file, fdeep_file)
-    print(f'Done converting {keras_file} to {fdeep_file}.')
+    print(f'Conversion of model {keras_file} to {fdeep_file} done.')
 
 
 def main():

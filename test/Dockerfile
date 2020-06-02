@@ -25,14 +25,16 @@ RUN git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/
 RUN git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DBUILD_TESTING=OFF .. && make && make install
 RUN git clone -b 'v0.14.2-p0' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 
-RUN CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 python3 ./frugally-deep/keras_export/save_application_examples.py | tee python_results.txt
+# To have downloaded the Keras models already
+RUN CUDA_VISIBLE_DEVICES='' python3 ./frugally-deep/keras_export/save_application_examples.py
+
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 
 RUN rm -rf frugally-deep
 RUN git clone -b 'customconvolution' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
-RUN g++ -std=c++14 -O3 -march=native frugally-deep/test/applications_performance.cpp -o applications_performance
+RUN CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 python3 ./frugally-deep/keras_export/save_application_examples.py
 
-ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+RUN g++ -std=c++14 -O3 -DNDEBUG -march=native frugally-deep/test/applications_performance.cpp -o applications_performance
 RUN g++ --version
 RUN cat /proc/cpuinfo | grep 'name' | uniq
-RUN cat python_results.txt | grep -e "average" -e "writing"
-RUN ./applications_performance
+RUN ./applications_performance | grep --line-buffered -e 'on average' -e 'Loading, constructing, testing'

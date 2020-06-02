@@ -152,11 +152,11 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
-    # todo: check if TensorFlow 2.1 supports this
+    # todo: check if TensorFlow >= 2.1 supports this
     #outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
-    # todo: check if TensorFlow 2.1 supports this
+    # todo: check if TensorFlow >= 2.1 supports this
     #outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
 
@@ -189,7 +189,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=3)(inputs[2]))
     outputs.append(BatchNormalization(axis=4)(inputs[2]))
     outputs.append(BatchNormalization()(inputs[4]))
-    # todo: check if TensorFlow 2.1 supports this
+    # todo: check if TensorFlow >= 2.1 supports this
     #outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[4]))
     outputs.append(BatchNormalization(axis=3)(inputs[4]))
@@ -204,7 +204,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=1)(inputs[14]))
     outputs.append(BatchNormalization(axis=2)(inputs[14]))
     outputs.append(BatchNormalization()(inputs[16]))
-    # todo: check if TensorFlow 2.1 supports this
+    # todo: check if TensorFlow >= 2.1 supports this
     #outputs.append(BatchNormalization(axis=1)(inputs[16])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[16]))
     outputs.append(BatchNormalization(axis=3)(inputs[16]))

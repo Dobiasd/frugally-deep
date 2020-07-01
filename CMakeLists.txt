@@ -30,23 +30,20 @@ endif()
 find_package(Threads REQUIRED)
 target_link_libraries(fdeep INTERFACE Threads::Threads)
 
-hunter_add_package(FunctionalPlus) # default noop
-if(TARGET fdeep)                   # if used via subdirectory
-  # Note: Sadly, FunctionalPlus does not provide an alias for use as a subdirectory
-  target_link_libraries(fdeep INTERFACE fplus)
-else()
+hunter_add_package(FunctionalPlus)   # default noop
+if(NOT TARGET FunctionalPlus::fplus) # if not used via subdirectory
   find_package(FunctionalPlus CONFIG REQUIRED)
-  target_link_libraries(fdeep INTERFACE FunctionalPlus::fplus)
 endif()
+target_link_libraries(fdeep INTERFACE FunctionalPlus::fplus)
 
 hunter_add_package(Eigen)    # default noop
-if(NOT TARGET Eigen3::Eigen) # if used via subdirectory
+if(NOT TARGET Eigen3::Eigen) # if not used via subdirectory
     find_package(Eigen3 CONFIG REQUIRED)
 endif()
 target_link_libraries(fdeep INTERFACE Eigen3::Eigen)
 
 hunter_add_package(nlohmann_json) # default noop
-if(NOT TARGET nlohmann_json)      # if used via subdirectory
+if(NOT TARGET nlohmann_json)      # if not used via subdirectory
     find_package(nlohmann_json CONFIG REQUIRED)
 endif()
 target_link_libraries(fdeep INTERFACE nlohmann_json)

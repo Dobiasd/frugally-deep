@@ -30,16 +30,22 @@ endif()
 find_package(Threads REQUIRED)
 target_link_libraries(fdeep INTERFACE Threads::Threads)
 
-hunter_add_package(FunctionalPlus) # default noop
-find_package(FunctionalPlus CONFIG REQUIRED)
+hunter_add_package(FunctionalPlus)   # default noop
+if(NOT TARGET FunctionalPlus::fplus) # if not used via subdirectory
+  find_package(FunctionalPlus CONFIG REQUIRED)
+endif()
 target_link_libraries(fdeep INTERFACE FunctionalPlus::fplus)
 
-hunter_add_package(Eigen) # default noop
-find_package(Eigen3 CONFIG REQUIRED)
+hunter_add_package(Eigen)    # default noop
+if(NOT TARGET Eigen3::Eigen) # if not used via subdirectory
+    find_package(Eigen3 CONFIG REQUIRED)
+endif()
 target_link_libraries(fdeep INTERFACE Eigen3::Eigen)
 
 hunter_add_package(nlohmann_json) # default noop
-find_package(nlohmann_json CONFIG REQUIRED)
+if(NOT TARGET nlohmann_json)      # if not used via subdirectory
+    find_package(nlohmann_json CONFIG REQUIRED)
+endif()
 target_link_libraries(fdeep INTERFACE nlohmann_json)
 
 if(FDEEP_BUILD_UNITTEST)

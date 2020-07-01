@@ -32,12 +32,12 @@ target_link_libraries(fdeep INTERFACE Threads::Threads)
 
 hunter_add_package(FunctionalPlus) # default noop
 if(TARGET fdeep)                   # if used via subdirectory
-  # Note: Sadely, FunctionalPlus does not provide an alias for use as a subdirectory
+  # Note: Sadly, FunctionalPlus does not provide an alias for use as a subdirectory
   target_link_libraries(fdeep INTERFACE fplus)
 else()
   find_package(FunctionalPlus CONFIG REQUIRED)
   target_link_libraries(fdeep INTERFACE FunctionalPlus::fplus)
-(endif)
+endif()
 
 hunter_add_package(Eigen)    # default noop
 if(NOT TARGET Eigen3::Eigen) # if used via subdirectory

@@ -604,6 +604,8 @@ def get_all_weights(model):
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer))
+        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential']:
+            result = merge_two_disjunct_dicts(result, get_all_weights(layer.layer))
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',

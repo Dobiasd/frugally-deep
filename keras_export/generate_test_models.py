@@ -465,6 +465,19 @@ def get_test_model_recurrent():
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
 
+    nested_inputs = Input(shape=input_shapes[0][1:])
+    nested_x = Dense(5, activation='relu')(nested_inputs)
+    nested_predictions = Dense(3, activation='softmax')(nested_x)
+    nested_model = Model(inputs=nested_inputs, outputs=nested_predictions)
+    nested_model.compile(loss='categorical_crossentropy', optimizer='nadam')
+    outputs.append(TimeDistributed(nested_model)(inputs[0]))
+
+    nested_sequential_model = Sequential()
+    nested_sequential_model.add(Flatten(input_shape=input_shapes[0][1:]))
+    nested_sequential_model.compile(optimizer='rmsprop',
+                                    loss='categorical_crossentropy')
+    outputs.append(TimeDistributed(nested_sequential_model)(inputs[0]))
+
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')
 

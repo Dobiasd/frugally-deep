@@ -5,7 +5,7 @@ Why is my prediction roughly 100 times slower in C++ as in Python?
 ------------------------------------------------------------------
 
 Maybe you did not tell your C++ compiler to optimize for speed?
-For g++ and clang this can be done with `-O3`.
+For g++ and clang this can be done with `-O3` (and `-march=native`).
 In case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.

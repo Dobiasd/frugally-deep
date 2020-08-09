@@ -20,7 +20,7 @@ RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_p
 RUN pip install /tmp/tensorflow_pkg/tensorflow-2.1.1-cp37-cp37m-linux_x86_64.whl
 WORKDIR /
 
-RUN git clone -b 'v0.2.8-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
+RUN git clone -b 'v0.2.9-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
 RUN git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror && cd eigen-git-mirror && mkdir -p build && cd build && cmake .. && make && make install && ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 RUN git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DBUILD_TESTING=OFF .. && make && make install
 RUN git clone -b 'v0.14.4-p0' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install

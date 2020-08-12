@@ -764,7 +764,7 @@ def model_to_fdeep_json(model, no_tests=False):
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)
-    make_layer_names_unique(model)
+    make_layer_names_unique(model, '')
 
     test_data = None if no_tests else gen_test_data(model)
 

@@ -551,8 +551,6 @@ def get_test_model_lstm():
     model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
     model.compile(loss='mse', optimizer='nadam')
 
-
-
     # fit to dummy data
     training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)

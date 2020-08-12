@@ -7,7 +7,6 @@ import datetime
 import hashlib
 import json
 import sys
-import uuid
 
 import numpy as np
 from tensorflow.keras import backend as K
@@ -671,13 +670,14 @@ def convert_sequential_to_model(model):
     return model
 
 
-def make_layer_names_unique(model):
+def make_layer_names_unique(model, postfix_base):
     """To avoid collisions on similar layer names in multiple nested models"""
-    for layer in model.layers:
+    for idx, layer in enumerate(model.layers):
         layer_type = type(layer).__name__
+        postfix = postfix_base + str(idx)
         if layer_type in ['Model', 'Sequential']:
-            make_layer_names_unique(layer)
-        layer._name = layer.name + "_" + str(uuid.uuid4()) + "_"
+            make_layer_names_unique(layer, postfix + '_')
+        layer._name = layer.name + '_' + postfix
 
 
 def offset_conv2d_eval(depth, padding, x):

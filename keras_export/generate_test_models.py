@@ -551,6 +551,8 @@ def get_test_model_lstm():
     model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
     model.compile(loss='mse', optimizer='nadam')
 
+
+
     # fit to dummy data
     training_data_size = 2
     data_in = generate_input_data(training_data_size, input_shapes)
@@ -643,8 +645,9 @@ def get_test_model_gru_stateful_optional(stateful):
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
+    
     # fit to dummy data
-    training_data_size = 2
+    training_data_size = stateful_batch_size
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)

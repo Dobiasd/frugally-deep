@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import sys
+import uuid
 
 import numpy as np
 from tensorflow.keras import backend as K
@@ -603,7 +604,8 @@ def get_all_weights(model, prefix):
     for layer in layers:
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
-            result = merge_two_disjunct_dicts(result, get_all_weights(layer, layer.name))
+            result = merge_two_disjunct_dicts(
+                result, get_all_weights(layer, layer.name + "_" + str(uuid.uuid4()) + "_"))
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
@@ -614,7 +616,7 @@ def get_all_weights(model, prefix):
                     assert layer.data_format == 'channels_last'
 
             show_func = show_layer_functions.get(layer_type, None)
-            name = prefix + "_" + layer.name
+            name = prefix + layer.name
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)

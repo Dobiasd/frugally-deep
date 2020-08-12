@@ -677,7 +677,7 @@ def make_layer_names_unique(model):
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
             make_layer_names_unique(layer)
-        layer._init_set_name(layer.name + "_" + str(uuid.uuid4()) + "_")
+        layer._name = layer.name + "_" + str(uuid.uuid4()) + "_"
 
 
 def offset_conv2d_eval(depth, padding, x):

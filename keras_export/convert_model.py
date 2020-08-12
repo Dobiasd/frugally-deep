@@ -594,7 +594,7 @@ def is_ascii(some_string):
         return True
 
 
-def get_all_weights(model):
+def get_all_weights(model, prefix):
     """Serialize all weights of the models layers"""
     show_layer_functions = get_layer_functions_dict()
     result = {}
@@ -603,7 +603,7 @@ def get_all_weights(model):
     for layer in layers:
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
-            result = merge_two_disjunct_dicts(result, get_all_weights(layer))
+            result = merge_two_disjunct_dicts(result, get_all_weights(layer, layer.name))
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
@@ -614,7 +614,7 @@ def get_all_weights(model):
                     assert layer.data_format == 'channels_last'
 
             show_func = show_layer_functions.get(layer_type, None)
-            name = layer.name
+            name = prefix + "_" + layer.name
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
@@ -768,7 +768,7 @@ def model_to_fdeep_json(model, no_tests=False):
         json_output['tests'] = [test_data]
 
     print('Converting model weights.')
-    json_output['trainable_params'] = get_all_weights(model)
+    json_output['trainable_params'] = get_all_weights(model, "")
     print('Done converting model weights.')
 
     print('Calculating model hash.')

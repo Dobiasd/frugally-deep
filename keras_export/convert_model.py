@@ -595,7 +595,7 @@ def is_ascii(some_string):
         return True
 
 
-def get_all_weights(model, prefix):
+def get_all_weights(model):
     """Serialize all weights of the models layers"""
     show_layer_functions = get_layer_functions_dict()
     result = {}
@@ -604,8 +604,7 @@ def get_all_weights(model, prefix):
     for layer in layers:
         layer_type = type(layer).__name__
         if layer_type in ['Model', 'Sequential']:
-            result = merge_two_disjunct_dicts(
-                result, get_all_weights(layer, layer.name + "_" + str(uuid.uuid4()) + "_"))
+            result = merge_two_disjunct_dicts(result, get_all_weights(layer))
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
@@ -616,7 +615,7 @@ def get_all_weights(model, prefix):
                     assert layer.data_format == 'channels_last'
 
             show_func = show_layer_functions.get(layer_type, None)
-            name = prefix + layer.name
+            name = layer.name
             assert is_ascii(name)
             if name in result:
                 raise ValueError('duplicate layer name ' + name)
@@ -670,6 +669,15 @@ def convert_sequential_to_model(model):
             # "model.layers[i] = ..." would not overwrite the layer.
             model._layers[i] = convert_sequential_to_model(model.layers[i])
     return model
+
+
+def make_layer_names_unique(model):
+    """To avoid collisions on similar layer names in multiple nested models"""
+    for layer in model.layers:
+        layer_type = type(layer).__name__
+        if layer_type in ['Model', 'Sequential']:
+            make_layer_names_unique(layer)
+        layer._init_set_name(layer.name + "_" + str(uuid.uuid4()) + "_")
 
 
 def offset_conv2d_eval(depth, padding, x):
@@ -756,6 +764,7 @@ def model_to_fdeep_json(model, no_tests=False):
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)
+    make_layer_names_unique(model)
 
     test_data = None if no_tests else gen_test_data(model)
 
@@ -770,7 +779,7 @@ def model_to_fdeep_json(model, no_tests=False):
         json_output['tests'] = [test_data]
 
     print('Converting model weights.')
-    json_output['trainable_params'] = get_all_weights(model, "")
+    json_output['trainable_params'] = get_all_weights(model)
     print('Done converting model weights.')
 
     print('Calculating model hash.')

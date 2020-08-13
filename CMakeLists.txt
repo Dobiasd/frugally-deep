@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${FDEEP_TOP_DIR}/cmake")
 
 include(cmake/hunter.cmake) # default off
 
-project(frugally-deep VERSION 0.14.4)
+project(frugally-deep VERSION 0.15.0)
 
 message(STATUS "===( ${PROJECT_NAME} ${PROJECT_VERSION} )===")
 

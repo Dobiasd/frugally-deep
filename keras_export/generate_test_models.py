@@ -643,8 +643,9 @@ def get_test_model_gru_stateful_optional(stateful):
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
+    
     # fit to dummy data
-    training_data_size = 2
+    training_data_size = stateful_batch_size
     data_in = generate_input_data(training_data_size, input_shapes)
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
@@ -653,7 +654,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
 
 def get_test_model_variable():
-    """Returns a exhaustive model for variably shaped input tensors."""
+    """Returns a model with variably shaped input tensors."""
 
     input_shapes = [
         (None, None, 1),

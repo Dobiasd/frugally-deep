@@ -1108,6 +1108,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
 
     const wrapper_layer_creators wrapper_creators = {
             {"Model", create_model_layer},
+            {"Functional", create_model_layer},
             {"TimeDistributed", create_time_distributed_layer},
     };
 

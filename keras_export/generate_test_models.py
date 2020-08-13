@@ -654,7 +654,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
 
 def get_test_model_variable():
-    """Returns a exhaustive model for variably shaped input tensors."""
+    """Returns a model with variably shaped input tensors."""
 
     input_shapes = [
         (None, None, 1),

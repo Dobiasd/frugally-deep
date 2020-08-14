@@ -678,8 +678,6 @@ def make_layer_names_unique(model, postfix_base):
         postfix = postfix_base + str(idx)
         if layer_type in ['Model', 'Sequential', 'Functional']:
             make_layer_names_unique(layer, postfix + '_')
-        if layer_type == 'InputLayer':
-            continue
         layer._name = layer.name + '_' + postfix
 
 

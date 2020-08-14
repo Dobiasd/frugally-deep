@@ -676,7 +676,7 @@ def make_layer_names_unique(model, postfix_base):
     for idx, layer in enumerate(model.layers):
         layer_type = type(layer).__name__
         postfix = postfix_base + str(idx)
-        if layer_type in ['Model', 'Sequential']:
+        if layer_type in ['Model', 'Sequential', 'Functional']:
             make_layer_names_unique(layer, postfix + '_')
         layer._name = layer.name + '_' + postfix
 

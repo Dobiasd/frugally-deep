@@ -594,7 +594,7 @@ def is_ascii(some_string):
         return True
 
 
-def get_all_weights(model):
+def get_all_weights(model, prefix):
     """Serialize all weights of the models layers"""
     show_layer_functions = get_layer_functions_dict()
     result = {}
@@ -602,8 +602,12 @@ def get_all_weights(model):
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
         layer_type = type(layer).__name__
+        name = prefix + layer.name
+        assert is_ascii(name)
+        if name in result:
+            raise ValueError('duplicate layer name ' + name)
         if layer_type in ['Model', 'Sequential', 'Functional']:
-            result = merge_two_disjunct_dicts(result, get_all_weights(layer))
+            result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
@@ -614,10 +618,6 @@ def get_all_weights(model):
                     assert layer.data_format == 'channels_last'
 
             show_func = show_layer_functions.get(layer_type, None)
-            name = layer.name
-            assert is_ascii(name)
-            if name in result:
-                raise ValueError('duplicate layer name ' + name)
             shown_layer = None
             if show_func:
                 shown_layer = show_func(layer)
@@ -669,16 +669,6 @@ def convert_sequential_to_model(model):
             # "model.layers[i] = ..." would not overwrite the layer.
             model._layers[i] = convert_sequential_to_model(model.layers[i])
     return model
-
-
-def make_layer_names_unique(model, postfix_base):
-    """To avoid collisions on similar layer names in multiple nested models"""
-    for idx, layer in enumerate(model.layers):
-        layer_type = type(layer).__name__
-        postfix = postfix_base + str(idx)
-        if layer_type in ['Model', 'Sequential', 'Functional']:
-            make_layer_names_unique(layer, postfix + '_')
-        layer._name = layer.name + '_' + postfix
 
 
 def offset_conv2d_eval(depth, padding, x):
@@ -765,7 +755,6 @@ def model_to_fdeep_json(model, no_tests=False):
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)
-    make_layer_names_unique(model, '')
 
     test_data = None if no_tests else gen_test_data(model)
 
@@ -780,7 +769,7 @@ def model_to_fdeep_json(model, no_tests=False):
         json_output['tests'] = [test_data]
 
     print('Converting model weights.')
-    json_output['trainable_params'] = get_all_weights(model)
+    json_output['trainable_params'] = get_all_weights(model, '')
     print('Done converting model weights.')
 
     print('Calculating model hash.')

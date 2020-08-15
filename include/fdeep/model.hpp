@@ -314,7 +314,8 @@ inline model read_model(std::istream& model_file_stream,
     model full_model(internal::create_model_layer(
         get_param, json_data["architecture"],
         json_data["architecture"]["config"]["name"],
-        custom_layer_creators),
+        custom_layer_creators,
+        ""),
         internal::create_tensor_shapes_variable(json_data["input_shapes"]),
         internal::create_tensor_shapes_variable(json_data["output_shapes"]),
         internal::json_object_get<std::string, std::string>(

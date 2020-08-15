@@ -316,21 +316,34 @@ using wrapper_layer_creators =
             const get_param_f&,
             const nlohmann::json&,
             const std::string&,
-            const layer_creators&)>>;
+            const layer_creators&,
+            const std::string)>>;
 
 layer_ptr create_layer(const get_param_f&,
     const nlohmann::json&,
-    const layer_creators& custom_layer_creators);
+    const layer_creators& custom_layer_creators,
+    const std::string&);
 
 inline layer_ptr create_model_layer(const get_param_f& get_param,
     const nlohmann::json& data,
-    const std::string& name, const layer_creators& custom_layer_creators)
+    const std::string& name, const layer_creators& custom_layer_creators,
+    const std::string& prefix)
 {
     assertion(data["config"]["layers"].is_array(), "missing layers array");
 
+    const std::function<nlohmann::json(
+            const std::string&, const std::string&)>
+        get_prefixed_param = [&]
+        (const std::string& layer_name, const std::string& param_name)
+        -> nlohmann::json
+    {
+        return get_param(prefix + layer_name, param_name);
+    };
+
     const auto make_layer = [&](const nlohmann::json& json)
     {
-        return create_layer(get_param, json, custom_layer_creators);
+        return create_layer(get_prefixed_param, json,
+            custom_layer_creators, prefix);
     };
     const auto layers = create_vector<layer_ptr>(make_layer,
         data["config"]["layers"]);
@@ -1031,7 +1044,8 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
 inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
                                    const nlohmann::json& data,
                                    const std::string& name,
-                                   const layer_creators& custom_layer_creators)
+                                   const layer_creators& custom_layer_creators,
+                                   const std::string& prefix)
 {
     const std::string wrapped_layer_type = data["config"]["layer"]["class_name"];
     nlohmann::json data_inner_layer = data["config"]["layer"];
@@ -1040,14 +1054,15 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     const std::size_t td_input_len = std::size_t(decode_floats(get_param(name, "td_input_len")).front());
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 
-    layer_ptr inner_layer = create_layer(get_param, data_inner_layer, custom_layer_creators);
+    layer_ptr inner_layer = create_layer(get_param, data_inner_layer, custom_layer_creators, prefix);
 
     return std::make_shared<time_distributed_layer>(name, inner_layer, td_input_len, td_output_len);
 }
 
 inline layer_ptr create_layer(const get_param_f& get_param,
     const nlohmann::json& data,
-    const layer_creators& custom_layer_creators)
+    const layer_creators& custom_layer_creators,
+    const std::string& prefix)
 {
     const std::string name = data["name"];
 
@@ -1107,7 +1122,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     const wrapper_layer_creators wrapper_creators = {
             {"Model", create_model_layer},
             {"Functional", create_model_layer},
-            {"TimeDistributed", create_time_distributed_layer},
+            {"TimeDistributed", create_time_distributed_layer}
     };
 
     const std::string type = data["class_name"];
@@ -1115,7 +1130,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     if (fplus::map_contains(wrapper_creators, type))
     {
         auto result = fplus::get_from_map_unsafe(wrapper_creators, type)(
-            get_param, data, name, custom_layer_creators);
+            get_param, data, name, custom_layer_creators, prefix + name + "_");
         result->set_nodes(create_nodes(data));
         return result;
     }

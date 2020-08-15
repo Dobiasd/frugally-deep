@@ -316,7 +316,7 @@ def get_test_model_exhaustive():
     intermediate_in = Input(intermediate_input_shape)
     intermediate_x = intermediate_in
     intermediate_x = Dense(8)(intermediate_x)
-    intermediate_x = Dense(5)(intermediate_x)
+    intermediate_x = Dense(5, name='duplicate_layer_name')(intermediate_x)
     intermediate_model = Model(
         inputs=[intermediate_in], outputs=[intermediate_x],
         name='intermediate_model')
@@ -326,7 +326,7 @@ def get_test_model_exhaustive():
 
     intermediate_model_2 = Sequential()
     intermediate_model_2.add(Dense(7, input_shape=(5,)))
-    intermediate_model_2.add(Dense(5))
+    intermediate_model_2.add(Dense(5, name='duplicate_layer_name'))
     intermediate_model_2.compile(optimizer='rmsprop',
                                  loss='categorical_crossentropy')
 

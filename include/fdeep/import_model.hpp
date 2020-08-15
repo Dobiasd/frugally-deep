@@ -342,8 +342,8 @@ inline layer_ptr create_model_layer(const get_param_f& get_param,
 
     const auto make_layer = [&](const nlohmann::json& json)
     {
-        return create_layer(get_prefixed_param, json, custom_layer_creators,
-            prefix);
+        return create_layer(get_prefixed_param, json,
+            custom_layer_creators, prefix);
     };
     const auto layers = create_vector<layer_ptr>(make_layer,
         data["config"]["layers"]);

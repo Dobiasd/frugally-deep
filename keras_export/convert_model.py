@@ -594,9 +594,35 @@ def is_ascii(some_string):
         return True
 
 
+def get_layer_weights(layer, name):
+    """Serialize all weights of a single normal layer"""
+    result = {}
+    layer_type = type(layer).__name__
+    if hasattr(layer, 'data_format'):
+        if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
+                          'GlobalAveragePooling1D', 'GlobalMaxPooling1D', 'GlobalAveragePooling2D',
+                          'GlobalMaxPooling2D']:
+            assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
+        else:
+            assert layer.data_format == 'channels_last'
+
+    show_func = get_layer_functions_dict().get(layer_type, None)
+    shown_layer = None
+    if show_func:
+        shown_layer = show_func(layer)
+    if shown_layer:
+        result[name] = shown_layer
+    if show_func and layer_type == 'TimeDistributed':
+        if name not in result:
+            result[name] = {}
+
+        result[name]['td_input_len'] = encode_floats(np.array([len(layer.input_shape) - 1], dtype=np.float32))
+        result[name]['td_output_len'] = encode_floats(np.array([len(layer.output_shape) - 1], dtype=np.float32))
+    return result
+
+
 def get_all_weights(model, prefix):
     """Serialize all weights of the models layers"""
-    show_layer_functions = get_layer_functions_dict()
     result = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
@@ -608,29 +634,13 @@ def get_all_weights(model, prefix):
             raise ValueError('duplicate layer name ' + name)
         if layer_type in ['Model', 'Sequential', 'Functional']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
-        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential']:
-            result = merge_two_disjunct_dicts(result, get_all_weights(layer.layer, name + '_'))
+        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
+            inner_layer = layer.layer
+            inner_name = prefix + inner_layer.name
+            result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
+            result = merge_two_disjunct_dicts(result, get_all_weights(inner_layer, inner_name + '_'))
         else:
-            if hasattr(layer, 'data_format'):
-                if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
-                                  'GlobalAveragePooling1D', 'GlobalMaxPooling1D', 'GlobalAveragePooling2D',
-                                  'GlobalMaxPooling2D']:
-                    assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
-                else:
-                    assert layer.data_format == 'channels_last'
-
-            show_func = show_layer_functions.get(layer_type, None)
-            shown_layer = None
-            if show_func:
-                shown_layer = show_func(layer)
-            if shown_layer:
-                result[name] = shown_layer
-            if show_func and layer_type == 'TimeDistributed':
-                if name not in result:
-                    result[name] = {}
-
-                result[name]['td_input_len'] = encode_floats(np.array([len(layer.input_shape) - 1], dtype=np.float32))
-                result[name]['td_output_len'] = encode_floats(np.array([len(layer.output_shape) - 1], dtype=np.float32))
+            result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
     return result
 
 

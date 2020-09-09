@@ -193,6 +193,9 @@ before your first include of `fdeep.hpp`:
 #include <fdeep/fdeep.hpp>
 ```
 
+Doing so, however, will increase the memory usage of your application and might slow it down a bit.
+
+
 How to silence the logging output of `fdeep::model::load`?
 ----------------------------------------------------------
 

@@ -416,7 +416,7 @@ In case one already has an `std::vector<float>` with values, one can just constr
 int main()
 {
     const std::vector<float> v = {1, 2, 3};
-    fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), v);
+    const fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), v);
 }
 ```
 

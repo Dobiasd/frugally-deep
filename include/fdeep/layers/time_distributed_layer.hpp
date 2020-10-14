@@ -42,7 +42,7 @@ protected:
         tensors result_time_step = {};
         std::size_t len_series = 0;
         tensors slices = {};
-        std::int32_t concat_axis;
+        std::int32_t concat_axis = 0;
 
         if (td_input_len_ == 2)
         {

@@ -7,14 +7,14 @@ Installation
 You can install frugally-deep using cmake as shown below, or (if you prefer) download the [code](https://github.com/Dobiasd/frugally-deep/archive/master.zip) (and the [code](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip) of [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus)), extract it and tell your compiler to use the `include` directories.
 
 ```
-git clone -b 'v0.2.9-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
+git clone -b 'v0.2.13-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
 cd FunctionalPlus
 mkdir -p build && cd build
 cmake ..
 make && sudo make install
 cd ../..
 
-git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
+git clone -b '3.3.9' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
 cd eigen-git-mirror
 mkdir -p build && cd build
 cmake ..
@@ -22,7 +22,7 @@ make && sudo make install
 sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 cd ../..
 
-git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json
+git clone -b 'v3.9.1' --single-branch --depth 1 https://github.com/nlohmann/json
 cd json
 mkdir -p build && cd build
 cmake -DBUILD_TESTING=OFF ..

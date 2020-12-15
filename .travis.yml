@@ -33,18 +33,18 @@ install:
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
   # python libs
   - sudo pip3 install --upgrade pip
-  - sudo pip3 install numpy scipy h5py "tensorflow==2.3.0"
+  - sudo pip3 install numpy scipy h5py "tensorflow==2.4.0"
   - echo "Version numbers of TensorFlow and Keras:"
   - python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tensorflow.keras.__version__)"
   # FunctionalPlus
-  - git clone -b 'v0.2.9-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
+  - git clone -b 'v0.2.13-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
   - cd FunctionalPlus
   - mkdir -p build && cd build
   - cmake ..
   - make && sudo make install
   - cd ../..
   # Eigen
-  - git clone -b '3.3.7' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
+  - git clone -b '3.3.9' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
   - cd eigen-git-mirror
   - mkdir -p build && cd build
   - cmake ..
@@ -52,7 +52,7 @@ install:
   - sudo ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
   - cd ../..
   # json
-  - git clone -b 'v3.7.3' --single-branch --depth 1 https://github.com/nlohmann/json
+  - git clone -b 'v3.9.1' --single-branch --depth 1 https://github.com/nlohmann/json
   - cd json
   - mkdir -p build && cd build
   - cmake -DBUILD_TESTING=OFF ..

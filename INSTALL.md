@@ -14,8 +14,8 @@ cmake ..
 make && sudo make install
 cd ../..
 
-git clone -b '3.3.9' --single-branch --depth 1 https://github.com/eigenteam/eigen-git-mirror
-cd eigen-git-mirror
+git clone -b '3.3.9' --single-branch --depth 1 https://gitlab.com/libeigen/eigen.git
+cd eigen
 mkdir -p build && cd build
 cmake ..
 make && sudo make install

@@ -193,6 +193,9 @@ before your first include of `fdeep.hpp`:
 #include <fdeep/fdeep.hpp>
 ```
 
+Doing so, however, will increase the memory usage of your application and might slow it down a bit.
+
+
 How to silence the logging output of `fdeep::model::load`?
 ----------------------------------------------------------
 
@@ -413,7 +416,7 @@ In case one already has an `std::vector<float>` with values, one can just constr
 int main()
 {
     const std::vector<float> v = {1, 2, 3};
-    fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), v);
+    const fdeep::tensor t(fdeep::tensor_shape(3, 1, 1), v);
 }
 ```
 

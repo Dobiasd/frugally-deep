@@ -151,30 +151,30 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.12 s |        0.30 s |
-| `DenseNet169`     |     0.15 s |        0.37 s |
-| `DenseNet201`     |     0.18 s |        0.47 s |
-| `InceptionV3`     |     0.24 s |        0.34 s |
-| `MobileNet`       |     0.06 s |        0.19 s |
+| `DenseNet121`     |     0.11 s |        0.29 s |
+| `DenseNet169`     |     0.13 s |        0.36 s |
+| `DenseNet201`     |     0.16 s |        0.49 s |
+| `InceptionV3`     |     0.17 s |        0.35 s |
+| `MobileNet`       |     0.06 s |        0.20 s |
 | `MobileNetV2`     |     0.06 s |        0.22 s |
-| `NASNetLarge`     |     1.38 s |        4.62 s |
-| `NASNetMobile`    |     0.16 s |        0.39 s |
-| `ResNet101`       |     0.23 s |        0.49 s |
-| `ResNet101V2`     |     0.21 s |        0.45 s |
-| `ResNet152`       |     0.32 s |        0.70 s |
-| `ResNet152V2`     |     0.31 s |        0.67 s |
-| `ResNet50`        |     0.13 s |        0.28 s |
-| `ResNet50V2`      |     0.12 s |        0.24 s |
-| `VGG16`           |     0.40 s |        0.61 s |
-| `VGG19`           |     0.48 s |        0.74 s |
-| `Xception`        |     0.34 s |        1.25 s |
+| `NASNetLarge`     |     1.38 s |        4.83 s |
+| `NASNetMobile`    |     0.14 s |        0.40 s |
+| `ResNet101`       |     0.24 s |        0.50 s |
+| `ResNet101V2`     |     0.21 s |        0.47 s |
+| `ResNet152`       |     0.32 s |        0.72 s |
+| `ResNet152V2`     |     0.30 s |        0.69 s |
+| `ResNet50`        |     0.14 s |        0.28 s |
+| `ResNet50V2`      |     0.12 s |        0.25 s |
+| `VGG16`           |     0.41 s |        0.63 s |
+| `VGG19`           |     0.52 s |        0.76 s |
+| `Xception`        |     0.35 s |        1.26 s |
 
 Requirements and Installation
 -----------------------------
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.7 or higher
-- TensorFlow 2.3.0
+- TensorFlow 2.4.0
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

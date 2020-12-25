@@ -49,16 +49,16 @@ jobs:
         run: |
           # run unit tests
           mkdir -p build && cd build
-          #which $CXX
-          #$CXX --version
-          #cmake .. -DFDEEP_BUILD_UNITTEST=ON
-          #cmake --build . --target unittest --config Release --
-          #cd ..
+          which g++
+          g++ --version
+          cmake .. -DFDEEP_BUILD_UNITTEST=ON
+          cmake --build . --target unittest --config Release --
+          cd ..
           # run stateful tests
-          #cd test/stateful_test
-          #$CXX -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
-          #mkdir models
-          #python3 stateful_recurrent_tests.py
-          #cd ../..
+          cd test/stateful_test
+          g++ -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
+          mkdir models
+          python3 stateful_recurrent_tests.py
+          cd ../..
           # release possibly new version to conan
-          #python3 conan_build.py
+          python3 conan_build.py

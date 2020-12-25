@@ -60,5 +60,3 @@ jobs:
           mkdir models
           python3 stateful_recurrent_tests.py
           cd ../..
-          # release possibly new version to conan
-          python3 conan_build.py

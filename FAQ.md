@@ -336,13 +336,13 @@ int main()
     fdeep::tensor_into_bytes(tensor,
         image2.data, image2.rows * image2.cols * image2.channels());
 
-    // convert fdeep::tensor to float cv::Mat (tensor to image2)
+    // convert fdeep::tensor to float cv::Mat (tensor to image3)
     const cv::Mat image3(
         cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type_float);
     const auto values = tensor.to_vector();
     std::memcpy(image3.data, values.data(), values.size() * sizeof(float));
 
-    // normalize float image
+    // normalize float cv::Mat (image3 to image4)
     cv::Mat image4;
     cv::normalize(image3, image4, 1.0, 0.0, cv::NORM_MINMAX);
 

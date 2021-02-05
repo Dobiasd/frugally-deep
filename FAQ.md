@@ -304,8 +304,8 @@ int main()
 }
 ```
 
-How to convert an `fdeep::tensor` to an (OpenCV) image?
---------------------------------------------------------
+How to convert an `fdeep::tensor` to an (OpenCV) image and back?
+----------------------------------------------------------------
 
 Example code for how to:
 
@@ -318,7 +318,7 @@ Example code for how to:
 
 int main()
 {
-    const cv::Mat image1 = cv::imread("image.jpg");
+    const cv::Mat image1 = cv::imread("/home/tobias/Downloads/lennagray.png");
 
     // convert cv::Mat to fdeep::tensor (image1 to tensor)
     const fdeep::tensor tensor =
@@ -328,16 +328,29 @@ int main()
     // choose the correct pixel type for cv::Mat (gray or RGB/BGR)
     assert(tensor.shape().depth_ == 1 || tensor.shape().depth_ == 3);
     const int mat_type = tensor.shape().depth_ == 1 ? CV_8UC1 : CV_8UC3;
+    const int mat_type_float = tensor.shape().depth_ == 1 ? CV_32FC1 : CV_32FC3;
 
-    // convert fdeep::tensor to cv::Mat (tensor to image2)
+    // convert fdeep::tensor to byte cv::Mat (tensor to image2)
     const cv::Mat image2(
         cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type);
     fdeep::tensor_into_bytes(tensor,
         image2.data, image2.rows * image2.cols * image2.channels());
 
-    // show both images for visual verification
+    // convert fdeep::tensor to float cv::Mat (tensor to image2)
+    const cv::Mat image3(
+        cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type_float);
+    const auto values = tensor.to_vector();
+    std::memcpy(image3.data, values.data(), values.size() * sizeof(float));
+
+    // normalize float image
+    cv::Mat image4;
+    cv::normalize(image3, image4, 1.0, 0.0, cv::NORM_MINMAX);
+
+    // show images for visual verification
     cv::imshow("image1", image1);
     cv::imshow("image2", image2);
+    cv::imshow("image3", image3);
+    cv::imshow("image4", image4);
     cv::waitKey();
 }
 ```

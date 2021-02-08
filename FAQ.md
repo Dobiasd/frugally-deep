@@ -318,7 +318,7 @@ Example code for how to:
 
 int main()
 {
-    const cv::Mat image1 = cv::imread("/home/tobias/Downloads/lennagray.png");
+    const cv::Mat image1 = cv::imread("image.jpg");
 
     // convert cv::Mat to fdeep::tensor (image1 to tensor)
     const fdeep::tensor tensor =

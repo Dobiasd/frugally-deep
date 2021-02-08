@@ -342,15 +342,22 @@ int main()
     const auto values = tensor.to_vector();
     std::memcpy(image3.data, values.data(), values.size() * sizeof(float));
 
-    // normalize float cv::Mat (image3 to image4)
+    // normalize float cv::Mat into float cv::Mat (image3 to image4)
     cv::Mat image4;
     cv::normalize(image3, image4, 1.0, 0.0, cv::NORM_MINMAX);
+
+    // normalize float cv::Mat into byte cv::Mat (image3 to image5)
+    cv::Mat tempImage5;
+    cv::Mat image5;
+    cv::normalize(image3, tempImage5, 255.0, 0.0, cv::NORM_MINMAX);
+    tempImage5.convertTo(image5, mat_type);
 
     // show images for visual verification
     cv::imshow("image1", image1);
     cv::imshow("image2", image2);
     cv::imshow("image3", image3);
     cv::imshow("image4", image4);
+    cv::imshow("image5", image5);
     cv::waitKey();
 }
 ```

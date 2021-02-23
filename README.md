@@ -1,9 +1,8 @@
 ![logo](logo/fdeep.png)
 
-[![Build Status](https://travis-ci.org/Dobiasd/frugally-deep.svg?branch=master)][travis]
+[![CI](https://github.com/Dobiasd/frugally-deep/workflows/ci/badge.svg)](https://github.com/Dobiasd/frugally-deep/actions)
 [![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]
 
-[travis]: https://travis-ci.org/Dobiasd/frugally-deep
 [license]: LICENSE
 
 frugally-deep

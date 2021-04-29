@@ -84,7 +84,7 @@ The basic idea is to use the standard hunter setup but to add a git submodule to
 
 Your CMakeLists.txt should look something like
 
-```
+```cmake
 cmake_minimum_required(VERSION 3.0) # minimum requirement for Hunter
 
 include("cmake/HunterGate.cmake") # teach your project about Hunter (before project())
@@ -117,4 +117,19 @@ mkdir -p cmake/Hunter
 echo 'hunter_config(frugally-deep GIT_SUBMODULE "lib/frugally-deep")' > cmake/Hunter/config.cmake
 ```
 
+### Installation using [vcpkg](https://github.com/microsoft/vcpkg)
+See [Getting Started](https://github.com/microsoft/vcpkg#getting-started) to get vcpkg up and running.
+The only step after the installation of vcpkg is to install frugally-deep with 
+```bash
+vcpkg install frugally-deep
+```
+If you need double precision, install frugally-deep with
+```bash
+vcpkg install frugally-deep[double]
+```
 
+Then add the following lines to your CMakeFiles.txt: 
+```cmake
+find_package(frugally-deep CONFIG REQUIRED)
+target_link_libraries(main PRIVATE frugally-deep::fdeep)
+```

@@ -15,12 +15,12 @@ RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.
 RUN apt-get update && apt-get install bazel-3.1.0
 RUN ln -s /usr/bin/bazel-3.1.0 /usr/bin/bazel
 
-RUN git clone -b 'r2.4' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'r2.4.1' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build -c opt //tensorflow/tools/pip_package:build_pip_package
 RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
-RUN pip install /tmp/tensorflow_pkg/tensorflow-2.4.0-cp37-cp37m-linux_x86_64.whl
+RUN pip install /tmp/tensorflow_pkg/tensorflow-2.4.1-cp37-cp37m-linux_x86_64.whl
 WORKDIR /
 
 RUN git clone -b 'v0.2.14-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install

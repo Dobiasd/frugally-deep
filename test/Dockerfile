@@ -8,14 +8,14 @@ RUN pip install -U pip six numpy wheel setuptools mock 'future>=0.17.1'
 RUN pip install -U keras_applications --no-deps
 RUN pip install -U keras_preprocessing --no-deps
 
-RUN apt-get install curl gnupg
+RUN apt-get -y install curl gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
 RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt-get update && apt-get install bazel-3.1.0
+RUN apt-get update && apt-get install -y bazel-3.1.0
 RUN ln -s /usr/bin/bazel-3.1.0 /usr/bin/bazel
 
-RUN git clone -b 'r2.4.1' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'v2.4.1' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build -c opt //tensorflow/tools/pip_package:build_pip_package

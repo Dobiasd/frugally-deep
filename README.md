@@ -150,30 +150,30 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.11 s |        0.25 s |
+| `DenseNet121`     |     0.12 s |        0.25 s |
 | `DenseNet169`     |     0.13 s |        0.28 s |
 | `DenseNet201`     |     0.16 s |        0.39 s |
-| `InceptionV3`     |     0.17 s |        0.32 s |
-| `MobileNet`       |     0.06 s |        0.15 s |
-| `MobileNetV2`     |     0.07 s |        0.17 s |
-| `NASNetLarge`     |     1.31 s |        4.03 s |
-| `NASNetMobile`    |     0.13 s |        0.32 s |
-| `ResNet101`       |     0.24 s |        0.45 s |
-| `ResNet101V2`     |     0.22 s |        0.42 s |
+| `InceptionV3`     |     0.21 s |        0.32 s |
+| `MobileNet`       |     0.05 s |        0.15 s |
+| `MobileNetV2`     |     0.05 s |        0.17 s |
+| `NASNetLarge`     |     0.83 s |        4.03 s |
+| `NASNetMobile`    |     0.08 s |        0.32 s |
+| `ResNet101`       |     0.22 s |        0.45 s |
+| `ResNet101V2`     |     0.21 s |        0.42 s |
 | `ResNet152`       |     0.31 s |        0.65 s |
 | `ResNet152V2`     |     0.29 s |        0.61 s |
 | `ResNet50`        |     0.13 s |        0.26 s |
-| `ResNet50V2`      |     0.13 s |        0.22 s |
+| `ResNet50V2`      |     0.12 s |        0.22 s |
 | `VGG16`           |     0.40 s |        0.56 s |
 | `VGG19`           |     0.49 s |        0.68 s |
-| `Xception`        |     0.33 s |        1.20 s |
+| `Xception`        |     0.25 s |        1.20 s |
 
 Requirements and Installation
 -----------------------------
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.7 or higher
-- TensorFlow 2.4.1
+- TensorFlow 2.5.0
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

@@ -666,8 +666,13 @@ def convert_sequential_to_model(model):
     for i in range(len(model.layers)):
         layer_type = type(model.layers[i]).__name__
         if layer_type in ['Model', 'Sequential', 'Functional']:
-            # "model.layers[i] = ..." would not overwrite the layer.
-            model._layers[i] = convert_sequential_to_model(model.layers[i])
+            new_layer = convert_sequential_to_model(model.layers[i])
+            layers = getattr(model, '_layers', None)
+            if not layers:
+                layers = getattr(model, '_self_tracked_trackables', None)
+            if layers:
+                layers[i] = new_layer
+                assert model.layers[i] == new_layer
     return model
 
 

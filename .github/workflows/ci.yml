@@ -13,7 +13,7 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.5.0rc3"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.5.0"
           echo "Version numbers of TensorFlow and Keras:"
           python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tensorflow.keras.__version__)"
           # FunctionalPlus

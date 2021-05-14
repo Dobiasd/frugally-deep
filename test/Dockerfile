@@ -21,7 +21,7 @@ RUN ln -s /usr/bin/bazel-3.7.2 /usr/bin/bazel
 RUN git clone -b 'v2.5.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
-RUN bazel build --jobs 4 --local_ram_resources=HOST_RAM*.5 -c opt //tensorflow/tools/pip_package:build_pip_package
+RUN bazel build --jobs 3 --local_ram_resources=HOST_RAM*.3 -c opt //tensorflow/tools/pip_package:build_pip_package
 RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
 RUN pip install /tmp/tensorflow_pkg/tensorflow-2.5.0-cp38-cp38-linux_x86_64.whl
 WORKDIR /

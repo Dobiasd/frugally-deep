@@ -457,7 +457,7 @@ int main()
 Why are `Conv2DTranspose` layers not supported?
 -----------------------------------------------
 
-`UpSampling2D` layers seem to be the better alternative:
+The combination of `UpSampling2D` and `Conv2D` layers seem to be the better alternative:
 https://distill.pub/2016/deconv-checkerboard/
 
 Basically, instead of this:

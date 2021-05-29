@@ -71,7 +71,7 @@ Layer types typically used in image recognition/generation are supported, making
 
 `ActivityRegularization`,
 `AveragePooling3D`,
-`Conv2DTranspose`,
+`Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Conv3D`,
 `ConvLSTM2D`,
 `Cropping3D`,

@@ -521,7 +521,8 @@ def get_layer_functions_dict():
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
-        'Softmax': show_softmax_layer
+        'Softmax': show_softmax_layer,
+        'Reshape': show_reshape_layer
     }
 
 

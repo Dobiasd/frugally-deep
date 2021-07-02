@@ -111,6 +111,11 @@ inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
     {
         return fplus::nothing<std::size_t>();
     }
+    const int signed_result = data;
+    if (signed_result < 0)
+    {
+        return fplus::nothing<std::size_t>();
+    }
     const std::size_t result = data;
     return fplus::just(result);
 }
@@ -725,7 +730,7 @@ inline layer_ptr create_reshape_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto target_shape = create_tensor_shape(data["config"]["target_shape"]);
+    const auto target_shape = create_tensor_shape_variable(data["config"]["target_shape"]);
     return std::make_shared<reshape_layer>(name, target_shape);
 }
 

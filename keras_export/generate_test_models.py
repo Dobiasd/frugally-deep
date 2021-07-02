@@ -673,6 +673,8 @@ def get_test_model_variable():
     outputs.append(Conv2D(8, (3, 3), padding='same', activation='elu')(inputs[0]))
     outputs.append(Conv2D(8, (3, 3), padding='same', activation='relu')(inputs[1]))
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
+    outputs.append(Reshape((2, -1))(inputs[2]))
+    outputs.append(Reshape((-1, 2))(inputs[2]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[2]))
 

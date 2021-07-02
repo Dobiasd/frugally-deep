@@ -27,7 +27,8 @@ protected:
     tensors apply_impl(const tensors& inputs) const override
     {
         const auto& input = single_tensor_from_tensors(inputs);
-        // todo
+        const auto fixed_target_shape = derive_fixed_tensor_shape(
+            input.shape().volume(), target_shape_);
         return {tensor(fixed_target_shape, input.as_vector())};
     }
     tensor_shape_variable target_shape_;

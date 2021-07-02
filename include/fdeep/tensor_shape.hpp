@@ -206,6 +206,15 @@ inline tensor_shape make_tensor_shape_with(
             fplus::just_with_default(default_shape.depth_, shape.depth_));
 }
 
+inline tensor_shape derive_fixed_tensor_shape(
+    std::size_t values,
+    const tensor_shape_variable shape)
+{
+    const auto inferred = values / shape.minimal_volume();
+    return make_tensor_shape_with(
+        tensor_shape(inferred, inferred, inferred, inferred, inferred), shape);
+}
+
 inline bool tensor_shape_equals_tensor_shape_variable(
     const tensor_shape& lhs, const tensor_shape_variable& rhs)
 {

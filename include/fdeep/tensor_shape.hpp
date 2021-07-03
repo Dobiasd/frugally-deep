@@ -122,6 +122,24 @@ public:
         return rank_;
     }
 
+    std::size_t minimal_rank() const
+    {
+        if (size_dim_5_ > 1)
+            return 5;
+        if (size_dim_4_ > 1)
+            return 4;
+        if (height_ > 1)
+            return 3;
+        if (width_ > 1)
+            return 2;
+        return 1;
+    }
+
+    void shrink_rank()
+    {
+        rank_ = minimal_rank();
+    }
+
     std::vector<std::size_t> dimensions() const
     {
         if (rank() == 5)

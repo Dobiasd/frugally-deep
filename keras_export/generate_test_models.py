@@ -466,6 +466,7 @@ def get_test_model_recurrent():
 
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
+    outputs.append(TimeDistributed(BatchNormalization())(inputs[3]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')

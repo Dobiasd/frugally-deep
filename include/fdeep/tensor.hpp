@@ -123,6 +123,10 @@ public:
     {
         return shape_;
     }
+    void shrink_rank()
+    {
+        shape_.shrink_rank();
+    }
     std::size_t depth() const
     {
         return shape().depth_;

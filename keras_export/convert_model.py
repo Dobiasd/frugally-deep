@@ -356,6 +356,7 @@ def show_relu_layer(layer):
     """Serialize relu layer to dict"""
     assert layer.negative_slope == 0
     assert layer.threshold == 0
+    assert layer.max_value == 0
     return {}
 
 

@@ -14,7 +14,7 @@ from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
 from tensorflow.keras.layers import LSTM, GRU
-from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
+from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
@@ -253,6 +253,8 @@ def get_test_model_exhaustive():
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+
+    outputs.append(ReLU()(inputs[0]))
 
     for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
         outputs.append(Concatenate(axis=axis)([inputs[0], inputs[1]]))
@@ -646,7 +648,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
-    
+
     # fit to dummy data
     training_data_size = stateful_batch_size
     data_in = generate_input_data(training_data_size, input_shapes)

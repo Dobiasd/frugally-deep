@@ -596,6 +596,9 @@ def get_all_weights(model, prefix):
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
+        for node in layer.inbound_nodes:
+            if "training" in node.call_kwargs:
+                assert node.call_kwargs["training"] is not True, "Only inference mode is supported."
         layer_type = type(layer).__name__
         name = prefix + layer.name
         assert is_ascii(name)

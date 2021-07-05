@@ -598,7 +598,8 @@ def get_all_weights(model, prefix):
     for layer in layers:
         for node in layer.inbound_nodes:
             if "training" in node.call_kwargs:
-                assert node.call_kwargs["training"] is not True, "Only inference mode is supported."
+                assert node.call_kwargs["training"] is not True, \
+                    "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
         layer_type = type(layer).__name__
         name = prefix + layer.name
         assert is_ascii(name)

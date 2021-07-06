@@ -180,6 +180,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[32])))
 
     outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization()(inputs[0], training=True))
     outputs.append(BatchNormalization(axis=1)(inputs[0]))
     outputs.append(BatchNormalization(axis=2)(inputs[0]))
     outputs.append(BatchNormalization(axis=3)(inputs[0]))
@@ -223,6 +224,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=5)(inputs[20]))
 
     outputs.append(Dropout(0.5)(inputs[4]))
+    outputs.append(Dropout(0.5)(inputs[4], training=True))
 
     outputs.append(ZeroPadding2D(2)(inputs[4]))
     outputs.append(ZeroPadding2D((2, 3))(inputs[4]))

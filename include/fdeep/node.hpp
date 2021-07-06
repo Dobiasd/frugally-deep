@@ -17,31 +17,40 @@
 namespace fdeep { namespace internal
 {
 
+struct node_connection_options
+{
+    bool training_;
+};
+
 struct node_connection
 {
     node_connection(const std::string& layer_id,
         std::size_t node_idx,
-        std::size_t tensor_idx) :
-            layer_id_(layer_id), node_idx_(node_idx), tensor_idx_(tensor_idx)
+        std::size_t tensor_idx,
+        const node_connection_options& kwargs) :
+            layer_id_(layer_id), node_idx_(node_idx), tensor_idx_(tensor_idx),
+            kwargs_(kwargs)
     {}
-    std::pair<std::string, std::size_t> without_tensor_idx() const
+    std::tuple<std::string, std::size_t, bool> without_tensor_idx() const
     {
-        return std::make_pair(layer_id_, node_idx_);
+        return std::make_tuple(layer_id_, node_idx_, kwargs_.training_);
     }
     std::string layer_id_;
     std::size_t node_idx_;
     std::size_t tensor_idx_;
+    node_connection_options kwargs_;
 };
 using node_connections = std::vector<node_connection>;
 
-using output_dict = std::map<std::pair<std::string, std::size_t>, tensors>;
+using output_dict = std::map<std::tuple<std::string, std::size_t, bool>, tensors>;
 
 class layer;
 typedef std::shared_ptr<layer> layer_ptr;
 typedef std::vector<layer_ptr> layer_ptrs;
 layer_ptr get_layer(const layer_ptrs& layers, const std::string& layer_id);
 tensor get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
-    const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx);
+    const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx,
+    const node_connection_options& kwargs);
 tensors apply_layer(const layer& layer, const tensors& inputs);
 
 class node
@@ -59,7 +68,7 @@ public:
         {
             return get_layer_output(layers, output_cache,
                 get_layer(layers, conn.layer_id_),
-                conn.node_idx_, conn.tensor_idx_);
+                conn.node_idx_, conn.tensor_idx_, conn.kwargs_);
         };
         return apply_layer(layer,
             fplus::transform(get_input, inbound_connections_));

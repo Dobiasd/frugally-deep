@@ -247,6 +247,43 @@ inline int create_int(const nlohmann::json& int_data)
     return val;
 }
 
+void from_json(const nlohmann::json& j, node_connection_options& nco) {
+    j.at("training").get_to(nco.training_);
+}
+
+inline node_connection_options create_node_connection_options(nlohmann::json map_data)
+{
+    try
+    {
+        return map_data.get<node_connection_options>();
+    }
+    catch (const nlohmann::detail::out_of_range&)
+    {
+        return node_connection_options {false};
+    }
+    catch (const nlohmann::detail::type_error&)
+    {
+        return node_connection_options {false};
+    }
+}
+
+inline std::map<std::string, std::string> create_string_string_map(const nlohmann::json& map_data)
+{
+    try
+    {
+        const std::map<std::string, nlohmann::json> raw_val = map_data;
+        const auto val = 
+            fplus::transform_map_values([](const nlohmann::json& raw_v) {
+                const std::string v = raw_v.get<std::string>();
+                return v;
+            }, raw_val);
+        return val;
+    } catch (const nlohmann::detail::type_error&)
+    {
+        return std::map<std::string, std::string>();
+    }
+}
+
 inline float_vec decode_floats(const nlohmann::json& data)
 {
     assertion(data.is_array() || data.is_string(),
@@ -300,7 +337,8 @@ inline node_connection create_node_connection(const nlohmann::json& data)
     const std::string layer_id = data.front();
     const auto node_idx = create_size_t(data[1]);
     const auto tensor_idx = create_size_t(data[2]);
-    return node_connection(layer_id, node_idx, tensor_idx);
+    const auto kwargs = create_node_connection_options(data[3]);
+    return node_connection(layer_id, node_idx, tensor_idx, kwargs);
 }
 
 using get_param_f =

@@ -61,19 +61,21 @@ public:
 
     virtual tensor get_output(const layer_ptrs& layers,
         output_dict& output_cache,
-        std::size_t node_idx, std::size_t tensor_idx) const
+        std::size_t node_idx, std::size_t tensor_idx,
+        const node_connection_options& kwargs) const
     {
-        const node_connection conn(name_, node_idx, tensor_idx);
+        const auto cache_key = node_connection(name_, node_idx, tensor_idx,
+            kwargs).without_tensor_idx();
 
-        if (!fplus::map_contains(output_cache, conn.without_tensor_idx()))
+        if (!fplus::map_contains(output_cache, cache_key))
         {
             assertion(node_idx < nodes_.size(), "invalid node index");
-            output_cache[conn.without_tensor_idx()] =
+            output_cache[cache_key] =
                 nodes_[node_idx].get_output(layers, output_cache, *this);
         }
 
         const auto& outputs = fplus::get_from_map_unsafe(
-            output_cache, conn.without_tensor_idx());
+            output_cache, cache_key);
 
         assertion(tensor_idx < outputs.size(),
             "invalid tensor index");
@@ -103,9 +105,10 @@ protected:
 inline tensor get_layer_output(const layer_ptrs& layers,
     output_dict& output_cache,
     const layer_ptr& layer,
-    std::size_t node_idx, std::size_t tensor_idx)
+    std::size_t node_idx, std::size_t tensor_idx,
+    const node_connection_options& kwargs)
 {
-    return layer->get_output(layers, output_cache, node_idx, tensor_idx);
+    return layer->get_output(layers, output_cache, node_idx, tensor_idx, kwargs);
 }
 
 inline tensors apply_layer(const layer& layer, const tensors& inputs)

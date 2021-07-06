@@ -38,12 +38,13 @@ public:
     }
 
     tensor get_output(const layer_ptrs& layers, output_dict& output_cache,
-        std::size_t node_idx, std::size_t tensor_idx) const override
+        std::size_t node_idx, std::size_t tensor_idx,
+        const node_connection_options& kwargs) const override
     {
         // https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
         node_idx = node_idx - 1;
         assertion(node_idx < nodes_.size(), "invalid node index");
-        return layer::get_output(layers, output_cache, node_idx, tensor_idx);
+        return layer::get_output(layers, output_cache, node_idx, tensor_idx, kwargs);
     }
     void reset_states() override
     {
@@ -79,7 +80,8 @@ protected:
             (const node_connection& conn) -> tensor
         {
             return get_layer(layers_, conn.layer_id_)->get_output(
-                layers_, output_cache, conn.node_idx_, conn.tensor_idx_);
+                layers_, output_cache, conn.node_idx_, conn.tensor_idx_,
+                conn.kwargs_);
         };
         return fplus::transform(get_output, output_connections_);
     }

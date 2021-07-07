@@ -477,6 +477,30 @@ architecture to make that change,
 feel free to implement `Conv2DTranspose` in frugally-deep and
 submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)
 
+How can I use `BatchNormalization` and `Dropout` layers with `training=True`?
+-----------------------------------------------------------------------------
+
+Frugally-deep does not support `training=True` on the inbound nodes.
+
+But if you'd like to remove this flag from this helps, you can use the following function to do so before using `convert_model.py`:
+
+```python3
+def remove_training_flags(old_model_path, new_model_path):
+    def do_remove(model):
+        layers = model.layers
+        for layer in layers:
+            for node in layer.inbound_nodes:
+                if "training" in node.call_kwargs and node.call_kwargs["training"] is True:
+                    print(f"Removing training=True from inbound node to layer named {layer.name}.")
+                    del node.call_kwargs["training"]
+            layer_type = type(layer).__name__
+            if layer_type in ['Model', 'Sequential', 'Functional']:
+                do_remove(layer)
+        return model
+
+    do_remove(load_model(old_model_path)).save(new_model_path, include_optimizer=False)
+```
+
 How to use custom layers?
 -------------------------
 

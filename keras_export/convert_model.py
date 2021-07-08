@@ -618,7 +618,6 @@ def get_layer_weights(layer, name):
 
 def get_all_weights(model, prefix):
     """Serialize all weights of the models layers"""
-    show_layer_functions = get_layer_functions_dict()
     result = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'

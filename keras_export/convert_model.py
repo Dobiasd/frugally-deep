@@ -635,9 +635,8 @@ def get_all_weights(model, prefix):
             result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
         elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
             inner_layer = layer.layer
-            inner_name = prefix + inner_layer.name
             result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
-            result = merge_two_disjunct_dicts(result, get_all_weights(inner_layer, inner_name + '_'))
+            result = merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + "_"))
         else:
             result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
     return result
@@ -676,12 +675,22 @@ def convert_sequential_to_model(model):
     assert model.layers
     for i in range(len(model.layers)):
         layer_type = type(model.layers[i]).__name__
-        if layer_type in ['Model', 'Sequential', 'Functional']:
+        if layer_type not in ['Model', 'Sequential', 'Functional'] and \
+                not (layer_type == 'TimeDistributed' and
+                     type(model.layers[i].layer).__name__ in ['Model', 'Sequential', 'Functional']):
+            continue
+        if layer_type == 'TimeDistributed':
+            new_layer = convert_sequential_to_model(model.layers[i].layer)
+        else:
             new_layer = convert_sequential_to_model(model.layers[i])
-            layers = getattr(model, '_layers', None)
-            if not layers:
-                layers = getattr(model, '_self_tracked_trackables', None)
-            if layers:
+        layers = getattr(model, '_layers', None)
+        if not layers:
+            layers = getattr(model, '_self_tracked_trackables', None)
+        if layers:
+            if layer_type == 'TimeDistributed':
+                layers[i].layer = new_layer
+                assert model.layers[i].layer == new_layer
+            else:
                 layers[i] = new_layer
                 assert model.layers[i] == new_layer
     return model

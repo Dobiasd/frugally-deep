@@ -14,7 +14,7 @@ from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
 from tensorflow.keras.layers import LSTM, GRU
-from tensorflow.keras.layers import LeakyReLU, ELU, PReLU
+from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
@@ -135,8 +135,10 @@ def get_test_model_exhaustive():
     outputs.append(Cropping1D((2, 3))(inputs[6]))
     outputs.append(MaxPooling1D(2)(inputs[6]))
     outputs.append(MaxPooling1D(2, strides=2, padding='same')(inputs[6]))
+    outputs.append(MaxPooling1D(2, data_format="channels_first")(inputs[6]))
     outputs.append(AveragePooling1D(2)(inputs[6]))
     outputs.append(AveragePooling1D(2, strides=2, padding='same')(inputs[6]))
+    outputs.append(AveragePooling1D(2, data_format="channels_first")(inputs[6]))
     outputs.append(GlobalMaxPooling1D()(inputs[6]))
     outputs.append(GlobalMaxPooling1D(data_format="channels_first")(inputs[6]))
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
@@ -252,6 +254,8 @@ def get_test_model_exhaustive():
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
 
+    outputs.append(ReLU()(inputs[0]))
+
     for axis in [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]:
         outputs.append(Concatenate(axis=axis)([inputs[0], inputs[1]]))
     for axis in [-4, -3, -2, -1, 1, 2, 3, 4]:
@@ -345,6 +349,7 @@ def get_test_model_exhaustive():
         Activation('softmax')(inputs[25]),
         Activation('softmax')(inputs[25]),
         Activation('relu')(inputs[25]),
+        Activation('swish')(inputs[25]),
         LeakyReLU()(inputs[25]),
         ELU()(inputs[25]),
         PReLU()(inputs[24]),
@@ -464,6 +469,7 @@ def get_test_model_recurrent():
 
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
+    outputs.append(TimeDistributed(BatchNormalization())(inputs[3]))
 
     nested_inputs = Input(shape=input_shapes[0][1:])
     nested_x = Dense(5, activation='relu')(nested_inputs)
@@ -656,7 +662,7 @@ def get_test_model_gru_stateful_optional(stateful):
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
     model.compile(loss='mse', optimizer='nadam')
-    
+
     # fit to dummy data
     training_data_size = stateful_batch_size
     data_in = generate_input_data(training_data_size, input_shapes)
@@ -684,6 +690,8 @@ def get_test_model_variable():
     outputs.append(Conv2D(8, (3, 3), padding='same', activation='elu')(inputs[0]))
     outputs.append(Conv2D(8, (3, 3), padding='same', activation='relu')(inputs[1]))
     outputs.append(GlobalMaxPooling2D()(inputs[0]))
+    outputs.append(Reshape((2, -1))(inputs[2]))
+    outputs.append(Reshape((-1, 2))(inputs[2]))
     outputs.append(MaxPooling2D()(inputs[1]))
     outputs.append(AveragePooling1D()(inputs[2]))
 

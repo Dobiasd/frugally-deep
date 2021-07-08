@@ -122,6 +122,24 @@ public:
         return rank_;
     }
 
+    std::size_t minimal_rank() const
+    {
+        if (size_dim_5_ > 1)
+            return 5;
+        if (size_dim_4_ > 1)
+            return 4;
+        if (height_ > 1)
+            return 3;
+        if (width_ > 1)
+            return 2;
+        return 1;
+    }
+
+    void shrink_rank()
+    {
+        rank_ = minimal_rank();
+    }
+
     std::vector<std::size_t> dimensions() const
     {
         if (rank() == 5)
@@ -204,6 +222,15 @@ inline tensor_shape make_tensor_shape_with(
             fplus::just_with_default(default_shape.height_, shape.height_),
             fplus::just_with_default(default_shape.width_, shape.width_),
             fplus::just_with_default(default_shape.depth_, shape.depth_));
+}
+
+inline tensor_shape derive_fixed_tensor_shape(
+    std::size_t values,
+    const tensor_shape_variable shape)
+{
+    const auto inferred = values / shape.minimal_volume();
+    return make_tensor_shape_with(
+        tensor_shape(inferred, inferred, inferred, inferred, inferred), shape);
 }
 
 inline bool tensor_shape_equals_tensor_shape_variable(

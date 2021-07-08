@@ -304,8 +304,8 @@ int main()
 }
 ```
 
-How to convert an `fdeep::tensor` to an (OpenCV) image?
---------------------------------------------------------
+How to convert an `fdeep::tensor` to an (OpenCV) image and back?
+----------------------------------------------------------------
 
 Example code for how to:
 
@@ -328,16 +328,36 @@ int main()
     // choose the correct pixel type for cv::Mat (gray or RGB/BGR)
     assert(tensor.shape().depth_ == 1 || tensor.shape().depth_ == 3);
     const int mat_type = tensor.shape().depth_ == 1 ? CV_8UC1 : CV_8UC3;
+    const int mat_type_float = tensor.shape().depth_ == 1 ? CV_32FC1 : CV_32FC3;
 
-    // convert fdeep::tensor to cv::Mat (tensor to image2)
+    // convert fdeep::tensor to byte cv::Mat (tensor to image2)
     const cv::Mat image2(
         cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type);
     fdeep::tensor_into_bytes(tensor,
         image2.data, image2.rows * image2.cols * image2.channels());
 
-    // show both images for visual verification
+    // convert fdeep::tensor to float cv::Mat (tensor to image3)
+    const cv::Mat image3(
+        cv::Size(tensor.shape().width_, tensor.shape().height_), mat_type_float);
+    const auto values = tensor.to_vector();
+    std::memcpy(image3.data, values.data(), values.size() * sizeof(float));
+
+    // normalize float cv::Mat into float cv::Mat (image3 to image4)
+    cv::Mat image4;
+    cv::normalize(image3, image4, 1.0, 0.0, cv::NORM_MINMAX);
+
+    // normalize float cv::Mat into byte cv::Mat (image3 to image5)
+    cv::Mat tempImage5;
+    cv::Mat image5;
+    cv::normalize(image3, tempImage5, 255.0, 0.0, cv::NORM_MINMAX);
+    tempImage5.convertTo(image5, mat_type);
+
+    // show images for visual verification
     cv::imshow("image1", image1);
     cv::imshow("image2", image2);
+    cv::imshow("image3", image3);
+    cv::imshow("image4", image4);
+    cv::imshow("image5", image5);
     cv::waitKey();
 }
 ```
@@ -437,7 +457,7 @@ int main()
 Why are `Conv2DTranspose` layers not supported?
 -----------------------------------------------
 
-`UpSampling2D` layers seem to be the better alternative:
+The combination of `UpSampling2D` and `Conv2D` layers seem to be the better alternative:
 https://distill.pub/2016/deconv-checkerboard/
 
 Basically, instead of this:
@@ -456,6 +476,30 @@ In case you are not in the position to change your model's
 architecture to make that change,
 feel free to implement `Conv2DTranspose` in frugally-deep and
 submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)
+
+How can I use `BatchNormalization` and `Dropout` layers with `training=True`?
+-----------------------------------------------------------------------------
+
+Frugally-deep does not support `training=True` on the inbound nodes.
+
+But if you'd like to remove this flag from this helps, you can use the following function to do so before using `convert_model.py`:
+
+```python3
+def remove_training_flags(old_model_path, new_model_path):
+    def do_remove(model):
+        layers = model.layers
+        for layer in layers:
+            for node in layer.inbound_nodes:
+                if "training" in node.call_kwargs and node.call_kwargs["training"] is True:
+                    print(f"Removing training=True from inbound node to layer named {layer.name}.")
+                    del node.call_kwargs["training"]
+            layer_type = type(layer).__name__
+            if layer_type in ['Model', 'Sequential', 'Functional']:
+                do_remove(layer)
+        return model
+
+    do_remove(load_model(old_model_path)).save(new_model_path, include_optimizer=False)
+```
 
 How to use custom layers?
 -------------------------

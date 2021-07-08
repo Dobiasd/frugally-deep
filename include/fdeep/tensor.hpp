@@ -84,7 +84,7 @@ public:
         {
             return pad_value;
         }
-        return get(tensor_pos(y, static_cast<std::size_t>(x), static_cast<std::size_t>(z)));
+        return get_ignore_rank(tensor_pos(y, static_cast<std::size_t>(x), static_cast<std::size_t>(z)));
     }
     void set(const tensor_pos& pos, float_type value)
     {
@@ -122,6 +122,10 @@ public:
     const tensor_shape& shape() const
     {
         return shape_;
+    }
+    void shrink_rank()
+    {
+        shape_.shrink_rank();
     }
     std::size_t depth() const
     {

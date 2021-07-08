@@ -1,0 +1,8 @@
+[requires]
+eigen/3.3.9
+functionalplus/v0.2.14-p0
+jsonformoderncpp/3.1.0
+
+[generators]
+cmake_find_package
+cmake_paths

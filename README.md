@@ -1,9 +1,8 @@
 ![logo](logo/fdeep.png)
 
-[![Build Status](https://travis-ci.org/Dobiasd/frugally-deep.svg?branch=master)][travis]
+[![CI](https://github.com/Dobiasd/frugally-deep/workflows/ci/badge.svg)](https://github.com/Dobiasd/frugally-deep/actions)
 [![(License MIT 1.0)](https://img.shields.io/badge/license-MIT%201.0-blue.svg)][license]
 
-[travis]: https://travis-ci.org/Dobiasd/frugally-deep
 [license]: LICENSE
 
 frugally-deep
@@ -48,7 +47,7 @@ Layer types typically used in image recognition/generation are supported, making
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
 * `Cropping1D/2D`, `ZeroPadding1D/2D`
 * `BatchNormalization`, `Dense`, `Flatten`
-* `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
+* `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`, `RandomRotation`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
 * `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
@@ -72,7 +71,7 @@ Layer types typically used in image recognition/generation are supported, making
 
 `ActivityRegularization`,
 `AveragePooling3D`,
-`Conv2DTranspose`,
+`Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Conv3D`,
 `ConvLSTM2D`,
 `Cropping3D`,
@@ -151,30 +150,30 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.11 s |        0.29 s |
-| `DenseNet169`     |     0.13 s |        0.36 s |
-| `DenseNet201`     |     0.16 s |        0.49 s |
-| `InceptionV3`     |     0.17 s |        0.35 s |
-| `MobileNet`       |     0.06 s |        0.20 s |
-| `MobileNetV2`     |     0.06 s |        0.22 s |
-| `NASNetLarge`     |     1.38 s |        4.83 s |
-| `NASNetMobile`    |     0.14 s |        0.40 s |
-| `ResNet101`       |     0.24 s |        0.50 s |
-| `ResNet101V2`     |     0.21 s |        0.47 s |
-| `ResNet152`       |     0.32 s |        0.72 s |
-| `ResNet152V2`     |     0.30 s |        0.69 s |
-| `ResNet50`        |     0.14 s |        0.28 s |
-| `ResNet50V2`      |     0.12 s |        0.25 s |
-| `VGG16`           |     0.41 s |        0.63 s |
-| `VGG19`           |     0.52 s |        0.76 s |
-| `Xception`        |     0.35 s |        1.26 s |
+| `DenseNet121`     |     0.12 s |        0.25 s |
+| `DenseNet169`     |     0.13 s |        0.28 s |
+| `DenseNet201`     |     0.16 s |        0.39 s |
+| `InceptionV3`     |     0.21 s |        0.32 s |
+| `MobileNet`       |     0.05 s |        0.15 s |
+| `MobileNetV2`     |     0.05 s |        0.17 s |
+| `NASNetLarge`     |     0.83 s |        4.03 s |
+| `NASNetMobile`    |     0.08 s |        0.32 s |
+| `ResNet101`       |     0.22 s |        0.45 s |
+| `ResNet101V2`     |     0.21 s |        0.42 s |
+| `ResNet152`       |     0.31 s |        0.65 s |
+| `ResNet152V2`     |     0.29 s |        0.61 s |
+| `ResNet50`        |     0.13 s |        0.26 s |
+| `ResNet50V2`      |     0.12 s |        0.22 s |
+| `VGG16`           |     0.40 s |        0.56 s |
+| `VGG19`           |     0.49 s |        0.68 s |
+| `Xception`        |     0.25 s |        1.20 s |
 
 Requirements and Installation
 -----------------------------
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.7 or higher
-- TensorFlow 2.4.0
+- TensorFlow 2.5.0
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

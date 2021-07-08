@@ -65,6 +65,7 @@
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
+#include "fdeep/layers/swish_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/time_distributed_layer.hpp"
 #include "fdeep/layers/upsampling_1d_layer.hpp"
@@ -108,6 +109,11 @@ inline bool json_obj_has_member(const nlohmann::json& data,
 inline fplus::maybe<std::size_t> create_maybe_size_t(const nlohmann::json& data)
 {
     if (data.is_null())
+    {
+        return fplus::nothing<std::size_t>();
+    }
+    const int signed_result = data;
+    if (signed_result < 0)
     {
         return fplus::nothing<std::size_t>();
     }
@@ -725,7 +731,7 @@ inline layer_ptr create_reshape_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto target_shape = create_tensor_shape(data["config"]["target_shape"]);
+    const auto target_shape = create_tensor_shape_variable(data["config"]["target_shape"]);
     return std::make_shared<reshape_layer>(name, target_shape);
 }
 
@@ -762,6 +768,13 @@ inline activation_layer_ptr create_sigmoid_layer(
     const std::string& name)
 {
     return std::make_shared<sigmoid_layer>(name);
+}
+
+inline activation_layer_ptr create_swish_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+{
+    return std::make_shared<swish_layer>(name);
 }
 
 inline activation_layer_ptr create_hard_sigmoid_layer(
@@ -870,6 +883,7 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"softplus", create_softplus_layer},
         {"tanh", create_tanh_layer},
         {"sigmoid", create_sigmoid_layer},
+        {"swish", create_swish_layer},
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
         {"selu", create_selu_layer},
@@ -1083,6 +1097,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"SpatialDropout1D", create_identity_layer},
             {"SpatialDropout2D", create_identity_layer},
             {"SpatialDropout3D", create_identity_layer},
+            {"RandomRotation", create_identity_layer},
             {"LeakyReLU", create_leaky_relu_layer_isolated},
             {"Permute", create_permute_layer },
             {"PReLU", create_prelu_layer },

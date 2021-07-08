@@ -51,7 +51,11 @@ FDEEP_FORCE_INLINE tensor max_pool_2d(
 
     if (channels_first)
     {
-        tensor out(tensor_shape(feature_count, out_height, out_width), 0);
+        tensor out(
+            tensor_shape_with_changed_rank(
+                tensor_shape(feature_count, out_height, out_width),
+                in.shape().rank()),
+            0);
 
         for (std::size_t z = 0; z < feature_count; ++z)
         {

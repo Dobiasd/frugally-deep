@@ -356,6 +356,7 @@ def show_relu_layer(layer):
     """Serialize relu layer to dict"""
     assert layer.negative_slope == 0
     assert layer.threshold == 0
+    assert layer.max_value == None
     return {}
 
 
@@ -497,12 +498,6 @@ def show_softmax_layer(layer):
     assert layer.axis == -1
 
 
-def show_reshape_layer(layer):
-    """Serialize reshape layer to dict"""
-    for dim_size in layer.target_shape:
-        assert dim_size != -1, 'Reshape inference not supported'
-
-
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -627,6 +622,10 @@ def get_all_weights(model, prefix):
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
+        for node in layer.inbound_nodes:
+            if "training" in node.call_kwargs:
+                assert node.call_kwargs["training"] is not True, \
+                    "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
         layer_type = type(layer).__name__
         name = prefix + layer.name
         assert is_ascii(name)
@@ -678,8 +677,13 @@ def convert_sequential_to_model(model):
     for i in range(len(model.layers)):
         layer_type = type(model.layers[i]).__name__
         if layer_type in ['Model', 'Sequential', 'Functional']:
-            # "model.layers[i] = ..." would not overwrite the layer.
-            model._layers[i] = convert_sequential_to_model(model.layers[i])
+            new_layer = convert_sequential_to_model(model.layers[i])
+            layers = getattr(model, '_layers', None)
+            if not layers:
+                layers = getattr(model, '_self_tracked_trackables', None)
+            if layers:
+                layers[i] = new_layer
+                assert model.layers[i] == new_layer
     return model
 
 

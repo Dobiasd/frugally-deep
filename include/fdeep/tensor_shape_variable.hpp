@@ -87,6 +87,16 @@ public:
     {
     }
 
+    std::size_t minimal_volume() const
+    {
+        return
+            fplus::just_with_default<std::size_t>(1, size_dim_5_) *
+            fplus::just_with_default<std::size_t>(1, size_dim_4_) *
+            fplus::just_with_default<std::size_t>(1, height_) *
+            fplus::just_with_default<std::size_t>(1, width_) *
+            fplus::just_with_default<std::size_t>(1, depth_);
+    }
+
     std::size_t rank() const
     {
         return rank_;

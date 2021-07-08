@@ -67,6 +67,11 @@ protected:
         else
             raise_error("invalid input dim for TimeDistributed");
 
+        for (auto& slice: slices)
+        {
+            slice.shrink_rank();
+        }
+
         if (td_output_len_ == 2)
             concat_axis = 2;
         else if (td_output_len_ == 3)

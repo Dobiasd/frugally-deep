@@ -607,6 +607,8 @@ def get_all_weights(model, prefix):
             raise ValueError('duplicate layer name ' + name)
         if layer_type in ['Model', 'Sequential', 'Functional']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
+        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
+            assert False, "Models nested in a TimeDistributed layer are not supported."
         else:
             if hasattr(layer, 'data_format'):
                 if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',

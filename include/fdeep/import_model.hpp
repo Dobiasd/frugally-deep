@@ -1065,7 +1065,6 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     nlohmann::json data_inner_layer = data["config"]["layer"];
     data_inner_layer["name"] = data["name"];
     data_inner_layer["inbound_nodes"] = data["inbound_nodes"];
-
     const std::size_t td_input_len = std::size_t(decode_floats(get_param(name, "td_input_len")).front());
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 

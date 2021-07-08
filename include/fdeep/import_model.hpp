@@ -1066,7 +1066,6 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
     data_inner_layer["name"] = data["name"];
     data_inner_layer["inbound_nodes"] = data["inbound_nodes"];
 
-    // todo: Does not work when using nested models as inner layer. Fix it.
     const std::size_t td_input_len = std::size_t(decode_floats(get_param(name, "td_input_len")).front());
     const std::size_t td_output_len = std::size_t(decode_floats(get_param(name, "td_output_len")).front());
 

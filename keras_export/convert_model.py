@@ -677,14 +677,14 @@ def convert_sequential_to_model(model):
     if type(model).__name__ in ['Model', 'Functional']:
         for i in range(len(model.layers)):
             new_layer = convert_sequential_to_model(model.layers[i])
-            if new_layer == model.layers[i]:
-                continue
             layers = getattr(model, '_layers', None)
             if not layers:
                 layers = getattr(model, '_self_tracked_trackables', None)
             if layers:
-                layers[i].layer = new_layer
-                assert model.layers[i].layer == new_layer
+                if new_layer == layers[i]:
+                    continue
+                layers[i] = new_layer
+                assert model.layers[i] == new_layer
     return model
 
 

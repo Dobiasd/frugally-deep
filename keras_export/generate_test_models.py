@@ -155,11 +155,11 @@ def get_test_model_exhaustive():
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
     # todo: check if TensorFlow >= 2.1 supports this
-    #outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
+    # outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
     # todo: check if TensorFlow >= 2.1 supports this
-    #outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
+    # outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
@@ -192,7 +192,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=4)(inputs[2]))
     outputs.append(BatchNormalization()(inputs[4]))
     # todo: check if TensorFlow >= 2.1 supports this
-    #outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
+    # outputs.append(BatchNormalization(axis=1)(inputs[4])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[4]))
     outputs.append(BatchNormalization(axis=3)(inputs[4]))
     outputs.append(BatchNormalization()(inputs[6]))
@@ -207,7 +207,7 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=2)(inputs[14]))
     outputs.append(BatchNormalization()(inputs[16]))
     # todo: check if TensorFlow >= 2.1 supports this
-    #outputs.append(BatchNormalization(axis=1)(inputs[16])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
+    # outputs.append(BatchNormalization(axis=1)(inputs[16])) # tensorflow.python.framework.errors_impl.InternalError:  The CPU implementation of FusedBatchNorm only supports NHWC tensor format for now.
     outputs.append(BatchNormalization(axis=2)(inputs[16]))
     outputs.append(BatchNormalization(axis=3)(inputs[16]))
     outputs.append(BatchNormalization()(inputs[18]))
@@ -335,6 +335,18 @@ def get_test_model_exhaustive():
                                  loss='categorical_crossentropy')
 
     x = intermediate_model_2(x)  # (1, 1, 5)
+
+    intermediate_model_3_nested = Sequential()
+    intermediate_model_3_nested.add(Dense(7, input_shape=(6,)))
+    intermediate_model_3_nested.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+
+    intermediate_model_3 = Sequential()
+    intermediate_model_3.add(Dense(6, input_shape=(5,)))
+    intermediate_model_3.add(intermediate_model_3_nested)
+    intermediate_model_3.add(Dense(8))
+    intermediate_model_3.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+
+    x = intermediate_model_3(x)  # (1, 1, 8)
 
     x = Dense(3)(x)  # (1, 1, 3)
 

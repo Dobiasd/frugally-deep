@@ -65,6 +65,7 @@
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
+#include "fdeep/layers/swish_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
 #include "fdeep/layers/time_distributed_layer.hpp"
 #include "fdeep/layers/upsampling_1d_layer.hpp"
@@ -769,6 +770,13 @@ inline activation_layer_ptr create_sigmoid_layer(
     return std::make_shared<sigmoid_layer>(name);
 }
 
+inline activation_layer_ptr create_swish_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+{
+    return std::make_shared<swish_layer>(name);
+}
+
 inline activation_layer_ptr create_hard_sigmoid_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -875,6 +883,7 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"softplus", create_softplus_layer},
         {"tanh", create_tanh_layer},
         {"sigmoid", create_sigmoid_layer},
+        {"swish", create_swish_layer},
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
         {"selu", create_selu_layer},

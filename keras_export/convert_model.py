@@ -672,25 +672,17 @@ def convert_sequential_to_model(model):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
             model.inbound_nodes = inbound_nodes
-    assert model.layers
-    for i in range(len(model.layers)):
-        layer_type = type(model.layers[i]).__name__
-        if layer_type not in ['Model', 'Sequential', 'Functional'] and \
-                not (layer_type == 'TimeDistributed' and
-                     type(model.layers[i].layer).__name__ in ['Model', 'Sequential', 'Functional']):
-            continue
-        if layer_type == 'TimeDistributed':
-            new_layer = convert_sequential_to_model(model.layers[i].layer)
-        else:
+    if type(model).__name__ == 'TimeDistributed':
+        model.layer = convert_sequential_to_model(model.layer)
+    if type(model).__name__ in ['Model', 'Functional']:
+        for i in range(len(model.layers)):
             new_layer = convert_sequential_to_model(model.layers[i])
-        layers = getattr(model, '_layers', None)
-        if not layers:
-            layers = getattr(model, '_self_tracked_trackables', None)
-        if layers:
-            if layer_type == 'TimeDistributed':
-                layers[i].layer = new_layer
-                assert model.layers[i].layer == new_layer
-            else:
+            layers = getattr(model, '_layers', None)
+            if not layers:
+                layers = getattr(model, '_self_tracked_trackables', None)
+            if layers:
+                if new_layer == layers[i]:
+                    continue
                 layers[i] = new_layer
                 assert model.layers[i] == new_layer
     return model

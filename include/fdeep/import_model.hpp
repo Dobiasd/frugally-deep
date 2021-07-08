@@ -1076,7 +1076,7 @@ inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
 inline layer_ptr create_layer(const get_param_f& get_param,
     const nlohmann::json& data,
     const layer_creators& custom_layer_creators,
-    const std::string& prefix)
+    const std::string&)
 {
     const std::string name = data["name"];
 
@@ -1145,7 +1145,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
     if (fplus::map_contains(wrapper_creators, type))
     {
         auto result = fplus::get_from_map_unsafe(wrapper_creators, type)(
-            get_param, data, name, custom_layer_creators, prefix + name + "_");
+            get_param, data, name, custom_layer_creators, name + "_");
         result->set_nodes(create_nodes(data));
         return result;
     }

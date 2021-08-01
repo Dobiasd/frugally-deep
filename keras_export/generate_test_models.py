@@ -18,7 +18,7 @@ from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
-from tensorflow.keras.layers import Permute, Reshape
+from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -248,6 +248,8 @@ def get_test_model_exhaustive():
     outputs.append(Reshape((2, 2, 4))(inputs[8]))
     outputs.append(Reshape((2, 2, 2, 2))(inputs[8]))
     outputs.append(Reshape((2, 2, 1, 2, 2))(inputs[8]))
+
+    outputs.append(RepeatVector(3)(inputs[8]))
 
     outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))

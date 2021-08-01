@@ -58,6 +58,7 @@
 #include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/pooling_2d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
+#include "fdeep/layers/repeat_vector_layer.hpp"
 #include "fdeep/layers/reshape_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/selu_layer.hpp"
@@ -727,6 +728,14 @@ inline layer_ptr create_cropping_2d_layer(
     }
 }
 
+inline layer_ptr create_repeat_vector_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const std::size_t n = data["config"]["n"];
+    return std::make_shared<repeat_vector_layer>(name, n);
+}
+
 inline layer_ptr create_reshape_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -1124,6 +1133,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Cropping1D", create_cropping_2d_layer},
             {"Cropping2D", create_cropping_2d_layer},
             {"Activation", create_activation_layer},
+            {"RepeatVector", create_repeat_vector_layer},
             {"Reshape", create_reshape_layer},
             {"Embedding", create_embedding_layer},
             {"LSTM", create_lstm_layer},

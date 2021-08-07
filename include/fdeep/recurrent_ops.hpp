@@ -56,6 +56,23 @@ inline float_type selu_activation(float_type x)
     return scale * (x >= 0 ? x : alpha * (std::exp(x) - 1));
 }
 
+inline float_type exponential_activation(float_type x)
+{
+    return static_cast<float_type>(std::exp(x));
+}
+
+inline float_type gelu_activation(float_type x)
+{
+    return static_cast<float_type>(0.5) * x *
+        (static_cast<float_type>(1) +
+            static_cast<float_type>(std::erf(x / std::sqrt(static_cast<float_type>(2)))));
+}
+
+inline float_type softsign_activation(float_type x)
+{
+    return x / (std::abs(x) + static_cast<float_type>(1));
+}
+
 inline float_type elu_activation(float_type x)
 {
     return x >= 0 ? x : std::exp(x) - 1;

@@ -26,6 +26,7 @@
 #endif
 
 #include "fdeep/common.hpp"
+
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_2d_layer.hpp"
@@ -37,7 +38,9 @@
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
+#include "fdeep/layers/exponential_layer.hpp"
 #include "fdeep/layers/flatten_layer.hpp"
+#include "fdeep/layers/gelu_layer.hpp"
 #include "fdeep/layers/global_average_pooling_1d_layer.hpp"
 #include "fdeep/layers/global_max_pooling_1d_layer.hpp"
 #include "fdeep/layers/global_average_pooling_2d_layer.hpp"
@@ -65,6 +68,7 @@
 #include "fdeep/layers/sigmoid_layer.hpp"
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
+#include "fdeep/layers/softsign_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/swish_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
@@ -814,6 +818,27 @@ inline activation_layer_ptr create_selu_layer(
     return std::make_shared<selu_layer>(name);
 }
 
+inline activation_layer_ptr create_exponential_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<exponential_layer>(name);
+}
+
+inline activation_layer_ptr create_gelu_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<gelu_layer>(name);
+}
+
+inline activation_layer_ptr create_softsign_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<softsign_layer>(name);
+}
+
 inline activation_layer_ptr create_leaky_relu_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -896,7 +921,10 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
         {"selu", create_selu_layer},
-        {"elu", create_elu_layer}
+        {"elu", create_elu_layer},
+        {"exponential", create_exponential_layer},
+        {"gelu", create_gelu_layer},
+        {"softsign", create_softsign_layer}
     };
 
     return fplus::throw_on_nothing(

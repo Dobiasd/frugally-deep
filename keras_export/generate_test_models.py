@@ -877,7 +877,7 @@ def main():
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
-        print(model.summary())
+        model.summary()
         # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
 
 

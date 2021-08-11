@@ -49,7 +49,8 @@ Layer types typically used in image recognition/generation are supported, making
 * `BatchNormalization`, `Dense`, `Flatten`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
-* `RandomRotation`, `RandomContrast`
+* `RandomContrast`, `RandomFlip`, `RandomHeight`
+* `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
 * `MaxPooling1D/2D`, `GlobalMaxPooling1D/2D`
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`

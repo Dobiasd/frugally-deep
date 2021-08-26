@@ -811,6 +811,13 @@ inline activation_layer_ptr create_relu_layer(
     return std::make_shared<relu_layer>(name, max_value);
 }
 
+inline activation_layer_ptr create_relu6_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<relu_layer>(name, static_cast<float_type>(6));
+}
+
 inline activation_layer_ptr create_selu_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -920,6 +927,7 @@ inline activation_layer_ptr create_activation_layer_type_name(
         {"swish", create_swish_layer},
         {"hard_sigmoid", create_hard_sigmoid_layer},
         {"relu", create_relu_layer},
+        {"relu6", create_relu6_layer},
         {"selu", create_selu_layer},
         {"elu", create_elu_layer},
         {"exponential", create_exponential_layer},

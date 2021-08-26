@@ -362,6 +362,7 @@ def get_test_model_exhaustive():
         Activation('softplus')(inputs[25]),
         Activation('softmax')(inputs[25]),
         Activation('relu')(inputs[25]),
+        Activation('relu6')(inputs[25]),
         Activation('swish')(inputs[25]),
         Activation('exponential')(inputs[25]),
         Activation('gelu')(inputs[25]),

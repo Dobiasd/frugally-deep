@@ -815,7 +815,6 @@ inline activation_layer_ptr create_relu6_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    float_type max_value = std::numeric_limits<float_type>::max();
     return std::make_shared<relu_layer>(name, static_cast<float_type>(6));
 }
 

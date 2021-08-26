@@ -812,7 +812,7 @@ inline activation_layer_ptr create_relu_layer(
 }
 
 inline activation_layer_ptr create_relu6_layer(
-    const get_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
     return std::make_shared<relu_layer>(name, static_cast<float_type>(6));

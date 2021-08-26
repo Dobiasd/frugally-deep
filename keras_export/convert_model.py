@@ -352,14 +352,6 @@ def show_prelu_layer(layer):
     return result
 
 
-def show_relu_layer(layer):
-    """Serialize relu layer to dict"""
-    assert layer.negative_slope == 0
-    assert layer.threshold == 0
-    assert layer.max_value == None
-    return {}
-
-
 def show_embedding_layer(layer):
     """Serialize Embedding layer to dict"""
     weights = layer.get_weights()
@@ -507,7 +499,6 @@ def get_layer_functions_dict():
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
         'PReLU': show_prelu_layer,
-        'ReLU': show_relu_layer,
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,

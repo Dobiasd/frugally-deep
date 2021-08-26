@@ -802,20 +802,28 @@ inline activation_layer_ptr create_relu_layer(
     const std::string& name)
 {
     float_type max_value = std::numeric_limits<float_type>::max();
+    float_type negative_slope = static_cast<float_type>(0);
+    float_type threshold = static_cast<float_type>(0);
     if (json_obj_has_member(data, "config") &&
         json_obj_has_member(data["config"], "max_value") &&
         !data["config"]["max_value"].is_null())
     {
         max_value = data["config"]["max_value"];
+        negative_slope = data["config"]["negative_slope"];
+        threshold = data["config"]["threshold"];
     }
-    return std::make_shared<relu_layer>(name, max_value);
+    return std::make_shared<relu_layer>(name, max_value, negative_slope, threshold);
 }
 
 inline activation_layer_ptr create_relu6_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
-    return std::make_shared<relu_layer>(name, static_cast<float_type>(6));
+    return std::make_shared<relu_layer>(name,
+        static_cast<float_type>(6),
+        static_cast<float_type>(0),
+        static_cast<float_type>(0)
+    );
 }
 
 inline activation_layer_ptr create_selu_layer(

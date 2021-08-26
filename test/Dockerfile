@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-RUN apt-get update --fix-missing
+RUN apt-get update -y --fix-missing
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get install -y build-essential apt-utils cmake python3 python3-pip git
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10

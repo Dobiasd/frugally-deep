@@ -6,7 +6,7 @@ jobs:
   build_gcc:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@main
       - name: Setup
         run: |
           # system libs

@@ -60,21 +60,19 @@ This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor` but an 
 Example:
 
 ```python
-import tensorflow.keras as keras
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Concatenate, Add
+import tensorflow as tf
 
 inputs = [
-    Input(shape=(240, 320, 3)),
-    Input(shape=(240, 320, 3))
+    tf.keras.layers.Input(shape=(240, 320, 3)),
+    tf.keras.layers.Input(shape=(240, 320, 3))
 ]
 
 outputs = [
-    Concatenate()([inputs[0], inputs[1]]),
-    Add()([inputs[0], inputs[1]])
+    tf.keras.layers.Concatenate()([inputs[0], inputs[1]]),
+    tf.keras.layers.Add()([inputs[0], inputs[1]])
 ]
 
-model = Model(inputs=inputs, outputs=outputs)
+model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
 model.compile(loss='mse', optimizer='nadam')
 model.save('multi_input_and_output_model.h5', include_optimizer=False)
 ```

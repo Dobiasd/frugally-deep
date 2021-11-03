@@ -13,7 +13,7 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.6.1"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.6.1" "keras==2.6.0"
           # FunctionalPlus
           git clone -b 'v0.2.16-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
           cd FunctionalPlus

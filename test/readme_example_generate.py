@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import numpy as np
-import tensorflow as tf
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.models import Model
 
-inputs = tf.keras.layers.Input(shape=(4,))
-x = tf.keras.layers.Dense(5, activation='relu')(inputs)
-predictions = tf.keras.layers.Dense(3, activation='softmax')(x)
-model = tf.keras.models.Model(inputs=inputs, outputs=predictions)
+inputs = Input(shape=(4,))
+x = Dense(5, activation='relu')(inputs)
+predictions = Dense(3, activation='softmax')(x)
+model = Model(inputs=inputs, outputs=predictions)
 model.compile(loss='categorical_crossentropy', optimizer='nadam')
 
 model.fit(

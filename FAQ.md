@@ -408,8 +408,8 @@ int main()
 
     // print some values to make sure the mapping is correct
     std::cout << t.get(fdeep::tensor_pos(0, 0, 0)) << std::endl;
-    std::cout << t.get(fdeep::tensor_pos(0, 1, 1)) << std::endl;
-    std::cout << t.get(fdeep::tensor_pos(0, 4, 2)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(1, 1, 0)) << std::endl;
+    std::cout << t.get(fdeep::tensor_pos(4, 2, 0)) << std::endl;
 }
 ```
 

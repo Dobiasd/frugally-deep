@@ -32,7 +32,7 @@ RUN git clone -b 'v3.9.1' --single-branch --depth 1 https://github.com/nlohmann/
 RUN git clone -b 'v0.15.12-p0' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 
 # To have downloaded the Keras models already
-RUN pip install numpy --upgrade
+RUN pip install numpy keras=="2.6.0" --upgrade
 RUN CUDA_VISIBLE_DEVICES='' python ./frugally-deep/keras_export/save_application_examples.py
 
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache

@@ -9,7 +9,7 @@ from tensorflow.keras.layers import BatchNormalization, Concatenate
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D
-from tensorflow.keras.layers import Embedding
+from tensorflow.keras.layers import Embedding, Normalization
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
@@ -143,6 +143,30 @@ def get_test_model_exhaustive():
     outputs.append(GlobalMaxPooling1D(data_format="channels_first")(inputs[6]))
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
     outputs.append(GlobalAveragePooling1D(data_format="channels_first")(inputs[6]))
+
+    outputs.append(Normalization(axis=-1,
+                                 mean=[0.1, 1.1, 2.1, 3.1, 4.1, 5.1],
+                                 variance=[6.1, 7.1, 8.1, 9.1, 10.1, 11.1])(inputs[0]))
+    outputs.append(Normalization(axis=1,
+                                 mean=[0.1, 1.1],
+                                 variance=[6.1, 7.1])(inputs[0]))
+    outputs.append(Normalization(axis=2,
+                                 mean=[0.1, 1.1, 2.1],
+                                 variance=[6.1, 7.1, 8.1])(inputs[0]))
+    outputs.append(Normalization(axis=3,
+                                 mean=[0.1, 1.1, 2.1, 3.1],
+                                 variance=[6.1, 7.1, 8.1, 9.1])(inputs[0]))
+    outputs.append(Normalization(axis=4,
+                                 mean=[0.1, 1.1, 2.1, 3.1, 4.1],
+                                 variance=[6.1, 7.1, 8.1, 9.1, 10.1])(inputs[0]))
+    outputs.append(Normalization(axis=5,
+                                 mean=[0.1, 1.1, 2.1, 3.1, 4.1, 5.1],
+                                 variance=[6.1, 7.1, 8.1, 9.1, 10.1, 11.1])(inputs[0]))
+
+    outputs.append(Normalization(axis=-1, mean=4.1, variance=4.2)(inputs[2]))
+    outputs.append(Normalization(axis=-1, mean=3.1, variance=3.2)(inputs[4]))
+    outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
+    outputs.append(Normalization(axis=-1, mean=1.1, variance=1.2)(inputs[8]))
 
     outputs.append(Conv2D(4, (3, 3))(inputs[4]))
     outputs.append(Conv2D(4, (3, 3), use_bias=False)(inputs[4]))

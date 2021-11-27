@@ -144,11 +144,11 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
     outputs.append(GlobalAveragePooling1D(data_format="channels_first")(inputs[6]))
 
-    for axis in [[1], [3], [5], [2, 4], [1, 2, 3]]:
-        shape = [input_shapes[0][i - 1] for i in axis]
+    for axis in range(1, 6):
+        shape = input_shapes[0][axis - 1]
         outputs.append(Normalization(axis=axis,
-                                     mean=np.random.rand(*shape),
-                                     variance=np.random.rand(*shape)
+                                     mean=np.random.rand(shape),
+                                     variance=np.random.rand(shape)
                                      )(inputs[0]))
     outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
@@ -163,12 +163,12 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
-    # todo: check if TensorFlow >= 2.1 supports this
-    # outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default MaxPoolingOp only supports NHWC on device type CPU
+    # todo: check if TensorFlow >= 2.8 supports this
+    # outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4]))
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
-    # todo: check if TensorFlow >= 2.1 supports this
-    # outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4])) # Default AvgPoolingOp only supports NHWC on device type CPU
+    # todo: check if TensorFlow >= 2.8 supports this
+    # outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4]))
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))

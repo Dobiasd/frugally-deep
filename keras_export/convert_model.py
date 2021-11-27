@@ -491,6 +491,7 @@ def show_softmax_layer(layer):
 
 def show_normalization_layer(layer):
     """Serialize normalization layer to dict"""
+    assert len(layer.axis) <= 1, "Multiple normalization axis are not supported"
     return {
         'mean': encode_floats(layer.mean),
         'variance': encode_floats(layer.variance)

@@ -59,6 +59,7 @@
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
 #include "fdeep/layers/multiply_layer.hpp"
+#include "fdeep/layers/normalization_layer.hpp"
 #include "fdeep/layers/pooling_2d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
 #include "fdeep/layers/repeat_vector_layer.hpp"
@@ -917,6 +918,16 @@ inline layer_ptr create_relu_layer_isolated(
     return create_relu_layer(get_param, data, name);
 }
 
+inline layer_ptr create_normalization_layer(
+    const get_param_f& get_param,
+    const nlohmann::json& data, const std::string& name)
+{
+    const auto axex = create_vector<int>(create_int, data["config"]["axis"]);
+    const float_vec mean = decode_floats(get_param(name, "mean"));
+    const float_vec variance = decode_floats(get_param(name, "variance"));
+    return std::make_shared<normalization_layer>(name, axex, mean, variance);
+}
+
 inline activation_layer_ptr create_activation_layer_type_name(
     const get_param_f& get_param,
     const nlohmann::json& data,
@@ -1192,6 +1203,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"CuDNNGRU", create_gru_layer},
             {"Bidirectional", create_bidirectional_layer},
             {"Softmax", create_softmax_layer},
+            {"Normalization", create_normalization_layer},
         };
 
     const wrapper_layer_creators wrapper_creators = {

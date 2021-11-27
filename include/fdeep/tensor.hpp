@@ -218,17 +218,23 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
             0));
     }
 
-    for (std::size_t y = 0; y < m.shape().height_; ++y)
+    for (std::size_t dim5 = 0; dim5 < m.shape().size_dim_5_; ++dim5)
     {
-        for (std::size_t x = 0; x < m.shape().width_; ++x)
+        for (std::size_t dim4 = 0; dim4 < m.shape().size_dim_4_; ++dim4)
         {
-            for (std::size_t z = 0; z < m.shape().depth_; ++z)
+            for (std::size_t y = 0; y < m.shape().height_; ++y)
             {
-                // .set and .get would work here too
-                // but using _ignore_rank here for
-                // improved performance of depthwise_conv_2d_layer
-                ms[z].set_ignore_rank(tensor_pos(y, x, 0),
-                    m.get_ignore_rank(tensor_pos(y, x, z)));
+                for (std::size_t x = 0; x < m.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < m.shape().depth_; ++z)
+                    {
+                        // .set and .get would work here too
+                        // but using _ignore_rank here for
+                        // improved performance of depthwise_conv_2d_layer
+                        ms[z].set_ignore_rank(tensor_pos(dim5, dim4, y, x, 0),
+                            m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
+                    }
+                }
             }
         }
     }

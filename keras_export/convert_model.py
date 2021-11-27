@@ -482,12 +482,20 @@ def show_bidirectional_layer(layer):
 def show_input_layer(layer):
     """Serialize input layer to dict"""
     assert not layer.sparse
-    return {}
 
 
 def show_softmax_layer(layer):
     """Serialize softmax layer to dict"""
     assert layer.axis == -1
+
+
+def show_normalization_layer(layer):
+    """Serialize normalization layer to dict"""
+    assert len(layer.axis) <= 1, "Multiple normalization axis are not supported"
+    return {
+        'mean': encode_floats(layer.mean),
+        'variance': encode_floats(layer.variance)
+    }
 
 
 def get_layer_functions_dict():
@@ -507,7 +515,8 @@ def get_layer_functions_dict():
         'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
-        'Softmax': show_softmax_layer
+        'Softmax': show_softmax_layer,
+        'Normalization': show_normalization_layer
     }
 
 
@@ -730,8 +739,8 @@ def calculate_hash(model):
     hash_m = hashlib.sha256()
     for layer in layers:
         for weights in layer.get_weights():
-            assert isinstance(weights, np.ndarray)
-            hash_m.update(weights.tobytes())
+            if isinstance(weights, np.ndarray):
+                hash_m.update(weights.tobytes())
         hash_m.update(layer.name.encode('ascii'))
     return hash_m.hexdigest()
 

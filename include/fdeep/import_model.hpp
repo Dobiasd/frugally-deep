@@ -922,12 +922,10 @@ inline layer_ptr create_normalization_layer(
     const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
-    const auto axis_vec = create_vector<int>(create_int, data["config"]["axis"]);
-    assertion(axis_vec.size() == 1, "invalid axis configuration");
-    const int axis = axis_vec.front();
+    const auto axex = create_vector<int>(create_int, data["config"]["axis"]);
     const float_vec mean = decode_floats(get_param(name, "mean"));
     const float_vec variance = decode_floats(get_param(name, "variance"));
-    return std::make_shared<normalization_layer>(name, axis, mean, variance);
+    return std::make_shared<normalization_layer>(name, axex, mean, variance);
 }
 
 inline activation_layer_ptr create_activation_layer_type_name(

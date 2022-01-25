@@ -745,6 +745,14 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
+def check_activations(model):
+    """Make sure activations are valid"""
+    layers = model.layers
+    for layer in layers:
+        if hasattr(layer, 'activation'):
+            assert isinstance(layer.activation, str), "Layer activation (" + layer.name + ") must be a string."
+
+
 def as_list(value_or_values):
     """Leave lists untouched, convert non-list types to a singleton list"""
     if isinstance(value_or_values, list):
@@ -772,6 +780,8 @@ def model_to_fdeep_json(model, no_tests=False):
     model.compile(loss='mse', optimizer='sgd')
 
     model = convert_sequential_to_model(model)
+
+    check_activations(model)
 
     test_data = None if no_tests else gen_test_data(model)
 

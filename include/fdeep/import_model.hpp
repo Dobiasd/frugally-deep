@@ -928,6 +928,22 @@ inline layer_ptr create_normalization_layer(
     return std::make_shared<normalization_layer>(name, axex, mean, variance);
 }
 
+inline std::string get_activation_type(const nlohmann::json& data)
+{
+    assertion(data.is_string(), "Layer activation must be a string.");
+    return data;
+}
+
+std::string json_object_get_activation_with_default(const nlohmann::json& config,
+    const std::string& default_activation)
+{
+    if (json_obj_has_member(config, "activation"))
+    {
+        return get_activation_type(config["activation"]);
+    }
+    return default_activation;
+}
+
 inline activation_layer_ptr create_activation_layer_type_name(
     const get_param_f& get_param,
     const nlohmann::json& data,
@@ -964,7 +980,7 @@ inline layer_ptr create_activation_layer(
     const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
-    const std::string type = data["config"]["activation"];
+    const std::string type = get_activation_type(data["config"]["activation"]);
     return create_activation_layer_type_name(get_param,
         data, type, name);
 }
@@ -1010,7 +1026,7 @@ inline layer_ptr create_lstm_layer(const get_param_f &get_param,
 {
     auto&& config = data["config"];
     const std::size_t units = config["units"];
-    const std::string unit_activation = json_object_get(config, "activation", std::string("tanh"));
+    const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
     const std::string recurrent_activation = json_object_get(config,
         "recurrent_activation",
         data["class_name"] == "CuDNNLSTM"
@@ -1041,7 +1057,7 @@ inline layer_ptr create_gru_layer(const get_param_f &get_param,
 {
     auto&& config = data["config"];
     const std::size_t units = config["units"];
-    const std::string unit_activation = json_object_get(config, "activation", std::string("tanh"));
+    const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
     const std::string recurrent_activation = json_object_get(config,
         "recurrent_activation",
         data["class_name"] == "CuDNNGRU"
@@ -1081,7 +1097,7 @@ inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
     auto&& layer_config = layer["config"];
     const std::string wrapped_layer_type = layer["class_name"];
     const std::size_t units = layer_config["units"];
-    const std::string unit_activation = json_object_get(layer_config, "activation", std::string("tanh"));
+    const std::string unit_activation = json_object_get_activation_with_default(layer_config, "tanh");
     const std::string recurrent_activation = json_object_get(layer_config,
         "recurrent_activation",
         wrapped_layer_type == "CuDNNGRU" || wrapped_layer_type == "CuDNNLSTM"
@@ -1237,9 +1253,10 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             && type != "LSTM"
             && type != "Bidirectional")
         {
+            const std::string activation = get_activation_type(data["config"]["activation"]);
             result->set_activation(
                 create_activation_layer_type_name(get_param, data,
-                    data["config"]["activation"], ""));
+                    activation, ""));
         }
         result->set_nodes(create_nodes(data));
         return result;

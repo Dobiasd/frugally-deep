@@ -1,7 +1,7 @@
 [requires]
-eigen/3.3.9
-functionalplus/v0.2.16-p0
-jsonformoderncpp/3.1.0
+eigen/3.4.0
+functionalplus/v0.2.18-p0
+nlohmann_json/3.10.5
 
 [generators]
 cmake_find_package

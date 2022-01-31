@@ -117,7 +117,7 @@ How to do regression vs. classification?
 In case you are doing classification,
 your model might have a softmax as the last layer.
 Then you will get one tensor with a probability for each possible class.
-`fdeep::model::predict` is a convenience wrapper that will run the forward pass
+`fdeep::model::predict_class` is a convenience wrapper that will run the forward pass
 and return the predicted class number,
 so you don't need to manually find the position in the output tensor with the highest activation.
 

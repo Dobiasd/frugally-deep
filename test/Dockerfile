@@ -15,15 +15,15 @@ RUN apt-get -y install curl gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
 RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt-get update && apt-get install -y bazel-3.7.2
-RUN ln -s /usr/bin/bazel-3.7.2 /usr/bin/bazel
+RUN apt-get update && apt-get install -y bazel-4.2.1
+RUN ln -s /usr/bin/bazel-4.2.1 /usr/bin/bazel
 
-RUN git clone -b 'v2.7.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'v2.8.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build --jobs 3 --local_ram_resources=HOST_RAM*.3 -c opt //tensorflow/tools/pip_package:build_pip_package
 RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
-RUN pip install /tmp/tensorflow_pkg/tensorflow-2.7.0-cp38-cp38-linux_x86_64.whl
+RUN pip install /tmp/tensorflow_pkg/tensorflow-2.8.0-cp38-cp38-linux_x86_64.whl
 WORKDIR /
 
 RUN git clone -b 'v0.2.18-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
@@ -32,7 +32,7 @@ RUN git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann
 RUN git clone -b 'v0.15.13-p0' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 
 # To have downloaded the Keras models already
-RUN pip install numpy keras=="2.7.0" --upgrade
+RUN pip install numpy keras=="2.8.0" --upgrade
 RUN CUDA_VISIBLE_DEVICES='' python ./frugally-deep/keras_export/save_application_examples.py
 
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache

@@ -9,6 +9,7 @@ import json
 import sys
 
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Input, Embedding
 from tensorflow.keras.models import Model, load_model
@@ -796,8 +797,23 @@ def model_to_fdeep_json(model, no_tests=False):
     return json_output
 
 
+def workaround_cudnn_not_found_problem():
+    """
+    Applies a workaround for a tensorflow issue that causes a misleading
+    error about cuDNN not being found when the model contains a GRU and
+    this script is run with tensorflow-gpu on a machine with available GPUs.
+    See https://github.com/tensorflow/tensorflow/issues/36508
+    and https://github.com/keras-team/keras/issues/10634
+    """
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+
+
 def convert(in_path, out_path, no_tests=False):
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""
+
+    workaround_cudnn_not_found_problem()
 
     print('loading {}'.format(in_path))
     model = load_model(in_path)

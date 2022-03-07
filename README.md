@@ -80,6 +80,7 @@ Layer types typically used in image recognition/generation are supported, making
 `Cropping3D`,
 `Dot`,
 `GRUCell`,
+`Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `LocallyConnected1D`,
 `LocallyConnected2D`,
 `LSTMCell`,

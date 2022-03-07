@@ -501,6 +501,17 @@ def remove_training_flags(old_model_path, new_model_path):
     do_remove(load_model(old_model_path)).save(new_model_path, include_optimizer=False)
 ```
 
+Why are `Lambda` layers not supported?
+-----------------------------------------------
+
+`Lambda` layers in Keras involve custom Python code to be executed.
+Supporting this in frugally-deep would require having transpiler from Python to C++,
+aware of the semantic differences between the data structures too.
+Since this is not feasible, `Lambda` layers are not supported in frugally-deep.
+
+In case you don't find a way to get rid of the `Lambda` layer in your Keras model,
+feel free to dive into the rabbit hole of ([injecting support for your custom layers to frugally-deep](FAQ.md#how-to-user-custom-layers).
+
 How to use custom layers?
 -------------------------
 

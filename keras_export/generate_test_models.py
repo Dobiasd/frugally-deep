@@ -99,7 +99,7 @@ def get_test_model_exhaustive():
         (14, 15),
         (16,),
         (16,),
-        (2,),
+        (2,),  # 10
         (1,),
         (2,),
         (1,),
@@ -109,7 +109,7 @@ def get_test_model_exhaustive():
         (1, 1, 4),
         (1, 1, 1, 3),
         (1, 1, 1, 4),
-        (1, 1, 1, 1, 3),
+        (1, 1, 1, 1, 3),  # 20
         (1, 1, 1, 1, 4),
         (26, 28, 3),
         (4, 4, 3),
@@ -119,9 +119,22 @@ def get_test_model_exhaustive():
         (1,),
         (1,),
         (1,),
-        (2, 3),
+        (2, 3),  # 30
         (9, 16, 1),
-        (1, 9, 16)
+        (1, 9, 16),
+        (6, 1, 1),
+        (1, 1, 1, 1, 6),
+        (1, 1, 1, 10),
+        (1, 1, 13),
+        (1, 15),
+        (1, 1, 1, 1, 6),
+        (1, 1, 1, 5, 1),
+        (1, 1, 4, 1, 1),  # 40
+        (1, 3, 1, 1, 1),
+        (2, 1, 1, 1, 1),
+        (1, 1, 4, 1, 6),
+        (1, 3, 1, 5, 1),
+        (2, 1, 4, 1, 1),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -294,6 +307,22 @@ def get_test_model_exhaustive():
     outputs.append(Multiply()([inputs[11], inputs[13]]))
     outputs.append(Multiply()([inputs[10], inputs[11], inputs[12]]))
     outputs.append(Multiply()([inputs[11], inputs[12], inputs[13]]))
+    outputs.append(Multiply()([inputs[14], inputs[16], inputs[18], inputs[20]]))
+    outputs.append(Multiply()([inputs[14], inputs[16]]))
+    outputs.append(Multiply()([inputs[16], inputs[18]]))
+    outputs.append(Multiply()([inputs[18], inputs[20]]))
+    outputs.append(Multiply()([inputs[30], inputs[33]]))
+    outputs.append(Multiply()([inputs[34], inputs[0]]))
+    outputs.append(Multiply()([inputs[35], inputs[2]]))
+    outputs.append(Multiply()([inputs[36], inputs[4]]))
+    outputs.append(Multiply()([inputs[37], inputs[6]]))
+    outputs.append(Multiply()([inputs[0], inputs[38]]))
+    outputs.append(Multiply()([inputs[0], inputs[39]]))
+    outputs.append(Multiply()([inputs[0], inputs[40]]))
+    outputs.append(Multiply()([inputs[0], inputs[41]]))
+    outputs.append(Multiply()([inputs[0], inputs[42]]))
+    outputs.append(Multiply()([inputs[43], inputs[44]]))
+    outputs.append(Multiply()([inputs[44], inputs[45]]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

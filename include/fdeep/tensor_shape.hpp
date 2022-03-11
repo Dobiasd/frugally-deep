@@ -140,6 +140,16 @@ public:
         rank_ = minimal_rank();
     }
 
+    void shrink_rank_with_min(std::size_t min_rank_to_keep)
+    {
+        rank_ = fplus::max(minimal_rank(), min_rank_to_keep);
+    }
+    
+    void maximize_rank()
+    {
+        rank_ = 5;
+    }
+
     std::vector<std::size_t> dimensions() const
     {
         if (rank() == 5)

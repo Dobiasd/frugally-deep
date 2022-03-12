@@ -510,7 +510,7 @@ aware of the semantic differences between the data structures too.
 Since this is not feasible, `Lambda` layers are not supported in frugally-deep.
 
 In case you don't find a way to get rid of the `Lambda` layer in your Keras model,
-feel free to dive into the rabbit hole of ([injecting support for your custom layers to frugally-deep](FAQ.md#how-to-user-custom-layers).
+feel free to dive into the rabbit hole of [injecting support for your custom layers to frugally-deep](FAQ.md#how-to-use-custom-layers).
 
 How to use custom layers?
 -------------------------

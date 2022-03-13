@@ -392,4 +392,24 @@ inline std::string show_tensor_shapes(
     return fplus::show_cont(fplus::transform(show_tensor_shape, shapes));
 }
 
+template <typename F>
+void loop_over_all_dims(const tensor_shape& shape, F f) {
+    for (std::size_t dim5 = 0; dim5 < shape.size_dim_5_; ++dim5)
+    {
+        for (std::size_t dim4 = 0; dim4 < shape.size_dim_4_; ++dim4)
+        {
+            for (std::size_t y = 0; y < shape.height_; ++y)
+            {
+                for (std::size_t x = 0; x < shape.width_; ++x)
+                {
+                    for (std::size_t z = 0; z < shape.depth_; ++z)
+                    {
+                        f(dim5, dim4, y, x, z);
+                    }
+                }
+            }
+        }
+    }
+}
+
 } // namespace fdeep

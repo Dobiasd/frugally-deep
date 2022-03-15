@@ -121,9 +121,9 @@ inline tensor convolve_accumulative(
         // This inner loop costs some performance.
         // Getting rid of it, i.e., merging it to one larger GEMM,
         // and afterwards dropping the superfluous results from "between" the rows,
-        // saves the forward-pass runtime of VGG19 about 15%.
+        // would reduce the forward-pass runtime of VGG19 about 15%.
         // However, getting it to work for strides_x != 1 is not trivial,
-        // so currently it's multiple smaller GEMMs
+        // so currently it's multiple smaller GEMMs.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             const MappedColMajorMatrixXfUnalignedOuterStride

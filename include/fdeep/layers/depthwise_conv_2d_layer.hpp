@@ -40,9 +40,9 @@ public:
         strides_(strides),
         padding_(p)
     {
-        assertion(k > 0, "needs at least one filter");
         assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
+        assertion(k == input_depth, "number of filters must match input depth");
         assertion(filters_depthwise_.size() == input_depth,
             "invalid number of filters");
     }

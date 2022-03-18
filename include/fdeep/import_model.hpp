@@ -933,7 +933,7 @@ inline std::string get_activation_type(const nlohmann::json& data)
     return data;
 }
 
-std::string json_object_get_activation_with_default(const nlohmann::json& config,
+inline std::string json_object_get_activation_with_default(const nlohmann::json& config,
     const std::string& default_activation)
 {
     if (json_obj_has_member(config, "activation"))

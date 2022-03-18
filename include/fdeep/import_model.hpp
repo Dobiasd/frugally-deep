@@ -447,11 +447,10 @@ inline layer_ptr create_separable_conv_2D_layer(const get_param_f& get_param,
     const std::size_t stack_output_depths_1 =
         stack_weights.size() / input_depth;
     assertion(stack_output_depths_1 == filter_count, "invalid weights sizes");
-    assertion(input_depth == filter_count, "input depth must match filter count");
     const tensor_shape filter_shape(kernel_size.height_, kernel_size.width_, 1);
     float_vec bias_0(input_depth, 0);
     return std::make_shared<separable_conv_2d_layer>(name, input_depth,
-        filter_shape, strides, pad_type,
+        filter_shape, filter_count, strides, pad_type,
         dilation_rate, slice_weights, stack_weights, bias_0, bias);
 }
 

@@ -33,6 +33,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * re-implements a (small) subset of TensorFlow, i.e., the operations needed to support prediction.
 * results in a much smaller binary size than linking against TensorFlow.
 * works out-of-the-box also when compiled into a 32-bit executable. (Of course, 64 bit is fine too.)
+* avoids temporarily allocating (potentially large chunks of) additional RAM during convolutions (by not materializing the im2col input matrix).
 * utterly ignores even the most powerful GPU in your system and uses only one CPU core per prediction. ;-)
 * but is quite fast on one CPU core [compared to TensorFlow](#performance), and you can run multiple predictions in parallel, thus utilizing as many CPUs as you like to improve the overall prediction throughput of your application/pipeline.
 

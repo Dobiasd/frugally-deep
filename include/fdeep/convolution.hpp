@@ -80,6 +80,10 @@ inline tensor convolve_accumulative(
     const convolution_filter_matrices& filter_mat,
     const tensor& in)
 {
+    // Using the im2col method, the convolution is expressed as GEMMs for performance.
+    // https://stackoverflow.com/questions/16798888/2-d-convolution-as-a-matrix-matrix-multiplication
+    // https://github.com/tensorflow/tensorflow/blob/a0d784bdd31b27e013a7eac58a86ba62e86db299/tensorflow/core/kernels/conv_ops_using_gemm.cc
+    // http://www.youtube.com/watch?v=pA4BsUK3oP4&t=36m22s
     const tensor& filter_mats = filter_mat.filter_mats_;
     const auto f_height = filter_mat.filter_shape_.height_;
     const auto f_width = filter_mat.filter_shape_.width_;
@@ -126,6 +130,9 @@ inline tensor convolve_accumulative(
         // so currently it's multiple smaller GEMMs.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
+            // To avoid using too much RAM, the input tensor is not materializezd
+            // as an actual im2col matrix, but instead the too-small outer stride
+            // of the matrix mapping is utilized to achieve the overlap the receptive fields.
             const MappedColMajorMatrixXfUnalignedOuterStride
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
                     static_cast<EigenIndex>(f_width * f_depth),

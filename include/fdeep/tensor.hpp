@@ -366,7 +366,7 @@ inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
         {
             // .set and .get would work here too
             // but using _ignore_rank here for
-            // improved performance of depthwise_conv_2d_layer
+            // improved performance.
             ms[z].set_ignore_rank(tensor_pos(dim5, dim4, y, x, 0),
                 m.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
             });

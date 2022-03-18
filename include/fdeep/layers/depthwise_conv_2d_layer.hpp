@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "fdeep/depthwise_convolution.hpp"
+#include "fdeep/convolution.hpp"
 #include "fdeep/filter.hpp"
 #include "fdeep/shape2.hpp"
 #include "fdeep/tensor_shape.hpp"

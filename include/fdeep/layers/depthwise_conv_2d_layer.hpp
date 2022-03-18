@@ -29,12 +29,12 @@ public:
     explicit depthwise_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
             const tensor_shape& filter_shape,
-            std::size_t k, const shape2& strides, padding p,
+            const shape2& strides, padding p,
             const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& bias)
         : layer(name),
-        filters_depthwise_(fplus::transform(generate_im2col_single_filter_matrix,
+        filters_(fplus::transform(generate_im2col_single_filter_matrix,
             generate_filters(dilation_rate, filter_shape,
                 input_depth, depthwise_weights, bias))),
         strides_(strides),
@@ -42,9 +42,7 @@ public:
     {
         assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
-        assertion(k == input_depth, "number of filters must match input depth");
-        assertion(filters_depthwise_.size() == input_depth,
-            "invalid number of filters");
+        assertion(filters_.size() == input_depth, "invalid filter shape");
     }
 protected:
     tensors apply_impl(const tensors& inputs) const override
@@ -53,7 +51,7 @@ protected:
 
         const auto input_slices = tensor_to_depth_slices(input);
 
-        assertion(input_slices.size() == filters_depthwise_.size(),
+        assertion(input_slices.size() == filters_.size(),
             "invalid input depth");
 
         const auto convolve_slice =
@@ -65,13 +63,13 @@ protected:
             return result;
         };
 
-        assertion(input_slices.size() == filters_depthwise_.size(),
+        assertion(input_slices.size() == filters_.size(),
             "invalid depthwise filter count");
         return {concatenate_tensors_depth(fplus::zip_with(
-            convolve_slice, input_slices, filters_depthwise_))};
+            convolve_slice, input_slices, filters_))};
     }
 
-    std::vector<convolution_filter_matrices> filters_depthwise_;
+    std::vector<convolution_filter_matrices> filters_;
     shape2 strides_;
     padding padding_;
 };

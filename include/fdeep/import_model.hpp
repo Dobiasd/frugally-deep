@@ -471,14 +471,13 @@ inline layer_ptr create_depthwise_conv_2D_layer(const get_param_f& get_param,
         "invalid number of weights");
     const std::size_t input_depth = slice_weights.size() / kernel_size.area();
     const tensor_shape filter_shape(kernel_size.height_, kernel_size.width_, 1);
-    const std::size_t filter_count = input_depth;
-    float_vec bias(filter_count, 0);
+    float_vec bias(input_depth, 0);
     const bool use_bias = data["config"]["use_bias"];
     if (use_bias)
         bias = decode_floats(get_param(name, "bias"));
-    assertion(bias.size() == filter_count, "size of bias does not match");
+    assertion(bias.size() == input_depth, "size of bias does not match");
     return std::make_shared<depthwise_conv_2d_layer>(name, input_depth,
-        filter_shape, filter_count, strides, pad_type,
+        filter_shape, strides, pad_type,
         dilation_rate, slice_weights, bias);
 }
 

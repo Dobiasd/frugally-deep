@@ -36,7 +36,7 @@ public:
             const float_vec& bias)
         : layer(name),
         depthwise_layer_(name + "_depthwise_part", input_depth,
-            filter_shape, input_depth, strides, p, dilation_rate,
+            filter_shape, strides, p, dilation_rate,
             depthwise_weights, bias_0),
         filters_pointwise_(generate_im2col_filter_matrix(
             generate_filters(shape2(1, 1),

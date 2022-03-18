@@ -28,7 +28,7 @@ public:
     explicit separable_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
             const tensor_shape& filter_shape,
-            std::size_t k, const shape2& strides, padding p,
+            const shape2& strides, padding p,
             const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& pointwise_weights,
@@ -36,11 +36,11 @@ public:
             const float_vec& bias)
         : layer(name),
         depthwise_layer_(name + "_depthwise_part", input_depth,
-            filter_shape, input_depth, strides, p, dilation_rate,
+            filter_shape, strides, p, dilation_rate,
             depthwise_weights, bias_0),
         filters_pointwise_(generate_im2col_filter_matrix(
             generate_filters(shape2(1, 1),
-                tensor_shape(input_depth), k, pointwise_weights, bias)))
+                tensor_shape(input_depth), input_depth, pointwise_weights, bias)))
     {
     }
 protected:

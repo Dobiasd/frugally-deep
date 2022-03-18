@@ -29,7 +29,7 @@ public:
     explicit depthwise_conv_2d_layer(
             const std::string& name, std::size_t input_depth,
             const tensor_shape& filter_shape,
-            std::size_t k, const shape2& strides, padding p,
+            const shape2& strides, padding p,
             const shape2& dilation_rate,
             const float_vec& depthwise_weights,
             const float_vec& bias)
@@ -42,8 +42,7 @@ public:
     {
         assertion(filter_shape.volume() > 0, "filter must have volume");
         assertion(strides.area() > 0, "invalid strides");
-        assertion(k == input_depth, "number of filters must match input depth");
-        assertion(filters_depthwise_.filter_count_ == k,
+        assertion(filters_depthwise_.filter_count_ == input_depth,
             "invalid number of filters");
         assertion(filters_depthwise_.filter_shape_.depth_ == 1,
             "invalid filter shape");

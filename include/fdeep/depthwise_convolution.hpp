@@ -59,14 +59,15 @@ inline tensor depthwise_convolve_accumulative(
 
     using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
     using MappedColMajorMatrixXfUnalignedOuterStride = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>;
+
+    using VectorXf = Eigen::Matrix<float_type, Eigen::Dynamic, 1>;
+    using MappedVectorXf = Eigen::Map<VectorXf, Eigen::Aligned>;
     
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const MappedColMajorMatrixXfUnalignedOuterStride
-            filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
-                static_cast<EigenIndex>(filters_count),
-                static_cast<EigenIndex>(f_width * filters_count),
-                Eigen::OuterStride<>(static_cast<EigenIndex>(0)));
+        const auto filter = MappedVectorXf(
+            const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
+                static_cast<EigenIndex>(f_width * filters_count)).asDiagonal();
 
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {

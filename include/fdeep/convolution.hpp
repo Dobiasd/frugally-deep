@@ -72,6 +72,32 @@ inline convolution_filter_matrices generate_im2col_single_filter_matrix(
     return generate_im2col_filter_matrix(filter_vec(1, filter));
 }
 
+inline tensor init_conv_output_tensor(
+    std::size_t out_height,
+    std::size_t out_width,
+    std::size_t out_depth,
+    std::size_t rank,
+    const convolution_filter_matrices& filter_mat)
+{
+    tensor output(tensor_shape_with_changed_rank(
+            tensor_shape(out_height, out_width, out_depth),
+            rank),
+        static_cast<float_type>(0));
+    if (filter_mat.use_bias_) {
+        const auto bias_ptr = &filter_mat.biases_.front();
+        const auto bias_ptr_end = bias_ptr + out_depth;
+        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
+        {
+            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
+            {
+                auto output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, 0));
+                std::copy(bias_ptr, bias_ptr_end, output_ptr);
+            }
+        }
+    }
+    return output;
+}
+
 inline tensor convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -95,23 +121,7 @@ inline tensor convolve_accumulative(
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
     assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
-    tensor output(tensor_shape_with_changed_rank(
-            tensor_shape(out_height, out_width, out_depth),
-            in.shape().rank()),
-        static_cast<float_type>(0));
-
-    if (filter_mat.use_bias_) {
-        const auto bias_ptr = &filter_mat.biases_.front();
-        const auto bias_ptr_end = bias_ptr + out_depth;
-        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
-        {
-            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
-            {
-                auto output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, 0));
-                std::copy(bias_ptr, bias_ptr_end, output_ptr);
-            }
-        }
-    }
+    tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
     using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
     using MappedColMajorMatrixXfUnalignedOuterStride = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>;

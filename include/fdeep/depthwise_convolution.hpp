@@ -39,23 +39,7 @@ inline tensor depthwise_convolve_accumulative(
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
     assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
-    tensor output(tensor_shape_with_changed_rank(
-            tensor_shape(out_height, out_width, out_depth),
-            in.shape().rank()),
-        static_cast<float_type>(0));
-
-    if (filter_mat.use_bias_) {
-        const auto bias_ptr = &filter_mat.biases_.front();
-        const auto bias_ptr_end = bias_ptr + out_depth;
-        for (std::size_t y_out = 0; y_out < out_height; ++y_out)
-        {
-            for (std::size_t x_out = 0; x_out < out_width; ++x_out)
-            {
-                auto output_ptr = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, 0));
-                std::copy(bias_ptr, bias_ptr_end, output_ptr);
-            }
-        }
-    }
+    tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
     using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
     using MappedArrayXfUnaligned = Eigen::Map<ArrayXf, Eigen::Unaligned>;
@@ -78,21 +62,20 @@ inline tensor depthwise_convolve_accumulative(
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(filters_count * strides_x)));
 
-            const ArrayXf temp1 = input.colwise() * filter;
+            const auto coefficient_wise_product = input.colwise() * filter;
 
             MappedArrayXfUnaligned
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(out_width));
 
-            for (std::size_t x = 0; x < out_width; ++x) {
+            for (EigenIndex x = 0; x < static_cast<EigenIndex>(out_width); ++x) {
+                const ArrayXf col_materialized = coefficient_wise_product.col(x);
                 const MappedArrayXfUnaligned
-                    temp1_map(const_cast<float_type*>(temp1.col(static_cast<EigenIndex>(x)).data()),
+                    cwp_reshaped(const_cast<float_type*>(col_materialized.data()),
                         static_cast<EigenIndex>(filters_count),
                         static_cast<EigenIndex>(f_width));
-
-                const ArrayXf temp1_red = temp1_map.rowwise().sum();
-                output_map.col(static_cast<EigenIndex>(x)) += temp1_red;
+                output_map.col(x) += cwp_reshaped.rowwise().sum();
             }
         }
     }

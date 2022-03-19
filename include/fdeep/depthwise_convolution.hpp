@@ -62,7 +62,7 @@ inline tensor depthwise_convolve_accumulative(
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(filters_count * strides_x)));
 
-            const ArrayXf coefficient_wise_product = input.colwise() * filter;
+            const auto coefficient_wise_product = input.colwise() * filter;
 
             MappedArrayXfUnaligned
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
@@ -70,8 +70,9 @@ inline tensor depthwise_convolve_accumulative(
                     static_cast<EigenIndex>(out_width));
 
             for (EigenIndex x = 0; x < static_cast<EigenIndex>(out_width); ++x) {
+                const ArrayXf col_materialized = coefficient_wise_product.col(x);
                 const MappedArrayXfUnaligned
-                    cwp_reshaped(const_cast<float_type*>(coefficient_wise_product.col(x).data()),
+                    cwp_reshaped(const_cast<float_type*>(col_materialized.data()),
                         static_cast<EigenIndex>(filters_count),
                         static_cast<EigenIndex>(f_width));
                 output_map.col(x) += cwp_reshaped.rowwise().sum();

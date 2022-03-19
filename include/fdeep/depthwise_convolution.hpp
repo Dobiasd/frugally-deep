@@ -57,43 +57,43 @@ inline tensor depthwise_convolve_accumulative(
         }
     }
 
-    using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
-    using MappedColMajorMatrixXfUnalignedOuterStride = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>;
+    using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
+    using MappedArrayXfUnaligned = Eigen::Map<ArrayXf, Eigen::Unaligned>;
+    using MappedArrayXfUnalignedOuterStride = Eigen::Map<ArrayXf, Eigen::Unaligned, Eigen::OuterStride<>>;
 
-    using VectorXf = Eigen::Matrix<float_type, Eigen::Dynamic, 1>;
-    using MappedVectorXf = Eigen::Map<VectorXf, Eigen::Aligned>;
+    using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
+    using MappedArrayXf1D = Eigen::Map<ArrayXf1D, Eigen::Aligned>;
 
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const auto filter = MappedVectorXf(
+        const auto filter = MappedArrayXf1D(
             const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
-                static_cast<EigenIndex>(f_width * filters_count)).asDiagonal();
+                static_cast<EigenIndex>(f_width * filters_count));
 
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const MappedColMajorMatrixXfUnalignedOuterStride
+            const MappedArrayXfUnalignedOuterStride
                 input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
                     static_cast<EigenIndex>(f_width * filters_count),
                     static_cast<EigenIndex>(out_width),
                     Eigen::OuterStride<>(static_cast<EigenIndex>(filters_count * strides_x)));
 
-            MappedColMajorMatrixXfUnaligned
+            const ArrayXf temp1 = input.colwise() * filter;
+
+            MappedArrayXfUnaligned
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(out_width));
 
-            // todo: remove
-            /*
-            const auto input_rows = input.rows();
-            const auto input_cols = input.cols();
-            const auto filter_rows = filter.rows();
-            const auto filter_cols = filter.cols();
-            const auto output_rows = output_map.rows();
-            const auto output_cols = output_map.cols();
-            std::cout << (input_rows == (input_cols == (filter_rows == (filter_cols == (output_rows == output_cols))))) << std::endl;
-            */
+            for (std::size_t x = 0; x < out_width; ++x) {
+                const MappedArrayXfUnaligned
+                    temp1_map(const_cast<float_type*>(temp1.col(static_cast<EigenIndex>(x)).data()),
+                        static_cast<EigenIndex>(f_width),
+                        static_cast<EigenIndex>(filters_count));
 
-            output_map.noalias() += filter * input;
+                const ArrayXf temp1_red = temp1_map.colwise().sum();
+                output_map.col(static_cast<EigenIndex>(x)) += temp1_red.transpose();
+            }
         }
     }
 

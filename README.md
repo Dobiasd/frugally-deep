@@ -159,10 +159,10 @@ Below you can find the average durations of multiple consecutive forward passes 
 | `DenseNet169`     |     0.14 s |        0.36 s |
 | `DenseNet201`     |     0.16 s |        0.49 s |
 | `InceptionV3`     |     0.17 s |        0.36 s |
-| `MobileNet`       |     0.05 s |        0.08 s |
+| `MobileNet`       |     0.05 s |        0.07 s |
 | `MobileNetV2`     |     0.05 s |        0.07 s |
-| `NASNetLarge`     |     0.85 s |        2.50 s |
-| `NASNetMobile`    |     0.09 s |        0.14 s |
+| `NASNetLarge`     |     0.85 s |        2.45 s |
+| `NASNetMobile`    |     0.09 s |        0.13 s |
 | `ResNet101`       |     0.23 s |        0.52 s |
 | `ResNet101V2`     |     0.21 s |        0.49 s |
 | `ResNet152`       |     0.32 s |        0.78 s |
@@ -171,7 +171,7 @@ Below you can find the average durations of multiple consecutive forward passes 
 | `ResNet50V2`      |     0.12 s |        0.25 s |
 | `VGG16`           |     0.41 s |        0.53 s |
 | `VGG19`           |     0.50 s |        0.66 s |
-| `Xception`        |     0.25 s |        0.67 s |
+| `Xception`        |     0.25 s |        0.65 s |
 
 Requirements and Installation
 -----------------------------

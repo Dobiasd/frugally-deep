@@ -62,11 +62,11 @@ inline tensor depthwise_convolve_accumulative(
     using MappedArrayXfUnalignedOuterStride = Eigen::Map<ArrayXf, Eigen::Unaligned, Eigen::OuterStride<>>;
 
     using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
-    using MappedArrayXf1D = Eigen::Map<ArrayXf1D, Eigen::Aligned>;
+    using MappedArrayXf1DUnaligned = Eigen::Map<ArrayXf1D, Eigen::Unaligned>;
 
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const auto filter = MappedArrayXf1D(
+        const auto filter = MappedArrayXf1DUnaligned(
             const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(f_width * filters_count));
 
@@ -88,11 +88,11 @@ inline tensor depthwise_convolve_accumulative(
             for (std::size_t x = 0; x < out_width; ++x) {
                 const MappedArrayXfUnaligned
                     temp1_map(const_cast<float_type*>(temp1.col(static_cast<EigenIndex>(x)).data()),
-                        static_cast<EigenIndex>(f_width),
-                        static_cast<EigenIndex>(filters_count));
+                        static_cast<EigenIndex>(filters_count),
+                        static_cast<EigenIndex>(f_width));
 
-                const ArrayXf temp1_red = temp1_map.colwise().sum();
-                output_map.col(static_cast<EigenIndex>(x)) += temp1_red.transpose();
+                const ArrayXf temp1_red = temp1_map.rowwise().sum();
+                output_map.col(static_cast<EigenIndex>(x)) += temp1_red;
             }
         }
     }

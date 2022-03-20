@@ -98,6 +98,25 @@ inline tensor init_conv_output_tensor(
     return output;
 }
 
+Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>> get_im2col_mapping(
+    const tensor& in,
+    std::size_t f_width,
+    std::size_t f_depth,
+    std::size_t strides_x,
+    std::size_t out_width,
+    std::size_t y,
+    std::size_t y_filt)
+{
+    // To avoid using too much RAM, the input tensor is not materializezd
+    // as an actual im2col matrix, but instead the too-small outer stride
+    // of the matrix mapping is utilized to achieve the overlap the receptive fields.
+    return Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>(
+            const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
+            static_cast<EigenIndex>(f_width * f_depth),
+            static_cast<EigenIndex>(out_width),
+            Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
+}
+
 inline tensor convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -123,12 +142,9 @@ inline tensor convolve_accumulative(
 
     tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
-    using MappedColMajorMatrixXfUnaligned = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>;
-    using MappedColMajorMatrixXfUnalignedOuterStride = Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>;
-    
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const MappedColMajorMatrixXfUnaligned
+        const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
             filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(out_depth),
                 static_cast<EigenIndex>(f_width * f_depth));
@@ -140,16 +156,8 @@ inline tensor convolve_accumulative(
         // so currently it's multiple smaller GEMMs.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            // To avoid using too much RAM, the input tensor is not materializezd
-            // as an actual im2col matrix, but instead the too-small outer stride
-            // of the matrix mapping is utilized to achieve the overlap the receptive fields.
-            const MappedColMajorMatrixXfUnalignedOuterStride
-                input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
-                    static_cast<EigenIndex>(f_width * f_depth),
-                    static_cast<EigenIndex>(out_width),
-                    Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
-            
-            MappedColMajorMatrixXfUnaligned
+            const auto input = get_im2col_mapping(in, f_width, f_depth, strides_x, out_width, y, y_filt);
+            Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(out_width));
@@ -257,9 +265,6 @@ inline tensor convolve(
         filter_mat.filter_shape_.without_depth(),
         strides, pad_type, input.shape().height_, input.shape().width_);
 
-    const std::size_t out_height = conv_cfg.out_height_;
-    const std::size_t out_width = conv_cfg.out_width_;
-
     // The padding step usually (on a VGG19 net) only takes about 1% of the overall runtime.
     // So the increased code complexity of doing it inside the convolution step
     // is probably not worth the small potential performance gain.
@@ -268,7 +273,7 @@ inline tensor convolve(
         input);
 
     return convolve_accumulative(
-        out_height, out_width,
+        conv_cfg.out_height_, conv_cfg.out_width_,
         strides.height_, strides.width_,
         filter_mat,
         in_padded);

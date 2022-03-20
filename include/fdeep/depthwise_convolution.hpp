@@ -41,37 +41,27 @@ inline tensor depthwise_convolve_accumulative(
 
     tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
-    using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
-    using MappedArrayXfUnaligned = Eigen::Map<ArrayXf, Eigen::Unaligned>;
-    using MappedArrayXfUnalignedOuterStride = Eigen::Map<ArrayXf, Eigen::Unaligned, Eigen::OuterStride<>>;
-
-    using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
-    using MappedArrayXf1DUnaligned = Eigen::Map<ArrayXf1D, Eigen::Unaligned>;
-
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
-        const auto filter = MappedArrayXf1DUnaligned(
+        const auto filter = Eigen::Map<ArrayXf1D, Eigen::Unaligned>(
             const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(f_width * filters_count));
 
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
-            const MappedArrayXfUnalignedOuterStride
-                input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt, 0, 0))),
-                    static_cast<EigenIndex>(f_width * filters_count),
-                    static_cast<EigenIndex>(out_width),
-                    Eigen::OuterStride<>(static_cast<EigenIndex>(filters_count * strides_x)));
+            const auto input = get_im2col_mapping(in, f_width, filters_count, strides_x, out_width, y, y_filt).array();
 
+            // Not materialized to save memory and improve performance.
             const auto coefficient_wise_product = input.colwise() * filter;
 
-            MappedArrayXfUnaligned
+            Eigen::Map<ArrayXf, Eigen::Unaligned>
                 output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(out_width));
 
             for (EigenIndex x = 0; x < static_cast<EigenIndex>(out_width); ++x) {
                 const ArrayXf col_materialized = coefficient_wise_product.col(x);
-                const MappedArrayXfUnaligned
+                const Eigen::Map<ArrayXf, Eigen::Unaligned>
                     cwp_reshaped(const_cast<float_type*>(col_materialized.data()),
                         static_cast<EigenIndex>(filters_count),
                         static_cast<EigenIndex>(f_width));
@@ -100,15 +90,12 @@ inline tensor depthwise_convolve(
         filter_mat.filter_shape_.without_depth(),
         strides, pad_type, input.shape().height_, input.shape().width_);
 
-    const std::size_t out_height = conv_cfg.out_height_;
-    const std::size_t out_width = conv_cfg.out_width_;
-
     const auto in_padded = pad_tensor(0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 
     return depthwise_convolve_accumulative(
-        out_height, out_width,
+        conv_cfg.out_height_, conv_cfg.out_width_,
         strides.height_, strides.width_,
         filter_mat,
         in_padded);

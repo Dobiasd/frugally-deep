@@ -98,7 +98,7 @@ inline tensor init_conv_output_tensor(
     return output;
 }
 
-Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>> get_im2col_mapping(
+inline Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>> get_im2col_mapping(
     const tensor& in,
     std::size_t f_width,
     std::size_t f_depth,

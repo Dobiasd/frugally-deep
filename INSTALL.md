@@ -25,7 +25,7 @@ cd ../..
 git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json
 cd json
 mkdir -p build && cd build
-cmake -DBUILD_TESTING=OFF ..
+cmake -DJSON_BuildTests=OFF ..
 make && sudo make install
 cd ../..
 

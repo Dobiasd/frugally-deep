@@ -15,6 +15,47 @@
 #include <string>
 #include <vector>
 
+
+
+
+
+// source: https://stackoverflow.com/a/64166/1866775
+#include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
+int parseLine(char* line) {
+    int i = static_cast<int>(strlen(line));
+    const char* p = line;
+    while (*p <'0' || *p > '9') p++;
+    line[i-3] = '\0';
+    i = atoi(p);
+    return i;
+}
+int getMemoryUsageInkB() {
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmSize:", 7) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
+
+
+
+
+void printMem(const std::string& name) {
+    std::cout << "Memory usage (" << name << "): " << getMemoryUsageInkB() / 1024 << " MB" << std::endl;
+}
+
+
+
+
+
 namespace fdeep
 {
 
@@ -292,10 +333,15 @@ inline model read_model(std::istream& model_file_stream,
         stopwatch.reset();
     };
 
+    
     log_sol("Loading json");
+    std::cout << std::endl;
     nlohmann::json json_data;
+    printMem("before loading json_data");
     model_file_stream >> json_data;
+    printMem("after loading json_data");
     log_duration();
+    
 
     const std::string image_data_format = json_data["image_data_format"];
     internal::assertion(image_data_format == "channels_last",
@@ -310,6 +356,7 @@ inline model read_model(std::istream& model_file_stream,
         return json_data["trainable_params"][layer_name][param_name];
     };
 
+    printMem("before create_model_layer");
     log_sol("Building model");
     model full_model(internal::create_model_layer(
         get_param, json_data["architecture"],
@@ -321,6 +368,7 @@ inline model read_model(std::istream& model_file_stream,
         internal::json_object_get<std::string, std::string>(
             json_data, "hash", ""));
     log_duration();
+    printMem("after create_model_layer");
 
     if (verify)
     {
@@ -330,8 +378,13 @@ inline model read_model(std::istream& model_file_stream,
         }
         else
         {
+            printMem("before internal::load_test_cases");
             const auto tests = internal::load_test_cases(json_data["tests"]);
-            json_data = {}; // free RAM
+            printMem("after internal::load_test_cases");
+
+            printMem("before 'json_data = {};'");
+            json_data = {}; // free RAM // todo: also when not verify?
+            printMem("after 'json_data = {};'");
             for (std::size_t i = 0; i < tests.size(); ++i)
             {
                 log_sol("Running test " + fplus::show(i + 1) +
@@ -371,8 +424,10 @@ inline model load_model(const std::string& file_path,
     fplus::stopwatch stopwatch;
     std::ifstream in_stream(file_path);
     internal::assertion(in_stream.good(), "Can not open " + file_path);
+    printMem("before read_model");
     const auto model = read_model(in_stream, verify, logger, verify_epsilon,
-    custom_layer_creators);
+        custom_layer_creators);
+    printMem("after read_model");
     if (logger)
     {
         const std::string additional_action = verify ? ", testing" : "";

@@ -39,6 +39,11 @@ like kernel fusion, etc. Frugally-deep does not support such things,
 so on some model types, you might experience an insurmountable
 performance difference.
 
+Why is my application using more memory than expected?
+------------------------------------------------------
+
+In case you're using glibc, which is the default libc on most major distributions like Ubuntu, Debian, Arch, etc., memory temporarily allocated during `fdeep::load_model` [might not be freed completely](https://github.com/nlohmann/json#memory-release). To make sure it's given back to the operating system, use [`malloc_trim(0);`](https://manned.org/malloc_trim.3) after calling `fdeep::load_model`.
+
 Why do I get some error when loading my `.json` file in C++?
 ------------------------------------------------------------
 

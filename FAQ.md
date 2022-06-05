@@ -487,7 +487,8 @@ How can I use `BatchNormalization` and `Dropout` layers with `training=True`?
 
 Frugally-deep does not support `training=True` on the inbound nodes.
 
-But if you'd like to remove this flag from this helps, you can use the following function to do so before using `convert_model.py`:
+But if you'd like to remove this flag from the layers in you model,
+you can use the following function to do so before using `convert_model.py`:
 
 ```python3
 def remove_training_flags(old_model_path, new_model_path):

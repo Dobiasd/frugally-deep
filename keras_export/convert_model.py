@@ -59,12 +59,6 @@ def transform_bias(bias):
     return np.sum(np.split(bias, 2, axis=0), axis=0)
 
 
-def write_text_file(path, text):
-    """Write a string to a file"""
-    with open(path, "w") as text_file:
-        print(text, file=text_file)
-
-
 def int_or_none(value):
     """Leave None values as is, convert everything else to int"""
     if value is None:
@@ -819,8 +813,9 @@ def convert(in_path, out_path, no_tests=False):
     model = load_model(in_path)
     json_output = model_to_fdeep_json(model, no_tests)
     print('writing {}'.format(out_path))
-    write_text_file(out_path, json.dumps(
-        json_output, allow_nan=False, indent=2, sort_keys=True))
+
+    with open(out_path, 'w') as f:
+        json.dump(json_output, f, allow_nan=False, separators=(',', ':'))
 
 
 def main():

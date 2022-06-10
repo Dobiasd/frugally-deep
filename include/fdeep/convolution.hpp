@@ -117,6 +117,66 @@ inline Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>> get_
             Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
 }
 
+// Special version for convolution with strides_x == 1 and strides_y == 1.
+// Reduces the forward-pass runtime of VGG19 about 15%, by using fewer but larger GEMMs.
+inline tensor convolve_accumulative_s1x1(
+    std::size_t out_height,
+    std::size_t out_width,
+    const convolution_filter_matrices& filter_mat,
+    const tensor& in)
+{
+    const tensor& filter_mats = filter_mat.filter_mats_;
+    const auto f_height = filter_mat.filter_shape_.height_;
+    const auto f_width = filter_mat.filter_shape_.width_;
+    const auto f_depth = filter_mat.filter_shape_.depth_;
+    const auto out_depth = filter_mat.filter_count_;
+
+    assertion(f_depth == in.shape().depth_, "filter depth does not match input");
+    assertion(filter_mats.shape().size_dim_4_ == f_height, "incorrect number of filter levels in y direction");
+    assertion(out_width == (in.shape().width_ - f_width) + 1, "output width does not match");
+    assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
+
+    tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
+
+    const std::size_t out_width_temp = out_width + f_width - 1;
+    tensor output_temp(tensor_shape_with_changed_rank(
+                tensor_shape(out_height, out_width_temp, out_depth),
+                in.shape().rank()),
+            static_cast<float_type>(0));
+
+    for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
+    {
+        const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+            filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
+                static_cast<EigenIndex>(out_depth),
+                static_cast<EigenIndex>(f_width * f_depth));
+
+        const auto input = get_im2col_mapping(in, f_width, f_depth, 1, out_width_temp * (out_height - 1) + out_width, 0, y_filt);
+
+        Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+            output_temp_map(&output_temp.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0)),
+            static_cast<EigenIndex>(out_depth),
+            static_cast<EigenIndex>(out_width_temp * out_height));
+            
+        output_temp_map.noalias() += filter * input;
+    }
+
+    // Dropping the superfluous results from "between" the rows.
+    for (std::size_t y_out = 0; y_out < out_height; ++y_out)
+    {
+        for (std::size_t x_out = 0; x_out < out_width; ++x_out)
+        {
+            for (std::size_t z_out = 0; z_out < out_depth; ++z_out)
+            {
+                output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) +=
+                output_temp.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out));
+            }
+        }
+    }
+    
+    return output;
+}
+
 inline tensor convolve_accumulative(
     std::size_t out_height,
     std::size_t out_width,
@@ -140,6 +200,11 @@ inline tensor convolve_accumulative(
     assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
     assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
+    if (strides_x == 1 && strides_y == 1)
+    {
+        return convolve_accumulative_s1x1(out_height, out_width, filter_mat, in);
+    }
+
     tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
@@ -148,12 +213,6 @@ inline tensor convolve_accumulative(
             filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(out_depth),
                 static_cast<EigenIndex>(f_width * f_depth));
-        // This inner loop costs some performance.
-        // Getting rid of it, i.e., merging it to one larger GEMM,
-        // and afterwards dropping the superfluous results from "between" the rows,
-        // would reduce the forward-pass runtime of VGG19 about 15%.
-        // However, getting it to work for strides_x != 1 is not trivial,
-        // so currently it's multiple smaller GEMMs.
         for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out)
         {
             const auto input = get_im2col_mapping(in, f_width, f_depth, strides_x, out_width, y, y_filt);

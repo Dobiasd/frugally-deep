@@ -144,19 +144,21 @@ inline tensor convolve_accumulative_s1x1(
                 in.shape().rank()),
             static_cast<float_type>(0));
 
+    const auto mapping_width = out_width_temp * (out_height - 1) + out_width;
+
     for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt)
     {
         const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
             filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                 static_cast<EigenIndex>(out_depth),
                 static_cast<EigenIndex>(f_width * f_depth));
-
-        const auto input = get_im2col_mapping(in, f_width, f_depth, 1, out_width_temp * (out_height - 1) + out_width, 0, y_filt);
+    
+        const auto input = get_im2col_mapping(in, f_width, f_depth, 1, mapping_width, 0, y_filt);
 
         Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
             output_temp_map(&output_temp.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0)),
             static_cast<EigenIndex>(out_depth),
-            static_cast<EigenIndex>(out_width_temp * out_height));
+            static_cast<EigenIndex>(mapping_width));
             
         output_temp_map.noalias() += filter * input;
     }

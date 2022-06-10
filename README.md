@@ -155,23 +155,23 @@ Below you can find the average durations of multiple consecutive forward passes 
 
 | Model             | Keras + TF | frugally-deep |
 | ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.12 s |        0.28 s |
-| `DenseNet169`     |     0.14 s |        0.36 s |
-| `DenseNet201`     |     0.16 s |        0.49 s |
-| `InceptionV3`     |     0.17 s |        0.36 s |
+| `DenseNet121`     |     0.12 s |        0.31 s |
+| `DenseNet169`     |     0.14 s |        0.38 s |
+| `DenseNet201`     |     0.18 s |        0.50 s |
+| `InceptionV3`     |     0.17 s |        0.29 s |
 | `MobileNet`       |     0.05 s |        0.07 s |
-| `MobileNetV2`     |     0.05 s |        0.07 s |
-| `NASNetLarge`     |     0.85 s |        2.45 s |
-| `NASNetMobile`    |     0.09 s |        0.13 s |
-| `ResNet101`       |     0.23 s |        0.52 s |
-| `ResNet101V2`     |     0.21 s |        0.49 s |
-| `ResNet152`       |     0.32 s |        0.78 s |
-| `ResNet152V2`     |     0.30 s |        0.71 s |
-| `ResNet50`        |     0.14 s |        0.31 s |
-| `ResNet50V2`      |     0.12 s |        0.25 s |
-| `VGG16`           |     0.41 s |        0.53 s |
-| `VGG19`           |     0.50 s |        0.66 s |
-| `Xception`        |     0.25 s |        0.65 s |
+| `MobileNetV2`     |     0.05 s |        0.08 s |
+| `NASNetLarge`     |     0.85 s |        2.35 s |
+| `NASNetMobile`    |     0.09 s |        0.14 s |
+| `ResNet101`       |     0.23 s |        0.41 s |
+| `ResNet101V2`     |     0.21 s |        0.36 s |
+| `ResNet152`       |     0.32 s |        0.59 s |
+| `ResNet152V2`     |     0.30 s |        0.54 s |
+| `ResNet50`        |     0.14 s |        0.25 s |
+| `ResNet50V2`      |     0.12 s |        0.20 s |
+| `VGG16`           |     0.40 s |        0.48 s |
+| `VGG19`           |     0.49 s |        0.59 s |
+| `Xception`        |     0.25 s |        0.55 s |
 
 Requirements and Installation
 -----------------------------

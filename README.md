@@ -166,7 +166,7 @@ Below you can find the average durations of multiple consecutive forward passes 
 | `EfficientNetB5`     |     0.79 s |        2.29 s |
 | `EfficientNetB6`     |     1.34 s |        4.52 s |
 | `EfficientNetB7`     |     2.47 s |        8.16 s |
-| `EfficientNetV2B0`   |     0.07 s |        0.86 s |
+| `EfficientNetV2B0`   |     0.07 s |        0.09 s |
 | `EfficientNetV2B1`   |     0.09 s |        0.13 s |
 | `EfficientNetV2B2`   |     0.11 s |        0.18 s |
 | `EfficientNetV2B3`   |     0.15 s |        0.30 s |

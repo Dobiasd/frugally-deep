@@ -153,25 +153,40 @@ Performance
 Below you can find the average durations of multiple consecutive forward passes for some popular models ran on a **single core** of an Intel Core i5-6600 CPU @ 3.30GHz. frugally-deep and TensorFlow were compiled (GCC ver. 7.1) with `g++ -O3 -march=native`. The processes were started with `CUDA_VISIBLE_DEVICES='' taskset --cpu-list 1 ...` to **disable the GPU** and to only allow usage of one CPU.
 (see used [`Dockerfile`](test/Dockerfile))
 
-| Model             | Keras + TF | frugally-deep |
-| ----------------- | ----------:| -------------:|
-| `DenseNet121`     |     0.12 s |        0.31 s |
-| `DenseNet169`     |     0.14 s |        0.38 s |
-| `DenseNet201`     |     0.18 s |        0.50 s |
-| `InceptionV3`     |     0.17 s |        0.29 s |
-| `MobileNet`       |     0.05 s |        0.07 s |
-| `MobileNetV2`     |     0.05 s |        0.08 s |
-| `NASNetLarge`     |     0.85 s |        2.35 s |
-| `NASNetMobile`    |     0.09 s |        0.14 s |
-| `ResNet101`       |     0.23 s |        0.41 s |
-| `ResNet101V2`     |     0.21 s |        0.36 s |
-| `ResNet152`       |     0.32 s |        0.59 s |
-| `ResNet152V2`     |     0.30 s |        0.54 s |
-| `ResNet50`        |     0.14 s |        0.25 s |
-| `ResNet50V2`      |     0.12 s |        0.20 s |
-| `VGG16`           |     0.40 s |        0.48 s |
-| `VGG19`           |     0.49 s |        0.59 s |
-| `Xception`        |     0.25 s |        0.55 s |
+| Model                | Keras + TF | frugally-deep |
+| -------------------- | ----------:| -------------:|
+| `DenseNet121`        |     0.12 s |        0.31 s |
+| `DenseNet169`        |     0.14 s |        0.38 s |
+| `DenseNet201`        |     0.18 s |        0.50 s |
+| `EfficientNetB0`     |     0.12 s |        0.55 s |
+| `EfficientNetB1`     |     0.10 s |        0.12 s |
+| `EfficientNetB2`     |     0.12 s |        0.20 s |
+| `EfficientNetB3`     |     0.19 s |        0.28 s |
+| `EfficientNetB4`     |     0.36 s |        0.54 s |
+| `EfficientNetB5`     |     0.79 s |        1.18 s |
+| `EfficientNetB6`     |     1.34 s |        2.38 s |
+| `EfficientNetB7`     |     2.47 s |        4.40 s |
+| `EfficientNetV2B0`   |     0.07 s |        8.29 s |
+| `EfficientNetV2B1`   |     0.09 s |        0.09 s |
+| `EfficientNetV2B2`   |     0.11 s |        0.14 s |
+| `EfficientNetV2B3`   |     0.15 s |        0.19 s |
+| `EfficientNetV2L`    |     1.70 s |        0.32 s |
+| `EfficientNetV2M`    |     0.84 s |        5.21 s |
+| `EfficientNetV2S`    |     0.33 s |        2.51 s |
+| `InceptionV3`        |     0.17 s |        0.29 s |
+| `MobileNet`          |     0.05 s |        0.07 s |
+| `MobileNetV2`        |     0.05 s |        0.08 s |
+| `NASNetLarge`        |     0.85 s |        2.35 s |
+| `NASNetMobile`       |     0.09 s |        0.14 s |
+| `ResNet101`          |     0.23 s |        0.41 s |
+| `ResNet101V2`        |     0.21 s |        0.36 s |
+| `ResNet152`          |     0.32 s |        0.59 s |
+| `ResNet152V2`        |     0.30 s |        0.54 s |
+| `ResNet50`           |     0.14 s |        0.25 s |
+| `ResNet50V2`         |     0.12 s |        0.20 s |
+| `VGG16`              |     0.40 s |        0.48 s |
+| `VGG19`              |     0.49 s |        0.59 s |
+| `Xception`           |     0.25 s |        0.55 s |
 
 Requirements and Installation
 -----------------------------

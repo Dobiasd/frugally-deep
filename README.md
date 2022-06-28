@@ -193,7 +193,7 @@ Requirements and Installation
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.7 or higher
-- TensorFlow 2.8.2 and Keras 2.8.0 (These are the tested versions, but somewhat older ones might work too.)
+- TensorFlow 2.9.1 and Keras 2.9.0 (These are the tested versions, but somewhat older ones might work too.)
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

@@ -135,6 +135,9 @@ def get_test_model_exhaustive():
         (1, 1, 4, 1, 6),
         (1, 3, 1, 5, 1),
         (2, 1, 4, 1, 1),
+        (1, ),  # 46
+        (3, 1),
+        (6, 5, 4, 3, 2),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -157,14 +160,19 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
     outputs.append(GlobalAveragePooling1D(data_format="channels_first")(inputs[6]))
 
+    outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
+    outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
+    outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[46]))
+    outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[46]))
+    outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[47]))
+    outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[47]))
+    outputs.append(Normalization(axis=2, mean=2.1, variance=2.2)(inputs[47]))
     for axis in range(1, 6):
         shape = input_shapes[0][axis - 1]
         outputs.append(Normalization(axis=axis,
                                      mean=np.random.rand(shape),
                                      variance=np.random.rand(shape)
                                      )(inputs[0]))
-    outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
-    outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
 
     outputs.append(Rescaling(23.5, 42.1)(inputs[0]))
 

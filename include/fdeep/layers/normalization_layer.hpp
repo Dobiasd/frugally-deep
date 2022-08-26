@@ -45,8 +45,8 @@ protected:
         };
 
         if (axes_.empty()) {
-            return {transform_slice(0, input)};
             assertion(variance_.size() == 1, "Invalid number of variance values in Normalization layer.");
+            return {transform_slice(0, input)};
         }
 
         assertion(axes_.size() <= 1, "Unsupported number of axes for Normalization layer. Must be 0 or 1.");

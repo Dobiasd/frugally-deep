@@ -15,8 +15,8 @@ RUN apt-get -y install curl gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
 RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt-get update && apt-get install -y bazel-5.0.0
-RUN ln -s /usr/bin/bazel-5.0.0 /usr/bin/bazel
+RUN apt-get update && apt-get install -y bazel-5.1.1
+RUN ln -s /usr/bin/bazel-5.1.1 /usr/bin/bazel
 
 RUN git clone -b 'v2.10.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow

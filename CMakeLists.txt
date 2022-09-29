@@ -19,6 +19,7 @@ if(NOT FDEEP_USE_TOOLCHAIN)
 endif()
 
 add_library(fdeep INTERFACE)
+add_library(${PROJECT_NAME}::fdeep ALIAS fdeep)
 target_include_directories(fdeep INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   )

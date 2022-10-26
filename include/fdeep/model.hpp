@@ -88,7 +88,7 @@ public:
     std::pair<std::size_t, float_type>
     predict_class_with_confidence_stateful(const tensors& inputs)
     {
-        return predict_class_with_confidence_impl(inputs);
+        return predict_class_with_confidence_stateful_impl(inputs);
     }
 
     // Convenience wrapper around predict for models with
@@ -104,7 +104,7 @@ public:
 
     float_type predict_single_output_stateful(const tensors& inputs)
     {
-        return predict_single_output_impl(inputs);
+        return predict_single_output_stateful_impl(inputs);
     }
 
     const std::vector<tensor_shape_variable>& get_input_shapes() const
@@ -228,6 +228,32 @@ private:
     float_type predict_single_output_impl(const tensors& inputs) const
     {
         const tensors outputs = predict(inputs);
+        internal::assertion(outputs.size() == 1,
+            "invalid number of outputs");
+        const auto output_shape = outputs.front().shape();
+        internal::assertion(output_shape.volume() == 1,
+            "invalid output shape");
+        return to_singleton_value(outputs.front());
+    }
+
+    std::pair<std::size_t, float_type>
+    predict_class_with_confidence_stateful_impl(const tensors& inputs)
+    {
+        const tensors outputs = predict_stateful(inputs);
+        internal::assertion(outputs.size() == 1,
+            std::string("invalid number of outputs.\n") +
+            "Use model::predict instead of model::predict_class.");
+        const auto output_shape = outputs.front().shape();
+        internal::assertion(output_shape.without_depth().area() == 1,
+            std::string("invalid output shape.\n") +
+            "Use model::predict instead of model::predict_class.");
+        const auto pos = internal::tensor_max_pos(outputs.front());
+        return std::make_pair(pos.z_, outputs.front().get(pos));
+    }
+
+    float_type predict_single_output_stateful_impl(const tensors& inputs)
+    {
+        const tensors outputs = predict_stateful(inputs);
         internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
         const auto output_shape = outputs.front().shape();

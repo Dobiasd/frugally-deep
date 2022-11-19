@@ -1,93 +1,124 @@
 message(STATUS "Building Unit Tests ${UNITTEST}")
 
+# look for Python3
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+if (${PYTHON3_FOUND})
+    # look for pip.exe/pip3.exe or other pip names (pip*), shown as a list.
+    # Looking for pip is to use command 'pip show tensorflow' to check whether tensorflow is installed in python.
+    message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
+    file(GLOB PIP_LIST ${Python3_INCLUDE_DIRS}/../Scripts/pip3*)
+    # get pip list length
+    list(LENGTH PIP_LIST PIP_LIST_LENGTH)
+    if (${PIP_LIST_LENGTH} LESS_EQUAL 0)
+        message(FATAL_ERROR "Pip not found! Please check the integrity of python installation, or reinstall it.")
+    else()
+        message(STATUS "Found ${PIP_LIST_LENGTH} pip names")
+    endif ()
+    list(GET PIP_LIST 0 PIP)
+    message(STATUS "Will use ${PIP} to check tensorflow")
+    message(STATUS "checking tensorflow")
+    execute_process(
+        COMMAND ${PIP} show tensorflow
+        RESULT_VARIABLE EXIT_CODE
+        OUTPUT_QUIET
+    )
+    if (NOT ${EXIT_CODE} EQUAL 0)
+    message(
+            FATAL_ERROR
+            "The \"Tensorflow\" Python3 package is not installed. Please install it using the following command: \"pip install tensorflow\"."
+    )
+    else()
+        message(STATUS "checking tensorflow --success")
+    endif()
+endif ()
 add_custom_command ( OUTPUT test_model_exhaustive.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_embedding.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_recurrent.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_lstm.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm test_model_lstm.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm test_model_lstm.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_lstm_stateful.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm_stateful test_model_lstm_stateful.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm_stateful test_model_lstm_stateful.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_gru.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru test_model_gru.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru test_model_gru.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_gru_stateful.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru_stateful test_model_gru_stateful.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru_stateful test_model_gru_stateful.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_sequential.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py sequential test_model_sequential.h5"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py sequential test_model_sequential.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT readme_example_model.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/test/readme_example_generate.py"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/test/readme_example_generate.py"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_exhaustive.json
                      DEPENDS test_model_exhaustive.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_exhaustive.h5 test_model_exhaustive.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_exhaustive.h5 test_model_exhaustive.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_embedding.json
                      DEPENDS test_model_embedding.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.h5 test_model_embedding.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.h5 test_model_embedding.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_recurrent.json
                      DEPENDS test_model_recurrent.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_recurrent.h5 test_model_recurrent.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_recurrent.h5 test_model_recurrent.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_lstm.json
                      DEPENDS test_model_lstm.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm.h5 test_model_lstm.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm.h5 test_model_lstm.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_lstm_stateful.json
                      DEPENDS test_model_lstm_stateful.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm_stateful.h5 test_model_lstm_stateful.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm_stateful.h5 test_model_lstm_stateful.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_gru.json
                      DEPENDS test_model_gru.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru.h5 test_model_gru.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru.h5 test_model_gru.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_gru_stateful.json
                      DEPENDS test_model_gru_stateful.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru_stateful.h5 test_model_gru_stateful.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru_stateful.h5 test_model_gru_stateful.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.json
                      DEPENDS test_model_variable.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_variable.h5 test_model_variable.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_variable.h5 test_model_variable.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_sequential.json
                      DEPENDS test_model_sequential.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_sequential.h5 test_model_sequential.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_sequential.h5 test_model_sequential.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT readme_example_model.json
                      DEPENDS readme_example_model.h5
-                     COMMAND bash -c "python3 ${FDEEP_TOP_DIR}/keras_export/convert_model.py readme_example_model.h5 readme_example_model.json"
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py readme_example_model.h5 readme_example_model.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 hunter_add_package(doctest)
@@ -99,6 +130,18 @@ macro(_add_test _NAME _DEPENDS)
     add_dependencies(${_NAME} ${_NAME}_data)
     add_test(NAME ${_NAME} COMMAND ${_NAME})
     target_link_libraries(${_NAME} fdeep Threads::Threads doctest::doctest)
+    # GNU in linux doesn't support "-mbig-obj" option.
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        include(CheckCXXCompilerFlag)
+        check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
+        message(STATUS ${_NAME}: GNU_BIG_OBJ_FLAG_ENABLE=${GNU_BIG_OBJ_FLAG_ENABLE})
+        target_compile_options(${_NAME}
+        PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
+        $<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>)
+    endif()
+
+
 endmacro()
 
 _add_test(test_model_exhaustive_test test_model_exhaustive.json)

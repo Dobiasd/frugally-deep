@@ -55,7 +55,7 @@ cmake -DFDEEP_BUILD_UNITTEST=ON ..
 make unittest
 cd ../..
 ```
-
+The Unit Tests require Python3 and Tensorflow should be installed as a Python Model. You could use *pip show tensorflow* in terminal or *import tensorflow* in Python to check your Tensorflow.
 
 ### Installation using [Conan C/C++ package manager](https://conan.io)
 

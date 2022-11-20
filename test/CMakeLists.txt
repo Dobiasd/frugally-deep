@@ -6,19 +6,9 @@ if (${PYTHON3_FOUND})
     # look for pip.exe/pip3.exe or other pip names (pip*), shown as a list.
     # Looking for pip is to use command 'pip show tensorflow' to check whether tensorflow is installed in python.
     message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
-    file(GLOB PIP_LIST ${Python3_INCLUDE_DIRS}/../Scripts/pip3*)
-    # get pip list length
-    list(LENGTH PIP_LIST PIP_LIST_LENGTH)
-    if (${PIP_LIST_LENGTH} LESS_EQUAL 0)
-        message(FATAL_ERROR "Pip not found! Please check the integrity of python installation, or reinstall it.")
-    else()
-        message(STATUS "Found ${PIP_LIST_LENGTH} pip names")
-    endif ()
-    list(GET PIP_LIST 0 PIP)
-    message(STATUS "Will use ${PIP} to check tensorflow")
     message(STATUS "checking tensorflow")
     execute_process(
-        COMMAND ${PIP} show tensorflow
+        COMMAND pip show tensorflow
         RESULT_VARIABLE EXIT_CODE
         OUTPUT_QUIET
     )

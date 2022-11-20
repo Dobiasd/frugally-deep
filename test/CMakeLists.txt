@@ -3,8 +3,7 @@ message(STATUS "Building Unit Tests ${UNITTEST}")
 # look for Python3
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 if (${PYTHON3_FOUND})
-    # look for pip.exe/pip3.exe or other pip names (pip*), shown as a list.
-    # Looking for pip is to use command 'pip show tensorflow' to check whether tensorflow is installed in python.
+    # use command 'pip show tensorflow' to check whether tensorflow is installed in python.
     message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
     message(STATUS "checking tensorflow")
     execute_process(

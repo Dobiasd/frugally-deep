@@ -205,7 +205,7 @@ See [`FAQ.md`](FAQ.md)
 Disclaimer
 
 ----------
-The API of this library still might change in the future. If you have any suggestions, find errors or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
+The API of this library still might change in the future. If you have any suggestions, find errors, or want to give general feedback/criticism, I'd [love to hear from you](issues). Of course, [contributions](pulls) are also very welcome.
 
 License
 -------

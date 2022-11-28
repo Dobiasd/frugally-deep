@@ -1,16 +1,16 @@
 frugally-deep FAQ
 =================
 
-Why is my prediction roughly 100 times slower in C++ as in Python?
+Why is my prediction roughly 100 times slower in C++ than in Python?
 ------------------------------------------------------------------
 
-Maybe you did not tell your C++ compiler to optimize for speed?
+Maybe you did not tell your C++ compiler to optimize for speed.
 For g++ and clang this can be done with `-O3` (and `-march=native`).
-In case of Microsoft Visual C++,
+In the case of Microsoft Visual C++,
 you need to compile your project not in "Debug" mode but in "Release" mode,
 and then run it without the debugger attached.
 
-Why is my prediction roughly 10 times slower in C++ as in Python?
+Why is my prediction roughly 10 times slower in C++ than in Python?
 -----------------------------------------------------------------
 
 Maybe you are using your GPU in TensorFlow?
@@ -18,7 +18,7 @@ Frugally-deep does not support GPUs.
 If you'd like to [compare the performance](test/Dockerfile) of both libraries,
 disable the CPU for TensorFlow (`CUDA_VISIBLE_DEVICES=''`).
 
-Why is my prediction roughly 4 times slower in C++ as in Python?
+Why is my prediction roughly 4 times slower in C++ than in Python?
 ----------------------------------------------------------------
 
 TensorFlow uses multiple CPU cores, even for one prediction, if available.
@@ -29,12 +29,12 @@ allow only one CPU core to be used for TensorFlow (`taskset --cpu-list 1`).
 If you want more overall throughput, you can parallelize more on the "outside".
 See ["Does frugally-deep support multiple CPUs?"](#does-frugally-deep-support-multiple-cpus) for details.
 
-Why is my prediction roughly 2 times slower in C++ as in Python?
+Why is my prediction roughly 2 times slower in C++ than in Python?
 ----------------------------------------------------------------
 
 With single 2D convolutions, frugally-deep is quite fast,
 depending on the dimensions even faster than TensorFlow.
-But on some models, TensorFlow applies some fancy runtime-optimizations,
+But on some models, TensorFlow applies some fancy runtime optimizations,
 like kernel fusion, etc. Frugally-deep does not support such things,
 so on some model types, you might experience an insurmountable
 performance difference.
@@ -44,7 +44,7 @@ Why is my application using more memory than expected?
 
 In case you're using glibc, which is the default libc on most major distributions like Ubuntu, Debian, Arch, etc., memory temporarily allocated during `fdeep::load_model` [might not be freed completely](https://github.com/nlohmann/json#memory-release). To make sure it's given back to the operating system, use [`malloc_trim(0);`](https://manned.org/malloc_trim.3) after calling `fdeep::load_model`.
 
-Why do I get some error when loading my `.json` file in C++?
+Why do I get an error when loading my `.json` file in C++?
 ------------------------------------------------------------
 
 Most likely it's one of the following two reasons:
@@ -57,8 +57,8 @@ In case you've made sure none of the above is the cause, please open [an issue](
 Why does `fdeep::model::predict` take and return multiple `fdeep::tensor`s and not just one tensor?
 ----------------------------------------------------------------------------------------------------
 
-Only Keras models created with the [sequential API](https://keras.io/getting-started/sequential-model-guide/) must have only one input tensor and output tensor.
-Models make with the [functional API](https://keras.io/getting-started/functional-api-guide/) can have multiple inputs and outputs.
+Only Keras models created with the [sequential API](https://keras.io/getting-started/sequential-model-guide/) must have only one input and output tensor.
+Models made with the [functional API](https://keras.io/getting-started/functional-api-guide/) can have multiple inputs and outputs.
 
 This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor` but an `std::vector` of them (`fdeep::tensors`).
 
@@ -99,7 +99,7 @@ int main()
 }
 ```
 
-Keep in mind, giving multiple `fdeep::tensor`s to `fdeep::model::predict` this has nothing to do with batch processing, because it is not supported. However you can run multiple single predictions im parallel (see question "Does frugally-deep support multiple CPUs?"), if you want do to that.
+Keep in mind, giving multiple `fdeep::tensor`s to `fdeep::model::predict` has nothing to do with batch processing because it is not supported. However you can run multiple single predictions in parallel (see the question "Does frugally-deep support multiple CPUs?"), if you want to do that.
 
 Does frugally-deep support multiple CPUs?
 -----------------------------------------
@@ -145,14 +145,14 @@ already proves that your model works the same with frugally-deep as it does with
 because when using `convert_model.py` a test case (input and corresponding output values) is generated automatically and saved along with your model. `fdeep::load_model` runs this test to make sure the results of a forward pass in frugally-deep are the same as in Keras.
 If not, an exception is thrown.
 
-So why do you different values nonetheless when running `fdeep::model::predict`?
+So why do you get different values nonetheless when running `fdeep::model::predict`?
 Probably you are not feeding the exact same values into the model as you do in Python.
-Especially in the case of images as input this can be caused by:
+Especially in the case of images as input, this can be caused by:
 
 * different normalization method of the pixel values
 * different ways to scale (e.g., interpolation mode) the image before using it
 
-To check if the input values really are the same, you can just print them, in Python and in C++:
+To check if the input values really are the same, you can print them, in Python and in C++:
 
 ```python
 input = ...
@@ -180,12 +180,12 @@ this way you will also implicitly check if you are using the correct values for 
 What to do when loading my model with frugally-deep throws an `std::runtime_error` with `test failed`?
 ------------------------------------------------------------------------------------------------------
 
-Frugally-deep makes sure your model works exactly the same in C++ as it does in Python by running test when loading.
+Frugally-deep makes sure your model works exactly the same in C++ as it does in Python by running a test when loading.
 
 You can soften these tests by increasing `verify_epsilon` in the call to `fdeep::load_model`,
-or event disable them completely by setting `verify` to `false`.
+or even disable them completely by setting `verify` to `false`.
 
-Also you might want to try to use `double` instead of `float` for more precision,
+Also, you might want to try to use `double` instead of `float` for more precision,
 which you can do by inserting:
 
 ```cpp
@@ -227,7 +227,7 @@ or `fplus::maybe<fdeep::model>`.
 How to use images loaded with [CImg](http://cimg.eu/) as input for a model?
 ---------------------------------------------------------------------------
 
-The following example code shows for how to:
+The following example code shows how to:
 
 * load an image using CImg
 * convert it to a `fdeep::tensor`
@@ -281,7 +281,7 @@ int main()
 How to use images loaded with [OpenCV](https://opencv.org/) as input for a model?
 ---------------------------------------------------------------------------------
 
-The following example code shows for how to:
+The following example code shows how to:
 
 * load an image using OpenCV
 * convert it to a `fdeep::tensor`
@@ -314,8 +314,8 @@ How to convert an `fdeep::tensor` to an (OpenCV) image and back?
 
 Example code for how to:
 
-* convert an OpenCV image to an `fdeep::tensor`
-* convert an `fdeep::tensor` to an OpenCV image
+* Convert an OpenCV image to an `fdeep::tensor`
+* Convert an `fdeep::tensor` to an OpenCV image
 
 ```cpp
 #include <fdeep/fdeep.hpp>
@@ -462,7 +462,7 @@ int main()
 Why are `Conv2DTranspose` layers not supported?
 -----------------------------------------------
 
-The combination of `UpSampling2D` and `Conv2D` layers seem to be the better alternative:
+The combination of `UpSampling2D` and `Conv2D` layers seems to be the better alternative:
 https://distill.pub/2016/deconv-checkerboard/
 
 Basically, instead of this:
@@ -487,7 +487,7 @@ How can I use `BatchNormalization` and `Dropout` layers with `training=True`?
 
 Frugally-deep does not support `training=True` on the inbound nodes.
 
-But if you'd like to remove this flag from the layers in you model,
+But if you'd like to remove this flag from the layers in your model,
 you can use the following function to do so before using `convert_model.py`:
 
 ```python3
@@ -511,7 +511,7 @@ Why are `Lambda` layers not supported?
 -----------------------------------------------
 
 `Lambda` layers in Keras involve custom Python code to be executed.
-Supporting this in frugally-deep would require having transpiler from Python to C++,
+Supporting this in frugally-deep would require having a transpiler from Python to C++,
 aware of the semantic differences between the data structures too.
 Since this is not feasible, `Lambda` layers are not supported in frugally-deep.
 
@@ -545,7 +545,7 @@ inheriting from `fdeep::internal::layer`.
 As an example, please have a look at the definition of the `add_layer` class.
 
 In summary, the work needed to inject support for a custom layer
-from user land, i.e., without modifying the actual library,
+from userland, i.e., without modifying the actual library,
 looks as follows:
 - Create a new layer class, inheriting from `fdeep::layer`, like [so](https://github.com/Dobiasd/frugally-deep/blob/e3e1a6a2e011ef6255d6589a5ec0981c9d0ef1f9/include/fdeep/layers/add_layer.hpp#L16).
 - Create a new creator function for your layer type, like [so](https://github.com/Dobiasd/frugally-deep/blob/e3e1a6a2e011ef6255d6589a5ec0981c9d0ef1f9/include/fdeep/import_model.hpp#L594)

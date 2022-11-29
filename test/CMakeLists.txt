@@ -5,20 +5,7 @@ find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 if (${PYTHON3_FOUND})
     # use command 'pip show tensorflow' to check whether tensorflow is installed in python.
     message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
-    message(STATUS "checking tensorflow")
-    execute_process(
-        COMMAND pip show tensorflow
-        RESULT_VARIABLE EXIT_CODE
-        OUTPUT_QUIET
-    )
-    if (NOT ${EXIT_CODE} EQUAL 0)
-    message(
-            FATAL_ERROR
-            "The \"Tensorflow\" Python3 package is not installed. Please install it using the following command: \"pip install tensorflow\"."
-    )
-    else()
-        message(STATUS "checking tensorflow --success")
-    endif()
+    message(STATUS "Please check Tensorflow is installed rightly in Python.")
 endif ()
 add_custom_command ( OUTPUT test_model_exhaustive.h5
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.h5"

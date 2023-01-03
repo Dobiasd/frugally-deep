@@ -6,7 +6,7 @@ import datetime
 import sys
 
 import numpy as np
-from scipy.misc import imsave
+from imageio import imwrite
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import load_model
 
@@ -118,7 +118,7 @@ def process_layers(model, out_dir):
                     date_time_str = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
                     if image.shape[-1] == 1:
                         image = image.reshape(image.shape[:-1])
-                    imsave('{}/{}_{}_{}_{}.png'.format(
+                    imwrite('{}/{}_{}_{}_{}.png'.format(
                         out_dir, date_time_str, name, i, loss), image)
     return result
 

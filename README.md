@@ -42,7 +42,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 Layer types typically used in image recognition/generation are supported, making many popular model architectures possible (see [Performance section](#performance)).
 
-* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`
+* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`
 * `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
 * `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
@@ -79,7 +79,7 @@ Layer types typically used in image recognition/generation are supported, making
 `Dot`, `GRUCell`, `Hashing`,
 `IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,
-`LSTMCell`, `Masking`, `MaxPooling3D`, `Minimum`, `MultiHeadAttention`,
+`LSTMCell`, `Masking`, `MaxPooling3D`, `MultiHeadAttention`,
 `RepeatVector`, `Resizing`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
 `ThresholdedReLU`, `UnitNormalization`, `Upsampling3D`, `temporal` models

@@ -57,6 +57,7 @@
 #include "fdeep/layers/linear_layer.hpp"
 #include "fdeep/layers/max_pooling_2d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
+#include "fdeep/layers/minimum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
 #include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/normalization_layer.hpp"
@@ -641,6 +642,13 @@ inline layer_ptr create_maximum_layer(
     return std::make_shared<maximum_layer>(name);
 }
 
+inline layer_ptr create_minimum_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<minimum_layer>(name);
+}
+
 inline layer_ptr create_multiply_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -1210,6 +1218,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Dense", create_dense_layer},
             {"Add", create_add_layer},
             {"Maximum", create_maximum_layer},
+            {"Minimum", create_minimum_layer},
             {"Concatenate", create_concatenate_layer},
             {"Multiply", create_multiply_layer},
             {"Average", create_average_layer},

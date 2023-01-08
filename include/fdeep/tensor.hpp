@@ -947,6 +947,28 @@ inline tensor max_tensors(const tensors& ts)
     return tensor(ts.front().shape(), std::move(result_values));
 }
 
+inline tensor min_tensors(const tensors& ts)
+{
+    assertion(!ts.empty(), "no tensors given");
+    assertion(
+        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor, shape, tensor_shape), ts),
+        "all tensors must have the same size");
+    const auto ts_values = fplus::transform(
+        fplus_c_mem_fn_t(tensor, as_vector, shared_float_vec), ts);
+    float_vec result_values;
+    result_values.reserve(ts_values.front()->size());
+    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
+    {
+        float_type min_val = std::numeric_limits<float_type>::max();
+        for (const auto& t_vals : ts_values)
+        {
+            min_val = std::min(min_val, (*t_vals)[i]);
+        }
+        result_values.push_back(min_val);
+    }
+    return tensor(ts.front().shape(), std::move(result_values));
+}
+
 // When using this function, make sure the data pointer is not invalidated
 // before the last access to the returned matrix happens.
 inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,

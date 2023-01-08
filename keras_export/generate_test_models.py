@@ -17,7 +17,7 @@ from tensorflow.keras.layers import LSTM, GRU
 from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum
+from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
@@ -89,7 +89,7 @@ def generate_output_data(data_size, outputs):
 def get_test_model_exhaustive():
     """Returns a exhaustive test model."""
     input_shapes = [
-        (2, 3, 4, 5, 6),
+        (2, 3, 4, 5, 6),  # 0
         (2, 3, 4, 5, 6),
         (7, 8, 9, 10),
         (7, 8, 9, 10),
@@ -135,7 +135,7 @@ def get_test_model_exhaustive():
         (1, 1, 4, 1, 6),
         (1, 3, 1, 5, 1),
         (2, 1, 4, 1, 1),
-        (1, ),  # 46
+        (1,),  # 46
         (3, 1),
         (6, 5, 4, 3, 2),
     ]
@@ -274,6 +274,18 @@ def get_test_model_exhaustive():
     outputs.append(Reshape((2, 3, 4 * 5 * 6))(inputs[0]))
     outputs.append(Reshape((2, 3, 4, 5 * 6))(inputs[0]))
     outputs.append(Reshape((2, 3, 4, 5, 6))(inputs[0]))
+
+    outputs.append(Maximum()([inputs[0], inputs[1]]))
+    outputs.append(Maximum()([inputs[2], inputs[3]]))
+    outputs.append(Maximum()([inputs[4], inputs[5]]))
+    outputs.append(Maximum()([inputs[6], inputs[7]]))
+    outputs.append(Maximum()([inputs[8], inputs[9]]))
+
+    outputs.append(Minimum()([inputs[0], inputs[1]]))
+    outputs.append(Minimum()([inputs[2], inputs[3]]))
+    outputs.append(Minimum()([inputs[4], inputs[5]]))
+    outputs.append(Minimum()([inputs[6], inputs[7]]))
+    outputs.append(Minimum()([inputs[8], inputs[9]]))
 
     outputs.append(Reshape((16,))(inputs[8]))
     outputs.append(Reshape((2, 8))(inputs[8]))

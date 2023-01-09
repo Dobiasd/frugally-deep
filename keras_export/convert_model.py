@@ -345,6 +345,7 @@ def show_dot_layer(layer):
     assert layer.input_shape[0][0] is None
     assert layer.input_shape[1][0] is None
     assert layer.input_shape[0][1] == layer.input_shape[1][1]
+    assert not layer.normalize
     assert list(layer.axes) == [1, 1]
 
 

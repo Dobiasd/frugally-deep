@@ -37,6 +37,7 @@
 #include "fdeep/layers/cropping_2d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
+#include "fdeep/layers/dot_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
 #include "fdeep/layers/exponential_layer.hpp"
 #include "fdeep/layers/flatten_layer.hpp"
@@ -649,6 +650,13 @@ inline layer_ptr create_minimum_layer(
     return std::make_shared<minimum_layer>(name);
 }
 
+inline layer_ptr create_dot_layer(
+    const get_param_f&, const nlohmann::json&,
+    const std::string& name)
+{
+    return std::make_shared<dot_layer>(name);
+}
+
 inline layer_ptr create_multiply_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -1219,6 +1227,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Add", create_add_layer},
             {"Maximum", create_maximum_layer},
             {"Minimum", create_minimum_layer},
+            {"Dot", create_dot_layer},
             {"Concatenate", create_concatenate_layer},
             {"Multiply", create_multiply_layer},
             {"Average", create_average_layer},

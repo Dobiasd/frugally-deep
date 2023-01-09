@@ -909,6 +909,19 @@ inline tensor multiply_tensors(const tensors& ts_orig)
     return result;
 }
 
+
+inline tensor dot_product_tensors(const tensor& a, const tensor& b)
+{
+    assertion(a.shape() == b.shape(),
+        "both tensors must have the same size");
+    assertion(a.shape().rank() == 1,
+        "tensors must be one-dimensional");
+    auto result = fplus::reduce_1(std::plus<float_type>(),
+            fplus::zip_with(std::multiplies<float_type>(),
+            *a.as_vector(), *b.as_vector()));
+    return tensor(tensor_shape(1), fplus::singleton_seq(result));
+}
+
 inline tensor subtract_tensor(const tensor& a, const tensor& b)
 {
     assertion(a.shape() == b.shape(),

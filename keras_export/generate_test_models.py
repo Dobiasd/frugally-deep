@@ -17,7 +17,7 @@ from tensorflow.keras.layers import LSTM, GRU
 from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
+from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum, Dot
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.models import Model, load_model, Sequential
@@ -46,7 +46,7 @@ def get_shape_for_random_data(data_size, shape):
         return (data_size, shape[0], shape[1])
     if len(shape) == 1:
         return (data_size, shape[0])
-    raise ValueError('can not determine shape for random data')
+    raise ValueError('can not use shape for random data:', shape)
 
 
 def generate_random_data(data_size, shape):
@@ -286,6 +286,8 @@ def get_test_model_exhaustive():
     outputs.append(Minimum()([inputs[4], inputs[5]]))
     outputs.append(Minimum()([inputs[6], inputs[7]]))
     outputs.append(Minimum()([inputs[8], inputs[9]]))
+
+    outputs.append(Dot(axes=(1, 1))([inputs[8], inputs[9]]))
 
     outputs.append(Reshape((16,))(inputs[8]))
     outputs.append(Reshape((2, 8))(inputs[8]))

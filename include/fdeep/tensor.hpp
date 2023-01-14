@@ -929,30 +929,38 @@ inline tensor dot_product_tensors(const tensor& a, const tensor& b, const std::v
 
     assertion(axes_raw.size() == 1 || axes_raw.size() == 2, "axes must have size 1 or 2");
     const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<std::size_t>({axes_raw.front(), axes_raw.front()});
-    const auto axis_a = 6 - axes[0] - a.rank();
-    const auto axis_b = 6 - axes[1] - b.rank();
-    const auto a_full = tensor_with_changed_rank(a, 5);
-    const auto b_full = tensor_with_changed_rank(b, 5);
-    const auto permute_target_a_suffix =
-        fplus::keep_if(fplus::is_not_equal_to(axis_a), std::vector<std::size_t>{1, 2, 3, 4, 5});
-    const auto permute_target_b_suffix =
-        fplus::keep_if(fplus::is_not_equal_to(axis_b), std::vector<std::size_t>{1, 2, 3, 4, 5});
+    const auto axis_a = axes[0];
+    const auto axis_b = axes[1];
+
+    const auto permute_target_a_suffix = fplus::keep_if(
+        fplus::is_not_equal_to(axis_a), fplus::numbers(std::size_t(1), a.rank() + 1));
+    const auto permute_target_b_suffix = fplus::keep_if(
+        fplus::is_not_equal_to(axis_b), fplus::numbers(std::size_t(1), b.rank() + 1));
     const auto permute_target_a = fplus::prepend_elem(axis_a, permute_target_a_suffix);
     const auto permute_target_b = fplus::prepend_elem(axis_b, permute_target_b_suffix);
-        
-    const auto a_permuted = permute_tensor(a_full, permute_target_a);
-    const auto b_permuted = permute_tensor(b_full, permute_target_b);
+    const auto a_permuted = permute_tensor(a, permute_target_a);
+    const auto b_permuted = permute_tensor(b, permute_target_b);
 
-    const auto a_axis_dim_size = a_permuted.shape().dimensions()[axis_a];
-    const auto a_remaining_dim_sizes_prod = fplus::product(permute_target_a_suffix);
+    const auto a_axis_dim_size = a_permuted.shape().dimensions()[axis_a - 1];
+    const auto a_remaining_dim_sizes_prod = fplus::product(
+        fplus::elems_at_idxs(fplus::transform(fplus::subtract<std::size_t>(1), permute_target_a_suffix),
+        a_permuted.shape().dimensions()));
 
-    const auto b_axis_dim_size = a_permuted.shape().dimensions()[axis_b];
-    const auto b_remaining_dim_sizes_prod = fplus::product(permute_target_b_suffix);
+    const auto b_axis_dim_size = b_permuted.shape().dimensions()[axis_b - 1];
+    const auto b_remaining_dim_sizes_prod = fplus::product(
+        fplus::elems_at_idxs(fplus::transform(fplus::subtract<std::size_t>(1), permute_target_b_suffix),
+        b_permuted.shape().dimensions()));
 
-    const auto out_dims = fplus::concat(std::vector<std::vector<std::size_t>>{
-        permute_target_a_suffix, permute_target_b_suffix});
-    // todo: dim sizes
-    // todo: unexpanded shape
+    // todo: remove
+    const auto asdasd_1 = permute_target_a_suffix.size();
+    const auto asdasd_2 = permute_target_b_suffix.size();
+    std::cout << asdasd_1 << std::endl;
+    std::cout << asdasd_2 << std::endl;
+    
+
+    const auto out_dims = permute_target_a_suffix.size() + permute_target_b_suffix.size() == 0 ?
+        std::vector<std::size_t>{1} :
+        fplus::concat(std::vector<std::vector<std::size_t>>{permute_target_a_suffix, permute_target_b_suffix});
     tensor output = tensor(create_tensor_shape_from_dims(out_dims), static_cast<float_type>(0));
 
     const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
@@ -967,7 +975,7 @@ inline tensor dot_product_tensors(const tensor& a, const tensor& b, const std::v
 
     Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
         output_map(output.as_vector()->data(),
-            static_cast<EigenIndex>(b_axis_dim_size),
+            static_cast<EigenIndex>(b_remaining_dim_sizes_prod),
             static_cast<EigenIndex>(a_remaining_dim_sizes_prod));
             
     output_map.noalias() = b_mat * a_mat;

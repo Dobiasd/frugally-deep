@@ -655,7 +655,8 @@ inline layer_ptr create_dot_layer(
     const std::string& name)
 {
     const auto axes = create_vector<std::size_t>(create_size_t, data["config"]["axes"]);
-    return std::make_shared<dot_layer>(name, axes);
+    const bool normalize = data["config"]["normalize"];
+    return std::make_shared<dot_layer>(name, axes, normalize);
 }
 
 inline layer_ptr create_multiply_layer(

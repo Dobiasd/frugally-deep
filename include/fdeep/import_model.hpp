@@ -651,10 +651,11 @@ inline layer_ptr create_minimum_layer(
 }
 
 inline layer_ptr create_dot_layer(
-    const get_param_f&, const nlohmann::json&,
+    const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    return std::make_shared<dot_layer>(name);
+    const auto axes = create_vector<std::size_t>(create_size_t, data["config"]["axes"]);
+    return std::make_shared<dot_layer>(name, axes);
 }
 
 inline layer_ptr create_multiply_layer(

@@ -338,15 +338,11 @@ def show_dense_layer(layer):
 
 def show_dot_layer(layer):
     """Check valid configuration of Dot layer"""
-    # todo: Add support for different arrangements too.
     assert len(layer.input_shape) == 2
-    assert len(layer.input_shape[0]) == 2
-    assert len(layer.input_shape[1]) == 2
+    assert isinstance(layer.axes, int) or (isinstance(layer.axes, list) and len(layer.axes) == 2)
     assert layer.input_shape[0][0] is None
     assert layer.input_shape[1][0] is None
-    assert layer.input_shape[0][1] == layer.input_shape[1][1]
-    assert not layer.normalize
-    assert list(layer.axes) == [1, 1]
+    assert len(layer.output_shape) <= 5
 
 
 def show_prelu_layer(layer):

@@ -16,16 +16,17 @@ namespace fdeep { namespace internal
 class dot_layer : public layer
 {
 public:
-    explicit dot_layer(const std::string& name)
-        : layer(name)
+    explicit dot_layer(const std::string& name, const std::vector<std::size_t>& axes)
+        : layer(name), axes_(axes)
     {
     }
+    std::vector<std::size_t> axes_;
 protected:
     tensors apply_impl(const tensors& input) const override
     {
         assertion(input.size() == 2,
             "need exactly 2 input tensors");
-        return {dot_product_tensors(input[0], input[1])};
+        return {dot_product_tensors(input[0], input[1], axes_)};
     }
 };
 

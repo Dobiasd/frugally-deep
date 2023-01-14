@@ -910,16 +910,92 @@ inline tensor multiply_tensors(const tensors& ts_orig)
 }
 
 
-inline tensor dot_product_tensors(const tensor& a, const tensor& b)
+inline tensor dot_product_tensors(const tensor& a, const tensor& b, const std::vector<std::size_t>& axes_raw)
 {
-    assertion(a.shape() == b.shape(),
-        "both tensors must have the same size");
-    assertion(a.shape().rank() == 1,
-        "tensors must be one-dimensional");
-    auto result = fplus::reduce_1(std::plus<float_type>(),
-            fplus::zip_with(std::multiplies<float_type>(),
-            *a.as_vector(), *b.as_vector()));
+    /*
+    # todo: Add support for different arrangements too.
+    #   https://stackoverflow.com/questions/58963955/what-does-axes-parameter-do-in-dot-layer-in-keras
+    #   https://keras.io/api/layers/merging_layers/dot/
+    #   https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dot
+    #   https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/merging/dot.py#L29-L206
+    #   https://github.com/numpy/numpy/blob/9896b46b36c4875badc15787c403840d997cf45a/numpy/core/numeric.py#L938
+    #   https://stackoverflow.com/questions/65348319/how-would-i-write-numpy-tensordot-in-c#comment115530443_65348319
+    #   https://stackoverflow.com/questions/41870228/understanding-tensordot
+    #   https://github.com/Dobiasd/frugally-deep/pull/373
+    #   https://medium.com/analytics-vidhya/tensordot-explained-6673cfa5697f
+    #   https://eigen.tuxfamily.org/dox/unsupported/eigen_tensors.html#title56
+    #   https://stackoverflow.com/questions/42475212/c-eigen-dynamic-tensor
+    */
+
+    assertion(axes_raw.size() == 1 || axes_raw.size() == 2, "axes must have size 1 or 2");
+    const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<std::size_t>({axes_raw.front(), axes_raw.front()});
+    const auto axis_a = 6 - axes[0] - a.rank();
+    const auto axis_b = 6 - axes[1] - b.rank();
+    const auto a_full = tensor_with_changed_rank(a, 5);
+    const auto b_full = tensor_with_changed_rank(b, 5);
+    const auto permute_target_a_suffix =
+        fplus::keep_if(fplus::is_not_equal_to(axis_a), std::vector<std::size_t>{1, 2, 3, 4, 5});
+    const auto permute_target_b_suffix =
+        fplus::keep_if(fplus::is_not_equal_to(axis_b), std::vector<std::size_t>{1, 2, 3, 4, 5});
+    const auto permute_target_a = fplus::prepend_elem(axis_a, permute_target_a_suffix);
+    const auto permute_target_b = fplus::prepend_elem(axis_b, permute_target_b_suffix);
+        
+    const auto a_permuted = permute_tensor(a_full, permute_target_a);
+    const auto b_permuted = permute_tensor(b_full, permute_target_b);
+
+    const auto a_axis_dim_size = a_permuted.shape().dimensions()[axis_a];
+    const auto a_remaining_dim_sizes_prod = fplus::product(permute_target_a_suffix);
+
+    const auto b_axis_dim_size = a_permuted.shape().dimensions()[axis_b];
+    const auto b_remaining_dim_sizes_prod = fplus::product(permute_target_b_suffix);
+
+    const auto out_dims = fplus::concat(std::vector<std::vector<std::size_t>>{
+        permute_target_a_suffix, permute_target_b_suffix});
+    // todo: dim sizes
+    // todo: unexpanded shape
+    tensor output = tensor(create_tensor_shape_from_dims(out_dims), static_cast<float_type>(0));
+
+    const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+        a_mat(const_cast<float_type*>(a_permuted.as_vector()->data()),
+                static_cast<EigenIndex>(a_axis_dim_size),
+                static_cast<EigenIndex>(a_remaining_dim_sizes_prod));
+    
+    const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+        b_mat(const_cast<float_type*>(b_permuted.as_vector()->data()),
+                static_cast<EigenIndex>(b_remaining_dim_sizes_prod),
+                static_cast<EigenIndex>(b_axis_dim_size));
+
+    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+        output_map(output.as_vector()->data(),
+            static_cast<EigenIndex>(b_axis_dim_size),
+            static_cast<EigenIndex>(a_remaining_dim_sizes_prod));
+            
+    output_map.noalias() = b_mat * a_mat;
+
+    return output;
+
+
+    // The shape of the result consists of the non-contracted axes of the
+    // first tensor, followed by the non-contracted axes of the second.
+    
+    // move axes[0] to start of a
+    // move axes[1] to end of b
+    // reshape a into (axes[0], whatever)
+    // reshape b into (whatever, axes[1])
+    // matmult b with a
+    // reshape result into non-contracted axes of a + non-contracted axes of b
+
+    return a;
+    /*
+    const auto a_m = Eigen::Map<Eigen::Tensor<float_type, 3>, Eigen::Unaligned>(
+        const_cast<float_type*>(a.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0))));
+    const auto b_m = Eigen::Map<Eigen::Tensor<float_type, 3>, Eigen::Unaligned>(
+        const_cast<float_type*>(a.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0))));
+    Eigen::array<Eigen::IndexPair<int>, 1> product_dims = axes;
+    Eigen::Tensor<float_type, 4> ab = a.contract(b, product_dims);
+    // todo: avoid copy
     return tensor(tensor_shape(1), fplus::singleton_seq(result));
+    */
 }
 
 inline tensor subtract_tensor(const tensor& a, const tensor& b)

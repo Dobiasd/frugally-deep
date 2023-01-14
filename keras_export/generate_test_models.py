@@ -287,7 +287,14 @@ def get_test_model_exhaustive():
     outputs.append(Minimum()([inputs[6], inputs[7]]))
     outputs.append(Minimum()([inputs[8], inputs[9]]))
 
-    outputs.append(Dot(axes=(1, 1))([inputs[8], inputs[9]]))
+    for normalize in [True, False]:
+        outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[8], inputs[9]]))
+        outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[0], inputs[10]]))
+        outputs.append(Dot(axes=1, normalize=normalize)([inputs[0], inputs[10]]))
+        outputs.append(Dot(axes=(3, 1), normalize=normalize)([inputs[31], inputs[32]]))
+        outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[31], inputs[32]]))
+        outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[14], inputs[16]]))
+        outputs.append(Dot(axes=(3, 2), normalize=normalize)([inputs[24], inputs[26]]))
 
     outputs.append(Reshape((16,))(inputs[8]))
     outputs.append(Reshape((2, 8))(inputs[8]))

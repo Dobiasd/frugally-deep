@@ -956,12 +956,12 @@ inline tensor dot_product_tensors(const tensor& a, const tensor& b, const std::v
         fplus::concat(std::vector<std::vector<std::size_t>>{a_remaining_dim_sizes, b_remaining_dim_sizes});
     tensor output = tensor(create_tensor_shape_from_dims(out_dims), static_cast<float_type>(0));
 
-    const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+    const Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned>
         a_mat(const_cast<float_type*>(a_permuted.as_vector()->data()),
                 static_cast<EigenIndex>(a_axis_dim_size),
                 static_cast<EigenIndex>(a_remaining_dim_sizes_prod));
     
-    const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+    const Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned>
         b_mat(const_cast<float_type*>(b_permuted.as_vector()->data()),
                 static_cast<EigenIndex>(b_remaining_dim_sizes_prod),
                 static_cast<EigenIndex>(b_axis_dim_size));

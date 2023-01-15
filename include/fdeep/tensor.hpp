@@ -961,27 +961,19 @@ inline tensor dot_product_tensors(
     bool normalize)
 {
     /*
-    # todo: Add support for different arrangements too.
-    #   https://stackoverflow.com/questions/58963955/what-does-axes-parameter-do-in-dot-layer-in-keras
-    #   https://keras.io/api/layers/merging_layers/dot/
-    #   https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dot
-    #   https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/merging/dot.py#L29-L206
-    #   https://github.com/numpy/numpy/blob/9896b46b36c4875badc15787c403840d997cf45a/numpy/core/numeric.py#L938
-    #   https://stackoverflow.com/questions/65348319/how-would-i-write-numpy-tensordot-in-c#comment115530443_65348319
-    #   https://stackoverflow.com/questions/41870228/understanding-tensordot
-    #   https://github.com/Dobiasd/frugally-deep/pull/373
-    #   https://medium.com/analytics-vidhya/tensordot-explained-6673cfa5697f
-    #   https://eigen.tuxfamily.org/dox/unsupported/eigen_tensors.html#title56
-    #   https://stackoverflow.com/questions/42475212/c-eigen-dynamic-tensor
-    */
-
-    /*
-    Move axes[0] to start of a
-    Move axes[1] to end of b
-    Reshape a into (axes[0], remaining_axes)
-    Reshape b into (remaining_axes, axes[1])
-    Matrix-multiply b with a
-    Reshape result into: non-contracted axes of a + non-contracted axes of b
+    Move axes[0] to start of a.
+    Move axes[1] to end of b.
+    Reshape a into (axes[0], remaining_axes).
+    Reshape b into (remaining_axes, axes[1]).
+    Matrix-multiply b with a.
+    Reshape result into: non-contracted axes of a + non-contracted axes of b.
+    See:
+    - https://github.com/keras-team/keras/blob/v2.11.0/keras/layers/merging/dot.py#L29-L206
+    - https://github.com/numpy/numpy/blob/9896b46b36c4875badc15787c403840d997cf45a/numpy/core/numeric.py#L938
+    - https://stackoverflow.com/questions/58963955/what-does-axes-parameter-do-in-dot-layer-in-keras
+    - https://stackoverflow.com/questions/65348319/how-would-i-write-numpy-tensordot-in-c#comment115530443_65348319
+    - https://stackoverflow.com/questions/41870228/understanding-tensordot
+    - https://stackoverflow.com/questions/42475212/c-eigen-dynamic-tensor
     */
 
     assertion(axes_raw.size() == 1 || axes_raw.size() == 2, "axes must have size 1 or 2");

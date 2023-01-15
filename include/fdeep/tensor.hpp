@@ -911,48 +911,37 @@ inline tensor multiply_tensors(const tensors& ts_orig)
 
 inline tensor l2_normalize(const tensor& t, std::size_t axis)
 {
-    // todo: nicer, faster
     axis = axis + 5 - t.rank();
     const auto reduced_dims = fplus::replace_elem_at_idx(axis - 1, 1,
         tensor_shape_with_changed_rank(t.shape(), 5).dimensions());
     tensor sum = tensor(create_tensor_shape_from_dims(reduced_dims), float_type(0));
+    const auto get_sum_ref = [&sum, axis](
+        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) -> float_type&
+    {
+        assertion(axis >= 1 && axis <= 5, "invalid axis");
+        if (axis == 1)
+            return sum.get_ref_ignore_rank(tensor_pos(0, dim4, y, x, z));
+        else if (axis == 2)
+            return sum.get_ref_ignore_rank(tensor_pos(dim5, 0, y, x, z));
+        else if (axis == 3)
+            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, 0, x, z));
+        else if (axis == 4)
+            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, 0, z));
+        return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, 0));
+    };
     loop_over_all_dims(t.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {
-        const auto v = t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z));
-        if (axis == 1)
-            sum.get_ref_ignore_rank(tensor_pos(0, dim4, y, x, z)) += v * v;
-        else if (axis == 2)
-            sum.get_ref_ignore_rank(tensor_pos(dim5, 0, y, x, z)) += v * v;
-        else if (axis == 3)
-            sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, 0, x, z)) += v * v;
-        else if (axis == 4)
-            sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, 0, z)) += v * v;
-        else if (axis == 5)
-            sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, 0)) += v * v;
-        else
-            assertion(false, "invalid axis");
+        get_sum_ref(dim5, dim4, y, x, z) +=
+            fplus::square(t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
     });
     auto out = tensor(t.shape(), float_type(0));
     loop_over_all_dims(t.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {
-        float_type sqs = 0;
-        if (axis == 1)
-            sqs = sum.get_ignore_rank(tensor_pos(0, dim4, y, x, z));
-        else if (axis == 2)
-            sqs = sum.get_ignore_rank(tensor_pos(dim5, 0, y, x, z));
-        else if (axis == 3)
-            sqs = sum.get_ignore_rank(tensor_pos(dim5, dim4, 0, x, z));
-        else if (axis == 4)
-            sqs = sum.get_ignore_rank(tensor_pos(dim5, dim4, y, 0, z));
-        else if (axis == 5)
-            sqs = sum.get_ignore_rank(tensor_pos(dim5, dim4, y, x, 0));
-        else
-            assertion(false, "invalid axis");
-        sqs = std::sqrt(sqs);
         out.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) =
-            t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) / sqs;
+            t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) /
+                std::sqrt(get_sum_ref(dim5, dim4, y, x, z));
     });
     return out;
 }

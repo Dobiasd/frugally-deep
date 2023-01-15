@@ -42,7 +42,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 Layer types typically used in image recognition/generation are supported, making many popular model architectures possible (see [Performance section](#performance)).
 
-* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`
+* `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
 * `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
 * `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
@@ -76,7 +76,7 @@ Layer types typically used in image recognition/generation are supported, making
 `ActivityRegularization`, `AdditiveAttention`, `Attention`, `AveragePooling3D`,
 `CategoryEncoding`, `CenterCrop`, `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Cropping3D`, `Discretization`,
-`Dot`, `GRUCell`, `Hashing`,
+`GRUCell`, `Hashing`,
 `IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,
 `LSTMCell`, `Masking`, `MaxPooling3D`, `MultiHeadAttention`,

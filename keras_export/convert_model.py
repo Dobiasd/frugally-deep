@@ -336,6 +336,15 @@ def show_dense_layer(layer):
     return result
 
 
+def show_dot_layer(layer):
+    """Check valid configuration of Dot layer"""
+    assert len(layer.input_shape) == 2
+    assert isinstance(layer.axes, int) or (isinstance(layer.axes, list) and len(layer.axes) == 2)
+    assert layer.input_shape[0][0] is None
+    assert layer.input_shape[1][0] is None
+    assert len(layer.output_shape) <= 5
+
+
 def show_prelu_layer(layer):
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
@@ -503,6 +512,7 @@ def get_layer_functions_dict():
         'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
+        'Dot': show_dot_layer,
         'PReLU': show_prelu_layer,
         'Embedding': show_embedding_layer,
         'LSTM': show_lstm_layer,

@@ -913,7 +913,9 @@ inline tensor l2_normalize(const tensor& t, std::size_t axis)
 {
     // todo: nicer, faster
     axis = axis + 5 - t.rank();
-    tensor sum = tensor(t.shape(), float_type(0));
+    const auto reduced_dims = fplus::replace_elem_at_idx(axis - 1, 1,
+        tensor_shape_with_changed_rank(t.shape(), 5).dimensions());
+    tensor sum = tensor(create_tensor_shape_from_dims(reduced_dims), float_type(0));
     loop_over_all_dims(t.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {

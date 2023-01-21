@@ -90,7 +90,7 @@ inline tensor depthwise_convolve(
         filter_mat.filter_shape_.without_depth(),
         strides, pad_type, input.shape().height_, input.shape().width_);
 
-    const auto in_padded = pad_tensor(0,
+    const auto in_padded = pad_tensor(0, 0, 0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 

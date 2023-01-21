@@ -329,7 +329,7 @@ inline tensor convolve(
     // The padding step usually (on a VGG19 net) only takes about 1% of the overall runtime.
     // So the increased code complexity of doing it inside the convolution step
     // is probably not worth the small potential performance gain.
-    const auto in_padded = pad_tensor(0,
+    const auto in_padded = pad_tensor(0, 0, 0,
         conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
         input);
 

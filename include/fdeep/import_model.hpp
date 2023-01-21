@@ -34,7 +34,7 @@
 #include "fdeep/layers/bidirectional_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
-#include "fdeep/layers/cropping_2d_layer.hpp"
+#include "fdeep/layers/cropping_3d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
 #include "fdeep/layers/dot_layer.hpp"
@@ -79,7 +79,7 @@
 #include "fdeep/layers/time_distributed_layer.hpp"
 #include "fdeep/layers/upsampling_1d_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
-#include "fdeep/layers/zero_padding_2d_layer.hpp"
+#include "fdeep/layers/zero_padding_3d_layer.hpp"
 #include "fdeep/tensor_shape.hpp"
 #include "fdeep/tensor_shape_variable.hpp"
 #include "fdeep/tensor.hpp"
@@ -687,7 +687,7 @@ inline layer_ptr create_flatten_layer(
     return std::make_shared<flatten_layer>(name);
 }
 
-inline layer_ptr create_zero_padding_2d_layer(
+inline layer_ptr create_zero_padding_3d_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
@@ -696,30 +696,47 @@ inline layer_ptr create_zero_padding_2d_layer(
             create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
             data["config"]["padding"]);
 
-    assertion(padding.size() == 2 && padding[0].size() == padding[1].size(),
+    assertion(
+        (padding.size() == 2 && padding[0].size() == padding[1].size()) ||
+        (padding.size() == 3 && padding[0].size() == padding[1].size() && padding[1].size() == padding[2].size()),
         "invalid padding format");
 
     if (padding[0].size() == 1)
     {
+        const std::size_t front_pad = 0;
+        const std::size_t back_pad = 0;
         const std::size_t top_pad = 0;
         const std::size_t bottom_pad = 0;
         const std::size_t left_pad = padding[0][0];
         const std::size_t right_pad = padding[1][0];
-        return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad);
+        return std::make_shared<zero_padding_3d_layer>(name,
+            front_pad, back_pad, top_pad, bottom_pad, left_pad, right_pad);
     }
-    else
+    if (padding.size() == 2)
     {
+        const std::size_t front_pad = 0;
+        const std::size_t back_pad = 0;
         const std::size_t top_pad = padding[0][0];
         const std::size_t bottom_pad = padding[0][1];
         const std::size_t left_pad = padding[1][0];
         const std::size_t right_pad = padding[1][1];
-        return std::make_shared<zero_padding_2d_layer>(name,
-            top_pad, bottom_pad, left_pad, right_pad);
+        return std::make_shared<zero_padding_3d_layer>(name,
+            front_pad, back_pad, top_pad, bottom_pad, left_pad, right_pad);
+    }
+    else
+    {
+        const std::size_t front_pad = padding[0][0];
+        const std::size_t back_pad = padding[0][1];
+        const std::size_t top_pad = padding[1][0];
+        const std::size_t bottom_pad = padding[1][1];
+        const std::size_t left_pad = padding[2][0];
+        const std::size_t right_pad = padding[2][1];
+        return std::make_shared<zero_padding_3d_layer>(name,
+            front_pad, back_pad, top_pad, bottom_pad, left_pad, right_pad);
     }
 }
 
-inline layer_ptr create_cropping_2d_layer(
+inline layer_ptr create_cropping_3d_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
@@ -728,26 +745,42 @@ inline layer_ptr create_cropping_2d_layer(
             create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
             data["config"]["cropping"]);
 
-    assertion(cropping.size() == 2 && cropping[0].size() == cropping[1].size(),
+    assertion(
+        (cropping.size() == 2 && cropping[0].size() == cropping[1].size()) ||
+        (cropping.size() == 3 && cropping[0].size() == cropping[1].size() && cropping[1].size() == cropping[2].size()),
         "invalid cropping format");
 
     if (cropping[0].size() == 1)
     {
+        const std::size_t front_crop = 0;
+        const std::size_t back_crop = 0;
         const std::size_t top_crop = 0;
         const std::size_t bottom_crop = 0;
         const std::size_t left_crop = cropping[0][0];
         const std::size_t right_crop = cropping[1][0];
-        return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop);
+        return std::make_shared<cropping_3d_layer>(name,
+            front_crop, back_crop, top_crop, bottom_crop, left_crop, right_crop);
     }
-    else
+    if (cropping.size() == 2)
     {
+        const std::size_t front_crop = 0;
+        const std::size_t back_crop = 0;
         const std::size_t top_crop = cropping[0][0];
         const std::size_t bottom_crop = cropping[0][1];
         const std::size_t left_crop = cropping[1][0];
         const std::size_t right_crop = cropping[1][1];
-        return std::make_shared<cropping_2d_layer>(name,
-            top_crop, bottom_crop, left_crop, right_crop);
+        return std::make_shared<cropping_3d_layer>(name,
+            front_crop, back_crop, top_crop, bottom_crop, left_crop, right_crop);
+    }
+    else {
+        const std::size_t front_crop = cropping[0][0];
+        const std::size_t back_crop = cropping[0][1];
+        const std::size_t top_crop = cropping[1][0];
+        const std::size_t bottom_crop = cropping[1][1];
+        const std::size_t left_crop = cropping[2][0];
+        const std::size_t right_crop = cropping[2][1];
+        return std::make_shared<cropping_3d_layer>(name,
+            front_crop, back_crop, top_crop, bottom_crop, left_crop, right_crop);
     }
 }
 
@@ -1235,10 +1268,12 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Average", create_average_layer},
             {"Subtract", create_subtract_layer},
             {"Flatten", create_flatten_layer},
-            {"ZeroPadding1D", create_zero_padding_2d_layer},
-            {"ZeroPadding2D", create_zero_padding_2d_layer},
-            {"Cropping1D", create_cropping_2d_layer},
-            {"Cropping2D", create_cropping_2d_layer},
+            {"ZeroPadding1D", create_zero_padding_3d_layer},
+            {"ZeroPadding2D", create_zero_padding_3d_layer},
+            {"ZeroPadding3D", create_zero_padding_3d_layer},
+            {"Cropping1D", create_cropping_3d_layer},
+            {"Cropping2D", create_cropping_3d_layer},
+            {"Cropping3D", create_cropping_3d_layer},
             {"Activation", create_activation_layer},
             {"RepeatVector", create_repeat_vector_layer},
             {"Rescaling", create_rescaling_layer},

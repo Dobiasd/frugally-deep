@@ -8,8 +8,6 @@
 
 #include "fdeep/common.hpp"
 
-#include "fdeep/shape2.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>

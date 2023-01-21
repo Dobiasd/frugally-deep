@@ -13,11 +13,13 @@ from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
 from tensorflow.keras.layers import Embedding, Normalization, Rescaling
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from tensorflow.keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
 from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
 from tensorflow.keras.layers import LSTM, GRU
 from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from tensorflow.keras.layers import MaxPooling3D, AveragePooling3D
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum, Dot
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
@@ -187,18 +189,26 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
+    outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))
     # todo: check if TensorFlow >= 2.8 supports this
     # outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4]))
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
+    outputs.append(MaxPooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
+    outputs.append(AveragePooling3D((2, 2, 2))(inputs[2]))
     # todo: check if TensorFlow >= 2.8 supports this
     # outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4]))
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
+    outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
     outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
+    outputs.append(GlobalAveragePooling3D()(inputs[2]))
+    outputs.append(GlobalAveragePooling3D(data_format="channels_first")(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
+    outputs.append(GlobalMaxPooling3D()(inputs[2]))
+    outputs.append(GlobalMaxPooling3D(data_format="channels_first")(inputs[2]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

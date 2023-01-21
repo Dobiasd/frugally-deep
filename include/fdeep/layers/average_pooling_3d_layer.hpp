@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "fdeep/layers/pooling_2d_layer.hpp"
+#include "fdeep/layers/pooling_3d_layer.hpp"
 
 #include <limits>
 #include <string>
@@ -14,7 +14,7 @@
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE tensor average_pool_2d(
+FDEEP_FORCE_INLINE tensor average_pool_3d(
     std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_y, std::size_t strides_x,
     bool channels_first,
@@ -125,24 +125,24 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
     }
 }
 
-class average_pooling_2d_layer : public pooling_2d_layer
+class average_pooling_3d_layer : public pooling_3d_layer
 {
 public:
-    explicit average_pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first,
+    explicit average_pooling_3d_layer(const std::string& name,
+        const shape3& pool_size, const shape3& strides, bool channels_first,
         padding p) :
-        pooling_2d_layer(name, pool_size, strides, channels_first, p)
+        pooling_3d_layer(name, pool_size, strides, channels_first, p)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
     {
-        if (pool_size_ == shape2(2, 2) && strides_ == shape2(2, 2))
-            return average_pool_2d(2, 2, 2, 2, channels_first_, padding_, in);
-        else if (pool_size_ == shape2(4, 4) && strides_ == shape2(4, 4))
-            return average_pool_2d(4, 4, 4, 4, channels_first_, padding_, in);
+        if (pool_size_ == shape3(1, 2, 2) && strides_ == shape3(1, 2, 2))
+            return average_pool_3d(2, 2, 2, 2, channels_first_, padding_, in);
+        else if (pool_size_ == shape3(1, 4, 4) && strides_ == shape3(1, 4, 4))
+            return average_pool_3d(4, 4, 4, 4, channels_first_, padding_, in);
         else
-            return average_pool_2d(
+            return average_pool_3d(
                 pool_size_.height_, pool_size_.width_,
                 strides_.height_, strides_.width_,
                 channels_first_, padding_, in);

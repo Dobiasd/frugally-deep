@@ -29,7 +29,7 @@
 
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
-#include "fdeep/layers/average_pooling_2d_layer.hpp"
+#include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/bidirectional_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
@@ -43,9 +43,11 @@
 #include "fdeep/layers/flatten_layer.hpp"
 #include "fdeep/layers/gelu_layer.hpp"
 #include "fdeep/layers/global_average_pooling_1d_layer.hpp"
-#include "fdeep/layers/global_max_pooling_1d_layer.hpp"
 #include "fdeep/layers/global_average_pooling_2d_layer.hpp"
+#include "fdeep/layers/global_average_pooling_3d_layer.hpp"
+#include "fdeep/layers/global_max_pooling_1d_layer.hpp"
 #include "fdeep/layers/global_max_pooling_2d_layer.hpp"
+#include "fdeep/layers/global_max_pooling_3d_layer.hpp"
 #include "fdeep/layers/hard_sigmoid_layer.hpp"
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
@@ -56,13 +58,13 @@
 #include "fdeep/layers/permute_layer.hpp"
 #include "fdeep/layers/prelu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
-#include "fdeep/layers/max_pooling_2d_layer.hpp"
+#include "fdeep/layers/max_pooling_3d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
 #include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/normalization_layer.hpp"
-#include "fdeep/layers/pooling_2d_layer.hpp"
+#include "fdeep/layers/pooling_3d_layer.hpp"
 #include "fdeep/layers/relu_layer.hpp"
 #include "fdeep/layers/repeat_vector_layer.hpp"
 #include "fdeep/layers/rescaling_layer.hpp"
@@ -241,6 +243,26 @@ inline shape2 create_shape2(const nlohmann::json& data)
     {
         const std::size_t width = data;
         return shape2(1, width);
+    }
+}
+
+inline shape3 create_shape3(const nlohmann::json& data)
+{
+    if (data.is_array())
+    {
+        assertion(data.size() == 1 || data.size() == 2 || data.size() == 3,
+            "invalid number of dimensions in shape2");
+        if (data.size() == 1)
+            return shape3(1, 1, data[0]);
+        if (data.size() == 2)
+            return shape3(1, data[0], data[1]);
+        else
+            return shape3(data[0], data[1], data[2]);
+    }
+    else
+    {
+        const std::size_t width = data;
+        return shape3(1, 1, width);
     }
 }
 
@@ -520,30 +542,30 @@ inline layer_ptr create_identity_layer(
     return std::make_shared<linear_layer>(name);
 }
 
-inline layer_ptr create_max_pooling_2d_layer(
+inline layer_ptr create_max_pooling_3d_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto pool_size = create_shape2(data["config"]["pool_size"]);
-    const auto strides = create_shape2(data["config"]["strides"]);
+    const auto pool_size = create_shape3(data["config"]["pool_size"]);
+    const auto strides = create_shape3(data["config"]["strides"]);
     const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
-    return std::make_shared<max_pooling_2d_layer>(name,
+    return std::make_shared<max_pooling_3d_layer>(name,
         pool_size, strides, channels_first, pad_type);
 }
 
-inline layer_ptr create_average_pooling_2d_layer(
+inline layer_ptr create_average_pooling_3d_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto pool_size = create_shape2(data["config"]["pool_size"]);
-    const auto strides = create_shape2(data["config"]["strides"]);
+    const auto pool_size = create_shape3(data["config"]["pool_size"]);
+    const auto strides = create_shape3(data["config"]["strides"]);
     const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
 
     const auto pad_type = create_padding(padding_str);
-    return std::make_shared<average_pooling_2d_layer>(name,
+    return std::make_shared<average_pooling_3d_layer>(name,
         pool_size, strides, channels_first, pad_type);
 }
 
@@ -567,6 +589,16 @@ inline layer_ptr create_global_max_pooling_2d_layer(
     return std::make_shared<global_max_pooling_2d_layer>(name, channels_first);
 }
 
+inline layer_ptr create_global_max_pooling_3d_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const bool channels_first = json_obj_has_member(data, "config")
+        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
+
+    return std::make_shared<global_max_pooling_3d_layer>(name, channels_first);
+}
+
 inline layer_ptr create_global_average_pooling_1d_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -585,6 +617,16 @@ inline layer_ptr create_global_average_pooling_2d_layer(
         && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
 
     return std::make_shared<global_average_pooling_2d_layer>(name, channels_first);
+}
+
+inline layer_ptr create_global_average_pooling_3d_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const bool channels_first = json_obj_has_member(data, "config")
+        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
+
+    return std::make_shared<global_average_pooling_3d_layer>(name, channels_first);
 }
 
 inline layer_ptr create_upsampling_1d_layer(
@@ -1248,14 +1290,18 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"PReLU", create_prelu_layer },
             {"ELU", create_elu_layer_isolated},
             {"ReLU", create_relu_layer_isolated},
-            {"MaxPooling1D", create_max_pooling_2d_layer},
-            {"MaxPooling2D", create_max_pooling_2d_layer},
-            {"AveragePooling1D", create_average_pooling_2d_layer},
-            {"AveragePooling2D", create_average_pooling_2d_layer},
+            {"MaxPooling1D", create_max_pooling_3d_layer},
+            {"MaxPooling2D", create_max_pooling_3d_layer},
+            {"MaxPooling3D", create_max_pooling_3d_layer},
+            {"AveragePooling1D", create_average_pooling_3d_layer},
+            {"AveragePooling2D", create_average_pooling_3d_layer},
+            {"AveragePooling3D", create_average_pooling_3d_layer},
             {"GlobalMaxPooling1D", create_global_max_pooling_1d_layer},
             {"GlobalMaxPooling2D", create_global_max_pooling_2d_layer},
+            {"GlobalMaxPooling3D", create_global_max_pooling_3d_layer},
             {"GlobalAveragePooling1D", create_global_average_pooling_1d_layer},
             {"GlobalAveragePooling2D", create_global_average_pooling_2d_layer},
+            {"GlobalAveragePooling3D", create_global_average_pooling_3d_layer},
             {"UpSampling1D", create_upsampling_1d_layer},
             {"UpSampling2D", create_upsampling_2d_layer},
             {"Dense", create_dense_layer},

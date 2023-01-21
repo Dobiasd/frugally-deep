@@ -20,11 +20,11 @@ namespace fdeep { namespace internal
 {
 
 // Abstract base class for pooling layers
-class pooling_2d_layer : public layer
+class pooling_3d_layer : public layer
 {
 public:
-    explicit pooling_2d_layer(const std::string& name,
-        const shape2& pool_size, const shape2& strides, bool channels_first,
+    explicit pooling_3d_layer(const std::string& name,
+        const shape3& pool_size, const shape3& strides, bool channels_first,
         padding p) :
         layer(name),
         pool_size_(pool_size),
@@ -42,8 +42,8 @@ protected:
 
     virtual tensor pool(const tensor& input) const = 0;
 
-    shape2 pool_size_;
-    shape2 strides_;
+    shape3 pool_size_;
+    shape3 strides_;
     bool channels_first_;
     padding padding_;
 };

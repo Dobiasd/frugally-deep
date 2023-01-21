@@ -13,15 +13,19 @@
 namespace fdeep { namespace internal
 {
 
-class cropping_2d_layer : public layer
+class cropping_3d_layer : public layer
 {
 public:
-    explicit cropping_2d_layer(const std::string& name,
+    explicit cropping_3d_layer(const std::string& name,
+        std::size_t front_crop,
+        std::size_t back_crop,
         std::size_t top_crop,
         std::size_t bottom_crop,
         std::size_t left_crop,
         std::size_t right_crop) :
             layer(name),
+            front_crop_(front_crop),
+            back_crop_(back_crop),
             top_crop_(top_crop),
             bottom_crop_(bottom_crop),
             left_crop_(left_crop),
@@ -32,8 +36,10 @@ protected:
     tensors apply_impl(const tensors& inputs) const override
     {
         const auto& input = single_tensor_from_tensors(inputs);
-        return {crop_tensor(top_crop_, bottom_crop_, left_crop_, right_crop_, input)};
+        return {crop_tensor(front_crop_, back_crop_, top_crop_, bottom_crop_, left_crop_, right_crop_, input)};
     }
+    std::size_t front_crop_;
+    std::size_t back_crop_;
     std::size_t top_crop_;
     std::size_t bottom_crop_;
     std::size_t left_crop_;

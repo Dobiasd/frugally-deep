@@ -46,7 +46,7 @@ Layer types typically used in image recognition/generation are supported, making
 * `AveragePooling1D/2D`, `GlobalAveragePooling1D/2D`
 * `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
-* `Cropping1D/2D`, `ZeroPadding1D/2D`
+* `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
@@ -75,7 +75,7 @@ Layer types typically used in image recognition/generation are supported, making
 
 `ActivityRegularization`, `AdditiveAttention`, `Attention`, `AveragePooling3D`,
 `CategoryEncoding`, `CenterCrop`, `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
-`Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Cropping3D`, `Discretization`,
+`Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
 `IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,

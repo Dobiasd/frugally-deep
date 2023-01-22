@@ -70,7 +70,8 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                         for (std::size_t xf = 0; xf < pool_width; ++xf)
                         {
                             int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
-                            const auto current = in.get_x_z_padded(invalid, z, in_get_y, in_get_x);
+                            const auto current = in.get_padded(
+                                invalid, 0, 0, static_cast<int>(z), in_get_y, in_get_x);
                             if (current != invalid)
                             {
                                 val += current;
@@ -78,7 +79,6 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                             }
                         }
                     }
-
                     out.set_ignore_rank(tensor_pos(z, y, x), val / static_cast<float_type>(divisor));
                 }
             }
@@ -107,8 +107,8 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                         for (std::size_t xf = 0; xf < pool_width; ++xf)
                         {
                             int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
-                            const auto current = in.get_y_x_padded(invalid,
-                                in_get_y, in_get_x, z);
+                            const auto current = in.get_padded(
+                                invalid, 0, 0, in_get_y, in_get_x, static_cast<int>(z));
                             if (current != invalid)
                             {
                                 val += current;
@@ -116,7 +116,6 @@ FDEEP_FORCE_INLINE tensor average_pool_2d(
                             }
                         }
                     }
-
                     out.set_ignore_rank(tensor_pos(y, x, z), val / static_cast<float_type>(divisor));
                 }
             }

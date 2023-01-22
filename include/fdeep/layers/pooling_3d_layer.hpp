@@ -7,7 +7,7 @@
 #pragma once
 
 #include "fdeep/layers/layer.hpp"
-#include "fdeep/convolution.hpp"
+#include "fdeep/convolution3d.hpp"
 
 #include <fplus/fplus.hpp>
 
@@ -24,11 +24,12 @@ class pooling_3d_layer : public layer
 {
 public:
     explicit pooling_3d_layer(const std::string& name,
-        const shape3& pool_size, const shape3& strides,
+        const shape3& pool_size, const shape3& strides, bool channels_first,
         padding p) :
         layer(name),
         pool_size_(pool_size),
         strides_(strides),
+        channels_first_(channels_first),
         padding_(p)
     {
     }
@@ -43,6 +44,7 @@ protected:
 
     shape3 pool_size_;
     shape3 strides_;
+    bool channels_first_;
     padding padding_;
 };
 

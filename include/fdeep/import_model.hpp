@@ -563,10 +563,11 @@ inline layer_ptr create_max_pooling_3d_layer(
 {
     const auto pool_size = create_shape3(data["config"]["pool_size"]);
     const auto strides = create_shape3(data["config"]["strides"]);
+    const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<max_pooling_3d_layer>(name,
-        pool_size, strides, pad_type);
+        pool_size, strides, channels_first, pad_type);
 }
 
 inline layer_ptr create_average_pooling_2d_layer(
@@ -589,11 +590,12 @@ inline layer_ptr create_average_pooling_3d_layer(
 {
     const auto pool_size = create_shape3(data["config"]["pool_size"]);
     const auto strides = create_shape3(data["config"]["strides"]);
+    const bool channels_first = json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
     const std::string padding_str = data["config"]["padding"];
 
     const auto pad_type = create_padding(padding_str);
     return std::make_shared<average_pooling_3d_layer>(name,
-        pool_size, strides, pad_type);
+        pool_size, strides, channels_first, pad_type);
 }
 
 inline layer_ptr create_global_max_pooling_1d_layer(

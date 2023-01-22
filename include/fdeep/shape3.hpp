@@ -19,30 +19,30 @@ class shape3
 {
 public:
     explicit shape3(
+        std::size_t size_dim_4,
         std::size_t height,
-        std::size_t width,
-        std::size_t depth) :
+        std::size_t width) :
+            size_dim_4_(size_dim_4),
             height_(height),
-            width_(width),
-            depth_(depth)
+            width_(width)
     {
     }
     std::size_t volume() const
     {
-        return height_ * width_ * depth_;
+        return size_dim_4_ * height_ * width_;
     }
 
+    std::size_t size_dim_4_;
     std::size_t height_;
     std::size_t width_;
-    std::size_t depth_;
 };
 
 inline bool operator == (const shape3& lhs, const shape3& rhs)
 {
     return
+        lhs.size_dim_4_ == rhs.size_dim_4_ &&
         lhs.height_ == rhs.height_ &&
-        lhs.width_ == rhs.width_ &&
-        lhs.depth_ == rhs.depth_;
+        lhs.width_ == rhs.width_;
 }
 
 } } // namespace fdeep, namespace internal

@@ -190,13 +190,13 @@ def get_test_model_exhaustive():
 
     # When using data_format="channels_first": Default MaxPoolingOp/AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
-    #outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))  # todo
+    outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
-    #outputs.append(MaxPooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))  # todo
+    outputs.append(MaxPooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
-    #outputs.append(AveragePooling3D((2, 2, 2))(inputs[2]))  # todo
+    outputs.append(AveragePooling3D((2, 2, 2))(inputs[2]))
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
-    #outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))  # todo
+    outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
     outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))

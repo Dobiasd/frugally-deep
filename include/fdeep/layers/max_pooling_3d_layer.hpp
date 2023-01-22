@@ -18,11 +18,122 @@ namespace fdeep { namespace internal
 FDEEP_FORCE_INLINE tensor max_pool_3d(
     std::size_t pool_size_d4, std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_d4, std::size_t strides_y, std::size_t strides_x,
-    padding, //pad_type,
+    bool channels_first,
+    padding pad_type,
     const tensor& in)
 {   
-    std::cout << pool_size_d4 << pool_height << pool_width << strides_d4 << strides_y << strides_x << std::endl;
-    return in; // todo
+    const float_type invalid = std::numeric_limits<float_type>::lowest();
+
+    const std::size_t feature_count = channels_first
+        ? in.shape().size_dim_4_
+        : in.shape().depth_
+        ;
+
+    const std::size_t in_size_dim_4 = channels_first
+        ? in.shape().height_
+        : in.shape().size_dim_4_
+        ;
+
+    const std::size_t in_height = channels_first
+        ? in.shape().width_
+        : in.shape().height_
+        ;
+
+    const std::size_t in_width = channels_first
+        ? in.shape().depth_
+        : in.shape().width_
+        ;
+
+    const auto conv_cfg = preprocess_convolution_3d(
+        shape3(pool_size_d4, pool_height, pool_width),
+        shape3(strides_d4, strides_y, strides_x),
+        pad_type, in_size_dim_4, in_height, in_width);
+
+    int pad_front_int = static_cast<int>(conv_cfg.pad_front_);
+    int pad_top_int = static_cast<int>(conv_cfg.pad_top_);
+    int pad_left_int = static_cast<int>(conv_cfg.pad_left_);
+    const std::size_t out_size_d4 = conv_cfg.out_size_d4_;
+    const std::size_t out_height = conv_cfg.out_height_;
+    const std::size_t out_width = conv_cfg.out_width_;
+
+    if (channels_first)
+    {
+        tensor out(
+            tensor_shape_with_changed_rank(
+                tensor_shape(feature_count, out_size_d4, out_height, out_width),
+                in.shape().rank()),
+            0);
+
+        for (std::size_t z = 0; z < feature_count; ++z)
+        {
+            for (std::size_t d4 = 0; d4 < out_size_d4; ++d4)
+            {
+                for (std::size_t y = 0; y < out_height; ++y)
+                {
+                    for (std::size_t x = 0; x < out_width; ++x)
+                    {
+                        float_type val = std::numeric_limits<float_type>::lowest();
+                        for (std::size_t d4f = 0; d4f < pool_size_d4; ++d4f)
+                        {
+                            int in_get_d4 = static_cast<int>(strides_d4 * d4 + d4f) - pad_front_int;
+                            for (std::size_t yf = 0; yf < pool_height; ++yf)
+                            {
+                                int in_get_y = static_cast<int>(strides_y * y + yf) - pad_top_int;
+                                for (std::size_t xf = 0; xf < pool_width; ++xf)
+                                {
+                                    int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
+                                    const auto current = in.get_padded(
+                                        invalid, 0, static_cast<int>(z), in_get_d4, in_get_y, in_get_x);
+                                    val = std::max(val, current);
+                                }
+                            }
+                        }
+                        out.set_ignore_rank(tensor_pos(z, d4, y, x), val);
+                    }
+                }
+            }
+        }
+        return out;
+    }
+    else
+    {
+        tensor out(
+            tensor_shape_with_changed_rank(
+                tensor_shape(out_size_d4, out_height, out_width, feature_count),
+                in.shape().rank()),
+            0);
+
+        for (std::size_t d4 = 0; d4 < out_size_d4; ++d4)
+        {
+            for (std::size_t y = 0; y < out_height; ++y)
+            {
+                for (std::size_t x = 0; x < out_width; ++x)
+                {
+                    for (std::size_t z = 0; z < feature_count; ++z)
+                    {
+                        float_type val = std::numeric_limits<float_type>::lowest();
+                        for (std::size_t d4f = 0; d4f < pool_size_d4; ++d4f)
+                        {
+                            int in_get_d4 = static_cast<int>(strides_d4 * d4 + d4f) - pad_front_int;
+                            for (std::size_t yf = 0; yf < pool_height; ++yf)
+                            {
+                                int in_get_y = static_cast<int>(strides_y * y + yf) - pad_top_int;
+                                for (std::size_t xf = 0; xf < pool_width; ++xf)
+                                {
+                                    int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
+                                    const auto current = in.get_padded(
+                                        invalid, 0, in_get_d4, in_get_y, in_get_x, static_cast<int>(z));
+                                    val = std::max(val, current);
+                                }
+                            }
+                        }
+                        out.set_ignore_rank(tensor_pos(d4, y, x, z), val);
+                    }
+                }
+            }
+        }
+        return out;
+    }
 }
 
 class max_pooling_3d_layer : public pooling_3d_layer
@@ -30,17 +141,18 @@ class max_pooling_3d_layer : public pooling_3d_layer
 public:
     explicit max_pooling_3d_layer(const std::string& name,
         const shape3& pool_size, const shape3& strides,
+        bool channels_first,
         padding p) :
-        pooling_3d_layer(name, pool_size, strides, p)
+        pooling_3d_layer(name, pool_size, strides, channels_first, p)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
     {
         return max_pool_3d(
-            pool_size_.depth_, pool_size_.height_, pool_size_.width_,
-            strides_.depth_, strides_.height_, strides_.width_,
-            padding_, in);
+            pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
+            strides_.size_dim_4_, strides_.height_, strides_.width_,
+            channels_first_, padding_, in);
     }
 };
 

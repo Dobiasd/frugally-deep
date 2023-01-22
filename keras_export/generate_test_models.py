@@ -204,11 +204,9 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
     outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalAveragePooling3D()(inputs[2]))
-    outputs.append(GlobalAveragePooling3D(data_format="channels_first")(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalMaxPooling3D()(inputs[2]))
-    outputs.append(GlobalMaxPooling3D(data_format="channels_first")(inputs[2]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

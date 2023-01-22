@@ -601,12 +601,9 @@ def get_layer_weights(layer, name):
     result = {}
     layer_type = type(layer).__name__
     if hasattr(layer, 'data_format'):
-        if layer_type in ['AveragePooling1D', 'MaxPooling1D', 'AveragePooling2D', 'MaxPooling2D',
-                          'GlobalAveragePooling1D', 'GlobalMaxPooling1D', 'GlobalAveragePooling2D',
-                          'GlobalMaxPooling2D']:
-            assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
-        else:
-            assert layer.data_format == 'channels_last'
+        assert layer.data_format == 'channels_last'
+    if hasattr(layer, 'keepdims'):  # Pooling layers
+        assert not layer.keepdims
 
     show_func = get_layer_functions_dict().get(layer_type, None)
     shown_layer = None

@@ -66,25 +66,24 @@ public:
     {
         return (*values_)[idx_ignore_rank(pos)];
     }
-    float_type get_y_x_padded(float_type pad_value,
-        int y, int x, std::size_t z) const
+    float_type get_padded(float_type pad_value,
+        int d5, int d4, int y, int x, int z) const
     {
-        if (y < 0 || y >= static_cast<int>(shape().height_) ||
-            x < 0 || x >= static_cast<int>(shape().width_))
-        {
-            return pad_value;
-        }
-        return get_ignore_rank(tensor_pos(static_cast<std::size_t>(y), static_cast<std::size_t>(x), z));
-    }
-    float_type get_x_z_padded(float_type pad_value,
-        std::size_t y, int x, int z) const
-    {
-        if (x < 0 || x >= static_cast<int>(shape().width_) ||
+        if (d5 < 0 || d5 >= static_cast<int>(shape().size_dim_5_) ||
+            d4 < 0 || d4 >= static_cast<int>(shape().size_dim_4_) ||
+            y < 0 || y >= static_cast<int>(shape().height_) ||
+            x < 0 || x >= static_cast<int>(shape().width_) ||
             z < 0 || z >= static_cast<int>(shape().depth_))
         {
             return pad_value;
         }
-        return get_ignore_rank(tensor_pos(y, static_cast<std::size_t>(x), static_cast<std::size_t>(z)));
+        return get_ignore_rank(tensor_pos(
+            static_cast<std::size_t>(d5),
+            static_cast<std::size_t>(d4),
+            static_cast<std::size_t>(y),
+            static_cast<std::size_t>(x),
+            static_cast<std::size_t>(z)
+            ));
     }
     void set(const tensor_pos& pos, float_type value)
     {

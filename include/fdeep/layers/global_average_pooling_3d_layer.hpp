@@ -21,9 +21,26 @@ public:
     {
     }
 protected:
-    tensor pool(const tensor& in) const override
+tensor pool(const tensor& in) const override
     {        
-        return in; // todo
+        tensor out(tensor_shape(in.shape().depth_), static_cast<float_type>(0));
+        for (std::size_t d4 = 0; d4 < in.shape().size_dim_4_; ++d4)
+        {
+            for (std::size_t y = 0; y < in.shape().height_; ++y)
+            {
+                for (std::size_t x = 0; x < in.shape().width_; ++x)
+                {
+                    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+                    {
+                        out.set_ignore_rank(tensor_pos(z),
+                            out.get_ignore_rank(tensor_pos(z)) + 
+                            in.get_ignore_rank(tensor_pos(d4, y, x, z)));
+                    }
+                }
+            }
+        }
+        float_type divisor = static_cast<float_type>(in.shape().size_dim_4_ * in.shape().height_ * in.shape().width_);
+        return transform_tensor(fplus::multiply_with(1 / divisor), out);
     }
 };
 

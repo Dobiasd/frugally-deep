@@ -603,8 +603,10 @@ def get_layer_weights(layer, name):
     if hasattr(layer, 'data_format'):
         if layer_type in ['AveragePooling1D', 'MaxPooling1D',
                           'AveragePooling2D', 'MaxPooling2D',
+                          'AveragePooling3D', 'MaxPooling3D',
                           'GlobalAveragePooling1D', 'GlobalMaxPooling1D',
-                          'GlobalAveragePooling2D', 'GlobalMaxPooling2D']:
+                          'GlobalAveragePooling2D', 'GlobalMaxPooling2D',
+                          'GlobalAveragePooling3D', 'GlobalMaxPooling3D']:
             assert layer.data_format == 'channels_last' or layer.data_format == 'channels_first'
         else:
             assert layer.data_format == 'channels_last'

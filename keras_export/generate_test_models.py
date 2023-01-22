@@ -188,25 +188,24 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
+    # When using data_format="channels_first": Default MaxPoolingOp/AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
-    #outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))
-    # Default MaxPoolingOp only supports NHWC on device type CPU
-    # outputs.append(MaxPooling2D((2, 2), data_format="channels_first")(inputs[4]))
+    #outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))  # todo
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
-    #outputs.append(MaxPooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
+    #outputs.append(MaxPooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))  # todo
     outputs.append(AveragePooling2D((2, 2))(inputs[4]))
-    #outputs.append(AveragePooling3D((2, 2, 2))(inputs[2]))
-    # Default AvgPoolingOp only supports NHWC on device type CPU
-    # outputs.append(AveragePooling2D((2, 2), data_format="channels_first")(inputs[4]))
+    #outputs.append(AveragePooling3D((2, 2, 2))(inputs[2]))  # todo
     outputs.append(AveragePooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
-    #outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
+    #outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))  # todo
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
     outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalAveragePooling3D()(inputs[2]))
+    outputs.append(GlobalAveragePooling3D(data_format="channels_first")(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalMaxPooling3D()(inputs[2]))
+    outputs.append(GlobalMaxPooling3D(data_format="channels_first")(inputs[2]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

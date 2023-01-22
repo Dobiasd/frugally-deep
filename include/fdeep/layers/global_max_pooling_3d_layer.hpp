@@ -18,28 +18,51 @@ namespace fdeep { namespace internal
 class global_max_pooling_3d_layer : public global_pooling_layer
 {
 public:
-    explicit global_max_pooling_3d_layer(const std::string& name) :
-    global_pooling_layer(name, false)
+    explicit global_max_pooling_3d_layer(const std::string& name, bool channels_first) :
+    global_pooling_layer(name, channels_first)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
-    {        
-        tensor out(tensor_shape(in.shape().depth_), std::numeric_limits<float_type>::lowest());
-        for (std::size_t d4 = 0; d4 < in.shape().size_dim_4_; ++d4)
+    {
+        const std::size_t feature_count = channels_first_
+            ? in.shape().size_dim_4_
+            : in.shape().depth_
+            ;
+
+        const std::size_t in_size_dim_4 = channels_first_
+            ? in.shape().height_
+            : in.shape().size_dim_4_
+            ;
+
+        const std::size_t in_height = channels_first_
+            ? in.shape().width_
+            : in.shape().height_
+            ;
+
+        const std::size_t in_width = channels_first_
+            ? in.shape().depth_
+            : in.shape().width_
+            ;
+
+        tensor out(tensor_shape(feature_count), 0);
+        for (std::size_t z = 0; z < feature_count; ++z)
         {
-            for (std::size_t y = 0; y < in.shape().height_; ++y)
-            {
-                for (std::size_t x = 0; x < in.shape().width_; ++x)
+            float_type val = std::numeric_limits<float_type>::lowest();
+            for (std::size_t d4 = 0; d4 < in_size_dim_4; ++d4)
+            {   
+                for (std::size_t y = 0; y < in_height; ++y)
                 {
-                    for (std::size_t z = 0; z < in.shape().depth_; ++z)
+                    for (std::size_t x = 0; x < in_width; ++x)
                     {
-                        out.set_ignore_rank(tensor_pos(z), std::max(
-                            out.get_ignore_rank(tensor_pos(z)),
-                            in.get_ignore_rank(tensor_pos(d4, y, x, z))));
+                        if (channels_first_)
+                            val = std::max(val, in.get_ignore_rank(tensor_pos(z, d4, y, x)));
+                        else
+                            val = std::max(val, in.get_ignore_rank(tensor_pos(d4, y, x, z)));
                     }
                 }
             }
+            out.set_ignore_rank(tensor_pos(z), val);
         }
         return out;
     }

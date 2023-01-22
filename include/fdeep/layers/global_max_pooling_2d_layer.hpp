@@ -18,40 +18,22 @@ namespace fdeep { namespace internal
 class global_max_pooling_2d_layer : public global_pooling_layer
 {
 public:
-    explicit global_max_pooling_2d_layer(const std::string& name, bool channels_first) :
-    global_pooling_layer(name, channels_first)
+    explicit global_max_pooling_2d_layer(const std::string& name) :
+    global_pooling_layer(name)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
     {
-        const std::size_t feature_count = channels_first_
-            ? in.shape().height_
-            : in.shape().depth_
-            ;
-
-        const std::size_t in_height = channels_first_
-            ? in.shape().width_
-            : in.shape().height_
-            ;
-
-        const std::size_t in_width = channels_first_
-            ? in.shape().depth_
-            : in.shape().width_
-            ;
-
-        tensor out(tensor_shape(feature_count), 0);
-        for (std::size_t z = 0; z < feature_count; ++z)
+        tensor out(tensor_shape(in.shape().depth_), 0);
+        for (std::size_t z = 0; z < in.shape().depth_; ++z)
         {
             float_type val = std::numeric_limits<float_type>::lowest();
-            for (std::size_t y = 0; y < in_height; ++y)
+            for (std::size_t y = 0; y < in.shape().height_; ++y)
             {
-                for (std::size_t x = 0; x < in_width; ++x)
+                for (std::size_t x = 0; x < in.shape().width_; ++x)
                 {
-                    if (channels_first_)
-                        val = std::max(val, in.get_ignore_rank(tensor_pos(z, y, x)));
-                    else
-                        val = std::max(val, in.get_ignore_rank(tensor_pos(y, x, z)));
+                    val = std::max(val, in.get_ignore_rank(tensor_pos(y, x, z)));
                 }
             }
             out.set_ignore_rank(tensor_pos(z), val);

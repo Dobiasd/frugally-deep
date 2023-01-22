@@ -16,35 +16,22 @@ namespace fdeep { namespace internal
 class global_average_pooling_1d_layer : public global_pooling_layer
 {
 public:
-    explicit global_average_pooling_1d_layer(const std::string& name, bool channels_first) :
-    global_pooling_layer(name, channels_first)
+    explicit global_average_pooling_1d_layer(const std::string& name) :
+    global_pooling_layer(name)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
     {
-        const std::size_t feature_count = channels_first_
-            ? in.shape().width_
-            : in.shape().depth_
-            ;
-
-        const std::size_t step_count = channels_first_
-            ? in.shape().depth_
-            : in.shape().width_
-            ;
-
-        tensor out(tensor_shape(feature_count), 0);
-        for (std::size_t z = 0; z < feature_count; ++z)
+        tensor out(tensor_shape(in.shape().depth_), 0);
+        for (std::size_t z = 0; z < in.shape().depth_; ++z)
         {
             float_type val = 0;
-            for (std::size_t x = 0; x < step_count; ++x)
+            for (std::size_t x = 0; x < in.shape().width_; ++x)
             {
-                if (channels_first_)
-                    val += in.get_ignore_rank(tensor_pos(z, x));
-                else
-                    val += in.get_ignore_rank(tensor_pos(x, z));
+                val += in.get_ignore_rank(tensor_pos(x, z));
             }
-            out.set_ignore_rank(tensor_pos(z), val / static_cast<float_type>(step_count));
+            out.set_ignore_rank(tensor_pos(z), val / static_cast<float_type>(in.shape().width_));
         }
         return out;
     }

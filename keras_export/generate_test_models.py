@@ -154,14 +154,10 @@ def get_test_model_exhaustive():
     outputs.append(Cropping1D((2, 3))(inputs[6]))
     outputs.append(MaxPooling1D(2)(inputs[6]))
     outputs.append(MaxPooling1D(2, strides=2, padding='same')(inputs[6]))
-    outputs.append(MaxPooling1D(2, data_format="channels_first")(inputs[6]))
     outputs.append(AveragePooling1D(2)(inputs[6]))
     outputs.append(AveragePooling1D(2, strides=2, padding='same')(inputs[6]))
-    outputs.append(AveragePooling1D(2, data_format="channels_first")(inputs[6]))
     outputs.append(GlobalMaxPooling1D()(inputs[6]))
-    outputs.append(GlobalMaxPooling1D(data_format="channels_first")(inputs[6]))
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
-    outputs.append(GlobalAveragePooling1D(data_format="channels_first")(inputs[6]))
 
     outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
@@ -188,7 +184,6 @@ def get_test_model_exhaustive():
     outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
 
-    # When using data_format="channels_first": Default MaxPoolingOp/AvgPoolingOp only supports NHWC on device type CPU
     outputs.append(MaxPooling2D((2, 2))(inputs[4]))
     outputs.append(MaxPooling3D((2, 2, 2))(inputs[2]))
     outputs.append(MaxPooling2D((1, 3), strides=(2, 3), padding='same')(inputs[4]))
@@ -199,13 +194,9 @@ def get_test_model_exhaustive():
     outputs.append(AveragePooling3D((1, 3, 5), strides=(2, 3, 4), padding='same')(inputs[2]))
 
     outputs.append(GlobalAveragePooling2D()(inputs[4]))
-    outputs.append(GlobalAveragePooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalAveragePooling3D()(inputs[2]))
-    outputs.append(GlobalAveragePooling3D(data_format="channels_first")(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
-    outputs.append(GlobalMaxPooling2D(data_format="channels_first")(inputs[4]))
     outputs.append(GlobalMaxPooling3D()(inputs[2]))
-    outputs.append(GlobalMaxPooling3D(data_format="channels_first")(inputs[2]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

@@ -32,12 +32,11 @@ class pooling_3d_layer : public layer
 {
 public:
     explicit pooling_3d_layer(const std::string& name,
-        const shape3& pool_size, const shape3& strides, bool channels_first,
+        const shape3& pool_size, const shape3& strides,
         padding p, const inner_pooling_func inner_f) :
         layer(name),
         pool_size_(pool_size),
         strides_(strides),
-        channels_first_(channels_first),
         padding_(p),
         inner_f_(inner_f)
     {
@@ -45,30 +44,10 @@ public:
 protected:
     tensor pool(const tensor& in) const
     {
-        const std::size_t feature_count = channels_first_
-            ? in.shape().size_dim_4_
-            : in.shape().depth_
-            ;
-
-        const std::size_t in_size_dim_4 = channels_first_
-            ? in.shape().height_
-            : in.shape().size_dim_4_
-            ;
-
-        const std::size_t in_height = channels_first_
-            ? in.shape().width_
-            : in.shape().height_
-            ;
-
-        const std::size_t in_width = channels_first_
-            ? in.shape().depth_
-            : in.shape().width_
-            ;
-
         const auto conv_cfg = preprocess_convolution_3d(
             shape3(pool_size_.size_dim_4_ , pool_size_.height_, pool_size_.width_),
             shape3(strides_.size_dim_4_, strides_.height_, strides_.width_),
-            padding_, in_size_dim_4, in_height, in_width);
+            padding_, in.shape().size_dim_4_, in.shape().height_, in.shape().width_);
 
         int pad_front_int = static_cast<int>(conv_cfg.pad_front_);
         int pad_top_int = static_cast<int>(conv_cfg.pad_top_);
@@ -80,9 +59,7 @@ protected:
 
         tensor out(
             tensor_shape_with_changed_rank(
-                channels_first_
-                ? tensor_shape(feature_count, out_size_d4, out_height, out_width)
-                : tensor_shape(out_size_d4, out_height, out_width, feature_count),
+                tensor_shape(out_size_d4, out_height, out_width, in.shape().depth_),
                 in.shape().rank()),
             0);
 
@@ -92,7 +69,7 @@ protected:
             {
                 for (std::size_t x = 0; x < out_width; ++x)
                 {
-                    for (std::size_t z = 0; z < feature_count; ++z)
+                    for (std::size_t z = 0; z < in.shape().depth_; ++z)
                     {
                         inner_f_(in, out,
                             pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
@@ -114,7 +91,6 @@ protected:
 
     shape3 pool_size_;
     shape3 strides_;
-    bool channels_first_;
     padding padding_;
     inner_pooling_func inner_f_;
 };

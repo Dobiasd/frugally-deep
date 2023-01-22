@@ -19,9 +19,8 @@
 namespace fdeep { namespace internal
 {
 
-typedef tensor (*inner_pooling_func)(
+typedef void (*inner_pooling_func)(
     const tensor&, tensor& out,
-    bool,
     std::size_t, std::size_t, std::size_t,
     std::size_t, std::size_t, std::size_t,
     std::size_t, std::size_t, std::size_t, std::size_t,
@@ -95,7 +94,7 @@ protected:
                     {
                         for (std::size_t x = 0; x < out_width; ++x)
                         {
-                            inner_f_(in, out, channels_first_,
+                            inner_f_(in, out,
                                 pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
                                 strides_.size_dim_4_, strides_.height_, strides_.width_,
                                 d4, y, x, z,
@@ -122,7 +121,7 @@ protected:
                     {
                         for (std::size_t z = 0; z < feature_count; ++z)
                         {
-                            inner_f_(in, out, channels_first_,
+                            inner_f_(in, out,
                                 pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
                                 strides_.size_dim_4_, strides_.height_, strides_.width_,
                                 d4, y, x, z,

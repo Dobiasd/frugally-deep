@@ -78,60 +78,32 @@ protected:
         const std::size_t out_height = conv_cfg.out_height_;
         const std::size_t out_width = conv_cfg.out_width_;
 
-        if (channels_first_)
-        {
-            tensor out(
-                tensor_shape_with_changed_rank(
-                    tensor_shape(feature_count, out_size_d4, out_height, out_width),
-                    in.shape().rank()),
-                0);
+        tensor out(
+            tensor_shape_with_changed_rank(
+                channels_first_
+                ? tensor_shape(feature_count, out_size_d4, out_height, out_width)
+                : tensor_shape(out_size_d4, out_height, out_width, feature_count),
+                in.shape().rank()),
+            0);
 
-            for (std::size_t z = 0; z < feature_count; ++z)
+        for (std::size_t d4 = 0; d4 < out_size_d4; ++d4)
+        {
+            for (std::size_t y = 0; y < out_height; ++y)
             {
-                for (std::size_t d4 = 0; d4 < out_size_d4; ++d4)
+                for (std::size_t x = 0; x < out_width; ++x)
                 {
-                    for (std::size_t y = 0; y < out_height; ++y)
+                    for (std::size_t z = 0; z < feature_count; ++z)
                     {
-                        for (std::size_t x = 0; x < out_width; ++x)
-                        {
-                            inner_f_(in, out,
-                                pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
-                                strides_.size_dim_4_, strides_.height_, strides_.width_,
-                                d4, y, x, z,
-                                pad_front_int, pad_top_int, pad_left_int);
-                        }
+                        inner_f_(in, out,
+                            pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
+                            strides_.size_dim_4_, strides_.height_, strides_.width_,
+                            d4, y, x, z,
+                            pad_front_int, pad_top_int, pad_left_int);
                     }
                 }
             }
-            return out;
         }
-        else
-        {
-            tensor out(
-                tensor_shape_with_changed_rank(
-                    tensor_shape(out_size_d4, out_height, out_width, feature_count),
-                    in.shape().rank()),
-                0);
-
-            for (std::size_t d4 = 0; d4 < out_size_d4; ++d4)
-            {
-                for (std::size_t y = 0; y < out_height; ++y)
-                {
-                    for (std::size_t x = 0; x < out_width; ++x)
-                    {
-                        for (std::size_t z = 0; z < feature_count; ++z)
-                        {
-                            inner_f_(in, out,
-                                pool_size_.size_dim_4_, pool_size_.height_, pool_size_.width_,
-                                strides_.size_dim_4_, strides_.height_, strides_.width_,
-                                d4, y, x, z,
-                                pad_front_int, pad_top_int, pad_left_int);
-                        }
-                    }
-                }
-            }
-            return out;
-        }
+        return out;
     }
 
     tensors apply_impl(const tensors& inputs) const override final

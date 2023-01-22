@@ -32,8 +32,8 @@ void inner_average_pool_channels_first(const tensor& in, tensor& out,
             for (std::size_t xf = 0; xf < pool_width; ++xf)
             {
                 int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
-                const auto current = in.get_padded(
-                    invalid, 0, static_cast<int>(z), in_get_d4, in_get_y, in_get_x);
+                const auto current = in.get_padded(invalid,
+                    0, static_cast<int>(z), in_get_d4, in_get_y, in_get_x);
                 if (current != invalid)
                 {
                     val += current;
@@ -63,8 +63,8 @@ void inner_average_pool_channels_last(const tensor& in, tensor& out,
             for (std::size_t xf = 0; xf < pool_width; ++xf)
             {
                 int in_get_x = static_cast<int>(strides_x * x + xf) - pad_left_int;
-                const auto current = in.get_padded(
-                    invalid, 0, in_get_d4, in_get_y, in_get_x, static_cast<int>(z));
+                const auto current = in.get_padded(invalid,
+                    0, in_get_d4, in_get_y, in_get_x, static_cast<int>(z));
                 if (current != invalid)
                 {
                     val += current;

@@ -617,13 +617,10 @@ inline layer_ptr create_global_max_pooling_2d_layer(
 }
 
 inline layer_ptr create_global_max_pooling_3d_layer(
-    const get_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
-    const bool channels_first = json_obj_has_member(data, "config")
-        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
-
-    return std::make_shared<global_max_pooling_3d_layer>(name, channels_first);
+    return std::make_shared<global_max_pooling_3d_layer>(name);
 }
 
 inline layer_ptr create_global_average_pooling_1d_layer(
@@ -647,13 +644,10 @@ inline layer_ptr create_global_average_pooling_2d_layer(
 }
 
 inline layer_ptr create_global_average_pooling_3d_layer(
-    const get_param_f&, const nlohmann::json& data,
+    const get_param_f&, const nlohmann::json&,
     const std::string& name)
 {
-    const bool channels_first = json_obj_has_member(data, "config")
-        && json_object_get(data["config"], "data_format", std::string("channels_last")) == "channels_first";
-
-    return std::make_shared<global_average_pooling_3d_layer>(name, channels_first);
+    return std::make_shared<global_average_pooling_3d_layer>(name);
 }
 
 inline layer_ptr create_upsampling_1d_layer(

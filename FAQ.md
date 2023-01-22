@@ -16,7 +16,7 @@ Why is my prediction roughly 10 times slower in C++ than in Python?
 Maybe you are using your GPU in TensorFlow?
 Frugally-deep does not support GPUs.
 If you'd like to [compare the performance](test/Dockerfile) of both libraries,
-disable the CPU for TensorFlow (`CUDA_VISIBLE_DEVICES=''`).
+disable the GPU for TensorFlow (`CUDA_VISIBLE_DEVICES=''`).
 
 Why is my prediction roughly 4 times slower in C++ than in Python?
 ----------------------------------------------------------------

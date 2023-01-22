@@ -8,14 +8,13 @@
 
 #include "fdeep/layers/pooling_3d_layer.hpp"
 
-#include <algorithm>
 #include <limits>
 #include <string>
 
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE tensor max_pool_3d(
+tensor max_pool_3d(
     std::size_t pool_size_d4, std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_d4, std::size_t strides_y, std::size_t strides_x,
     bool channels_first,

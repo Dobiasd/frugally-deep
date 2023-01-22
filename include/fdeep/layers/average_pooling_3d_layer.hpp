@@ -14,7 +14,7 @@
 namespace fdeep { namespace internal
 {
 
-FDEEP_FORCE_INLINE tensor average_pool_3d(
+tensor average_pool_3d(
     std::size_t pool_size_d4, std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_d4, std::size_t strides_y, std::size_t strides_x,
     bool channels_first,

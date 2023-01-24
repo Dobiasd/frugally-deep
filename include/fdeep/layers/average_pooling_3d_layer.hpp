@@ -14,7 +14,7 @@
 namespace fdeep { namespace internal
 {
 
-void inner_average_pool(const tensor& in, tensor& out,
+inline void inner_average_pool(const tensor& in, tensor& out,
     std::size_t pool_size_d4, std::size_t pool_height, std::size_t pool_width,
     std::size_t strides_d4, std::size_t strides_y, std::size_t strides_x,
     std::size_t d4, std::size_t y, std::size_t x, std::size_t z,

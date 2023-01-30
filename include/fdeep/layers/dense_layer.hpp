@@ -56,18 +56,18 @@ protected:
         //     input = flatten_tensor(input);
         // }
 
-        const auto& feature_arr = *input.as_vector();
-        const size_t size = feature_arr.size();
+        const auto feature_arr = input.as_vector();
+        const size_t size = feature_arr->size();
         const size_t depth = input.shape().depth_;
-        assertion(depth == n_in_ && (size%depth)==0, "Invalid input value count.");
-        std::vector<float> result_values((input.shape().volume()/depth)*n_out_);
+        assertion(depth == n_in_ && (size % depth) == 0, "Invalid input value count.");
+        std::vector<float> result_values((input.shape().volume() / depth) * n_out_);
         const size_t n_of_parts = size/depth;
 
         Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> params(params_.data(), static_cast<EigenIndex>(params_.rows() - 1), static_cast<EigenIndex>(params_.cols()));
         Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> bias(params_.data() + (params_.rows() - 1) * params_.cols(), static_cast<EigenIndex>(1), static_cast<EigenIndex>(params_.cols()));
         for (size_t part_id = 0; part_id < n_of_parts; ++part_id) {
-            Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> m(&feature_arr[part_id*depth], static_cast<EigenIndex>(1), static_cast<EigenIndex>(depth));
-            Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> res_m(&result_values[part_id*n_out_], static_cast<EigenIndex>(1), static_cast<EigenIndex>(n_out_));
+            Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> m(&(*feature_arr)[part_id * depth], static_cast<EigenIndex>(1), static_cast<EigenIndex>(depth));
+            Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> res_m(&result_values[part_id * n_out_], static_cast<EigenIndex>(1), static_cast<EigenIndex>(n_out_));
             res_m.noalias() = m * params + bias;
         }
         return {tensor(tensor_shape_with_changed_rank(

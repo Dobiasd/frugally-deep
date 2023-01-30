@@ -269,6 +269,11 @@ def get_test_model_exhaustive():
     outputs.append(Cropping3D((2, 3, 4))(inputs[2]))
     outputs.append(Cropping3D(((1, 2), (3, 4), (2, 1)))(inputs[2]))
 
+    outputs.append(Dense(3, use_bias=True)(inputs[0]))
+    outputs.append(Dense(3, use_bias=True)(inputs[2]))
+    outputs.append(Dense(3, use_bias=True)(inputs[4]))
+    outputs.append(Dense(3, use_bias=True)(inputs[6]))
+    outputs.append(Dense(3, use_bias=True)(inputs[8]))
     outputs.append(Dense(3, use_bias=True)(inputs[13]))
     outputs.append(Dense(3, use_bias=True)(inputs[14]))
     outputs.append(Dense(4, use_bias=False)(inputs[16]))

@@ -12,6 +12,8 @@
 #include <fplus/fplus.hpp>
 
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace fdeep { namespace internal
 {
@@ -39,9 +41,9 @@ public:
         assertion(weights.size() % units == 0, "invalid weight count");
     }
 protected:
-    tensors apply_impl(const tensors& inputs) const override
-    {
-        const auto& input = single_tensor_from_tensors(inputs);
+    tensors apply_impl(const tensors& inputs) const override {
+        assertion(inputs.size() == 1, "invalid number of input tensors");
+        auto input = inputs.front();
         // According to the Keras documentation
         // https://keras.io/layers/core/#dense
         // "if the input to the layer has a rank greater than 2,
@@ -53,39 +55,45 @@ protected:
         // {
         //     input = flatten_tensor(input);
         // }
-        const auto input_parts = fplus::split_every(
-            input.shape().depth_, *input.as_vector());
 
-        const auto result_value_vectors = fplus::transform(
-            [this](const auto& input_part) -> float_vec
-                        {
-                assertion(input_part.size() == n_in_,
-                    "Invalid input value count.");
-                const auto bias_padded_input = bias_pad_input(input_part);
-                const auto result = bias_padded_input * params_;
-                assertion(result.rows() == 1, "invalid result size.");
-                return *eigen_row_major_mat_to_values(result);
-            },
-            input_parts);
+        const auto feature_arr = input.as_vector();
+        const size_t size = feature_arr->size();
+        const size_t depth = input.shape().depth_;
+        assertion(depth == n_in_ && (size % depth) == 0, "Invalid input value count.");
+        std::vector<float_type> result_values((input.shape().volume() / depth) * n_out_);
+        const size_t n_of_parts = size / depth;
 
-        const auto result_values = fplus::concat(result_value_vectors);
-        assertion(result_values.size() % n_out_ == 0,
-            "Invalid number of output values.");
+        Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> params(
+            params_.data(),
+            static_cast<EigenIndex>(params_.rows() - 1),
+            static_cast<EigenIndex>(params_.cols()));
+        Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> bias(
+            params_.data() + (params_.rows() - 1) * params_.cols(),
+            static_cast<EigenIndex>(1),
+            static_cast<EigenIndex>(params_.cols()));
 
-        return {tensor(change_tensor_shape_dimension_by_index(
-                input.shape(), 4, n_out_),
-            fplus::make_shared_ref<fdeep::float_vec>(result_values))};
-    }
-    static RowMajorMatrixXf bias_pad_input(const float_vec& input)
-    {
-        RowMajorMatrixXf m(1, input.size() + 1);
-        for (std::size_t z = 0; z < input.size(); ++z)
-        {
-            m(0, static_cast<EigenIndex>(z)) = input[z];
+        for (size_t part_id = 0; part_id < n_of_parts; ++part_id) {
+            Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned> m(
+                &(*feature_arr)[part_id * depth],
+                static_cast<EigenIndex>(1),
+                static_cast<EigenIndex>(depth));
+            Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> res_m(
+                &result_values[part_id * n_out_],
+                static_cast<EigenIndex>(1),
+                static_cast<EigenIndex>(n_out_));
+            res_m.noalias() = m * params + bias;
         }
-        m(0, static_cast<EigenIndex>(input.size())) = 1;
-        return m;
+        return {tensor(tensor_shape_with_changed_rank(
+                tensor_shape(
+                    input.shape().size_dim_5_,
+                    input.shape().size_dim_4_,
+                    input.shape().height_,
+                    input.shape().width_,
+                    n_out_),
+                input.shape().rank()),
+            std::move(result_values))};
     }
+
     std::size_t n_in_;
     std::size_t n_out_;
     RowMajorMatrixXf params_;

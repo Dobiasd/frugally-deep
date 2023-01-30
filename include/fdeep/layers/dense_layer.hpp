@@ -78,7 +78,7 @@ protected:
                 static_cast<EigenIndex>(1),
                 static_cast<EigenIndex>(depth));
             Eigen::Map<RowMajorMatrixXf, Eigen::Unaligned> res_m(
-                const_cast<float_type*>(&result_values[part_id * n_out_]),
+                &result_values[part_id * n_out_],
                 static_cast<EigenIndex>(1),
                 static_cast<EigenIndex>(n_out_));
             res_m.noalias() = m * params + bias;

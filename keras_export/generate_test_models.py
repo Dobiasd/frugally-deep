@@ -9,7 +9,7 @@ from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import BatchNormalization, Concatenate
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
-from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D
+from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
 from tensorflow.keras.layers import Embedding, Normalization, Rescaling
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
@@ -198,6 +198,10 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling3D()(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling3D()(inputs[2]))
+
+    outputs.append(CenterCrop(4, 5)(inputs[4]))
+    outputs.append(CenterCrop(5, 6)(inputs[4]))
+    #outputs.append(CenterCrop(19, 53)(inputs[23]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

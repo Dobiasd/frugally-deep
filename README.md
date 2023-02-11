@@ -43,7 +43,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
 * `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
-* `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`
+* `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
@@ -72,7 +72,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 ### Currently not supported are the following:
 
 `AdditiveAttention`, `Attention`
-`CategoryEncoding`, `CenterCrop`, `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
+`CategoryEncoding`, `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
 `IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),

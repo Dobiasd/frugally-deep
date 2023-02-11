@@ -35,6 +35,7 @@
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
 #include "fdeep/layers/cropping_3d_layer.hpp"
+#include "fdeep/layers/centercrop_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
 #include "fdeep/layers/dot_layer.hpp"
@@ -774,6 +775,15 @@ inline layer_ptr create_cropping_3d_layer(
     }
 }
 
+inline layer_ptr create_centercrop_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const std::size_t height = data["config"]["height"];
+    const std::size_t width = data["config"]["width"];
+    return std::make_shared<centercrop_layer>(name, height, width);
+}
+
 inline layer_ptr create_repeat_vector_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
@@ -1269,6 +1279,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Cropping1D", create_cropping_3d_layer},
             {"Cropping2D", create_cropping_3d_layer},
             {"Cropping3D", create_cropping_3d_layer},
+            {"CenterCrop", create_centercrop_layer},
             {"Activation", create_activation_layer},
             {"RepeatVector", create_repeat_vector_layer},
             {"Rescaling", create_rescaling_layer},

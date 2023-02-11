@@ -30,7 +30,7 @@ protected:
         auto input = single_tensor_from_tensors(inputs);
         if (input.shape().height_ < height_ || input.shape().width_ < width_)
         {
-            raise_error("Upscaling in CenterCrop layer is not supported.")
+            raise_error("Upscaling in CenterCrop layer is not supported.");
         }
         const std::size_t excess_height = input.shape().height_ - height_;
         const std::size_t excess_width = input.shape().width_ - width_;

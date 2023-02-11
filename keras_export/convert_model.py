@@ -504,6 +504,11 @@ def show_normalization_layer(layer):
     }
 
 
+def show_upsampling2d_layer(layer):
+    """Serialize UpSampling2D layer to dict"""
+    assert layer.interpolation in ["nearest", "bilinear"]
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -523,7 +528,8 @@ def get_layer_functions_dict():
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
         'Softmax': show_softmax_layer,
-        'Normalization': show_normalization_layer
+        'Normalization': show_normalization_layer,
+        'UpSampling2D': show_upsampling2d_layer
     }
 
 

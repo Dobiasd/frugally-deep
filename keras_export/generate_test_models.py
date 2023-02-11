@@ -201,7 +201,7 @@ def get_test_model_exhaustive():
 
     outputs.append(CenterCrop(4, 5)(inputs[4]))
     outputs.append(CenterCrop(5, 6)(inputs[4]))
-    #outputs.append(CenterCrop(19, 53)(inputs[23]))
+    outputs.append(CenterCrop(19, 53)(inputs[23]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))

@@ -1117,6 +1117,95 @@ inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
     return result;
 }
 
+tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
+{
+    tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
+    const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
+    const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
+    for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+    {
+        std::size_t y_in = fplus::floor<float_type, std::size_t>(static_cast<float_type>(y) / scale_y);
+        for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+        {
+            for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+            {
+                std::size_t x_in = fplus::floor<float_type, std::size_t>(static_cast<float_type>(x) / scale_x);
+                out_vol.set_ignore_rank(tensor_pos(y, x, z), in_vol.get_ignore_rank(tensor_pos(y_in, x_in, z)));
+            }
+        }
+    }
+    return out_vol;
+}
+
+float_type interpolate_2d_value_bilinearly(const tensor& t, float_type y, float_type x, std::size_t z)
+{
+    y = fplus::max(0, y);
+    x = fplus::max(0, x);
+    y = fplus::min(y, t.height());
+    x = fplus::min(x, t.width());
+    std::size_t y_top = static_cast<std::size_t>(fplus::max(0, fplus::floor(y)));
+    std::size_t y_bottom = static_cast<std::size_t>(fplus::min(t.height() - 1, y_top + 1));
+    std::size_t x_left = static_cast<std::size_t>(fplus::max(0, fplus::floor(x)));
+    std::size_t x_right = static_cast<std::size_t>(fplus::min(t.width() - 1, x_left + 1));
+    const auto val_top_left = t.get_ignore_rank(tensor_pos(y_top, x_left, z));
+    const auto val_top_right = t.get_ignore_rank(tensor_pos(y_top, x_right, z));
+    const auto val_bottom_left = t.get_ignore_rank(tensor_pos(y_bottom, x_left, z));
+    const auto val_bottom_right = t.get_ignore_rank(tensor_pos(y_bottom, x_right, z));
+    const auto y_factor_top = static_cast<float_type>(y_bottom) - y;
+    const auto y_factor_bottom = 1.0 - y_factor_top;
+    const auto x_factor_left = static_cast<float_type>(x_right) - x;
+    const auto x_factor_right = 1.0 - x_factor_left;
+    return static_cast<float_type>(
+        y_factor_top * x_factor_left * val_top_left +
+        y_factor_top * x_factor_right * val_top_right +
+        y_factor_bottom * x_factor_left * val_bottom_left +
+        y_factor_bottom * x_factor_right * val_bottom_right);
+}
+
+tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
+{
+    tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
+    const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
+    const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
+    for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+    {
+        const auto y_in = (static_cast<float_type>(y) + 0.5f) / scale_y - 0.5f;
+        for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+        {
+            for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+            {
+                const auto x_in = (static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f;
+                out_vol.set_ignore_rank(tensor_pos(y, x, z),
+                    interpolate_2d_value_bilinearly(in_vol, y_in, x_in, z));
+            }
+        }
+    }
+    return out_vol;
+}
+
+tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size)
+{
+    const std::size_t height = in_vol.shape().height_;
+    const std::size_t width = in_vol.shape().width_;
+    std::size_t crop_height = static_cast<std::size_t>(
+        static_cast<float_type>(width * target_size.height_) / static_cast<float_type>(target_size.width_));
+    std::size_t crop_width = static_cast<std::size_t>(
+        static_cast<float_type>(height * target_size.width_) / static_cast<float_type>(target_size.height_));
+    crop_height = std::min(height, crop_height);
+    crop_width = std::min(width, crop_width);
+    
+    const std::size_t crop_box_hstart = static_cast<std::size_t>(static_cast<float_type>(height - crop_height) / 2.0f);
+    const std::size_t crop_box_wstart = static_cast<std::size_t>(static_cast<float_type>(width - crop_width) / 2.0f);
+
+    const tensor cropped = crop_tensor(
+        0, 0,
+        crop_box_hstart, height - crop_height - crop_box_hstart,
+        crop_box_wstart, width - crop_width - crop_box_wstart,
+        in_vol);
+
+    return resize2d_bilinear(cropped, target_size);
+}
+
 } // namespace internal
 
 using float_type = internal::float_type;

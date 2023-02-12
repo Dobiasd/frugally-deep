@@ -30,7 +30,7 @@ protected:
         auto input = single_tensor_from_tensors(inputs);
         if (input.shape().height_ < height_ || input.shape().width_ < width_)
         {
-            input = smart_resize_tensor_2d(input, shape2(height_, width_));
+            input = smart_resize_tensor_2d(input, shape2(height_, width_), "bilinear");
         }
         const std::size_t excess_height = input.shape().height_ - height_;
         const std::size_t excess_width = input.shape().width_ - width_;

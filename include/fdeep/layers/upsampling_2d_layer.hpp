@@ -27,9 +27,6 @@ public:
     scale_factor_(scale_factor),
     interpolation_(interpolation)
     {
-        assertion(interpolation == "nearest" || interpolation == "bilinear",
-            "Invalid interpolation method: " + interpolation
-        );
     }
 protected:
     tensors apply_impl(const tensors& inputs) const override final

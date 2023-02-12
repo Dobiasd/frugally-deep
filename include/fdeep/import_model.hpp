@@ -66,6 +66,7 @@
 #include "fdeep/layers/repeat_vector_layer.hpp"
 #include "fdeep/layers/rescaling_layer.hpp"
 #include "fdeep/layers/reshape_layer.hpp"
+#include "fdeep/layers/resizing_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/selu_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
@@ -809,6 +810,17 @@ inline layer_ptr create_reshape_layer(
     return std::make_shared<reshape_layer>(name, target_shape);
 }
 
+inline layer_ptr create_resizing_layer(
+    const get_param_f&, const nlohmann::json& data,
+    const std::string& name)
+{
+    const std::size_t height = data["config"]["height"];
+    const std::size_t width = data["config"]["width"];
+    const std::string interpolation = data["config"]["interpolation"];
+    const bool crop_to_aspect_ratio = data["config"]["crop_to_aspect_ratio"];
+    return std::make_shared<resizing_layer>(name, height, width, interpolation, crop_to_aspect_ratio);
+}
+
 inline activation_layer_ptr create_linear_layer(
     const get_param_f&, const nlohmann::json&,
     const std::string& name)
@@ -1284,6 +1296,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"RepeatVector", create_repeat_vector_layer},
             {"Rescaling", create_rescaling_layer},
             {"Reshape", create_reshape_layer},
+            {"Resizing", create_resizing_layer},
             {"Embedding", create_embedding_layer},
             {"LSTM", create_lstm_layer},
             {"CuDNNLSTM", create_lstm_layer},

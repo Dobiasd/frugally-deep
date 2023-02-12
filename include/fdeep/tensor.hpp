@@ -1124,12 +1124,12 @@ tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
     const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
     for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
     {
-        std::size_t y_in = fplus::floor<float_type, std::size_t>(static_cast<float_type>(y) / scale_y);
+        const std::size_t y_in = fplus::round<float_type, std::size_t>((static_cast<float_type>(y) + 0.5f) / scale_y - 0.5f);
         for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
         {
+            const std::size_t x_in = fplus::round<float_type, std::size_t>((static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f);
             for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
             {
-                std::size_t x_in = fplus::floor<float_type, std::size_t>(static_cast<float_type>(x) / scale_x);
                 out_vol.set_ignore_rank(tensor_pos(y, x, z), in_vol.get_ignore_rank(tensor_pos(y_in, x_in, z)));
             }
         }
@@ -1172,9 +1172,9 @@ tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
         const auto y_in = (static_cast<float_type>(y) + 0.5f) / scale_y - 0.5f;
         for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
         {
+            const auto x_in = (static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f;
             for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
-            {
-                const auto x_in = (static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f;
+            {   
                 out_vol.set_ignore_rank(tensor_pos(y, x, z),
                     interpolate_2d_value_bilinearly(in_vol, y_in, x_in, z));
             }
@@ -1183,7 +1183,148 @@ tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
     return out_vol;
 }
 
-tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size)
+float_type interpolate_2d_value_area(const tensor& t,
+    float_type top, float_type bottom, float_type left, float_type right,
+    std::size_t z)
+{
+    const std::size_t top_int_outer = fplus::floor<float_type, std::size_t>(top);
+    //const std::size_t bottom_int_outer = fplus::ceil<float_type, std::size_t>(bottom);
+    const std::size_t left_int_outer = fplus::floor<float_type, std::size_t>(left);
+    //const std::size_t right_int_outer = fplus::ceil<float_type, std::size_t>(right);
+
+    const std::size_t top_int_inner = fplus::ceil<float_type, std::size_t>(top);
+    const std::size_t bottom_int_inner = fplus::floor<float_type, std::size_t>(bottom);
+    const std::size_t left_int_inner = fplus::ceil<float_type, std::size_t>(left);
+    const std::size_t right_int_inner = fplus::floor<float_type, std::size_t>(right);
+
+    const float_type top_weight = static_cast<float_type>(top_int_inner) - top;
+    const float_type left_weight = static_cast<float_type>(left_int_inner) - left;
+    const float_type bottom_weight = bottom - static_cast<float_type>(bottom_int_inner);
+    const float_type right_weight = right - static_cast<float_type>(right_int_inner);
+
+    const float_type top_left_weight = top_weight * left_weight;
+    const float_type top_right_weight = top_weight * right_weight;
+    const float_type bottom_left_weight = bottom_weight * left_weight;
+    const float_type bottom_right_weight = bottom_weight * right_weight;
+
+    float_type inner_sum = static_cast<float_type>(0);
+    std::size_t inner_pixels = 0;
+    for (std::size_t y = top_int_inner; y < bottom_int_inner; ++y)
+    {
+        for (std::size_t x = left_int_inner; x < right_int_inner; ++x)
+        {
+            inner_sum += t.get_ignore_rank(tensor_pos(y, x, z));
+            inner_pixels += 1;
+        }
+    }
+
+    float_type top_sum = static_cast<float_type>(0);
+    std::size_t top_pixels = 0;
+    for (std::size_t x = left_int_inner; x < right_int_inner; ++x)
+    {
+        top_sum += t.get_ignore_rank(tensor_pos(top_int_outer, x, z));
+        top_pixels += 1;
+    }
+
+    float_type bottom_sum = static_cast<float_type>(0);
+    std::size_t bottom_pixels = 0;
+    for (std::size_t x = left_int_inner; x < right_int_inner; ++x)
+    {
+        bottom_sum += t.get_ignore_rank(tensor_pos(bottom_int_inner, x, z));
+        bottom_pixels += 1;
+    }
+
+    float_type left_sum = static_cast<float_type>(0);
+    std::size_t left_pixels = 0;
+    for (std::size_t y = top_int_inner; y < bottom_int_inner; ++y)
+    {
+        left_sum += t.get_ignore_rank(tensor_pos(y, left_int_outer, z));
+        left_pixels += 1;
+    }
+
+    float_type right_sum = static_cast<float_type>(0);
+    std::size_t right_pixels = 0;
+    for (std::size_t y = top_int_inner; y < bottom_int_inner; ++y)
+    {
+        right_sum += t.get_ignore_rank(tensor_pos(y, right_int_inner, z));
+        right_pixels += 1;
+    }
+
+    const float_type top_left_val = t.get_ignore_rank(tensor_pos(top_int_outer, left_int_outer, z));
+    const float_type top_right_val = t.get_ignore_rank(tensor_pos(top_int_outer, right_int_inner, z));
+    const float_type bottom_left_val = t.get_ignore_rank(tensor_pos(bottom_int_inner, left_int_outer, z));
+    const float_type bottom_right_val = t.get_ignore_rank(tensor_pos(bottom_int_inner, right_int_inner, z));
+
+    const float_type weighted_sum =
+        inner_sum +
+        top_weight * top_sum +
+        bottom_weight * bottom_sum +
+        left_weight * left_sum +
+        right_weight * right_sum +
+        top_left_weight * top_left_val +
+        top_right_weight * top_right_val +
+        bottom_left_weight * bottom_left_val +
+        bottom_right_weight * bottom_right_val;
+
+    const float_type num_pixels =
+        static_cast<float_type>(inner_pixels) +
+        top_weight * static_cast<float_type>(top_pixels) +
+        bottom_weight * static_cast<float_type>(bottom_pixels) +
+        left_weight * static_cast<float_type>(left_pixels) +
+        right_weight * static_cast<float_type>(right_pixels) +
+        top_left_weight +
+        top_right_weight +
+        bottom_left_weight +
+        bottom_right_weight;
+
+    return weighted_sum / num_pixels;
+}
+
+tensor resize2d_area(const tensor& in_vol, const shape2& target_size)
+{
+    tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
+    const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
+    const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
+    for (std::size_t y = 0; y < out_vol.shape().height_; ++y)
+    {
+        const auto y_in_top = (static_cast<float_type>(y)) / scale_y;
+        const auto y_in_bottom = (static_cast<float_type>(y + 1)) / scale_y;
+        for (std::size_t x = 0; x < out_vol.shape().width_; ++x)
+        {
+            const auto x_in_left = (static_cast<float_type>(x)) / scale_x;
+            const auto x_in_right = (static_cast<float_type>(x + 1)) / scale_x;
+            for (std::size_t z = 0; z < in_vol.shape().depth_; ++z)
+            {
+                out_vol.set_ignore_rank(tensor_pos(y, x, z),
+                    interpolate_2d_value_area(in_vol, y_in_top, y_in_bottom, x_in_left, x_in_right, z));
+            }
+        }
+    }
+    return out_vol;
+}
+
+tensor resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
+{
+    if (interpolation == "nearest")
+    {
+        return resize2d_nearest(in_vol, target_size);
+    }
+    else if (interpolation == "bilinear")
+    {
+        return resize2d_bilinear(in_vol, target_size);
+    }
+    else if (interpolation == "area")
+    {
+        return resize2d_area(in_vol, target_size);
+    }
+    else
+    {
+        raise_error("Invalid interpolation method: " + interpolation);
+        return in_vol;
+    }
+}
+
+tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
 {
     const std::size_t height = in_vol.shape().height_;
     const std::size_t width = in_vol.shape().width_;
@@ -1203,7 +1344,7 @@ tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size)
         crop_box_wstart, width - crop_width - crop_box_wstart,
         in_vol);
 
-    return resize2d_bilinear(cropped, target_size);
+    return resize_tensor_2d(cropped, target_size, interpolation);
 }
 
 } // namespace internal

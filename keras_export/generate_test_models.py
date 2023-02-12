@@ -10,7 +10,7 @@ from tensorflow.keras.layers import BatchNormalization, Concatenate
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
-from tensorflow.keras.layers import Embedding, Normalization, Rescaling
+from tensorflow.keras.layers import Embedding, Normalization, Rescaling, Resizing
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from tensorflow.keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
@@ -203,6 +203,19 @@ def get_test_model_exhaustive():
     outputs.append(CenterCrop(5, 6)(inputs[4]))
     outputs.append(CenterCrop(19, 53)(inputs[23]))
 
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+
+    outputs.append(Resizing(4, 5)(inputs[4]))
+    outputs.append(Resizing(5, 6)(inputs[4]))
+    outputs.append(Resizing(19, 53, interpolation="bilinear")(inputs[23]))
+    outputs.append(Resizing(19, 53, interpolation="nearest")(inputs[23]))
+    outputs.append(Resizing(7, 9, interpolation="area")(inputs[22]))
+    outputs.append(Resizing(19, 53, interpolation="area")(inputs[23]))
+    outputs.append(Resizing(19, 53, crop_to_aspect_ratio=True)(inputs[23]))
+
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
     outputs.append(Permute((1, 5, 3, 2, 4))(inputs[0]))
     outputs.append(Permute((3, 4, 1, 2))(inputs[2]))
@@ -320,11 +333,6 @@ def get_test_model_exhaustive():
     outputs.append(Reshape((2, 2, 1, 2, 2))(inputs[8]))
 
     outputs.append(RepeatVector(3)(inputs[8]))
-
-    outputs.append(UpSampling2D(size=(1, 2), interpolation='nearest')(inputs[4]))
-    outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
-    outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
-    outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
 
     outputs.append(ReLU()(inputs[0]))
 

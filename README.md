@@ -54,7 +54,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
 * `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
 * `Exponential`, `GELU`, `Softsign`, `Rescaling`
-* `UpSampling1D/2D`
+* `UpSampling1D/2D`, `Resizing`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`
 
@@ -78,7 +78,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,
 `LSTMCell`, `Masking`, `MultiHeadAttention`,
-`RepeatVector`, `Resizing`, `RNN`, `SimpleRNN`,
+`RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
 `ThresholdedReLU`, `UnitNormalization`, `Upsampling3D`, `temporal` models
 

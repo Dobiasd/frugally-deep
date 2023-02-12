@@ -509,6 +509,11 @@ def show_upsampling2d_layer(layer):
     assert layer.interpolation in ["nearest", "bilinear"]
 
 
+def show_resizing_layer(layer):
+    """Serialize Resizing layer to dict"""
+    assert layer.interpolation in ["nearest", "bilinear", "area"]
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -529,7 +534,8 @@ def get_layer_functions_dict():
         'Input': show_input_layer,
         'Softmax': show_softmax_layer,
         'Normalization': show_normalization_layer,
-        'UpSampling2D': show_upsampling2d_layer
+        'UpSampling2D': show_upsampling2d_layer,
+        'Resizing': show_resizing_layer
     }
 
 

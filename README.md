@@ -71,11 +71,13 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 ### Currently not supported are the following:
 
-`AdditiveAttention`, `Attention`
-`CategoryEncoding`, `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
+`Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
+`Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
+`AdditiveAttention`, `Attention`,
+`CategoryEncoding`,
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
-`IntegerLookup`, `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
+`IntegerLookup`,
 `LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,
 `LSTMCell`, `Masking`, `MultiHeadAttention`,
 `RepeatVector`, `RNN`, `SimpleRNN`,

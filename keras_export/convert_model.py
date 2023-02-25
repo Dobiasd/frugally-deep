@@ -2,11 +2,11 @@
 """Convert a Keras model to frugally-deep format.
 """
 
+import argparse
 import base64
 import datetime
 import hashlib
 import json
-import sys
 
 import numpy as np
 import tensorflow as tf
@@ -842,25 +842,15 @@ def convert(in_path, out_path, no_tests=False):
 def main():
     """Parse command line and convert model."""
 
-    usage = 'usage: [Keras model in HDF5 format] [output path] (--no-tests)'
+    parser = argparse.ArgumentParser(
+        prog='frugally-deep model converter',
+        description='Converts models from Keras\' .h5 format to frugally-deep\'s .json format.')
+    parser.add_argument('input_path', type=str)
+    parser.add_argument('output_path', type=str)
+    parser.add_argument('--no-tests', action='store_true')
+    args = parser.parse_args()
 
-    # todo: Use ArgumentParser instead.
-    if len(sys.argv) not in [3, 4]:
-        print(usage)
-        sys.exit(1)
-
-    in_path = sys.argv[1]
-    out_path = sys.argv[2]
-
-    no_tests = False
-    if len(sys.argv) == 4:
-        if sys.argv[3] not in ['--no-tests']:
-            print(usage)
-            sys.exit(1)
-        if sys.argv[3] == '--no-tests':
-            no_tests = True
-
-    convert(in_path, out_path, no_tests)
+    convert(args.input_path, args.output_path, args.no_tests)
 
 
 if __name__ == "__main__":

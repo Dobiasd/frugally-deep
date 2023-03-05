@@ -32,6 +32,7 @@
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/bidirectional_layer.hpp"
+#include "fdeep/layers/category_encoding_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
 #include "fdeep/layers/cropping_3d_layer.hpp"
@@ -1000,6 +1001,15 @@ inline layer_ptr create_normalization_layer(
     return std::make_shared<normalization_layer>(name, axex, mean, variance);
 }
 
+inline layer_ptr create_category_encoding_layer(
+    const get_param_f&,
+    const nlohmann::json& data, const std::string& name)
+{
+    const std::size_t num_tokens = data["config"]["num_tokens"];
+    const std::string output_mode = data["config"]["output_mode"];
+    return std::make_shared<category_encoding_layer>(name, num_tokens, output_mode);
+}
+
 inline std::string get_activation_type(const nlohmann::json& data)
 {
     assertion(data.is_string(), "Layer activation must be a string.");
@@ -1305,6 +1315,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Bidirectional", create_bidirectional_layer},
             {"Softmax", create_softmax_layer},
             {"Normalization", create_normalization_layer},
+            {"CategoryEncoding", create_category_encoding_layer},
         };
 
     const wrapper_layer_creators wrapper_creators = {

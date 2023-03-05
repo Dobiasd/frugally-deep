@@ -8,6 +8,7 @@ import numpy as np
 from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import BatchNormalization, Concatenate
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
+from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
 from tensorflow.keras.layers import Embedding, Normalization, Rescaling, Resizing
@@ -513,6 +514,13 @@ def get_test_model_embedding():
         )(embedding)
 
         outputs.append(lstm)
+
+    outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=False)(inputs[0]))
+    outputs.append(CategoryEncoding(1234, output_mode='count', sparse=False)(inputs[0]))
+    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
+    # outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=True)(inputs[0]))
+    # Error: When output_mode is not `'int'`, maximum supported output rank is 2. Received output_mode one_hot and input shape (None, 100), which would result in output rank 3.
+    # outputs.append(CategoryEncoding(1234, output_mode='one_hot', sparse=False)(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
     model.compile(loss='mse', optimizer='adam')

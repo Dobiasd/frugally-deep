@@ -514,6 +514,11 @@ def show_resizing_layer(layer):
     assert layer.interpolation in ["nearest", "bilinear", "area"]
 
 
+def show_category_encoding_layer(layer):
+    """Serialize CategoryEncoding layer to dict"""
+    assert layer.output_mode in ["multi_hot", "count"]
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -535,7 +540,8 @@ def get_layer_functions_dict():
         'Softmax': show_softmax_layer,
         'Normalization': show_normalization_layer,
         'UpSampling2D': show_upsampling2d_layer,
-        'Resizing': show_resizing_layer
+        'Resizing': show_resizing_layer,
+        'CategoryEncoding': show_category_encoding_layer,
     }
 
 

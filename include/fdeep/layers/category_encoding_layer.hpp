@@ -38,8 +38,6 @@ protected:
             assertion(input.shape().depth_ == 1, "Tensor of depth 1 required, but is: " + fplus::show(input.shape().depth_));
             tensor out(tensor_shape(num_tokens_), float_type(0));
             const std::size_t idx = fplus::floor<float_type, std::size_t>(input.get_ignore_rank(tensor_pos(0)));
-            const auto todo_remove = input.get_ignore_rank(tensor_pos(0));
-            std::cout << todo_remove << std::endl;
             assertion(idx <= num_tokens_, "Invalid input value (> num_tokens).");
             out.set_ignore_rank(tensor_pos(idx), 1);
             return {out};

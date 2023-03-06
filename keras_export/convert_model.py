@@ -516,7 +516,7 @@ def show_resizing_layer(layer):
 
 def show_category_encoding_layer(layer):
     """Serialize CategoryEncoding layer to dict"""
-    assert layer.output_mode in ["multi_hot", "count"]
+    assert layer.output_mode in ["multi_hot", "count", "one_hot"]
 
 
 def get_layer_functions_dict():

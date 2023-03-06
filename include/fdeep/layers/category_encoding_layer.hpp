@@ -35,8 +35,9 @@ protected:
         assertion(input.shape().rank() == 1, "Tensor of rank 1 required, but shape is '" + show_tensor_shape(input.shape()) + "'");
         
         if (output_mode_ == "one_hot") {
-            tensor out(tensor_shape(input.shape().depth_, num_tokens_), float_type(0));
+            tensor out(tensor_shape(num_tokens_), float_type(0));
             const auto input_vector = *input.as_vector();
+            assertion(input.shape().depth_ == 1, "Tensor of depth 1 required, but is: " + fplus::show(input.shape().depth_));
             for (std::size_t y = 0; y < input_vector.size(); ++y) {
                 const std::size_t idx = fplus::round<float_type, std::size_t>(input_vector[y]);
                 assertion(idx <= num_tokens_, "Invalid input value (> num_tokens).");

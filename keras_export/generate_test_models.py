@@ -493,11 +493,13 @@ def get_test_model_embedding():
 
     input_dims = [
         1023,  # maximum integer value in input data
-        255
+        255,
+        15,
     ]
     input_shapes = [
         (100,),  # must be single-element tuple (for sequence length)
-        (1000,)
+        (1000,),
+        (1,),
     ]
     assert len(input_dims) == len(input_shapes)
     output_dims = [8, 3]  # embedding dimension
@@ -505,7 +507,7 @@ def get_test_model_embedding():
     inputs = [Input(shape=s) for s in input_shapes]
 
     outputs = []
-    for k in range(0, len(input_shapes)):
+    for k in range(2):
         embedding = Embedding(input_dim=input_dims[k], output_dim=output_dims[k])(inputs[k])
         lstm = LSTM(
             units=4,
@@ -515,12 +517,11 @@ def get_test_model_embedding():
 
         outputs.append(lstm)
 
-    outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=False)(inputs[0]))
-    outputs.append(CategoryEncoding(1234, output_mode='count', sparse=False)(inputs[0]))
+    outputs.append(CategoryEncoding(1024, output_mode='multi_hot', sparse=False)(inputs[0]))
+    outputs.append(CategoryEncoding(1024, output_mode='count', sparse=False)(inputs[0]))
+    outputs.append(CategoryEncoding(16, output_mode='one_hot', sparse=False)(inputs[2]))
     # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
     # outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=True)(inputs[0]))
-    # Error: When output_mode is not `'int'`, maximum supported output rank is 2. Received output_mode one_hot and input shape (None, 100), which would result in output rank 3.
-    # outputs.append(CategoryEncoding(1234, output_mode='one_hot', sparse=False)(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
     model.compile(loss='mse', optimizer='adam')

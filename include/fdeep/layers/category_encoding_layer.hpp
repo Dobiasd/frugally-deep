@@ -35,19 +35,18 @@ protected:
         assertion(input.shape().rank() == 1, "Tensor of rank 1 required, but shape is '" + show_tensor_shape(input.shape()) + "'");
         
         if (output_mode_ == "one_hot") {
-            tensor out(tensor_shape(num_tokens_), float_type(0));
-            const auto input_vector = *input.as_vector();
             assertion(input.shape().depth_ == 1, "Tensor of depth 1 required, but is: " + fplus::show(input.shape().depth_));
-            for (std::size_t y = 0; y < input_vector.size(); ++y) {
-                const std::size_t idx = fplus::round<float_type, std::size_t>(input_vector[y]);
-                assertion(idx <= num_tokens_, "Invalid input value (> num_tokens).");
-                out.set_ignore_rank(tensor_pos(y, idx), 1);
-            }
+            tensor out(tensor_shape(num_tokens_), float_type(0));
+            const std::size_t idx = fplus::floor<float_type, std::size_t>(input.get_ignore_rank(tensor_pos(0)));
+            const auto todo_remove = input.get_ignore_rank(tensor_pos(0));
+            std::cout << todo_remove << std::endl;
+            assertion(idx <= num_tokens_, "Invalid input value (> num_tokens).");
+            out.set_ignore_rank(tensor_pos(idx), 1);
             return {out};
         } else {
             tensor out(tensor_shape(num_tokens_), float_type(0));
             for (const auto& x : *(input.as_vector())) {
-                const std::size_t idx = fplus::round<float_type, std::size_t>(x);
+                const std::size_t idx = fplus::floor<float_type, std::size_t>(x);
                 assertion(idx <= num_tokens_, "Invalid input value (> num_tokens).");
                 if (output_mode_ == "multi_hot") {
                     out.set_ignore_rank(tensor_pos(idx), 1);

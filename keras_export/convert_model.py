@@ -11,7 +11,7 @@ import json
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input, Embedding
+from tensorflow.keras.layers import Input, Embedding, CategoryEncoding
 from tensorflow.keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
@@ -154,6 +154,10 @@ def gen_test_data(model):
                 input_layer._outbound_nodes[0].outbound_layer, Embedding):
             random_fn = lambda size: np.random.randint(
                 0, input_layer._outbound_nodes[0].outbound_layer.input_dim, size)
+        elif input_layer._outbound_nodes and isinstance(
+                input_layer._outbound_nodes[0].outbound_layer, CategoryEncoding):
+            random_fn = lambda size: np.random.randint(
+                0, input_layer._outbound_nodes[0].outbound_layer.num_tokens, size)
         else:
             random_fn = np.random.normal
         try:

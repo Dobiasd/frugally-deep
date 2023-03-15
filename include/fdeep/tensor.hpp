@@ -1117,7 +1117,7 @@ inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
     return result;
 }
 
-tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
+inline tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
 {
     tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
     const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
@@ -1137,7 +1137,7 @@ tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
     return out_vol;
 }
 
-float_type interpolate_2d_value_bilinearly(const tensor& t, float_type y, float_type x, std::size_t z)
+inline float_type interpolate_2d_value_bilinearly(const tensor& t, float_type y, float_type x, std::size_t z)
 {
     y = fplus::max(0, y);
     x = fplus::max(0, x);
@@ -1162,7 +1162,7 @@ float_type interpolate_2d_value_bilinearly(const tensor& t, float_type y, float_
         y_factor_bottom * x_factor_right * val_bottom_right);
 }
 
-tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
+inline tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
 {
     tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
     const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
@@ -1183,7 +1183,7 @@ tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
     return out_vol;
 }
 
-float_type interpolate_2d_value_area(const tensor& t,
+inline float_type interpolate_2d_value_area(const tensor& t,
     float_type top, float_type bottom, float_type left, float_type right,
     std::size_t z)
 {
@@ -1280,7 +1280,7 @@ float_type interpolate_2d_value_area(const tensor& t,
     return weighted_sum / num_pixels;
 }
 
-tensor resize2d_area(const tensor& in_vol, const shape2& target_size)
+inline tensor resize2d_area(const tensor& in_vol, const shape2& target_size)
 {
     tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
     const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
@@ -1303,7 +1303,7 @@ tensor resize2d_area(const tensor& in_vol, const shape2& target_size)
     return out_vol;
 }
 
-tensor resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
+inline tensor resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
 {
     if (interpolation == "nearest")
     {
@@ -1324,7 +1324,7 @@ tensor resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const s
     }
 }
 
-tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
+inline tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_size, const std::string& interpolation)
 {
     const std::size_t height = in_vol.shape().height_;
     const std::size_t width = in_vol.shape().width_;

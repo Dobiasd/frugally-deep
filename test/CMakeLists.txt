@@ -3,9 +3,9 @@ message(STATUS "Building Unit Tests ${UNITTEST}")
 # look for Python3
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 if (${PYTHON3_FOUND})
-    # use command 'pip show tensorflow' to check whether tensorflow is installed in python.
+    # Please make sure that Python3 and Tensorflow have been installed correctly.
     message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
-    message(STATUS "Please check Tensorflow is installed rightly in Python.")
+    message(STATUS "Please make sure Tensorflow is installed.")
 endif ()
 add_custom_command ( OUTPUT test_model_exhaustive.h5
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.h5"

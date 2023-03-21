@@ -55,7 +55,7 @@ cmake -DFDEEP_BUILD_UNITTEST=ON ..
 make unittest
 cd ../..
 ```
-The Unit Tests require Python3, please make sure Python3 has been installed rightly.
+The Unit Tests require Python3, please make sure Python3 has been installed correctly.
 
 ### Installation using [Conan C/C++ package manager](https://conan.io)
 

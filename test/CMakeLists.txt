@@ -2,11 +2,8 @@ message(STATUS "Building Unit Tests ${UNITTEST}")
 
 # look for Python3
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-if (${PYTHON3_FOUND})
-    # Please make sure that Python3 and Tensorflow have been installed correctly.
-    message(STATUS "Will use ${Python3_EXECUTABLE} to run scripts.")
-    message(STATUS "Please make sure Tensorflow is installed.")
-endif ()
+ # Please make sure that Python3 and Tensorflow have been installed correctly.
+message(STATUS "Please make sure Tensorflow is installed.")
 add_custom_command ( OUTPUT test_model_exhaustive.h5
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.h5"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -106,18 +103,6 @@ macro(_add_test _NAME _DEPENDS)
     add_dependencies(${_NAME} ${_NAME}_data)
     add_test(NAME ${_NAME} COMMAND ${_NAME})
     target_link_libraries(${_NAME} fdeep Threads::Threads doctest::doctest)
-    # GNU in linux doesn't support "-mbig-obj" option.
-    if(CMAKE_COMPILER_IS_GNUCXX)
-        include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag("-Wa,-mbig-obj" GNU_BIG_OBJ_FLAG_ENABLE)
-        message(STATUS ${_NAME}: GNU_BIG_OBJ_FLAG_ENABLE=${GNU_BIG_OBJ_FLAG_ENABLE})
-        target_compile_options(${_NAME}
-        PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
-        $<$<AND:$<CXX_COMPILER_ID:GNU>,$<BOOL:${GNU_BIG_OBJ_FLAG_ENABLE}>>:-Wa,-mbig-obj>)
-    endif()
-
-
 endmacro()
 
 _add_test(test_model_exhaustive_test test_model_exhaustive.json)

@@ -7,3 +7,4 @@ _*
 /experiments
 .idea
 test/stateful_test/models
+CMakeUserPresets.json

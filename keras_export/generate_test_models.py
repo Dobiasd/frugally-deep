@@ -146,6 +146,7 @@ def get_test_model_exhaustive():
         (6, 5, 4, 3, 2),
         (5, 4),
         (7, 4),  # 50
+        (7, 4),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -385,6 +386,7 @@ def get_test_model_exhaustive():
     outputs.append(Multiply()([inputs[44], inputs[45]]))
 
     outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50]]))
+    outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50], inputs[51]]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

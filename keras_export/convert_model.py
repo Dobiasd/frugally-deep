@@ -523,6 +523,12 @@ def show_category_encoding_layer(layer):
     assert layer.output_mode in ["multi_hot", "count", "one_hot"]
 
 
+def show_attention_layer(layer):
+    """Serialize Attention layer to dict"""
+    assert layer.score_mode in ["dot"]
+    assert layer.use_scale is False
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -546,6 +552,7 @@ def get_layer_functions_dict():
         'UpSampling2D': show_upsampling2d_layer,
         'Resizing': show_resizing_layer,
         'CategoryEncoding': show_category_encoding_layer,
+        'Attention': show_attention_layer,
     }
 
 

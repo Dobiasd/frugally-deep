@@ -20,6 +20,8 @@ public:
     explicit attention_layer(const std::string& name, bool use_scale, const std::string& score_mode)
         : layer(name), use_scale_(use_scale), score_mode_(score_mode)
     {
+        assertion(!use_scale_, "use_scale not supported in Attention layer.");
+        assertion(score_mode_ == "dot", "Invalid score_mode for Attention layer.");
     }
 protected:
     tensors apply_impl(const tensors& input) const override

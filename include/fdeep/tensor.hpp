@@ -781,6 +781,11 @@ inline tensor permute_tensor(const tensor& in,
     return out;
 }
 
+inline tensor transpose(const tensor& in)
+{
+    return permute_tensor(in, std::vector<std::size_t>({2, 1}));
+}
+
 inline tensor crop_tensor(
     std::size_t front_crop, std::size_t back_crop,
     std::size_t top_crop, std::size_t bottom_crop,
@@ -1345,6 +1350,42 @@ inline tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_
         in_vol);
 
     return resize_tensor_2d(cropped, target_size, interpolation);
+}
+
+inline tensor softmax(const tensor& input)
+{
+    // Get unnormalized values of exponent function.
+    const auto ex = [](float_type x) -> float_type
+    {
+        return std::exp(x);
+    };
+    const float_type m = input.get(tensor_max_pos(input));
+    const auto inp_shifted = subtract_tensor(input, tensor(input.shape(), m));
+    auto output = transform_tensor(ex, inp_shifted);
+
+    // Softmax function is applied along channel dimension.
+    for (size_t y = 0; y < input.shape().height_; ++y)
+    {
+        for (size_t x = 0; x < input.shape().width_; ++x)
+        {
+            // Get the sum of unnormalized values for one pixel.
+            // We are not using Kahan summation, since the number
+            // of object classes is usually quite small.
+            float_type sum_shifted = 0.0f;
+            for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
+            {
+                sum_shifted += output.get_ignore_rank(tensor_pos(y, x, z_class));
+            }
+            // Divide the unnormalized values of each pixel by the stacks sum.
+            const auto log_sum_shifted = std::log(sum_shifted);
+            for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
+            {
+                const auto result = std::exp(inp_shifted.get_ignore_rank(tensor_pos(y, x, z_class)) - log_sum_shifted);
+                output.set_ignore_rank(tensor_pos(y, x, z_class), std::isinf(result) ? static_cast<float_type>(0) : result);
+            }
+        }
+    }
+    return output;
 }
 
 } // namespace internal

@@ -25,6 +25,7 @@ from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, M
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
+from tensorflow.keras.layers import Attention
 from tensorflow.keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -139,10 +140,12 @@ def get_test_model_exhaustive():
         (2, 1, 1, 1, 1),
         (1, 1, 4, 1, 6),
         (1, 3, 1, 5, 1),
-        (2, 1, 4, 1, 1),
-        (1,),  # 46
+        (2, 1, 4, 1, 1), # 45
+        (1,),
         (3, 1),
         (6, 5, 4, 3, 2),
+        (5, 4),
+        (7, 4),  # 50
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -380,6 +383,8 @@ def get_test_model_exhaustive():
     outputs.append(Multiply()([inputs[0], inputs[42]]))
     outputs.append(Multiply()([inputs[43], inputs[44]]))
     outputs.append(Multiply()([inputs[44], inputs[45]]))
+
+    outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50]]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

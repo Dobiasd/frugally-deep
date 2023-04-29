@@ -28,6 +28,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/layers/add_layer.hpp"
+#include "fdeep/layers/attention_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
@@ -1010,6 +1011,15 @@ inline layer_ptr create_category_encoding_layer(
     return std::make_shared<category_encoding_layer>(name, num_tokens, output_mode);
 }
 
+inline layer_ptr create_attention_layer(
+    const get_param_f&,
+    const nlohmann::json& data, const std::string& name)
+{
+    const bool use_scale = data["config"]["use_scale"];
+    const std::string score_mode = data["config"]["score_mode"];
+    return std::make_shared<attention_layer>(name, use_scale, score_mode);
+}
+
 inline std::string get_activation_type(const nlohmann::json& data)
 {
     assertion(data.is_string(), "Layer activation must be a string.");
@@ -1316,6 +1326,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"Softmax", create_softmax_layer},
             {"Normalization", create_normalization_layer},
             {"CategoryEncoding", create_category_encoding_layer},
+            {"Attention", create_attention_layer},
         };
 
     const wrapper_layer_creators wrapper_creators = {

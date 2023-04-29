@@ -57,6 +57,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `UpSampling1D/2D`, `Resizing`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`, `CategoryEncoding`
+* `Attention`
 
 
 ### Also supported
@@ -73,7 +74,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 `Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
-`AdditiveAttention`, `Attention`,
+`AdditiveAttention`,
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
 `IntegerLookup`,

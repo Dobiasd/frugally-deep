@@ -41,7 +41,7 @@ protected:
         const auto transform_slice = [&](const std::size_t idx, const tensor& slice) -> tensor
         {
             const auto sqrt_of_variance = std::sqrt(variance_[idx]);
-            return transform_tensor([&](float_type x){ return (x - mean_[idx]) / sqrt_of_variance; }, slice);
+            return transform_tensor([&](float_type x){ return (x - mean_[idx]) / std::fmax(sqrt_of_variance, 1e-7); }, slice);
         };
 
         if (axes_.empty()) {

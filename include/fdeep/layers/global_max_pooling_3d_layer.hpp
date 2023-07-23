@@ -18,14 +18,17 @@ namespace fdeep { namespace internal
 class global_max_pooling_3d_layer : public global_pooling_layer
 {
 public:
-    explicit global_max_pooling_3d_layer(const std::string& name) :
-    global_pooling_layer(name)
+    explicit global_max_pooling_3d_layer(const std::string& name, bool keepdims) :
+    global_pooling_layer(name), keepdims_(keepdims)
     {
     }
 protected:
     tensor pool(const tensor& in) const override
     {
-        tensor out(tensor_shape(in.shape().depth_), 0);
+        const auto out_dimensions = keepdims_ ?
+            fplus::append_elem(in.shape().depth_, std::vector<std::size_t>(in.shape().rank() - 1, 1)) :
+            fplus::singleton_seq(in.shape().depth_);
+        tensor out(create_tensor_shape_from_dims(out_dimensions), 0);
         for (std::size_t z = 0; z < in.shape().depth_; ++z)
         {
             float_type val = std::numeric_limits<float_type>::lowest();
@@ -43,6 +46,7 @@ protected:
         }
         return out;
     }
+    bool keepdims_;
 };
 
 } } // namespace fdeep, namespace internal

@@ -41,7 +41,7 @@ Building the tests (optional) requires [doctest](https://github.com/onqtam/docte
 
 ```
 # install doctest
-git clone -b '2.3.5' --single-branch --depth 1 https://github.com/onqtam/doctest.git
+git clone -b '2.4.11' --single-branch --depth 1 https://github.com/onqtam/doctest.git
 cd doctest
 mkdir -p build && cd build
 cmake .. -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=OFF

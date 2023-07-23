@@ -26,6 +26,11 @@ def save_model(file_name_base, model):
 def main():
     """Save famous example models in Keras-h5 and fdeep-json format."""
     print('Saving application examples')
+    save_model('convnextbase', tf.keras.applications.densenet.ConvNeXtBase())
+    save_model('convnextlarge', tf.keras.applications.densenet.ConvNeXtLarge())
+    save_model('convnextsmall', tf.keras.applications.densenet.ConvNeXtSmall())
+    save_model('convnexttiny', tf.keras.applications.densenet.ConvNeXtTiny())
+    save_model('convnextxlarge', tf.keras.applications.densenet.ConvNeXtXLarge())
     save_model('densenet121', tf.keras.applications.densenet.DenseNet121())
     save_model('densenet169', tf.keras.applications.densenet.DenseNet169())
     save_model('densenet201', tf.keras.applications.densenet.DenseNet201())
@@ -44,7 +49,7 @@ def main():
     save_model('efficientnetv2l', tf.keras.applications.efficientnet_v2.EfficientNetV2L())
     save_model('efficientnetv2m', tf.keras.applications.efficientnet_v2.EfficientNetV2M())
     save_model('efficientnetv2s', tf.keras.applications.efficientnet_v2.EfficientNetV2S())
-    # save_model('inceptionresnetv2', tf.keras.applications.inception_resnet_v2.InceptionResNetV2(input_shape=(299, 299, 3)))  # lambda
+    save_model('inceptionresnetv2', tf.keras.applications.inception_resnet_v2.InceptionResNetV2(input_shape=(299, 299, 3)))
     save_model('inceptionv3', tf.keras.applications.inception_v3.InceptionV3(input_shape=(299, 299, 3)))
     save_model('mobilenet', tf.keras.applications.mobilenet.MobileNet())
     save_model('mobilenetv2', tf.keras.applications.mobilenet_v2.MobileNetV2())

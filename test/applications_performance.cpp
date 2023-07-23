@@ -9,6 +9,11 @@
 int main()
 {
     std::vector<std::string> model_paths = {
+        "convnextbase",
+        "convnextlarge",
+        "convnextsmall",
+        "convnexttiny",
+        "convnextxlarge",
         "densenet121.json",
         "densenet169.json",
         "densenet201.json",
@@ -27,7 +32,7 @@ int main()
         "efficientnetv2l.json",
         "efficientnetv2m.json",
         "efficientnetv2s.json",
-        //"inceptionresnetv2.json", // lambda
+        "inceptionresnetv2.json",
         "inceptionv3.json",
         "mobilenet.json",
         "mobilenetv2.json",

@@ -26,11 +26,11 @@ def save_model(file_name_base, model):
 def main():
     """Save famous example models in Keras-h5 and fdeep-json format."""
     print('Saving application examples')
-    save_model('convnextbase', tf.keras.applications.densenet.ConvNeXtBase())
-    save_model('convnextlarge', tf.keras.applications.densenet.ConvNeXtLarge())
-    save_model('convnextsmall', tf.keras.applications.densenet.ConvNeXtSmall())
-    save_model('convnexttiny', tf.keras.applications.densenet.ConvNeXtTiny())
-    save_model('convnextxlarge', tf.keras.applications.densenet.ConvNeXtXLarge())
+    save_model('convnextbase', tf.keras.applications.convnext.ConvNeXtBase())
+    save_model('convnextlarge', tf.keras.applications.convnext.ConvNeXtLarge())
+    save_model('convnextsmall', tf.keras.applications.convnext.ConvNeXtSmall())
+    save_model('convnexttiny', tf.keras.applications.convnext.ConvNeXtTiny())
+    save_model('convnextxlarge', tf.keras.applications.convnext.ConvNeXtXLarge())
     save_model('densenet121', tf.keras.applications.densenet.DenseNet121())
     save_model('densenet169', tf.keras.applications.densenet.DenseNet169())
     save_model('densenet201', tf.keras.applications.densenet.DenseNet201())

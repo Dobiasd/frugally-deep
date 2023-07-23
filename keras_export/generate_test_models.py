@@ -164,6 +164,8 @@ def get_test_model_exhaustive():
     outputs.append(AveragePooling1D(2, strides=2, padding='same')(inputs[6]))
     outputs.append(GlobalMaxPooling1D()(inputs[6]))
     outputs.append(GlobalAveragePooling1D()(inputs[6]))
+    outputs.append(GlobalMaxPooling1D(keepdims=True)(inputs[6]))
+    outputs.append(GlobalAveragePooling1D(keepdims=True)(inputs[6]))
 
     outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))
@@ -203,6 +205,10 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling3D()(inputs[2]))
     outputs.append(GlobalMaxPooling2D()(inputs[4]))
     outputs.append(GlobalMaxPooling3D()(inputs[2]))
+    outputs.append(GlobalAveragePooling2D(keepdims=True)(inputs[4]))
+    outputs.append(GlobalAveragePooling3D(keepdims=True)(inputs[2]))
+    outputs.append(GlobalMaxPooling2D(keepdims=True)(inputs[4]))
+    outputs.append(GlobalMaxPooling3D(keepdims=True)(inputs[2]))
 
     outputs.append(CenterCrop(4, 5)(inputs[4]))
     outputs.append(CenterCrop(5, 6)(inputs[4]))

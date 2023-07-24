@@ -518,6 +518,11 @@ def show_resizing_layer(layer):
     assert layer.interpolation in ["nearest", "bilinear", "area"]
 
 
+def show_rescaling_layer(layer):
+    """Serialize Rescaling layer to dict"""
+    assert isinstance(layer.scale, float)
+
+
 def show_category_encoding_layer(layer):
     """Serialize CategoryEncoding layer to dict"""
     assert layer.output_mode in ["multi_hot", "count", "one_hot"]
@@ -551,6 +556,7 @@ def get_layer_functions_dict():
         'Normalization': show_normalization_layer,
         'UpSampling2D': show_upsampling2d_layer,
         'Resizing': show_resizing_layer,
+        'Rescaling': show_rescaling_layer,
         'CategoryEncoding': show_category_encoding_layer,
         'Attention': show_attention_layer,
     }

@@ -29,15 +29,14 @@ WORKDIR /
 RUN git clone -b 'v0.2.18-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
 RUN git clone -b '3.4.0' --single-branch --depth 1 https://gitlab.com/libeigen/eigen.git && cd eigen && mkdir -p build && cd build && cmake .. && make && make install && ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
 RUN git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DJSON_BuildTests=OFF .. && make && make install
-RUN git clone -b 'master' --single-branch --depth 1 https://github.com/Dobiasd/frugally-deep && cd frugally-deep && mkdir -p build && cd build && cmake .. && make && make install
 
-# To have downloaded the Keras models already to the Keras cache
 RUN pip install -U keras=="2.13.1" keras_applications
-RUN CUDA_VISIBLE_DEVICES='' python ./frugally-deep/keras_export/save_application_examples.py
 
-ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+ADD include frugally-deep/include
+ADD keras_export frugally-deep/keras_export
+ADD test frugally-deep/test
 
-RUN g++ -std=c++14 -O3 -DNDEBUG -march=native frugally-deep/test/applications_performance.cpp -o applications_performance
+RUN g++ -std=c++14 -O3 -DNDEBUG -march=native frugally-deep/test/applications_performance.cpp -I frugally-deep/include -o applications_performance
 RUN cat /proc/cpuinfo | grep 'name' | uniq
 RUN g++ --version
 RUN CUDA_VISIBLE_DEVICES='' PYTHONUNBUFFERED=TRUE taskset --cpu-list 1 python ./frugally-deep/keras_export/save_application_examples.py | grep --line-buffered -e 'on average' -e 'Conversion of model'

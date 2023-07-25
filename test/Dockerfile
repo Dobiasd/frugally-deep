@@ -1,3 +1,6 @@
+# For performance tests on application models run the following from the main directory:
+# docker build --rm -f test/Dockerfile .
+
 FROM ubuntu:22.04
 
 RUN apt-get update -y --fix-missing

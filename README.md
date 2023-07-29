@@ -87,7 +87,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 Usage
 -----
 
-1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save('....h5', include_optimizer=False)`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not supported.
+1) Use Keras/Python to build (`model.compile(...)`), train (`model.fit(...)`) and test (`model.evaluate(...)`) your model as usual. Then save it to a single HDF5 file using `model.save('....keras', include_optimizer=False)`. The `image_data_format` in your model must be `channels_last`, which is the default when using the TensorFlow backend. Models created with a different `image_data_format` and other backends are not supported.
 
 2) Now convert it to the frugally-deep file format with `keras_export/convert_model.py`
 
@@ -111,11 +111,11 @@ model.fit(
     np.asarray([[1, 2, 3, 4], [2, 3, 4, 5]]),
     np.asarray([[1, 0, 0], [0, 0, 1]]), epochs=10)
 
-model.save('keras_model.h5', include_optimizer=False)
+model.save('keras_model.keras', include_optimizer=False)
 ```
 
 ```bash
-python3 keras_export/convert_model.py keras_model.h5 fdeep_model.json
+python3 keras_export/convert_model.py keras_model.keras fdeep_model.json
 ```
 
 ```cpp

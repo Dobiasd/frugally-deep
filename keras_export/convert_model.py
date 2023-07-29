@@ -865,7 +865,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog='frugally-deep model converter',
-        description='Converts models from Keras\' .h5 format to frugally-deep\'s .json format.')
+        description='Converts models from Keras\' .keras format to frugally-deep\'s .json format.')
     parser.add_argument('input_path', type=str)
     parser.add_argument('output_path', type=str)
     parser.add_argument('--no-tests', action='store_true')

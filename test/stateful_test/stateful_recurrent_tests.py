@@ -113,7 +113,7 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
     else:
         model_fname += '_no_init_state'
 
-    model_fname += '.h5'
+    model_fname += '.keras'
     test_model.save(model_fname, include_optimizer=False)
     return test_model, model_fname
 
@@ -229,7 +229,7 @@ def main():
     all_results.tofile('models/python_results.npy')
 
     for h5_fname in model_file_names:
-        json_fname = h5_fname.replace('.h5', '.json')
+        json_fname = h5_fname.replace('.keras', '.json')
         cmd = 'python3 ../../keras_export/convert_model.py ' + h5_fname + ' ' + json_fname
         os.system(cmd)
 
@@ -247,7 +247,7 @@ def main():
     all_tests_passed = True
     for i, model_fname in enumerate(model_file_names):
         test_name = os.path.basename(model_fname)
-        test_name = test_name.split('.h5')[0]
+        test_name = test_name.split('.keras')[0]
         print('Test ', i + 1, ' ', test_name, ': ')
         diff = np.abs(all_results[i] - frugally_deep_results[i])
         max_delta = np.max(diff)

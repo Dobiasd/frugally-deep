@@ -14,7 +14,7 @@ __email__ = "editgym@gmail.com"
 
 def save_model(file_name_base, model):
     """Save and convert Keras model"""
-    keras_file = f'{file_name_base}.h5'
+    keras_file = f'{file_name_base}.keras'
     fdeep_file = f'{file_name_base}.json'
     print(f'Saving {keras_file}')
     model.save(keras_file, include_optimizer=False)

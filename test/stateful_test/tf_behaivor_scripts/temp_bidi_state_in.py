@@ -42,8 +42,8 @@ stateful_model = Model(inputs=rnn_inputs, outputs=stateful_rnn_out)
 
 stateful_model.set_weights( stateless_model.get_weights() )
 
-stateful_model.save('temp_stateful.h5')
-stateless_model.save('temp_stateless.h5')
+stateful_model.save('temp_stateful.keras')
+stateless_model.save('temp_stateless.keras')
 
 x_in = np.random.normal(0,10,sequence_length)
 x_in = np.asarray([1,0,0])

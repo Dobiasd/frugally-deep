@@ -50,7 +50,7 @@ Why do I get an error when loading my `.json` file in C++?
 Most likely it's one of the following two reasons:
 
 - The TensorFlow version used is not the one listed in the [requirements](README.md#requirements-and-installation).
-- The conversion from `.h5` to `.json` (using `convert_model.py`) was not done with the same version as used when loading the model in C++.
+- The conversion from `.keras` to `.json` (using `convert_model.py`) was not done with the same version as used when loading the model in C++.
 
 In case you've made sure none of the above is the cause, please open [an issue](https://github.com/Dobiasd/frugally-deep/issues) with a minimal example to reproduce the problem.
 
@@ -81,7 +81,7 @@ outputs = [
 
 model = Model(inputs=inputs, outputs=outputs)
 model.compile(loss='mse', optimizer='nadam')
-model.save('multi_input_and_output_model.h5', include_optimizer=False)
+model.save('multi_input_and_output_model.keras', include_optimizer=False)
 ```
 
 Now in C++, we would then also provide (and receive) two tensors:

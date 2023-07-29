@@ -29,7 +29,7 @@ public:
         mean_(mean),
         variance_(variance)
     {
-        assertion(axes.size() <= 2, "Unsupported number of axes for Normalization layer");
+        assertion(axes.size() <= 1, "Unsupported number of axes for Normalization layer");
     }
 protected:
     tensors apply_impl(const tensors& inputs) const override final
@@ -49,7 +49,6 @@ protected:
             return {transform_slice(0, input)};
         }
 
-        assertion(axes_.size() <= 1, "Unsupported number of axes for Normalization layer. Must be 0 or 1.");
         const auto axis_dim = axes_[0] == -1 ? 0 : rank - axes_[0];
 
         const auto transform_slice_with_idx = [&](const tensors& slices) -> tensors

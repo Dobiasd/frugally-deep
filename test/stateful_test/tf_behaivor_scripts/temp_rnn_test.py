@@ -33,8 +33,8 @@ if USE_TOY_WEIGHTS:
 # w = stateless_model.get_weights()
 # print(w)
 
-stateless_model.save('temp_stateless.h5', include_optimizer=False)
-stateful_model.save('temp_stateful.h5', include_optimizer=False)
+stateless_model.save('temp_stateless.keras')
+stateful_model.save('temp_stateful.keras')
 
 x_in = np.zeros(sequence_length)
 x_in[0] = 1

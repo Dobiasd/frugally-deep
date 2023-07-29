@@ -991,7 +991,7 @@ def main():
 
         model_func = get_model_functions[model_name]
         model = model_func()
-        model.save(dest_path, include_optimizer=False)
+        model.save(dest_path)
 
         # Make sure models can be loaded again,
         # see https://github.com/fchollet/keras/issues/7682

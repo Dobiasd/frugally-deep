@@ -14,4 +14,4 @@ model.fit(
     np.asarray([[1, 2, 3, 4], [2, 3, 4, 5]]),
     np.asarray([[1, 0, 0], [0, 0, 1]]), epochs=10)
 
-model.save('readme_example_model.keras', include_optimizer=False)
+model.save('readme_example_model.keras')

@@ -81,7 +81,7 @@ outputs = [
 
 model = Model(inputs=inputs, outputs=outputs)
 model.compile(loss='mse', optimizer='nadam')
-model.save('multi_input_and_output_model.keras', include_optimizer=False)
+model.save('multi_input_and_output_model.keras')
 ```
 
 Now in C++, we would then also provide (and receive) two tensors:
@@ -504,7 +504,7 @@ def remove_training_flags(old_model_path, new_model_path):
                 do_remove(layer)
         return model
 
-    do_remove(load_model(old_model_path)).save(new_model_path, include_optimizer=False)
+    do_remove(load_model(old_model_path)).save(new_model_path)
 ```
 
 Why are `Lambda` layers not supported?

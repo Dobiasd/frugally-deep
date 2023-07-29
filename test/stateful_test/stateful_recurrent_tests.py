@@ -114,7 +114,7 @@ def get_test_model(n_recurrent_units, sequence_length, feature_dim, layer_name, 
         model_fname += '_no_init_state'
 
     model_fname += '.keras'
-    test_model.save(model_fname, include_optimizer=False)
+    test_model.save(model_fname)
     return test_model, model_fname
 
 

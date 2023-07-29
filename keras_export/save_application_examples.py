@@ -17,7 +17,7 @@ def save_model(file_name_base, model):
     keras_file = f'{file_name_base}.keras'
     fdeep_file = f'{file_name_base}.json'
     print(f'Saving {keras_file}')
-    model.save(keras_file, include_optimizer=False)
+    model.save(keras_file)
     print(f'Converting {keras_file} to {fdeep_file}.')
     convert_model.convert(keras_file, fdeep_file)
     print(f'Conversion of model {keras_file} to {fdeep_file} done.')

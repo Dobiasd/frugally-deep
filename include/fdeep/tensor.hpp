@@ -862,6 +862,49 @@ inline tensor sum_tensors(const tensors& ts)
     return tensor(ts.front().shape(), std::move(result_values));
 }
 
+inline tensor add_tensors(const tensor& a, const tensor& b)
+{
+    assertion(
+        (std::min(a.shape().size_dim_5_, b.shape().size_dim_5_) == 1 || a.shape().size_dim_5_ == b.shape().size_dim_5_) &&
+        (std::min(a.shape().size_dim_4_, b.shape().size_dim_4_) == 1 || a.shape().size_dim_4_ == b.shape().size_dim_4_) &&
+        (std::min(a.shape().height_, b.shape().height_) == 1 || a.shape().height_ == b.shape().height_) &&
+        (std::min(a.shape().width_, b.shape().width_) == 1 || a.shape().width_ == b.shape().width_) &&
+        (std::min(a.shape().depth_, b.shape().depth_) == 1 || a.shape().depth_ == b.shape().depth_),
+        "Invalid shapes for tensor addition.");
+    const tensor_shape out_shape = tensor_shape(
+        std::max(a.shape().size_dim_5_, b.shape().size_dim_5_),
+        std::max(a.shape().size_dim_4_, b.shape().size_dim_4_),
+        std::max(a.shape().height_, b.shape().height_),
+        std::max(a.shape().width_, b.shape().width_),
+        std::max(a.shape().depth_, b.shape().depth_)
+    );
+    tensor out_tensor = tensor(out_shape, static_cast<float_type>(0));
+    loop_over_all_dims(out_tensor.shape(), [&](
+        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
+    {
+        out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
+            a.get_ignore_rank(tensor_pos(
+                dim5 % a.shape().size_dim_5_,
+                dim4 % a.shape().size_dim_5_,
+                y % a.shape().height_,
+                x % a.shape().width_,
+                z % a.shape().depth_))
+            +
+            b.get_ignore_rank(tensor_pos(
+                dim5 % b.shape().size_dim_5_,
+                dim4 % b.shape().size_dim_5_,
+                y % b.shape().height_,
+                x % b.shape().width_,
+                z % b.shape().depth_)));
+    });
+    return out_tensor;
+}
+
+inline tensor sum_depth(const tensor& t)
+{
+    return sum_tensors(tensor_to_depth_slices(t));
+}
+
 inline tensor multiply_tensors(const tensors& ts_orig)
 {
     assertion(!ts_orig.empty(), "no tensors given");
@@ -958,6 +1001,12 @@ inline tensor l2_normalize(const tensor& t, std::size_t axis)
                 std::sqrt(get_sum_ref(dim5, dim4, y, x, z));
     });
     return out;
+}
+
+inline tensor reshape(const tensor& t, const tensor_shape& target_shape)
+{
+    assertion(t.shape().volume() == target_shape.volume(), "Invalid target shape");
+    return tensor(target_shape, t.as_vector());
 }
 
 inline tensor dot_product_tensors(

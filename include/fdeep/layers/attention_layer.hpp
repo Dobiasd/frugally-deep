@@ -35,13 +35,16 @@ protected:
             transform_tensor(fplus::multiply_with(scale_),
                 dot_product_tensors(query, transpose(key), std::vector<std::size_t>({2, 1}), false))
             :
-            // todo: remove python code
-            //scores = self.concat_score_weight * tf.reduce_sum(tf.tanh(self.scale * (q_reshaped + k_reshaped)), axis=-1)
+            // https://github.com/keras-team/keras/blob/v2.13.1/keras/layers/attention/attention.py
             transform_tensor(fplus::multiply_with(concat_score_weight_),
-                reduce_sum_axis(
-                    transform_tensor(tanh,
-                        transform_tensor(fplus::multiply_with(scale_),
-                            concatenate_tensors_depth(std::vector<tensor>{query, key})))));
+                reshape(
+                    sum_depth(
+                        transform_tensor(tanh,
+                            transform_tensor(fplus::multiply_with(scale_),
+                                add_tensors(
+                                    reshape(query, tensor_shape(query.shape().width_, 1, query.shape().depth_)),
+                                    reshape(key, tensor_shape(1, key.shape().width_, key.shape().depth_)))))),
+                    tensor_shape(query.shape().width_, key.shape().width_)));
         const tensor distribution = softmax(scores);
         return {dot_product_tensors(distribution, value, std::vector<std::size_t>({2, 1}), false)};
     }

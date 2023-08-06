@@ -1019,12 +1019,15 @@ inline layer_ptr create_attention_layer(
 {
     const bool use_scale = data["config"]["use_scale"];
     const std::string score_mode = data["config"]["score_mode"];
+    float_type scale = static_cast<float_type>(1);
+    float_type concat_score_weight = static_cast<float_type>(1);
     if (use_scale) {
-        const float_type scale = get_param(name, "scale");
-        return std::make_shared<attention_layer>(name, use_scale, score_mode, scale);
-    } else {
-        return std::make_shared<attention_layer>(name, use_scale, score_mode, static_cast<float_type>(1));
+        scale = get_param(name, "scale");
     }
+    if (score_mode == "concat") {
+        concat_score_weight = get_param(name, "concat_score_weight");
+    }
+    return std::make_shared<attention_layer>(name, use_scale, score_mode, scale, concat_score_weight);
 }
 
 inline std::string get_activation_type(const nlohmann::json& data)

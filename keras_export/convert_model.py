@@ -530,11 +530,14 @@ def show_category_encoding_layer(layer):
 
 def show_attention_layer(layer):
     """Serialize Attention layer to dict"""
-    assert layer.score_mode in ["dot"]
+    assert layer.score_mode in ["dot", "concat"]
+    data = {}
     if layer.scale:
-        return {
-            'scale': float(layer.scale.numpy())
-        }
+        data['scale'] = float(layer.scale.numpy())
+    if layer.score_mode == "concat":
+        data['concat_score_weight'] = float(layer.concat_score_weight.numpy())
+    if data:
+        return data
 
 
 def get_layer_functions_dict():

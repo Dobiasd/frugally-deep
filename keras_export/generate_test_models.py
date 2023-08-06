@@ -394,6 +394,7 @@ def get_test_model_exhaustive():
     outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50]]))
     outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50], inputs[51]]))
     outputs.append(Attention(use_scale=True, score_mode='dot')([inputs[49], inputs[50]]))
+    outputs.append(Attention(use_scale=False, score_mode='concat')([inputs[49], inputs[50]]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

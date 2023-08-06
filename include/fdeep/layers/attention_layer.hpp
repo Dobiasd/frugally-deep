@@ -17,10 +17,9 @@ namespace fdeep { namespace internal
 class attention_layer : public layer
 {
 public:
-    explicit attention_layer(const std::string& name, bool use_scale, const std::string& score_mode)
-        : layer(name), use_scale_(use_scale), score_mode_(score_mode)
+    explicit attention_layer(const std::string& name, bool use_scale, const std::string& score_mode, float_type scale)
+        : layer(name), use_scale_(use_scale), score_mode_(score_mode), scale_(scale)
     {
-        assertion(!use_scale_, "use_scale not supported in Attention layer.");
         assertion(score_mode_ == "dot", "Invalid score_mode for Attention layer.");
     }
 protected:
@@ -30,12 +29,14 @@ protected:
         const tensor& query = input[0];
         const tensor& value = input[1];
         const tensor& key = input.size() > 2 ? input[2] : value;
-        const tensor scores = dot_product_tensors(query, transpose(key), std::vector<std::size_t>({2, 1}), false);
+        const tensor scores = transform_tensor(fplus::multiply_with(scale_),
+            dot_product_tensors(query, transpose(key), std::vector<std::size_t>({2, 1}), false));
         const tensor distribution = softmax(scores);
         return {dot_product_tensors(distribution, value, std::vector<std::size_t>({2, 1}), false)};
     }
     bool use_scale_;
     std::string score_mode_;
+    float_type scale_;
 };
 
 } } // namespace fdeep, namespace internal

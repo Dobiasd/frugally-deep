@@ -1014,12 +1014,17 @@ inline layer_ptr create_category_encoding_layer(
 }
 
 inline layer_ptr create_attention_layer(
-    const get_param_f&,
+    const get_param_f& get_param,
     const nlohmann::json& data, const std::string& name)
 {
     const bool use_scale = data["config"]["use_scale"];
     const std::string score_mode = data["config"]["score_mode"];
-    return std::make_shared<attention_layer>(name, use_scale, score_mode);
+    if (use_scale) {
+        const float_type scale = get_param(name, "scale");
+        return std::make_shared<attention_layer>(name, use_scale, score_mode, scale);
+    } else {
+        return std::make_shared<attention_layer>(name, use_scale, score_mode, static_cast<float_type>(1));
+    }
 }
 
 inline std::string get_activation_type(const nlohmann::json& data)

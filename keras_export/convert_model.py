@@ -531,7 +531,10 @@ def show_category_encoding_layer(layer):
 def show_attention_layer(layer):
     """Serialize Attention layer to dict"""
     assert layer.score_mode in ["dot"]
-    assert layer.use_scale is False
+    if layer.scale:
+        return {
+            'scale': float(layer.scale.numpy())
+        }
 
 
 def get_layer_functions_dict():

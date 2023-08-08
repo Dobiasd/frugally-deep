@@ -6,6 +6,8 @@ import sys
 
 import numpy as np
 from tensorflow.keras.layers import ActivityRegularization
+from tensorflow.keras.layers import AdditiveAttention
+from tensorflow.keras.layers import Attention
 from tensorflow.keras.layers import BatchNormalization, Concatenate
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import CategoryEncoding
@@ -25,7 +27,6 @@ from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, M
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
-from tensorflow.keras.layers import Attention
 from tensorflow.keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -140,7 +141,7 @@ def get_test_model_exhaustive():
         (2, 1, 1, 1, 1),
         (1, 1, 4, 1, 6),
         (1, 3, 1, 5, 1),
-        (2, 1, 4, 1, 1), # 45
+        (2, 1, 4, 1, 1),  # 45
         (1,),
         (3, 1),
         (6, 5, 4, 3, 2),
@@ -395,6 +396,11 @@ def get_test_model_exhaustive():
     outputs.append(Attention(use_scale=False, score_mode='dot')([inputs[49], inputs[50], inputs[51]]))
     outputs.append(Attention(use_scale=True, score_mode='dot')([inputs[49], inputs[50]]))
     outputs.append(Attention(use_scale=False, score_mode='concat')([inputs[49], inputs[50]]))
+
+    outputs.append(AdditiveAttention(use_scale=False)([inputs[49], inputs[50]]))
+    outputs.append(AdditiveAttention(use_scale=False)([inputs[49], inputs[50], inputs[51]]))
+    outputs.append(AdditiveAttention(use_scale=True)([inputs[49], inputs[50]]))
+    outputs.append(AdditiveAttention(use_scale=True)([inputs[49], inputs[50], inputs[51]]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

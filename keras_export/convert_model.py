@@ -405,7 +405,7 @@ def show_gru_layer(layer):
 
 def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
     return transform_kernels(input_weights, n_gates, transform_input_kernel), \
-           transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
+        transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
 
 
 def show_cudnn_lstm_layer(layer):
@@ -540,6 +540,15 @@ def show_attention_layer(layer):
         return data
 
 
+def show_additive_attention_layer(layer):
+    """Serialize AdditiveAttention layer to dict"""
+    data = {}
+    if layer.scale is not None:
+        data['scale'] = encode_floats(layer.scale.numpy())
+    if data:
+        return data
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -565,6 +574,7 @@ def get_layer_functions_dict():
         'Rescaling': show_rescaling_layer,
         'CategoryEncoding': show_category_encoding_layer,
         'Attention': show_attention_layer,
+        'AdditiveAttention': show_additive_attention_layer,
     }
 
 

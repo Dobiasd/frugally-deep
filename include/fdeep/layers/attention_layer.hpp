@@ -17,9 +17,9 @@ namespace fdeep { namespace internal
 class attention_layer : public layer
 {
 public:
-    explicit attention_layer(const std::string& name, bool use_scale, const std::string& score_mode,
+    explicit attention_layer(const std::string& name, const std::string& score_mode,
         float_type scale, float_type concat_score_weight)
-        : layer(name), use_scale_(use_scale), score_mode_(score_mode),
+        : layer(name), score_mode_(score_mode),
             scale_(scale), concat_score_weight_(concat_score_weight)
     {
         assertion(score_mode_ == "dot" || score_mode_ == "concat", "Invalid score_mode for Attention layer.");
@@ -48,7 +48,6 @@ protected:
         const tensor distribution = softmax(scores);
         return {dot_product_tensors(distribution, value, std::vector<std::size_t>({2, 1}), false)};
     }
-    bool use_scale_;
     std::string score_mode_;
     float_type scale_;
     float_type concat_score_weight_;

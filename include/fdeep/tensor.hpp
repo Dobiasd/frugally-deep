@@ -862,7 +862,8 @@ inline tensor sum_tensors(const tensors& ts)
     return tensor(ts.front().shape(), std::move(result_values));
 }
 
-inline tensor add_tensors(const tensor& a, const tensor& b)
+template <typename F>
+tensor elem_wise_combine_tensors(F f, const tensor& a, const tensor& b)
 {
     assertion(
         (std::min(a.shape().size_dim_5_, b.shape().size_dim_5_) == 1 || a.shape().size_dim_5_ == b.shape().size_dim_5_) &&
@@ -882,62 +883,32 @@ inline tensor add_tensors(const tensor& a, const tensor& b)
     loop_over_all_dims(out_tensor.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {
-        out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
+        out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z), f(
             a.get_ignore_rank(tensor_pos(
                 dim5 % a.shape().size_dim_5_,
                 dim4 % a.shape().size_dim_5_,
                 y % a.shape().height_,
                 x % a.shape().width_,
-                z % a.shape().depth_))
-            +
+                z % a.shape().depth_)),
             b.get_ignore_rank(tensor_pos(
                 dim5 % b.shape().size_dim_5_,
                 dim4 % b.shape().size_dim_5_,
                 y % b.shape().height_,
                 x % b.shape().width_,
-                z % b.shape().depth_)));
+                z % b.shape().depth_))));
     });
     return out_tensor;
 }
 
-// todo: Unify add_tensors and mult_tensors.
+inline tensor add_tensors(const tensor& a, const tensor& b)
+{
+    return elem_wise_combine_tensors(std::plus<float_type>(), a, b);
+}
+
 // todo: Can mult_tensors replace multiply_tensors?
 inline tensor mult_tensors(const tensor& a, const tensor& b)
 {
-    assertion(
-        (std::min(a.shape().size_dim_5_, b.shape().size_dim_5_) == 1 || a.shape().size_dim_5_ == b.shape().size_dim_5_) &&
-        (std::min(a.shape().size_dim_4_, b.shape().size_dim_4_) == 1 || a.shape().size_dim_4_ == b.shape().size_dim_4_) &&
-        (std::min(a.shape().height_, b.shape().height_) == 1 || a.shape().height_ == b.shape().height_) &&
-        (std::min(a.shape().width_, b.shape().width_) == 1 || a.shape().width_ == b.shape().width_) &&
-        (std::min(a.shape().depth_, b.shape().depth_) == 1 || a.shape().depth_ == b.shape().depth_),
-        "Invalid shapes for tensor multiplication.");
-    const tensor_shape out_shape = tensor_shape(
-        std::max(a.shape().size_dim_5_, b.shape().size_dim_5_),
-        std::max(a.shape().size_dim_4_, b.shape().size_dim_4_),
-        std::max(a.shape().height_, b.shape().height_),
-        std::max(a.shape().width_, b.shape().width_),
-        std::max(a.shape().depth_, b.shape().depth_)
-    );
-    tensor out_tensor = tensor(out_shape, static_cast<float_type>(0));
-    loop_over_all_dims(out_tensor.shape(), [&](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-    {
-        out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-            a.get_ignore_rank(tensor_pos(
-                dim5 % a.shape().size_dim_5_,
-                dim4 % a.shape().size_dim_5_,
-                y % a.shape().height_,
-                x % a.shape().width_,
-                z % a.shape().depth_))
-            *
-            b.get_ignore_rank(tensor_pos(
-                dim5 % b.shape().size_dim_5_,
-                dim4 % b.shape().size_dim_5_,
-                y % b.shape().height_,
-                x % b.shape().width_,
-                z % b.shape().depth_)));
-    });
-    return out_tensor;
+    return elem_wise_combine_tensors(std::multiplies<float_type>(), a, b);
 }
 
 inline tensor sum_depth(const tensor& t)

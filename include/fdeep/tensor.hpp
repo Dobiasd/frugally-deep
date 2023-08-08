@@ -218,138 +218,6 @@ tensor transform_tensor(F f, const tensor& m)
     return tensor(m.shape(), fplus::transform_convert<float_vec>(f, *m.as_vector()));
 }
 
-inline tensor expand_dim_5(const tensor& t, std::size_t size_dim_5)
-{
-    assertion(t.shape().size_dim_5_ == 1, "invalid shape for expansion of dim 5");
-    auto result = tensor(
-        tensor_shape(
-            size_dim_5,
-            t.shape().size_dim_4_,
-            t.shape().height_,
-            t.shape().width_,
-            t.shape().depth_),
-        0);
-    loop_over_all_dims(result.shape(), [&t, &result](
-            std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-        {
-            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-                t.get_ignore_rank(tensor_pos(0, dim4, y, x, z)));
-        });
-    return result;
-}
-
-inline tensor expand_dim_4(const tensor& t, std::size_t size_dim_4)
-{
-    assertion(t.shape().size_dim_4_ == 1, "invalid shape for expansion of dim 4");
-    auto result = tensor(
-        tensor_shape(
-            t.shape().size_dim_5_,
-            size_dim_4,
-            t.shape().height_,
-            t.shape().width_,
-            t.shape().depth_),
-        0);
-    loop_over_all_dims(result.shape(), [&t, &result](
-            std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-        {
-            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-                t.get_ignore_rank(tensor_pos(dim5, 0, y, x, z)));
-        });
-    return result;
-}
-
-inline tensor expand_height(const tensor& t, std::size_t height)
-{
-    assertion(t.shape().height_ == 1, "invalid shape for expansion of height");
-    auto result = tensor(
-        tensor_shape(
-            t.shape().size_dim_5_,
-            t.shape().size_dim_4_,
-            height,
-            t.shape().width_,
-            t.shape().depth_),
-        0);
-    loop_over_all_dims(result.shape(), [&t, &result](
-            std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-        {
-            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-                t.get_ignore_rank(tensor_pos(dim5, dim4, 0, x, z)));
-        });
-    return result;
-}
-
-inline tensor expand_width(const tensor& t, std::size_t width)
-{
-    assertion(t.shape().width_ == 1, "invalid shape for expansion of width");
-    auto result = tensor(
-        tensor_shape(
-            t.shape().size_dim_5_,
-            t.shape().size_dim_4_,
-            t.shape().height_,
-            width,
-            t.shape().depth_),
-        0);
-    loop_over_all_dims(result.shape(), [&t, &result](
-            std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-        {
-            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-                t.get_ignore_rank(tensor_pos(dim5, dim4, y, 0, z)));
-        });
-    return result;
-}
-
-inline tensor expand_depth(const tensor& t, std::size_t depth)
-{
-    assertion(t.shape().depth_ == 1, "invalid shape for expansion of depth");
-    auto result = tensor(
-        tensor_shape(
-            t.shape().size_dim_5_,
-            t.shape().size_dim_4_,
-            t.shape().height_,
-            t.shape().width_,
-            depth),
-        0);
-    loop_over_all_dims(result.shape(), [&t, &result](
-            std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-        {
-            result.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
-                t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, 0)));
-        });
-    return result;
-}
-
-inline tensor expand(const tensor& t, const tensor_shape& shape)
-{
-    assertion(t.shape().size_dim_5_ == shape.size_dim_5_ || t.shape().size_dim_5_ == 1, "invalid shape for expansion");
-    assertion(t.shape().size_dim_4_ == shape.size_dim_4_ || t.shape().size_dim_4_ == 1, "invalid shape for expansion");
-    assertion(t.shape().height_ == shape.height_ || t.shape().height_ == 1, "invalid shape for expansion");
-    assertion(t.shape().width_ == shape.width_ || t.shape().width_ == 1, "invalid shape for expansion");
-    assertion(t.shape().depth_ == shape.depth_ || t.shape().depth_ == 1, "invalid shape for expansion");
-    auto result = t;
-    if (t.shape().size_dim_5_ != shape.size_dim_5_)
-    {
-        result = expand_dim_5(result, shape.size_dim_5_);
-    }
-    if (t.shape().size_dim_4_ != shape.size_dim_4_)
-    {
-        result = expand_dim_4(result, shape.size_dim_4_);
-    }
-    if (t.shape().height_ != shape.height_)
-    {
-        result = expand_height(result, shape.height_);
-    }
-    if (t.shape().width_ != shape.width_)
-    {
-        result = expand_width(result, shape.width_);
-    }
-    if (t.shape().depth_ != shape.depth_)
-    {
-        result = expand_depth(result, shape.depth_);
-    }
-    assertion(result.shape() == shape, "expansion implementation is broken");
-    return result;
-}
-
 inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)
 {
     std::vector<tensor> ms;
@@ -886,17 +754,18 @@ tensor elem_wise_combine_tensors(F f, const tensor& a, const tensor& b)
         out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z), f(
             a.get_ignore_rank(tensor_pos(
                 dim5 % a.shape().size_dim_5_,
-                dim4 % a.shape().size_dim_5_,
+                dim4 % a.shape().size_dim_4_,
                 y % a.shape().height_,
                 x % a.shape().width_,
                 z % a.shape().depth_)),
             b.get_ignore_rank(tensor_pos(
                 dim5 % b.shape().size_dim_5_,
-                dim4 % b.shape().size_dim_5_,
+                dim4 % b.shape().size_dim_4_,
                 y % b.shape().height_,
                 x % b.shape().width_,
                 z % b.shape().depth_))));
     });
+    out_tensor.shrink_rank_with_min(std::max(a.rank(), b.rank()));
     return out_tensor;
 }
 
@@ -905,7 +774,6 @@ inline tensor add_tensors(const tensor& a, const tensor& b)
     return elem_wise_combine_tensors(std::plus<float_type>(), a, b);
 }
 
-// todo: Can mult_tensors replace multiply_tensors?
 inline tensor mult_tensors(const tensor& a, const tensor& b)
 {
     return elem_wise_combine_tensors(std::multiplies<float_type>(), a, b);
@@ -918,63 +786,7 @@ inline tensor sum_depth(const tensor& t)
 
 inline tensor multiply_tensors(const tensors& ts_orig)
 {
-    assertion(!ts_orig.empty(), "no tensors given");
-
-    auto ts = ts_orig;
-    std::vector<std::size_t> size_dim_5_s;
-    std::vector<std::size_t> size_dim_4_s;
-    std::vector<std::size_t> heights;
-    std::vector<std::size_t> widths;
-    std::vector<std::size_t> depths;
-    for (auto& t : ts)
-    {
-        t.maximize_rank();
-        size_dim_5_s.push_back(t.shape().size_dim_5_);
-        size_dim_4_s.push_back(t.shape().size_dim_4_);
-        heights.push_back(t.shape().height_);
-        widths.push_back(t.shape().width_);
-        depths.push_back(t.shape().depth_);
-    }
-    assertion(
-        fplus::all_the_same(fplus::keep_if(fplus::is_not_equal_to(1), size_dim_5_s)) &&
-        fplus::all_the_same(fplus::keep_if(fplus::is_not_equal_to(1), size_dim_4_s)) &&
-        fplus::all_the_same(fplus::keep_if(fplus::is_not_equal_to(1), heights)) &&
-        fplus::all_the_same(fplus::keep_if(fplus::is_not_equal_to(1), widths)) &&
-        fplus::all_the_same(fplus::keep_if(fplus::is_not_equal_to(1), depths)),
-        "tensor shapes are incompatible for multiplication");
-    const auto target_shape = tensor_shape(
-        fplus::maximum(size_dim_5_s),
-        fplus::maximum(size_dim_4_s),
-        fplus::maximum(heights),
-        fplus::maximum(widths),
-        fplus::maximum(depths));
-    for (auto& t : ts)
-    {
-        t = expand(t, target_shape);
-    }
-    assertion(
-        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor, shape, tensor_shape), ts),
-        "all tensors must have the same shape");
-
-    const auto ts_values = fplus::transform(
-        fplus_c_mem_fn_t(tensor, as_vector, shared_float_vec), ts);
-    float_vec result_values;
-    result_values.reserve(ts_values.front()->size());
-    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
-    {
-        float_type product_val = static_cast<float_type>(1);
-        for (const auto& t_vals : ts_values)
-        {
-            product_val *= (*t_vals)[i];
-        }
-        result_values.push_back(product_val);
-    }
-    auto result = tensor(ts.front().shape(), std::move(result_values));
-    const auto rank = fplus::maximum(fplus::transform(
-        fplus_c_mem_fn_t(tensor, rank, std::size_t),
-        ts_orig));
-    result.shrink_rank_with_min(rank);
-    return result;
+    return fplus::fold_left_1(mult_tensors, ts_orig);
 }
 
 inline tensor l2_normalize(const tensor& t, std::size_t axis)

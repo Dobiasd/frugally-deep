@@ -549,6 +549,11 @@ def show_additive_attention_layer(layer):
         return data
 
 
+def show_multi_head_attention_layer(layer):
+    """Serialize MultiHeadAttention layer to dict"""
+    assert layer._output_shape is None
+
+
 def get_layer_functions_dict():
     return {
         'Conv1D': show_conv_1d_layer,
@@ -575,6 +580,7 @@ def get_layer_functions_dict():
         'CategoryEncoding': show_category_encoding_layer,
         'Attention': show_attention_layer,
         'AdditiveAttention': show_additive_attention_layer,
+        'MultiHeadAttention': show_multi_head_attention_layer,
     }
 
 

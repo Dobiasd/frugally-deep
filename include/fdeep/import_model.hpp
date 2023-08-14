@@ -62,6 +62,7 @@
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
+#include "fdeep/layers/multi_head_attention_layer.hpp"
 #include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/normalization_layer.hpp"
 #include "fdeep/layers/pooling_3d_layer.hpp"
@@ -1043,6 +1044,22 @@ inline layer_ptr create_additive_attention_layer(
     return std::make_shared<additive_attention_layer>(name, scale);
 }
 
+inline layer_ptr create_multi_head_attention_layer(
+    const get_param_f&,
+    const nlohmann::json&, const std::string& name)
+{
+    /*
+    const std::size_t num_heads = data["config"]["num_heads"];
+    const std::size_t key_dim = data["config"]["key_dim"];
+    const std::size_t value_dim = data["config"]["value_dim"];
+    const auto attention_axes =
+        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            data["config"]["padding"]);
+    */
+    return std::make_shared<multi_head_attention_layer>(name);
+}
+
 inline std::string get_activation_type(const nlohmann::json& data)
 {
     assertion(data.is_string(), "Layer activation must be a string.");
@@ -1351,6 +1368,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"CategoryEncoding", create_category_encoding_layer},
             {"Attention", create_attention_layer},
             {"AdditiveAttention", create_additive_attention_layer},
+            {"MultiHeadAttention", create_multi_head_attention_layer},
         };
 
     const wrapper_layer_creators wrapper_creators = {

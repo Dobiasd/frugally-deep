@@ -24,7 +24,7 @@ public:
 protected:
     tensors apply_impl(const tensors& input) const override
     {
-        assertion(input.size() == 2 or input.size() == 3, "Invalid number of inputs for Attention layer.");
+        assertion(input.size() == 2 or input.size() == 3, "Invalid number of inputs for AdditiveAttention layer.");
         const tensor& query = input[0];
         const tensor& value = input[1];
         const tensor& key = input.size() > 2 ? input[2] : value;

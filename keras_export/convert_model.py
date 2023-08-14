@@ -552,6 +552,8 @@ def show_additive_attention_layer(layer):
 def show_multi_head_attention_layer(layer):
     """Serialize MultiHeadAttention layer to dict"""
     assert layer._output_shape is None
+    return {'weights': list(map(lambda w: encode_floats(w.numpy()), layer.weights))}
+    # todo: shapes too
 
 
 def get_layer_functions_dict():

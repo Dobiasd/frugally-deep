@@ -1045,19 +1045,18 @@ inline layer_ptr create_additive_attention_layer(
 }
 
 inline layer_ptr create_multi_head_attention_layer(
-    const get_param_f&,
-    const nlohmann::json&, const std::string& name)
+    const get_param_f& get_param,
+    const nlohmann::json& data, const std::string& name)
 {
-    /*
     const std::size_t num_heads = data["config"]["num_heads"];
     const std::size_t key_dim = data["config"]["key_dim"];
     const std::size_t value_dim = data["config"]["value_dim"];
-    const auto attention_axes =
-        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
-            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
-            data["config"]["padding"]);
-    */
-    return std::make_shared<multi_head_attention_layer>(name);
+    const bool use_bias = data["config"]["use_bias"];
+    const auto attention_axes = create_vector<std::size_t>(create_size_t,
+        data["config"]["attention_axes"]);
+    const auto weights = create_vector<float_vec>(decode_floats, get_param(name, "weights"));
+    return std::make_shared<multi_head_attention_layer>(name,
+        num_heads, key_dim, value_dim, use_bias, attention_axes);
 }
 
 inline std::string get_activation_type(const nlohmann::json& data)

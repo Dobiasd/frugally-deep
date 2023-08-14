@@ -17,17 +17,25 @@ namespace fdeep { namespace internal
 class multi_head_attention_layer : public layer
 {
 public:
-    explicit multi_head_attention_layer(const std::string& name)
-        : layer(name)
+    explicit multi_head_attention_layer(const std::string& name,
+        std::size_t num_heads, std::size_t key_dim, std::size_t value_dim, 
+        bool use_bias, const std::vector<std::size_t>& attention_axes)
+        : layer(name), num_heads_(num_heads), key_dim_(key_dim),
+            value_dim_(value_dim), use_bias_(use_bias), attention_axes_(attention_axes)
     {
     }
 protected:
     tensors apply_impl(const tensors& input) const override
     {
-        assertion(input.size() == 2 or input.size() == 3, "Invalid number of inputs for MultiHeadAttention layer.");
+        // input.size() is 1. How shall the other tensors passed here? How is it in TF?
         // todo: implement
         return input;
     }
+    std::size_t num_heads_;
+    std::size_t key_dim_;
+    std::size_t value_dim_;
+    bool use_bias_;
+    std::vector<std::size_t> attention_axes_;
 };
 
 } } // namespace fdeep, namespace internal

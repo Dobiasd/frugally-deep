@@ -1054,9 +1054,14 @@ inline layer_ptr create_multi_head_attention_layer(
     const bool use_bias = data["config"]["use_bias"];
     const auto attention_axes = create_vector<std::size_t>(create_size_t,
         data["config"]["attention_axes"]);
+    const auto weight_shapes =
+        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            get_param(name, "weight_shapes"));
     const auto weights = create_vector<float_vec>(decode_floats, get_param(name, "weights"));
+    // todo: Convert weight_shapes and weights to Tensors before passing to ctor?
     return std::make_shared<multi_head_attention_layer>(name,
-        num_heads, key_dim, value_dim, use_bias, attention_axes);
+        num_heads, key_dim, value_dim, use_bias, attention_axes, weights);
 }
 
 inline std::string get_activation_type(const nlohmann::json& data)

@@ -32,7 +32,7 @@ protected:
             reshape(
                 sum_depth(
                     mult_tensors(tensor(tensor_shape(scale_.size()), float_vec(scale_)),
-                        transform_tensor(tanh,
+                        transform_tensor(tanh_typed,
                             add_tensors(
                                 reshape(query, tensor_shape(query.shape().width_, 1, query.shape().depth_)),
                                 reshape(key, tensor_shape(1, key.shape().width_, key.shape().depth_)))))),

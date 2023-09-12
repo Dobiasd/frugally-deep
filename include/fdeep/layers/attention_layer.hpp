@@ -39,7 +39,7 @@ protected:
             transform_tensor(fplus::multiply_with(concat_score_weight_),
                 reshape(
                     sum_depth(
-                        transform_tensor(tanh,
+                        transform_tensor(tanh_typed,
                             transform_tensor(fplus::multiply_with(scale_),
                                 add_tensors(
                                     reshape(query, tensor_shape(query.shape().width_, 1, query.shape().depth_)),

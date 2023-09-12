@@ -83,4 +83,9 @@ using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
 using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
 using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
 
+inline float_type tanh_typed(float_type x)
+{
+    return std::tanh(x);
+}
+
 } } // namespace fdeep, namespace internal

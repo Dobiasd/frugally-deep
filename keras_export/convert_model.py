@@ -868,7 +868,7 @@ def convert(in_path, out_path, no_tests=False):
     workaround_cudnn_not_found_problem()
 
     print('loading {}'.format(in_path))
-    model = load_model(in_path)
+    model = load_model(in_path, compile=False)
     json_output = model_to_fdeep_json(model, no_tests)
     print('writing {}'.format(out_path))
 

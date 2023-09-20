@@ -510,7 +510,7 @@ def show_normalization_layer(layer):
 
 def show_upsampling2d_layer(layer):
     """Serialize UpSampling2D layer to dict"""
-    assert layer.interpolation in ["nearest", "bilinear"]
+    assert layer.interpolation in ["nearest", "bilinear", "bicubic"]
 
 
 def show_resizing_layer(layer):

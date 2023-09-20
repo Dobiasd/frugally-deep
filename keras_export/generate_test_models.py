@@ -219,6 +219,8 @@ def get_test_model_exhaustive():
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+    outputs.append(UpSampling2D(size=(1, 2), interpolation='bicubic')(inputs[4]))
+    outputs.append(UpSampling2D(size=(5, 3), interpolation='bicubic')(inputs[4]))
 
     outputs.append(Resizing(4, 5)(inputs[4]))
     outputs.append(Resizing(5, 6)(inputs[4]))

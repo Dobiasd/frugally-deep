@@ -1060,6 +1060,62 @@ inline tensor resize2d_bilinear(const tensor& in_vol, const shape2& target_size)
     return out_vol;
 }
 
+//just a clamping function, since I don't know if project has one
+inline std::size_t clamp(const std::size_t x, const std::size_t min, const std::size_t max) {
+    return fplus::min(fplus::max(x, min), max);
+}
+//cubic spline interpolation
+inline float_type cerp(const float_type* p, const float_type t) {
+    return p[1] + 0.5f * t * (p[2] - p[0] + t * (2.0f * p[0] - 5.0f * p[1] + 4.0f * p[2] - p[3] + t * (3.0f * (p[1] - p[2]) + p[3] - p[0])));
+}
+//bicubic interpolation
+inline float_type bicerp(const float_type* p, float_type x, float_type y) {
+    float_type tmp[4];
+    tmp[0] = cerp(p, x);
+    tmp[1] = cerp(p + 4, x);
+    tmp[2] = cerp(p + 8, x);
+    tmp[3] = cerp(p + 12, x);
+    return cerp(tmp, y);
+}
+inline float_type interpolate_2d_value_bicubicly(const tensor& t, float_type y, float_type x, std::size_t z) {
+    //Clamping to max size is done in the gathering step
+    y = fplus::max(0, y);
+    x = fplus::max(0, x);
+    //Corner coordinates as integers
+    std::size_t y0 = static_cast<std::size_t>(y); 
+    std::size_t x0 = static_cast<std::size_t>(x);
+    //Relative position for interpolation
+    float_type vals[16];
+    //Gather values in area of 4x4 pixels, might want to switch the loop ordering, since idk what is the storage order
+    for(std::size_t i = 0; i < 4; i++) {
+        std::size_t pos_y = clamp(y0 + i - 1, 0, t.height() - 1);
+        for(std::size_t j = 0; j < 4; j++) {
+            std::size_t pos_x = clamp(x0 + j - 1, 0, t.width() - 1);
+            vals[i * 4 + j] = t.get_ignore_rank(tensor_pos(pos_y, pos_x, z));
+        }
+    }
+    float_type x_t = x - static_cast<float_type>(x0);
+    float_type y_t = y - static_cast<float_type>(y0);
+    return static_cast<float_type>(bicerp(vals, x_t, y_t));
+}
+
+inline tensor resize2d_bicubic(const tensor& in_vol, const shape2& target_size) {
+    tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
+    const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
+    const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
+    for(std::size_t y = 0; y < out_vol.shape().height_; ++y) {
+        const auto y_in = (static_cast<float_type>(y) + 0.5f) / scale_y - 0.5f;
+        for(std::size_t x = 0; x < out_vol.shape().width_; ++x) {
+            const auto x_in = (static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f;
+            for(std::size_t z = 0; z < in_vol.shape().depth_; ++z) {
+                float_type val = interpolate_2d_value_bicubicly(in_vol, y_in, x_in, z);
+                out_vol.set_ignore_rank(tensor_pos(y, x, z), val);
+            }
+        }
+    }
+    return out_vol;
+}
+
 inline float_type interpolate_2d_value_area(const tensor& t,
     float_type top, float_type bottom, float_type left, float_type right,
     std::size_t z)

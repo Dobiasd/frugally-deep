@@ -42,6 +42,11 @@ protected:
             return {resize2d_bilinear(
                 input, shape2(scale_factor_.height_ * input.shape().height_, scale_factor_.width_ * input.shape().width_))};
         }
+        else if (interpolation_ == "bicubic")
+        {
+            return {resize2d_bicubic(
+                input, shape2(scale_factor_.height_ * input.shape().height_, scale_factor_.width_ * input.shape().width_))};
+        }
         else
         {
             raise_error("Invalid interpolation method: " + interpolation_);

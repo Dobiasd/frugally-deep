@@ -1097,10 +1097,11 @@ inline float_type interpolate_2d_value_bicubicly(const tensor& t, float_type y, 
 
     // Gather values in area of 4x4 pixels, might want to switch the loop ordering, since idk what is the storage order
     for(std::size_t i = 0; i < 4; i++) {
-        std::size_t pos_y = clamp(y0 + i - 1, 0, t.height() - 1);
+        std::size_t pos_y = y0 + i - 1;
         for(std::size_t j = 0; j < 4; j++) {
-            std::size_t pos_x = clamp(x0 + j - 1, 0, t.width() - 1);
-            vals[i * 4 + j] = t.get_ignore_rank(tensor_pos(pos_y, pos_x, z));
+            std::size_t pos_x = x0 + j - 1;
+            const bool is_inside = pos_x == clamp(pos_x, 0, t.width() - 1) && pos_y == clamp(pos_y, 0, t.height() - 1);
+            vals[i * 4 + j] = is_inside ? t.get_ignore_rank(tensor_pos(pos_y, pos_x, z)) : 0.0f;
         }
     }
     float_type x_t = x - static_cast<float_type>(x0);

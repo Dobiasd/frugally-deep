@@ -1238,20 +1238,19 @@ inline tensor softmax(const tensor& input)
             {
                 m = std::max(m, input.get_ignore_rank(tensor_pos(y, x, z_class)));
             }   
-            const auto inp_shifted = subtract_tensor(input, tensor(input.shape(), m));
 
             // We are not using Kahan summation, since the number
             // of object classes is usually quite small.
             float_type sum_shifted = 0.0f;
             for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
             {
-                sum_shifted += std::exp(inp_shifted.get_ignore_rank(tensor_pos(y, x, z_class)));
+                sum_shifted += std::exp(input.get_ignore_rank(tensor_pos(y, x, z_class)) - m);
             }
 
             const auto log_sum_shifted = std::log(sum_shifted);
             for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
             {
-                const auto result = std::exp(inp_shifted.get_ignore_rank(tensor_pos(y, x, z_class)) - log_sum_shifted);
+                const auto result = std::exp(input.get_ignore_rank(tensor_pos(y, x, z_class)) - m - log_sum_shifted);
                 output.set_ignore_rank(tensor_pos(y, x, z_class), std::isinf(result) ? static_cast<float_type>(0) : result);
             }
         }

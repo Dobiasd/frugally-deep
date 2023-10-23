@@ -118,24 +118,26 @@ protected:
         }
 
         tensor output(input.shape(), 0);
+        const auto denoms = fplus::transform([this](const auto& mv)
+            { return std::sqrt(mv + this->epsilon_); },
+            moving_variance_);
         for (std::size_t dim5 = 0; dim5 < output.shape().size_dim_5_; ++dim5)
         {
             for (std::size_t dim4 = 0; dim4 < output.shape().size_dim_4_; ++dim4)
             {
                 for (std::size_t z = 0; z < output.shape().depth_; ++z)
                 {
-                    const float_type denom = std::sqrt(moving_variance_[z] + epsilon_);
                     if (use_gamma && use_beta) {
-                        apply_to_channel(apply_to_value_gamma_beta, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                        apply_to_channel(apply_to_value_gamma_beta, moving_mean_, beta_, gamma_, input, output, denoms[z], z, dim5, dim4);
                     }
                     else if (use_gamma) {
-                        apply_to_channel(apply_to_value_gamma, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                        apply_to_channel(apply_to_value_gamma, moving_mean_, beta_, gamma_, input, output, denoms[z], z, dim5, dim4);
                     }
                     else if (use_beta) {
-                        apply_to_channel(apply_to_value_beta, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                        apply_to_channel(apply_to_value_beta, moving_mean_, beta_, gamma_, input, output, denoms[z], z, dim5, dim4);
                     }
                     else {
-                        apply_to_channel(apply_to_value, moving_mean_, beta_, gamma_, input, output, denom, z, dim5, dim4);
+                        apply_to_channel(apply_to_value, moving_mean_, beta_, gamma_, input, output, denoms[z], z, dim5, dim4);
                     }
                 }
             }

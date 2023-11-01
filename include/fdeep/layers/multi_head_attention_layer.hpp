@@ -30,6 +30,7 @@ protected:
     tensors apply_impl(const tensors& input) const override
     {
         // input.size() is 1. How shall the other tensors passed here? How is it in TF?
+        // https://stackoverflow.com/questions/77400589/what-is-the-reason-for-multiheadattention-having-a-different-call-convention-tha
         // todo: implement
         return input;
     }

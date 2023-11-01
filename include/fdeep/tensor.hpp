@@ -1226,33 +1226,31 @@ inline tensor smart_resize_tensor_2d(const tensor& in_vol, const shape2& target_
 
 inline tensor softmax(const tensor& input)
 {
-    // Get unnormalized values of exponent function.
-    const auto ex = [](float_type x) -> float_type
-    {
-        return std::exp(x);
-    };
-    const float_type m = input.get(tensor_max_pos(input));
-    const auto inp_shifted = subtract_tensor(input, tensor(input.shape(), m));
-    auto output = transform_tensor(ex, inp_shifted);
+    tensor output = tensor(input.shape(), static_cast<float_type>(0));
 
     // Softmax function is applied along channel dimension.
     for (size_t y = 0; y < input.shape().height_; ++y)
     {
         for (size_t x = 0; x < input.shape().width_; ++x)
         {
-            // Get the sum of unnormalized values for one pixel.
+            float_type m = std::numeric_limits<float_type>::lowest();
+            for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
+            {
+                m = std::max(m, input.get_ignore_rank(tensor_pos(y, x, z_class)));
+            }   
+
             // We are not using Kahan summation, since the number
             // of object classes is usually quite small.
             float_type sum_shifted = 0.0f;
             for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
             {
-                sum_shifted += output.get_ignore_rank(tensor_pos(y, x, z_class));
+                sum_shifted += std::exp(input.get_ignore_rank(tensor_pos(y, x, z_class)) - m);
             }
-            // Divide the unnormalized values of each pixel by the stacks sum.
+
             const auto log_sum_shifted = std::log(sum_shifted);
             for (size_t z_class = 0; z_class < input.shape().depth_; ++z_class)
             {
-                const auto result = std::exp(inp_shifted.get_ignore_rank(tensor_pos(y, x, z_class)) - log_sum_shifted);
+                const auto result = std::exp(input.get_ignore_rank(tensor_pos(y, x, z_class)) - m - log_sum_shifted);
                 output.set_ignore_rank(tensor_pos(y, x, z_class), std::isinf(result) ? static_cast<float_type>(0) : result);
             }
         }

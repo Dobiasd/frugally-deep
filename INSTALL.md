@@ -7,7 +7,7 @@ Installation
 You can install frugally-deep using cmake as shown below, or (if you prefer) download the [code](https://github.com/Dobiasd/frugally-deep/archive/master.zip) (and the [code](https://github.com/Dobiasd/FunctionalPlus/archive/master.zip) of [FunctionalPlus](https://github.com/Dobiasd/FunctionalPlus)), extract it and tell your compiler to use the `include` directories.
 
 ```
-git clone -b 'v0.2.19-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
+git clone -b 'v0.2.20-p0' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
 cd FunctionalPlus
 mkdir -p build && cd build
 cmake ..
@@ -63,7 +63,7 @@ Just add a *conanfile.txt* with frugally-deep as a requirement and chose the gen
 
 ```
 [requires]
-frugally-deep/v0.15.21-p0@dobiasd/stable
+frugally-deep/v0.15.25-p0@dobiasd/stable
 
 [generators]
 cmake

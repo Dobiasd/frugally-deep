@@ -29,9 +29,11 @@ public:
 protected:
     tensors apply_impl(const tensors& input) const override
     {
-        // input.size() is 1. How shall the other tensors passed here? How is it in TF?
-        // https://stackoverflow.com/questions/77400589/what-is-the-reason-for-multiheadattention-having-a-different-call-convention-tha
-        // todo: implement
+        assertion(input.size() == 2 || input.size() == 3, "Invalid number of inputs for MultiHeadAttention layer.");
+        //const tensor& query = input[0];
+        //const tensor& value = input[1];
+        //const tensor& key = input.size() > 2 ? input[2] : value;
+        // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py
         return input;
     }
     std::size_t num_heads_;

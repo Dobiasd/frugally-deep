@@ -33,7 +33,7 @@ protected:
         const tensor& key = input.size() > 2 ? input[2] : value;
         const tensor scores = score_mode_ == "dot" ?
             transform_tensor(fplus::multiply_with(scale_),
-                dot_product_tensors(query, transpose(key), std::vector<std::size_t>({2, 1}), false))
+                dot_product_tensors(query, transpose(key), std::vector<int>({2, 1}), false))
             :
             // https://github.com/keras-team/keras/blob/v2.13.1/keras/layers/attention/attention.py
             transform_tensor(fplus::multiply_with(concat_score_weight_),
@@ -46,7 +46,7 @@ protected:
                                     reshape(key, tensor_shape(1, key.shape().width_, key.shape().depth_)))))),
                     tensor_shape(query.shape().width_, key.shape().width_)));
         const tensor distribution = softmax(scores);
-        return {dot_product_tensors(distribution, value, std::vector<std::size_t>({2, 1}), false)};
+        return {dot_product_tensors(distribution, value, std::vector<int>({2, 1}), false)};
     }
     std::string score_mode_;
     float_type scale_;

@@ -922,46 +922,22 @@ inline tensor reshape(const tensor& t, const tensor_shape& target_shape)
     return tensor(target_shape, t.as_vector());
 }
 
-inline tensor l2_normalize(const tensor& t, std::size_t axis)
+inline tensor l2_normalize(const tensor& t, const std::vector<int>& axes)
 {
-    axis = axis + 5 - t.rank();
-    const auto reduced_dims = fplus::replace_elem_at_idx(axis - 1, 1,
-        tensor_shape_with_changed_rank(t.shape(), 5).dimensions());
-    tensor sum = tensor(create_tensor_shape_from_dims(reduced_dims), float_type(0));
-    const auto get_sum_ref = [&sum, axis](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) -> float_type&
-    {
-        assertion(axis >= 1 && axis <= 5, "invalid axis");
-        if (axis == 1)
-            return sum.get_ref_ignore_rank(tensor_pos(0, dim4, y, x, z));
-        else if (axis == 2)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, 0, y, x, z));
-        else if (axis == 3)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, 0, x, z));
-        else if (axis == 4)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, 0, z));
-        return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, 0));
-    };
-    loop_over_all_dims(t.shape(), [&](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-    {
-        get_sum_ref(dim5, dim4, y, x, z) +=
-            fplus::square(t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
-    });
-    auto out = tensor(t.shape(), float_type(0));
-    loop_over_all_dims(t.shape(), [&](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
-    {
-        out.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) =
-            t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) /
-                std::sqrt(get_sum_ref(dim5, dim4, y, x, z));
-    });
-    return out;
+    const float_type epsilon = std::numeric_limits<float_type>::epsilon();
+    // https://github.com/tensorflow/tensorflow/blob/v2.14.0/tensorflow/python/ops/nn_impl.py#L705-L707
+    const auto square_sum = reduce(add_tensors, transform_tensor(fplus::square<float_type>, t), axes);
+    const auto x_inv_norm = transform_tensor(
+            [](float_type v) {return static_cast<float_type>(1) / std::sqrt(v);},
+            transform_tensor(
+                [epsilon](float_type x) {return std::max(x, epsilon);},
+                square_sum));
+    return mult_tensors(t, x_inv_norm);
 }
 
 inline tensor dot_product_tensors(
     const tensor& a, const tensor& b,
-    const std::vector<std::size_t>& axes_raw,
+    const std::vector<int>& axes_raw,
     bool normalize)
 {
     /*
@@ -981,7 +957,7 @@ inline tensor dot_product_tensors(
     */
 
     assertion(axes_raw.size() == 1 || axes_raw.size() == 2, "axes must have size 1 or 2");
-    const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<std::size_t>({axes_raw.front(), axes_raw.front()});
+    const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<int>({axes_raw.front(), axes_raw.front()});
 
     const auto axis_a = axes[0];
     const auto axis_b = axes[1];
@@ -994,11 +970,11 @@ inline tensor dot_product_tensors(
     const auto permute_target_a = fplus::prepend_elem(axis_a, permute_target_a_suffix);
     const auto permute_target_b = fplus::append_elem(axis_b, permute_target_b_prefix);
 
-    const auto a_permuted = permute_tensor(normalize ? l2_normalize(a, axis_a) : a, permute_target_a);
-    const auto b_permuted = permute_tensor(normalize ? l2_normalize(b, axis_b) : b, permute_target_b);
+    const auto a_permuted = permute_tensor(normalize ? l2_normalize(a, {axis_a}) : a, permute_target_a);
+    const auto b_permuted = permute_tensor(normalize ? l2_normalize(b, {axis_b}) : b, permute_target_b);
 
-    const auto a_axis_dim_size = a.shape().dimensions()[axis_a - 1];
-    const auto b_axis_dim_size = b.shape().dimensions()[axis_b - 1];
+    const auto a_axis_dim_size = a.shape().dimensions()[static_cast<std::size_t>(axis_a - 1)];
+    const auto b_axis_dim_size = b.shape().dimensions()[static_cast<std::size_t>(axis_b - 1)];
 
     const auto a_remaining_dim_sizes = fplus::elems_at_idxs(
         fplus::numbers(std::size_t(1), a.rank()), a_permuted.shape().dimensions());

@@ -8,7 +8,7 @@ import numpy as np
 from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import AdditiveAttention
 from tensorflow.keras.layers import Attention
-from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization
+from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
@@ -302,6 +302,19 @@ def get_test_model_exhaustive():
     outputs.append(LayerNormalization(axis=5)(inputs[0]))
     outputs.append(LayerNormalization(axis=[1, 2])(inputs[0]))
     outputs.append(LayerNormalization(axis=[2, 3, 5])(inputs[0]))
+
+    outputs.append(UnitNormalization()(inputs[11]))
+    outputs.append(UnitNormalization()(inputs[10]))
+    outputs.append(UnitNormalization()(inputs[26]))
+    outputs.append(UnitNormalization()(inputs[24]))
+    outputs.append(UnitNormalization()(inputs[0]))
+    outputs.append(UnitNormalization(axis=1)(inputs[0]))
+    outputs.append(UnitNormalization(axis=2)(inputs[0]))
+    outputs.append(UnitNormalization(axis=3)(inputs[0]))
+    outputs.append(UnitNormalization(axis=4)(inputs[0]))
+    outputs.append(UnitNormalization(axis=5)(inputs[0]))
+    outputs.append(UnitNormalization(axis=[1, 2])(inputs[0]))
+    outputs.append(UnitNormalization(axis=[2, 3, 5])(inputs[0]))
 
     outputs.append(Dropout(0.5)(inputs[4]))
     outputs.append(ActivityRegularization(0.3, 0.4)(inputs[4]))

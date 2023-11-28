@@ -16,11 +16,11 @@ namespace fdeep { namespace internal
 class dot_layer : public layer
 {
 public:
-    explicit dot_layer(const std::string& name, const std::vector<std::size_t>& axes, bool normalize)
+    explicit dot_layer(const std::string& name, const std::vector<int>& axes, bool normalize)
         : layer(name), axes_(axes), normalize_(normalize)
     {
     }
-    std::vector<std::size_t> axes_;
+    std::vector<int> axes_;
     bool normalize_;
 protected:
     tensors apply_impl(const tensors& input) const override

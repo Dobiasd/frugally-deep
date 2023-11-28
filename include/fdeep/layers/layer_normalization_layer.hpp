@@ -7,7 +7,6 @@
 #pragma once
 
 #include "fdeep/layers/layer.hpp"
-#include "fdeep/layers/batch_normalization_layer.hpp"
 
 #include <string>
 

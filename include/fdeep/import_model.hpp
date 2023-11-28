@@ -52,6 +52,7 @@
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/layer_normalization_layer.hpp"
+#include "fdeep/layers/unit_normalization_layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
@@ -553,6 +554,13 @@ inline layer_ptr create_layer_normalization_layer(const get_param_f& get_param,
         name, axes, beta, gamma, epsilon);
 }
 
+inline layer_ptr create_unit_normalization_layer(const get_param_f&,
+    const nlohmann::json& data, const std::string& name)
+{
+    const auto axes = create_vector<int>(create_int, data["config"]["axis"]);
+    return std::make_shared<unit_normalization_layer>(name, axes);
+}
+
 inline layer_ptr create_identity_layer(
     const get_param_f&, const nlohmann::json&, const std::string& name)
 {
@@ -639,7 +647,7 @@ inline layer_ptr create_concatenate_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const std::int32_t keras_axis = data["config"]["axis"];
+    const int keras_axis = data["config"]["axis"];
     return std::make_shared<concatenate_layer>(name, keras_axis);
 }
 
@@ -668,7 +676,7 @@ inline layer_ptr create_dot_layer(
     const get_param_f&, const nlohmann::json& data,
     const std::string& name)
 {
-    const auto axes = create_vector<std::size_t>(create_size_t, data["config"]["axes"]);
+    const auto axes = create_vector<int>(create_int, data["config"]["axes"]);
     const bool normalize = data["config"]["normalize"];
     return std::make_shared<dot_layer>(name, axes, normalize);
 }
@@ -1301,6 +1309,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
             {"LayerNormalization", create_layer_normalization_layer},
+            {"UnitNormalization", create_unit_normalization_layer},
             {"Dropout", create_identity_layer},
             {"ActivityRegularization", create_identity_layer},
             {"AlphaDropout", create_identity_layer},

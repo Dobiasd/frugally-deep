@@ -13,19 +13,23 @@
 namespace fdeep { namespace internal
 {
 
-class concatenate_layer : public layer
+class unit_normalization_layer : public layer
 {
 public:
-    explicit concatenate_layer(const std::string& name, int axis)
-        : layer(name), axis_(axis)
+    explicit unit_normalization_layer(const std::string& name,
+        std::vector<int> axes)
+        : layer(name),
+        axes_(axes)
     {
     }
 protected:
-    tensors apply_impl(const tensors& input) const override
+    std::vector<int> axes_;
+
+    tensors apply_impl(const tensors& inputs) const override
     {
-        return {concatenate_tensors(input, axis_)};
+        const auto& input = single_tensor_from_tensors(inputs);
+        return {l2_normalize(input, axes_)};
     }
-    int axis_;
 };
 
 } } // namespace fdeep, namespace internal

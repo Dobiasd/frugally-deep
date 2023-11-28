@@ -37,8 +37,9 @@ protected:
 
     tensors apply_impl(const tensors& inputs) const override
     {
-        // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/normalization/layer_normalization.py#L291-L304
         const auto& input = single_tensor_from_tensors(inputs);
+
+        // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/normalization/layer_normalization.py#L291-L304
         const auto& input_moments = moments(input, axes_);
         const auto& mean = input_moments.first;
         const auto& variance = input_moments.second;
@@ -52,6 +53,7 @@ protected:
             dims[pos] = input_shape_dimensions[pos];
         }
         const tensor_shape params_shape = create_tensor_shape_from_dims(dims);
+
         return {batch_normalization(
             input,
             mean,

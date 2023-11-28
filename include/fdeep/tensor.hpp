@@ -814,7 +814,9 @@ inline tensor broadcast(const tensor& t, const tensor_shape& shape)
         (t.shape().width_ == 1 || t.shape().width_ == shape.width_) &&
         (t.shape().depth_ == 1 || t.shape().depth_ == shape.depth_),
         "Invalid shapes for combining tensors.");
+
     tensor out_tensor = tensor(shape, static_cast<float_type>(0));
+
     loop_over_all_dims(out_tensor.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {
@@ -907,7 +909,6 @@ inline tensor batch_normalization(
             transform_tensor(
                 fplus::add_to(variance_epsilon), variance)),
                 scale);
-
     return add_tensors(
         mult_tensors(x, inv),
         subtract_tensors(

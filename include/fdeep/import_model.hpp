@@ -51,6 +51,7 @@
 #include "fdeep/layers/hard_sigmoid_layer.hpp"
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
+#include "fdeep/layers/layer_normalization_layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/lstm_layer.hpp"
@@ -534,6 +535,22 @@ inline layer_ptr create_batch_normalization_layer(const get_param_f& get_param,
     if (center) beta = decode_floats(get_param(name, "beta"));
     return std::make_shared<batch_normalization_layer>(
         name, axis, moving_mean, moving_variance, beta, gamma, epsilon);
+}
+
+
+inline layer_ptr create_layer_normalization_layer(const get_param_f& get_param,
+    const nlohmann::json& data, const std::string& name)
+{
+    const bool center = data["config"]["center"];
+    const bool scale = data["config"]["scale"];
+    const auto axes = create_vector<int>(create_int, data["config"]["axis"]);
+    const float_type epsilon = data["config"]["epsilon"];
+    float_vec gamma;
+    float_vec beta;
+    if (scale) gamma = decode_floats(get_param(name, "gamma"));
+    if (center) beta = decode_floats(get_param(name, "beta"));
+    return std::make_shared<layer_normalization_layer>(
+        name, axes, beta, gamma, epsilon);
 }
 
 inline layer_ptr create_identity_layer(
@@ -1283,6 +1300,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"DepthwiseConv2D", create_depthwise_conv_2D_layer},
             {"InputLayer", create_input_layer},
             {"BatchNormalization", create_batch_normalization_layer},
+            {"LayerNormalization", create_layer_normalization_layer},
             {"Dropout", create_identity_layer},
             {"ActivityRegularization", create_identity_layer},
             {"AlphaDropout", create_identity_layer},

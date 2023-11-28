@@ -38,7 +38,7 @@ protected:
                                 reshape(key, tensor_shape(1, key.shape().width_, key.shape().depth_)))))),
                 tensor_shape(query.shape().width_, key.shape().width_));
         const tensor distribution = softmax(scores); 
-        return {dot_product_tensors(distribution, value, std::vector<std::size_t>({2, 1}), false)};
+        return {dot_product_tensors(distribution, value, std::vector<int>({2, 1}), false)};
     }
     float_vec scale_;
 };

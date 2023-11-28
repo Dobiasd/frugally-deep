@@ -710,6 +710,7 @@ inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
 
 inline tensor sum_tensors(const tensors& ts)
 {
+    // todo: Implement by using elem_wise_combine_tensors?
     assertion(!ts.empty(), "no tensors given");
     assertion(
         fplus::all_the_same_on(fplus_c_mem_fn_t(tensor, shape, tensor_shape), ts),
@@ -739,7 +740,7 @@ tensor elem_wise_combine_tensors(F f, const tensor& a, const tensor& b)
         (std::min(a.shape().height_, b.shape().height_) == 1 || a.shape().height_ == b.shape().height_) &&
         (std::min(a.shape().width_, b.shape().width_) == 1 || a.shape().width_ == b.shape().width_) &&
         (std::min(a.shape().depth_, b.shape().depth_) == 1 || a.shape().depth_ == b.shape().depth_),
-        "Invalid shapes for tensor addition.");
+        "Invalid shapes for combining tensors.");
     const tensor_shape out_shape = tensor_shape(
         std::max(a.shape().size_dim_5_, b.shape().size_dim_5_),
         std::max(a.shape().size_dim_4_, b.shape().size_dim_4_),
@@ -774,6 +775,11 @@ inline tensor add_tensors(const tensor& a, const tensor& b)
     return elem_wise_combine_tensors(std::plus<float_type>(), a, b);
 }
 
+inline tensor subtract_tensors(const tensor& a, const tensor& b)
+{
+    return elem_wise_combine_tensors(std::minus<float_type>(), a, b);
+}
+
 inline tensor mult_tensors(const tensor& a, const tensor& b)
 {
     return elem_wise_combine_tensors(std::multiplies<float_type>(), a, b);
@@ -789,41 +795,125 @@ inline tensor multiply_tensors(const tensors& ts_orig)
     return fplus::fold_left_1(mult_tensors, ts_orig);
 }
 
-inline tensor l2_normalize(const tensor& t, std::size_t axis)
+
+inline std::size_t rank_aligned_axis_to_absolute_axis(std::size_t rank, int axis)
 {
-    axis = axis + 5 - t.rank();
-    const auto reduced_dims = fplus::replace_elem_at_idx(axis - 1, 1,
-        tensor_shape_with_changed_rank(t.shape(), 5).dimensions());
-    tensor sum = tensor(create_tensor_shape_from_dims(reduced_dims), float_type(0));
-    const auto get_sum_ref = [&sum, axis](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) -> float_type&
-    {
-        assertion(axis >= 1 && axis <= 5, "invalid axis");
-        if (axis == 1)
-            return sum.get_ref_ignore_rank(tensor_pos(0, dim4, y, x, z));
-        else if (axis == 2)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, 0, y, x, z));
-        else if (axis == 3)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, 0, x, z));
-        else if (axis == 4)
-            return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, 0, z));
-        return sum.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, 0));
-    };
-    loop_over_all_dims(t.shape(), [&](
+    assertion(axis >= -1, "invalid axis");
+    assertion(axis <= static_cast<int>(rank), "invalid axis");
+    return axis == -1
+        ? 5
+        : 5 + static_cast<std::size_t>(axis) - rank;
+}
+
+inline tensor broadcast(const tensor& t, const tensor_shape& shape)
+{
+    assertion(
+        (t.shape().size_dim_5_ == 1 || t.shape().size_dim_5_ == shape.size_dim_5_) &&
+        (t.shape().size_dim_4_ == 1 || t.shape().size_dim_4_ == shape.size_dim_4_) &&
+        (t.shape().height_ == 1 || t.shape().height_ == shape.height_) &&
+        (t.shape().width_ == 1 || t.shape().width_ == shape.width_) &&
+        (t.shape().depth_ == 1 || t.shape().depth_ == shape.depth_),
+        "Invalid shapes for combining tensors.");
+
+    tensor out_tensor = tensor(shape, static_cast<float_type>(0));
+
+    loop_over_all_dims(out_tensor.shape(), [&](
         std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
     {
-        get_sum_ref(dim5, dim4, y, x, z) +=
-            fplus::square(t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
+        out_tensor.set_ignore_rank(tensor_pos(dim5, dim4, y, x, z),
+            t.get_ignore_rank(tensor_pos(
+                dim5 % t.shape().size_dim_5_,
+                dim4 % t.shape().size_dim_4_,
+                y % t.shape().height_,
+                x % t.shape().width_,
+                z % t.shape().depth_)));
     });
-    auto out = tensor(t.shape(), float_type(0));
-    loop_over_all_dims(t.shape(), [&](
-        std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z)
+    return out_tensor;
+}
+
+inline tensors slice_along_axis(const tensor& t, int axis)
+{
+    const std::size_t adjusted_axis = rank_aligned_axis_to_absolute_axis(t.shape().rank(), axis);
+
+    if (adjusted_axis == 5)
     {
-        out.get_ref_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) =
-            t.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)) /
-                std::sqrt(get_sum_ref(dim5, dim4, y, x, z));
-    });
-    return out;
+        return tensor_to_depth_slices(t);
+    }
+    else if (adjusted_axis == 4)
+    {
+        return tensor_to_tensors_width_slices(t);
+    }
+    else if (adjusted_axis == 3)
+    {
+        return tensor_to_tensors_height_slices(t);
+    }
+    else if (adjusted_axis == 2)
+    {
+        return tensor_to_tensors_dim4_slices(t);
+    }
+    else if (adjusted_axis == 1)
+    {
+        return tensor_to_tensors_dim5_slices(t);
+    }
+    raise_error("Invalid axis for slicing.");
+    // Just to make the compiler happy.
+    // In reality, this is never called.
+    return tensors();
+}
+
+template <typename F>
+tensor reduce_single_axis(F f, const tensor& t, int axis)
+{
+    return fplus::reduce_1(f, slice_along_axis(t, axis));
+}
+
+template <typename F>
+tensor reduce(F f, const tensor& t, const std::vector<int>& axes)
+{
+    tensor result = t;
+    for (const auto axis : axes)
+    {
+        result = reduce_single_axis(f, result, axis);
+    }
+    return result;
+}
+
+inline std::pair<tensor, tensor> moments(const tensor& t, const std::vector<int>& axes)
+{
+    const tensor summed = reduce(add_tensors, t, axes);
+    const auto factor = static_cast<float_type>(t.shape().volume()) / static_cast<float_type>(summed.shape().volume());
+    const auto mean_t = transform_tensor(fplus::divide_by(factor), summed);
+    const auto diffs = elem_wise_combine_tensors(fplus::abs_diff<float_type>, t, mean_t);
+    const auto variance_t = transform_tensor(
+        fplus::divide_by(factor),
+        reduce(
+            add_tensors,
+            elem_wise_combine_tensors(std::multiplies<float_type>(), diffs, diffs),
+        axes));
+    return std::make_pair(mean_t, variance_t);
+}
+
+inline tensor batch_normalization(
+    const tensor& x,
+    const tensor& mean,
+    const tensor& variance,
+    const tensor& offset,
+    const tensor& scale,
+    float_type variance_epsilon
+)
+{
+    // https://github.com/tensorflow/tensorflow/blob/v2.14.0/tensorflow/python/ops/nn_impl.py#L1592-L1599
+    const auto inv = mult_tensors(
+        transform_tensor(
+            [](float_type v) {return static_cast<float_type>(1) / std::sqrt(v);},
+            transform_tensor(
+                fplus::add_to(variance_epsilon), variance)),
+                scale);
+    return add_tensors(
+        mult_tensors(x, inv),
+        subtract_tensors(
+            offset,
+            mult_tensors(mean, inv)));
 }
 
 inline tensor reshape(const tensor& t, const tensor_shape& target_shape)
@@ -832,9 +922,22 @@ inline tensor reshape(const tensor& t, const tensor_shape& target_shape)
     return tensor(target_shape, t.as_vector());
 }
 
+inline tensor l2_normalize(const tensor& t, const std::vector<int>& axes)
+{
+    const float_type epsilon = std::numeric_limits<float_type>::epsilon();
+    // https://github.com/tensorflow/tensorflow/blob/v2.14.0/tensorflow/python/ops/nn_impl.py#L705-L707
+    const auto square_sum = reduce(add_tensors, transform_tensor(fplus::square<float_type>, t), axes);
+    const auto x_inv_norm = transform_tensor(
+            [](float_type v) {return static_cast<float_type>(1) / std::sqrt(v);},
+            transform_tensor(
+                [epsilon](float_type x) {return std::max(x, epsilon);},
+                square_sum));
+    return mult_tensors(t, x_inv_norm);
+}
+
 inline tensor dot_product_tensors(
     const tensor& a, const tensor& b,
-    const std::vector<std::size_t>& axes_raw,
+    const std::vector<int>& axes_raw,
     bool normalize)
 {
     /*
@@ -854,7 +957,7 @@ inline tensor dot_product_tensors(
     */
 
     assertion(axes_raw.size() == 1 || axes_raw.size() == 2, "axes must have size 1 or 2");
-    const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<std::size_t>({axes_raw.front(), axes_raw.front()});
+    const auto axes = axes_raw.size() == 2 ? axes_raw : std::vector<int>({axes_raw.front(), axes_raw.front()});
 
     const auto axis_a = axes[0];
     const auto axis_b = axes[1];
@@ -867,11 +970,11 @@ inline tensor dot_product_tensors(
     const auto permute_target_a = fplus::prepend_elem(axis_a, permute_target_a_suffix);
     const auto permute_target_b = fplus::append_elem(axis_b, permute_target_b_prefix);
 
-    const auto a_permuted = permute_tensor(normalize ? l2_normalize(a, axis_a) : a, permute_target_a);
-    const auto b_permuted = permute_tensor(normalize ? l2_normalize(b, axis_b) : b, permute_target_b);
+    const auto a_permuted = permute_tensor(normalize ? l2_normalize(a, {axis_a}) : a, permute_target_a);
+    const auto b_permuted = permute_tensor(normalize ? l2_normalize(b, {axis_b}) : b, permute_target_b);
 
-    const auto a_axis_dim_size = a.shape().dimensions()[axis_a - 1];
-    const auto b_axis_dim_size = b.shape().dimensions()[axis_b - 1];
+    const auto a_axis_dim_size = a.shape().dimensions()[static_cast<std::size_t>(axis_a - 1)];
+    const auto b_axis_dim_size = b.shape().dimensions()[static_cast<std::size_t>(axis_b - 1)];
 
     const auto a_remaining_dim_sizes = fplus::elems_at_idxs(
         fplus::numbers(std::size_t(1), a.rank()), a_permuted.shape().dimensions());
@@ -908,6 +1011,7 @@ inline tensor dot_product_tensors(
 
 inline tensor subtract_tensor(const tensor& a, const tensor& b)
 {
+    // todo: replace with subtract_tensors
     assertion(a.shape() == b.shape(),
         "both tensors must have the same size");
     auto result_values = fplus::zip_with(std::minus<float_type>(),

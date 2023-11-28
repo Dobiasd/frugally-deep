@@ -8,7 +8,7 @@ import numpy as np
 from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import AdditiveAttention
 from tensorflow.keras.layers import Attention
-from tensorflow.keras.layers import BatchNormalization, Concatenate
+from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
 from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
@@ -235,12 +235,19 @@ def get_test_model_exhaustive():
     outputs.append(Permute((2, 1, 3))(inputs[4]))
     outputs.append(Permute((2, 1))(inputs[6]))
     outputs.append(Permute((1,))(inputs[8]))
-
     outputs.append(Permute((3, 1, 2))(inputs[31]))
     outputs.append(Permute((3, 1, 2))(inputs[32]))
-    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[31])))
-    outputs.append(BatchNormalization()(Permute((3, 1, 2))(inputs[32])))
 
+    outputs.append(BatchNormalization(center=False, scale=False)(inputs[11]))
+    outputs.append(BatchNormalization()(inputs[11]))
+    outputs.append(BatchNormalization()(inputs[10]))
+    outputs.append(BatchNormalization()(inputs[14]))
+    outputs.append(BatchNormalization()(inputs[26]))
+    outputs.append(BatchNormalization()(inputs[23]))
+    outputs.append(BatchNormalization()(inputs[0]))
+    outputs.append(BatchNormalization(center=False)(inputs[0]))
+    outputs.append(BatchNormalization(scale=False)(inputs[0]))
+    outputs.append(BatchNormalization(center=False, scale=False)(inputs[0]))
     outputs.append(BatchNormalization()(inputs[0]))
     outputs.append(BatchNormalization(axis=1)(inputs[0]))
     outputs.append(BatchNormalization(axis=2)(inputs[0]))
@@ -283,6 +290,32 @@ def get_test_model_exhaustive():
     outputs.append(BatchNormalization(axis=3)(inputs[20]))
     outputs.append(BatchNormalization(axis=4)(inputs[20]))
     outputs.append(BatchNormalization(axis=5)(inputs[20]))
+
+    outputs.append(LayerNormalization()(inputs[11]))
+    outputs.append(LayerNormalization()(inputs[10]))
+    outputs.append(LayerNormalization()(inputs[26]))
+    outputs.append(LayerNormalization()(inputs[24]))
+    outputs.append(LayerNormalization()(inputs[0]))
+    outputs.append(LayerNormalization(axis=1)(inputs[0]))
+    outputs.append(LayerNormalization(axis=2)(inputs[0]))
+    outputs.append(LayerNormalization(axis=3)(inputs[0]))
+    outputs.append(LayerNormalization(axis=4)(inputs[0]))
+    outputs.append(LayerNormalization(axis=5)(inputs[0]))
+    outputs.append(LayerNormalization(axis=[1, 2])(inputs[0]))
+    outputs.append(LayerNormalization(axis=[2, 3, 5])(inputs[0]))
+
+    outputs.append(UnitNormalization()(inputs[11]))
+    outputs.append(UnitNormalization()(inputs[10]))
+    outputs.append(UnitNormalization()(inputs[26]))
+    outputs.append(UnitNormalization()(inputs[24]))
+    outputs.append(UnitNormalization()(inputs[0]))
+    outputs.append(UnitNormalization(axis=1)(inputs[0]))
+    outputs.append(UnitNormalization(axis=2)(inputs[0]))
+    outputs.append(UnitNormalization(axis=3)(inputs[0]))
+    outputs.append(UnitNormalization(axis=4)(inputs[0]))
+    outputs.append(UnitNormalization(axis=5)(inputs[0]))
+    outputs.append(UnitNormalization(axis=[1, 2])(inputs[0]))
+    outputs.append(UnitNormalization(axis=[2, 3, 5])(inputs[0]))
 
     outputs.append(Dropout(0.5)(inputs[4]))
     outputs.append(ActivityRegularization(0.3, 0.4)(inputs[4]))

@@ -325,6 +325,18 @@ def show_batch_normalization_layer(layer):
     return result
 
 
+def show_layer_normalization_layer(layer):
+    """Serialize layer normalization layer to dict"""
+    result = {}
+    if layer.center:
+        beta = K.get_value(layer.beta)
+        result['beta'] = encode_floats(beta)
+    if layer.scale:
+        gamma = K.get_value(layer.gamma)
+        result['gamma'] = encode_floats(gamma)
+    return result
+
+
 def show_dense_layer(layer):
     """Serialize dense layer to dict"""
     weights = layer.get_weights()
@@ -569,6 +581,7 @@ def get_layer_functions_dict():
         'Dot': show_dot_layer,
         'PReLU': show_prelu_layer,
         'Embedding': show_embedding_layer,
+        'LayerNormalization': show_layer_normalization_layer,
         'LSTM': show_lstm_layer,
         'GRU': show_gru_layer,
         'CuDNNLSTM': show_cudnn_lstm_layer,

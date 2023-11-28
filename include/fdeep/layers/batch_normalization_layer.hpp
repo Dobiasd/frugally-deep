@@ -48,9 +48,11 @@ protected:
     tensors apply_impl(const tensors& inputs) const override
     {
         const auto input = single_tensor_from_tensors(inputs);
+
         std::vector<std::size_t> dims(5, 1);
         dims[rank_aligned_axis_to_absolute_axis(input.shape().rank(), axis_) - 1] = moving_mean_->size();
         const tensor_shape params_shape = create_tensor_shape_from_dims(dims);
+
         return {batch_normalization(
             input,
             broadcast(tensor(params_shape, moving_mean_), input.shape()),

@@ -47,7 +47,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
-* `ActivityRegularization`
+* `ActivityRegularization`, `LayerNormalization`
 * `RandomContrast`, `RandomFlip`, `RandomHeight`
 * `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
 * `MaxPooling1D/2D/3D`, `GlobalMaxPooling1D/2D/3D`
@@ -77,7 +77,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
 `IntegerLookup`,
-`LayerNormalization`, `LocallyConnected1D`, `LocallyConnected2D`,
+`LocallyConnected1D`, `LocallyConnected2D`,
 `LSTMCell`, `Masking`, `MultiHeadAttention`,
 `RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,

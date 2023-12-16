@@ -34,6 +34,7 @@ protected:
         //const tensor& value = input[1];
         //const tensor& key = input.size() > 2 ? input[2] : value;
         // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py
+        // https://gist.github.com/sevagh/b71d253a347a9b59c026580625452fc5
         return input;
     }
     std::size_t num_heads_;

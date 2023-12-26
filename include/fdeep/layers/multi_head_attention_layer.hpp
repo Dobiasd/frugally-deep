@@ -20,7 +20,7 @@ public:
     explicit multi_head_attention_layer(const std::string& name,
         std::size_t num_heads, std::size_t key_dim, std::size_t value_dim, 
         bool use_bias, const std::vector<std::size_t>& attention_axes,
-        const std::vector<float_vec>& weights)
+        const std::vector<tensor>& weights)
         : layer(name), num_heads_(num_heads), key_dim_(key_dim),
             value_dim_(value_dim), use_bias_(use_bias), attention_axes_(attention_axes),
             weights_(weights)
@@ -44,7 +44,7 @@ protected:
     std::size_t value_dim_;
     bool use_bias_;
     std::vector<std::size_t> attention_axes_;
-    std::vector<float_vec> weights_;
+    std::vector<tensor> weights_;
 };
 
 } } // namespace fdeep, namespace internal

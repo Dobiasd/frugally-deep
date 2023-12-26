@@ -20,11 +20,21 @@ public:
     explicit multi_head_attention_layer(const std::string& name,
         std::size_t num_heads, std::size_t key_dim, std::size_t value_dim, 
         bool use_bias, const std::vector<std::size_t>& attention_axes,
-        const std::vector<tensor>& weights)
+        const std::vector<tensor>& saved_weights)
         : layer(name), num_heads_(num_heads), key_dim_(key_dim),
-            value_dim_(value_dim), use_bias_(use_bias), attention_axes_(attention_axes),
-            weights_(weights)
+            value_dim_(value_dim), attention_axes_(attention_axes),
+            weights_(extract_weights(saved_weights, use_bias)),
+            biases_(extract_biases(saved_weights, use_bias))
     {
+    }
+private:
+    tensors extract_weights(const tensors& saved_weights, bool use_bias)
+    {
+        return use_bias ? fplus::unweave(saved_weights).first : saved_weights;
+    }
+    tensors extract_biases(const tensors& saved_weights, bool use_bias)
+    {
+        return use_bias ? fplus::unweave(saved_weights).second : tensors(); // todo: create biases with zeroes in right shape
     }
 protected:
     tensors apply_impl(const tensors& input) const override
@@ -42,9 +52,9 @@ protected:
     std::size_t num_heads_;
     std::size_t key_dim_;
     std::size_t value_dim_;
-    bool use_bias_;
     std::vector<std::size_t> attention_axes_;
     std::vector<tensor> weights_;
+    std::vector<tensor> biases_;
 };
 
 } } // namespace fdeep, namespace internal

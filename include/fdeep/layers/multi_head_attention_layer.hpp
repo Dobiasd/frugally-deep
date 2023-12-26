@@ -33,6 +33,8 @@ protected:
         //const tensor& query = input[0];
         //const tensor& value = input[1];
         //const tensor& key = input.size() > 2 ? input[2] : value;
+        // https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
+        // https://dmol.pub/dl/attention.html#multi-head-attention-block
         // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py
         // https://gist.github.com/sevagh/b71d253a347a9b59c026580625452fc5
         return input;

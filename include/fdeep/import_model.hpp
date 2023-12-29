@@ -1084,7 +1084,7 @@ inline layer_ptr create_multi_head_attention_layer(
             create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
             get_param(name, "weight_shapes"));
     const auto weight_values = create_vector<float_vec>(decode_floats, get_param(name, "weights"));
-    const auto weights = fplus::zip_with(
+    const auto weights_and_biases = fplus::zip_with(
         [](const std::vector<std::size_t>& shape, const float_vec& values) -> tensor
         {
             return tensor(
@@ -1092,7 +1092,7 @@ inline layer_ptr create_multi_head_attention_layer(
                 fplus::convert_container<float_vec>(values));
         }, weight_shapes, weight_values);
     return std::make_shared<multi_head_attention_layer>(name,
-        num_heads, key_dim, value_dim, use_bias, attention_axes, weights);
+        num_heads, key_dim, value_dim, use_bias, attention_axes, weights_and_biases);
 }
 
 inline std::string get_activation_type(const nlohmann::json& data)

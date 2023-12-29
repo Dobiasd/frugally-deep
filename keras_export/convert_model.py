@@ -563,6 +563,8 @@ def show_additive_attention_layer(layer):
 
 def show_multi_head_attention_layer(layer):
     """Serialize MultiHeadAttention layer to dict"""
+    assert len(layer.input_shape) == 3
+    assert layer.input_shape[0] is None
     assert layer._output_shape is None
     return {
         'weight_shapes': list(map(lambda w: list(w.shape), layer.weights)),

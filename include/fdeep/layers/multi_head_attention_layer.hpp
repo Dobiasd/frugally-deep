@@ -37,7 +37,7 @@ private:
     {
         const std::size_t index_factor = use_bias ? 2 : 1;
         const tensor weights = weights_and_biases[index_factor * index];
-        const std::size_t n = weights.shape().width_ * weights.shape().depth_;
+        const std::size_t n = weights.shape().depth_;
         const tensor biases = use_bias ?
             weights_and_biases[index_factor * index + 1] :
             tensor(tensor_shape(n), 0);
@@ -54,18 +54,19 @@ protected:
         const tensor query_raw = input[0];
         const tensor value_raw = input[1];
         const tensor key_raw = input.size() > 2 ? input[2] : value_raw;
+        assertion(
+            query_raw.shape().rank() == 2 &&
+            value_raw.shape().rank() == 2 &&
+            key_raw.shape().rank() == 2 &&
+            query_raw.shape().depth_ == value_raw.shape().depth_ &&
+            query_raw.shape().depth_ == key_raw.shape().depth_ &&
+            value_raw.shape().width_ == key_raw.shape().width_,
+            "Invalid shapes; need a query tensor of shape (B, T, dim) and a value/key tensor of shape (B, S, dim)."
+        );
         const tensor query = query_dense_.apply({query_raw}).front();
         const tensor value = value_dense_.apply({value_raw}).front();
         const tensor key = key_dense_.apply({key_raw}).front();
-        assertion(
-            query.shape().rank() == 2 &&
-            value.shape().rank() == 2 &&
-            key.shape().rank() == 2 &&
-            query.shape().depth_ == value.shape().depth_ &&
-            query.shape().depth_ == key.shape().depth_ &&
-            value.shape().width_ == key.shape().width_,
-            "Invalid shapes; need a query tensor of shape (B, T, dim) and a value/key tensor of shape (B, S, dim)."
-        );
+
         // https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
         // https://dmol.pub/dl/attention.html#multi-head-attention-block
         // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py

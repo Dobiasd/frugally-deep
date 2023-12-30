@@ -25,8 +25,8 @@ public:
         : layer(name), num_heads_(num_heads), key_dim_(key_dim),
             value_dim_(value_dim), attention_axes_(attention_axes),
             query_dense_(create_dense_layer(weights_and_biases, use_bias, 0, name + "_query_dense")),
-            value_dense_(create_dense_layer(weights_and_biases, use_bias, 1, name + "_value_dense")),
-            key_dense_(create_dense_layer(weights_and_biases, use_bias, 2, name + "_key_dense")),
+            value_dense_(create_dense_layer(weights_and_biases, use_bias, 2, name + "_value_dense")),
+            key_dense_(create_dense_layer(weights_and_biases, use_bias, 1, name + "_key_dense")),
             output_dense_(create_dense_layer(weights_and_biases, use_bias, 3, name + "_output_dense"))
     {
     }
@@ -40,7 +40,7 @@ private:
         const std::size_t n = weights.shape().width_ * weights.shape().depth_;
         const tensor biases = use_bias ?
             weights_and_biases[index_factor * index + 1] :
-            tensor(tensor_shape(n), 1);
+            tensor(tensor_shape(n), 0);
         return dense_layer(name, n, *weights.as_vector(), *biases.as_vector());
     }
     tensors extract_biases(const tensors& saved_weights, bool use_bias)

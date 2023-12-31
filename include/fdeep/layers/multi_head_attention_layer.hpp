@@ -20,10 +20,9 @@ class multi_head_attention_layer : public layer
 public:
     explicit multi_head_attention_layer(const std::string& name,
         std::size_t num_heads, std::size_t key_dim, std::size_t value_dim, 
-        bool use_bias, const std::vector<std::size_t>& attention_axes,
-        const std::vector<tensor>& weights_and_biases)
+        bool use_bias, const std::vector<tensor>& weights_and_biases)
         : layer(name), num_heads_(num_heads), key_dim_(key_dim),
-            value_dim_(value_dim), attention_axes_(attention_axes),
+            value_dim_(value_dim),
             query_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 0, name + "_query_dense")),
             value_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 2, name + "_value_dense")),
             key_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 1, name + "_key_dense")),
@@ -118,7 +117,6 @@ protected:
     std::size_t num_heads_;
     std::size_t key_dim_;
     std::size_t value_dim_;
-    std::vector<std::size_t> attention_axes_;
     std::vector<dense_layer> query_dense_;
     std::vector<dense_layer> value_dense_;
     std::vector<dense_layer> key_dense_;

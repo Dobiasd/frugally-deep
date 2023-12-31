@@ -97,7 +97,8 @@ private:
         // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py
         // https://gist.github.com/sevagh/b71d253a347a9b59c026580625452fc5
         const tensor scores = dot_product_tensors(query, transpose(key), std::vector<int>({2, 1}), false);
-        const tensor distribution = softmax(scores);
+        const std::size_t query_size = query.shape().depth_;
+        const tensor distribution = softmax(transform_tensor(fplus::multiply_with(1 / std::sqrt(query_size)), scores));
         return dot_product_tensors(distribution, value, std::vector<int>({2, 1}), false);
     }
 protected:

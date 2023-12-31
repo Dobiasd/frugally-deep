@@ -458,6 +458,9 @@ def get_test_model_exhaustive():
         num_heads=3, key_dim=1, value_dim=None,
         use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
     outputs.append(MultiHeadAttention(
+        num_heads=3, key_dim=1, value_dim=None,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
         num_heads=1, key_dim=1, value_dim=None,
         use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
 

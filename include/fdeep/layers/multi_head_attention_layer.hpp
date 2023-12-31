@@ -119,7 +119,6 @@ protected:
     std::size_t key_dim_;
     std::size_t value_dim_;
     std::vector<std::size_t> attention_axes_;
-    // todo: store each head as a separate object?
     std::vector<dense_layer> query_dense_;
     std::vector<dense_layer> value_dense_;
     std::vector<dense_layer> key_dense_;

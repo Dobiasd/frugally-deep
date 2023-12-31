@@ -1505,45 +1505,38 @@ inline void check_test_outputs(float_type epsilon,
         assertion(output.shape() == target.shape(),
             "Wrong output size. Is " + show_tensor_shape(output.shape()) +
             ", should be " + show_tensor_shape(target.shape()) + ".");
-        try
+        for (std::size_t pos_dim_5 = 0; pos_dim_5 < output.shape().size_dim_5_; ++pos_dim_5)
         {
-            for (std::size_t pos_dim_5 = 0; pos_dim_5 < output.shape().size_dim_5_; ++pos_dim_5)
+            for (std::size_t pos_dim_4 = 0; pos_dim_4 < output.shape().size_dim_4_; ++pos_dim_4)
             {
-                for (std::size_t pos_dim_4 = 0; pos_dim_4 < output.shape().size_dim_4_; ++pos_dim_4)
+                for (std::size_t y = 0; y < output.shape().height_; ++y)
                 {
-                    for (std::size_t y = 0; y < output.shape().height_; ++y)
+                    for (std::size_t x = 0; x < output.shape().width_; ++x)
                     {
-                        for (std::size_t x = 0; x < output.shape().width_; ++x)
+                        for (std::size_t z = 0; z < output.shape().depth_; ++z)
                         {
-                            for (std::size_t z = 0; z < output.shape().depth_; ++z)
+                            const tensor_pos pos(pos_dim_5, pos_dim_4, y, x, z);
+                            const auto target_val = target.get_ignore_rank(pos);
+                            const auto output_val = output.get_ignore_rank(pos);
+                            if (!fplus::is_in_closed_interval_around(epsilon,
+                                target_val, output_val) &&
+                                !(std::isnan(target_val) && std::isnan(output_val)))
                             {
-                                const tensor_pos pos(pos_dim_5, pos_dim_4, y, x, z);
-                                const auto target_val = target.get_ignore_rank(pos);
-                                const auto output_val = output.get_ignore_rank(pos);
-                                if (!fplus::is_in_closed_interval_around(epsilon,
-                                    target_val, output_val) &&
-                                    !(std::isnan(target_val) && std::isnan(output_val)))
-                                {
-                                    const std::string msg =
-                                        std::string("test failed: ") +
-                                        "output=" + fplus::show(i) + " " +
-                                        "pos=" +
-                                        fplus::show(y) + "," +
-                                        fplus::show(x) + "," +
-                                        fplus::show(z) + " " +
-                                        "value=" + fplus::show(output_val) + " "
-                                        "target=" + fplus::show(target_val);
-                                    std::cout << msg << std::endl;
-                                    //internal::raise_error(msg);
-                                }
+                                const std::string msg =
+                                    std::string("test failed: ") +
+                                    "output=" + fplus::show(i) + " " +
+                                    "pos=" +
+                                    fplus::show(y) + "," +
+                                    fplus::show(x) + "," +
+                                    fplus::show(z) + " " +
+                                    "value=" + fplus::show(output_val) + " "
+                                    "target=" + fplus::show(target_val);
+                                internal::raise_error(msg);
                             }
                         }
                     }
                 }
             }
-        } catch (const std::runtime_error& ex)
-        {
-            std::cout << ex.what() << std::endl;
         }
     }
 }

@@ -23,6 +23,7 @@ from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import MaxPooling3D, AveragePooling3D
+from tensorflow.keras.layers import MultiHeadAttention
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum, Dot
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
@@ -434,6 +435,40 @@ def get_test_model_exhaustive():
     outputs.append(AdditiveAttention(use_scale=False)([inputs[49], inputs[50], inputs[51]]))
     outputs.append(AdditiveAttention(use_scale=True)([inputs[49], inputs[50]]))
     outputs.append(AdditiveAttention(use_scale=True)([inputs[49], inputs[50], inputs[51]]))
+
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=1, value_dim=None,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=1, value_dim=None,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=2, value_dim=None,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=2, value_dim=None,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=1, value_dim=2,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=1, value_dim=2,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=3, key_dim=1, value_dim=None,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=3, key_dim=1, value_dim=None,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50]))
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=1, value_dim=None,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
+    outputs.append(MultiHeadAttention(
+        num_heads=2, key_dim=3, value_dim=5,
+        use_bias=False, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
+    outputs.append(MultiHeadAttention(
+        num_heads=2, key_dim=3, value_dim=5,
+        use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

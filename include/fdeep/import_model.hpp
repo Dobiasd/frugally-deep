@@ -64,6 +64,7 @@
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
 #include "fdeep/layers/model_layer.hpp"
+#include "fdeep/layers/multi_head_attention_layer.hpp"
 #include "fdeep/layers/multiply_layer.hpp"
 #include "fdeep/layers/normalization_layer.hpp"
 #include "fdeep/layers/pooling_3d_layer.hpp"
@@ -1068,6 +1069,30 @@ inline layer_ptr create_additive_attention_layer(
     return std::make_shared<additive_attention_layer>(name, scale);
 }
 
+inline layer_ptr create_multi_head_attention_layer(
+    const get_param_f& get_param,
+    const nlohmann::json& data, const std::string& name)
+{
+    const std::size_t num_heads = data["config"]["num_heads"];
+    const std::size_t key_dim = data["config"]["key_dim"];
+    const std::size_t value_dim = data["config"]["value_dim"];
+    const bool use_bias = data["config"]["use_bias"];
+    const auto weight_shapes =
+        create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+            create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            get_param(name, "weight_shapes"));
+    const auto weight_values = create_vector<float_vec>(decode_floats, get_param(name, "weights"));
+    const auto weights_and_biases = fplus::zip_with(
+        [](const std::vector<std::size_t>& shape, const float_vec& values) -> tensor
+        {
+            return tensor(
+                create_tensor_shape_from_dims(shape),
+                fplus::convert_container<float_vec>(values));
+        }, weight_shapes, weight_values);
+    return std::make_shared<multi_head_attention_layer>(name,
+        num_heads, key_dim, value_dim, use_bias, weights_and_biases);
+}
+
 inline std::string get_activation_type(const nlohmann::json& data)
 {
     assertion(data.is_string(), "Layer activation must be a string.");
@@ -1141,11 +1166,35 @@ inline node create_node(const nlohmann::json& inbound_nodes_data)
             inbound_nodes_data));
 }
 
+inline nodes create_multi_head_attention_nodes(const std::vector<nlohmann::json> inbound_nodes_data)
+{
+    assertion(inbound_nodes_data.size() == 1 && inbound_nodes_data.front().size() == 1,
+        "multi_head_attention needs to have exactly one primary inbound node; see https://stackoverflow.com/q/77400589/1866775");
+    const auto inbound_node_data = inbound_nodes_data.front().front();
+    const auto value = inbound_node_data[3]["value"];
+    if (json_obj_has_member(inbound_node_data[3], "key")) {
+        return {
+            node({
+                create_node_connection(inbound_node_data),
+                create_node_connection(value),
+                create_node_connection(inbound_node_data[3]["key"])
+                })};
+    }
+    return {
+        node({
+            create_node_connection(inbound_node_data),
+            create_node_connection(value)
+            })};
+}
+
 inline nodes create_nodes(const nlohmann::json& data)
 {
     assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
     const std::vector<nlohmann::json> inbound_nodes_data =
         data["inbound_nodes"];
+    if (data["class_name"] == "MultiHeadAttention") {
+        return create_multi_head_attention_nodes(inbound_nodes_data);
+    }
     return fplus::transform(create_node, inbound_nodes_data);
 }
 
@@ -1378,6 +1427,7 @@ inline layer_ptr create_layer(const get_param_f& get_param,
             {"CategoryEncoding", create_category_encoding_layer},
             {"Attention", create_attention_layer},
             {"AdditiveAttention", create_additive_attention_layer},
+            {"MultiHeadAttention", create_multi_head_attention_layer},
         };
 
     const wrapper_layer_creators wrapper_creators = {

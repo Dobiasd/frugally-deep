@@ -57,7 +57,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `UpSampling1D/2D`, `Resizing`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`, `CategoryEncoding`
-* `Attention`, `AdditiveAttention`
+* `Attention`, `AdditiveAttention`, `MultiHeadAttention`
 
 
 ### Also supported
@@ -78,7 +78,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `GRUCell`, `Hashing`,
 `IntegerLookup`,
 `LocallyConnected1D`, `LocallyConnected2D`,
-`LSTMCell`, `Masking`, `MultiHeadAttention`,
+`LSTMCell`, `Masking`,
 `RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
 `ThresholdedReLU`, `Upsampling3D`, `temporal` models

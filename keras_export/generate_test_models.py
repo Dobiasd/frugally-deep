@@ -149,9 +149,6 @@ def get_test_model_exhaustive():
         (5, 4),
         (7, 4),  # 50
         (7, 4),
-        (1, 1),  # todo: remove
-        (2, 1),  # todo: remove
-        (1, 2),  # todo: remove
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -472,15 +469,6 @@ def get_test_model_exhaustive():
     outputs.append(MultiHeadAttention(
         num_heads=2, key_dim=3, value_dim=5,
         use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
-    outputs.append(MultiHeadAttention(  # todo: remove
-        num_heads=1, key_dim=2, value_dim=None,
-        use_bias=True, output_shape=None, attention_axes=None)(inputs[52], inputs[52], inputs[52]))
-    outputs.append(MultiHeadAttention(  # todo: remove
-        num_heads=1, key_dim=2, value_dim=None,
-        use_bias=True, output_shape=None, attention_axes=None)(inputs[53], inputs[53], inputs[53]))
-    outputs.append(MultiHeadAttention(  # todo: remove
-        num_heads=1, key_dim=2, value_dim=None,
-        use_bias=True, output_shape=None, attention_axes=None)(inputs[54], inputs[54], inputs[54]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')

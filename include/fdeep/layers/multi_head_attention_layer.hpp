@@ -40,14 +40,12 @@ private:
         const std::size_t index_factor = use_bias ? 2 : 1;
 
         tensor weights = weights_and_biases[index_factor * index];
-        if (index == 3)
-            weights = permute_tensor(weights, {3, 1, 2});
 
         const std::size_t units = weights.shape().depth_;
 
         tensor biases = use_bias ?
             weights_and_biases[index_factor * index + 1] :
-            tensor(index == 3 ? tensor_shape(units) : tensor_shape(num_heads, units), 0);
+            tensor(tensor_shape(num_heads, units), 0);
 
         const auto weights_per_head = tensor_to_tensors_width_slices(weights);
         const auto biases_per_head = tensor_to_tensors_width_slices(biases);
@@ -79,8 +77,6 @@ private:
             weights_and_biases[index_factor * 3 + 1] :
             tensor(tensor_shape(units), 0);
 
-        const auto weights_per_head = tensor_to_tensors_width_slices(weights);
-        const auto biases_per_head = tensor_to_tensors_width_slices(biases);
         return dense_layer(name + "_output", units, *weights.as_vector(), *biases.as_vector());
     }
     tensors extract_biases(const tensors& saved_weights, bool use_bias)

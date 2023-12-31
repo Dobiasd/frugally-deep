@@ -37,9 +37,9 @@ private:
     {
         assertion(index <= 2, "Invalid dense layer index.");
         const std::size_t index_factor = use_bias ? 2 : 1;
-        tensor weights = weights_and_biases[index_factor * index];
+        const tensor weights = weights_and_biases[index_factor * index];
         const std::size_t units = weights.shape().depth_;
-        tensor biases = use_bias ?
+        const tensor biases = use_bias ?
             weights_and_biases[index_factor * index + 1] :
             tensor(tensor_shape(num_heads, units), 0);
 
@@ -62,9 +62,9 @@ private:
         const tensors& weights_and_biases, bool use_bias, const std::string& name)
     {
         const std::size_t index_factor = use_bias ? 2 : 1;
-        tensor weights = weights_and_biases[index_factor * 3];
+        const tensor weights = weights_and_biases[index_factor * 3];
         const std::size_t units = weights.shape().depth_;
-        tensor biases = use_bias ?
+        const tensor biases = use_bias ?
             weights_and_biases[index_factor * 3 + 1] :
             tensor(tensor_shape(units), 0);
         return dense_layer(name + "_output", units, *weights.as_vector(), *biases.as_vector());

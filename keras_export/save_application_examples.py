@@ -2,8 +2,9 @@
 """Save application models mentioned in Keras documentation
 """
 
-import convert_model
 import tensorflow as tf
+
+import convert_model
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"

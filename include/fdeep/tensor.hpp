@@ -708,29 +708,6 @@ inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
     return result;
 }
 
-inline tensor sum_tensors(const tensors& ts)
-{
-    // todo: Implement by using elem_wise_combine_tensors?
-    assertion(!ts.empty(), "no tensors given");
-    assertion(
-        fplus::all_the_same_on(fplus_c_mem_fn_t(tensor, shape, tensor_shape), ts),
-        "all tensors must have the same size");
-    const auto ts_values = fplus::transform(
-        fplus_c_mem_fn_t(tensor, as_vector, shared_float_vec), ts);
-    float_vec result_values;
-    result_values.reserve(ts_values.front()->size());
-    for (std::size_t i = 0; i < ts_values.front()->size(); ++i)
-    {
-        float_type sum_val = static_cast<float_type>(0);
-        for (const auto& t_vals : ts_values)
-        {
-            sum_val += (*t_vals)[i];
-        }
-        result_values.push_back(sum_val);
-    }
-    return tensor(ts.front().shape(), std::move(result_values));
-}
-
 template <typename F>
 tensor elem_wise_combine_tensors(F f, const tensor& a, const tensor& b)
 {
@@ -783,6 +760,11 @@ inline tensor subtract_tensors(const tensor& a, const tensor& b)
 inline tensor mult_tensors(const tensor& a, const tensor& b)
 {
     return elem_wise_combine_tensors(std::multiplies<float_type>(), a, b);
+}
+
+inline tensor sum_tensors(const tensors& ts)
+{
+    return fplus::fold_left_1(add_tensors, ts);
 }
 
 inline tensor sum_depth(const tensor& t)

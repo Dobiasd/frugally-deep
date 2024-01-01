@@ -991,16 +991,6 @@ inline tensor dot_product_tensors(
     return output;
 }
 
-inline tensor subtract_tensor(const tensor& a, const tensor& b)
-{
-    // todo: replace with subtract_tensors
-    assertion(a.shape() == b.shape(),
-        "both tensors must have the same size");
-    auto result_values = fplus::zip_with(std::minus<float_type>(),
-        *a.as_vector(), *b.as_vector());
-    return tensor(a.shape(), result_values);
-}
-
 inline tensor average_tensors(const tensors& ts)
 {
     const auto sum = sum_tensors(ts);

@@ -25,7 +25,7 @@ protected:
     {
         assertion(input.size() == 2,
             "subtract layer needs exactly two input tensors");
-        return {subtract_tensor(input[0], input[1])};
+        return {subtract_tensors(input[0], input[1])};
     }
 };
 

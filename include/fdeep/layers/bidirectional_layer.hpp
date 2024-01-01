@@ -115,13 +115,17 @@ namespace internal {
                 bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
                 // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-                tensor forward_state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor forward_state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just()
+                                                                                                                : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-                tensor forward_state_c = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? forward_state_c_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor forward_state_c = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? forward_state_c_.unsafe_get_just()
+                                                                                                                : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-                tensor backward_state_h = use_input_initial_state ? inputs[3] : use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor backward_state_h = use_input_initial_state ? inputs[3] : use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just()
+                                                                                                                 : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-                tensor backward_state_c = use_input_initial_state ? inputs[4] : use_last_state_for_initial_state ? backward_state_c_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor backward_state_c = use_input_initial_state ? inputs[4] : use_last_state_for_initial_state ? backward_state_c_.unsafe_get_just()
+                                                                                                                 : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
                 result_forward = lstm_impl(input, forward_state_h, forward_state_c,
                     n_units_, use_bias_, return_sequences_, stateful_,
@@ -147,9 +151,11 @@ namespace internal {
                 bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
                 // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-                tensor forward_state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor forward_state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? forward_state_h_.unsafe_get_just()
+                                                                                                                : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-                tensor backward_state_h = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+                tensor backward_state_h = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? backward_state_h_.unsafe_get_just()
+                                                                                                                 : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
                 result_forward = gru_impl(input, forward_state_h, n_units_, use_bias_, reset_after_, return_sequences_, false,
                     forward_weights_, forward_recurrent_weights_,

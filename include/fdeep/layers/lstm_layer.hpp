@@ -84,9 +84,11 @@ namespace internal {
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-            tensor state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+            tensor state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? state_h_.unsafe_get_just()
+                                                                                                    : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
-            tensor state_c = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? state_c_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+            tensor state_c = use_input_initial_state ? inputs[2] : use_last_state_for_initial_state ? state_c_.unsafe_get_just()
+                                                                                                    : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
             const auto result = lstm_impl(input, state_h, state_c,
                 n_units_, use_bias_, return_sequences_, return_state_, weights_,

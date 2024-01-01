@@ -86,7 +86,8 @@ namespace internal {
             bool use_input_initial_state = initial_state_provided && !use_last_state_for_initial_state;
             // bool use_zero_initial_state = !use_input_initial_state && !use_last_state_for_initial_state;
 
-            tensor state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? state_h_.unsafe_get_just() : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
+            tensor state_h = use_input_initial_state ? inputs[1] : use_last_state_for_initial_state ? state_h_.unsafe_get_just()
+                                                                                                    : tensor(tensor_shape(n_units_), static_cast<float_type>(0)); // use_zero_initial_state
 
             const auto result = gru_impl(input, state_h, n_units_, use_bias_,
                 reset_after_, return_sequences_, return_state_, weights_, recurrent_weights_,

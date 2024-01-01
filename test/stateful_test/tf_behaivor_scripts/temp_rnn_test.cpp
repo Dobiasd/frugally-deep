@@ -47,7 +47,7 @@ int main()
     std::cout << "Stateful" << std::endl;
     std::cout << fdeep::show_tensors(stateful_out) << std::endl;
 
-    //D
+    // D
     non_stateful_out = stateless_model.predict({ test_in_0, test_state_0 });
     stateful_out = stateful_model.predict_stateful({ test_in_0, test_state_0 });
     std::cout << "Non-Stateful" << std::endl;

@@ -990,9 +990,7 @@ namespace internal {
         std::size_t z)
     {
         const std::size_t top_int_outer = fplus::floor<float_type, std::size_t>(top);
-        //const std::size_t bottom_int_outer = fplus::ceil<float_type, std::size_t>(bottom);
         const std::size_t left_int_outer = fplus::floor<float_type, std::size_t>(left);
-        //const std::size_t right_int_outer = fplus::ceil<float_type, std::size_t>(right);
 
         const std::size_t top_int_inner = fplus::ceil<float_type, std::size_t>(top);
         const std::size_t bottom_int_inner = fplus::floor<float_type, std::size_t>(bottom);

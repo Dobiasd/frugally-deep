@@ -11,21 +11,22 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class swish_layer : public activation_layer
-{
-public:
-    explicit swish_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        return transform_tensor(swish_activation, in_vol);
-    }
-};
+    class swish_layer : public activation_layer {
+    public:
+        explicit swish_layer(const std::string& name)
+            : activation_layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            return transform_tensor(swish_activation, in_vol);
+        }
+    };
+
+}
+}

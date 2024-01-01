@@ -10,21 +10,22 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class average_layer : public layer
-{
-public:
-    explicit average_layer(const std::string& name)
-        : layer(name)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        return {average_tensors(input)};
-    }
-};
+    class average_layer : public layer {
+    public:
+        explicit average_layer(const std::string& name)
+            : layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            return { average_tensors(input) };
+        }
+    };
+
+}
+}

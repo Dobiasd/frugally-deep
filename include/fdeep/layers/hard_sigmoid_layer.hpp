@@ -12,21 +12,22 @@
 #include <algorithm>
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class hard_sigmoid_layer : public activation_layer
-{
-public:
-    explicit hard_sigmoid_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        return transform_tensor(hard_sigmoid_activation, in_vol);
-    }
-};
+    class hard_sigmoid_layer : public activation_layer {
+    public:
+        explicit hard_sigmoid_layer(const std::string& name)
+            : activation_layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            return transform_tensor(hard_sigmoid_activation, in_vol);
+        }
+    };
+
+}
+}

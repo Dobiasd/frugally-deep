@@ -10,25 +10,28 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class dot_layer : public layer
-{
-public:
-    explicit dot_layer(const std::string& name, const std::vector<int>& axes, bool normalize)
-        : layer(name), axes_(axes), normalize_(normalize)
-    {
-    }
-    std::vector<int> axes_;
-    bool normalize_;
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        assertion(input.size() == 2,
-            "need exactly 2 input tensors");
-        return {dot_product_tensors(input[0], input[1], axes_, normalize_)};
-    }
-};
+    class dot_layer : public layer {
+    public:
+        explicit dot_layer(const std::string& name, const std::vector<int>& axes, bool normalize)
+            : layer(name)
+            , axes_(axes)
+            , normalize_(normalize)
+        {
+        }
+        std::vector<int> axes_;
+        bool normalize_;
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            assertion(input.size() == 2,
+                "need exactly 2 input tensors");
+            return { dot_product_tensors(input[0], input[1], axes_, normalize_) };
+        }
+    };
+
+}
+}

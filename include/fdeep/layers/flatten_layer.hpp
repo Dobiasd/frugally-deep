@@ -10,23 +10,24 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-// Converts a volume into single column volume (tensor_shape(n)).
-class flatten_layer : public layer
-{
-public:
-    explicit flatten_layer(const std::string& name) :
-            layer(name)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& inputs) const override
-    {
-        const auto& input = single_tensor_from_tensors(inputs);
-        return {flatten_tensor(input)};
-    }
-};
+    // Converts a volume into single column volume (tensor_shape(n)).
+    class flatten_layer : public layer {
+    public:
+        explicit flatten_layer(const std::string& name)
+            : layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& inputs) const override
+        {
+            const auto& input = single_tensor_from_tensors(inputs);
+            return { flatten_tensor(input) };
+        }
+    };
+
+}
+}

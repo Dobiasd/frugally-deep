@@ -10,26 +10,27 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class leaky_relu_layer : public activation_layer
-{
-public:
-    explicit leaky_relu_layer(const std::string& name, float_type alpha) :
-        activation_layer(name), alpha_(alpha)
-    {
-    }
-protected:
-    float_type alpha_;
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        auto activation_function = [this](float_type x) -> float_type
+    class leaky_relu_layer : public activation_layer {
+    public:
+        explicit leaky_relu_layer(const std::string& name, float_type alpha)
+            : activation_layer(name)
+            , alpha_(alpha)
         {
-            return x > 0 ? x : alpha_ * x;
-        };
-        return transform_tensor(activation_function, in_vol);
-    }
-};
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        float_type alpha_;
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            auto activation_function = [this](float_type x) -> float_type {
+                return x > 0 ? x : alpha_ * x;
+            };
+            return transform_tensor(activation_function, in_vol);
+        }
+    };
+
+}
+}

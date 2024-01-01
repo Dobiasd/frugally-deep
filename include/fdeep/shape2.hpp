@@ -12,33 +12,31 @@
 #include <cstdlib>
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class shape2
-{
-public:
-    explicit shape2(
-        std::size_t height,
-        std::size_t width) :
-            height_(height),
-            width_(width)
+    class shape2 {
+    public:
+        explicit shape2(
+            std::size_t height,
+            std::size_t width)
+            : height_(height)
+            , width_(width)
+        {
+        }
+        std::size_t area() const
+        {
+            return height_ * width_;
+        }
+
+        std::size_t height_;
+        std::size_t width_;
+    };
+
+    inline bool operator==(const shape2& lhs, const shape2& rhs)
     {
-    }
-    std::size_t area() const
-    {
-        return height_ * width_;
+        return lhs.height_ == rhs.height_ && lhs.width_ == rhs.width_;
     }
 
-    std::size_t height_;
-    std::size_t width_;
-};
-
-inline bool operator == (const shape2& lhs, const shape2& rhs)
-{
-    return
-        lhs.height_ == rhs.height_ &&
-        lhs.width_ == rhs.width_;
 }
-
-} } // namespace fdeep, namespace internal
+}

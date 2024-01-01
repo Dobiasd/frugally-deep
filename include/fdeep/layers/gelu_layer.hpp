@@ -12,21 +12,22 @@
 #include <limits>
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class gelu_layer : public activation_layer
-{
-public:
-    explicit gelu_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        return transform_tensor(gelu_activation, in_vol);
-    }
-};
+    class gelu_layer : public activation_layer {
+    public:
+        explicit gelu_layer(const std::string& name)
+            : activation_layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            return transform_tensor(gelu_activation, in_vol);
+        }
+    };
+
+}
+}

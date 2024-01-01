@@ -10,21 +10,22 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class multiply_layer : public layer
-{
-public:
-    explicit multiply_layer(const std::string& name)
-        : layer(name)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        return {multiply_tensors(input)};
-    }
-};
+    class multiply_layer : public layer {
+    public:
+        explicit multiply_layer(const std::string& name)
+            : layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            return { multiply_tensors(input) };
+        }
+    };
+
+}
+}

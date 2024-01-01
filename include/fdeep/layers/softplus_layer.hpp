@@ -11,33 +11,32 @@
 #include <limits>
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class softplus_layer : public activation_layer
-{
-public:
-    explicit softplus_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        auto activation_function = [](float_type x) -> float_type
+    class softplus_layer : public activation_layer {
+    public:
+        explicit softplus_layer(const std::string& name)
+            : activation_layer(name)
         {
-            // https://github.com/tensorflow/tensorflow/blob/626808e4e4a83aafbb3809a30db57bb78e839040/tensorflow/core/kernels/softplus_op.h#L41
-            const float_type threshold =
-                std::log(std::numeric_limits<float_type>::epsilon()) + 2;
-            if (x > -threshold) // too_large
-                return x;
-            else if (x < threshold) // too_small
-                return std::exp(x);
-            else
-                return std::log1p(std::exp(x));
-        };
-        return transform_tensor(activation_function, in_vol);
-    }
-};
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            auto activation_function = [](float_type x) -> float_type {
+                // https://github.com/tensorflow/tensorflow/blob/626808e4e4a83aafbb3809a30db57bb78e839040/tensorflow/core/kernels/softplus_op.h#L41
+                const float_type threshold = std::log(std::numeric_limits<float_type>::epsilon()) + 2;
+                if (x > -threshold) // too_large
+                    return x;
+                else if (x < threshold) // too_small
+                    return std::exp(x);
+                else
+                    return std::log1p(std::exp(x));
+            };
+            return transform_tensor(activation_function, in_vol);
+        }
+    };
+
+}
+}

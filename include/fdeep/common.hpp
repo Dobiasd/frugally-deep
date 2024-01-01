@@ -32,30 +32,29 @@
 
 #include <cmath>
 #include <memory>
-#include <vector>
-#include <string>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-inline std::runtime_error error(const std::string& error)
-{
-    return std::runtime_error(error);
-}
-
-inline void raise_error(const std::string& msg)
-{
-    throw error(msg);
-}
-
-inline void assertion(bool cond, const std::string& error)
-{
-    if (!cond)
+    inline std::runtime_error error(const std::string& error)
     {
-        raise_error(error);
+        return std::runtime_error(error);
     }
-}
+
+    inline void raise_error(const std::string& msg)
+    {
+        throw error(msg);
+    }
+
+    inline void assertion(bool cond, const std::string& error)
+    {
+        if (!cond) {
+            raise_error(error);
+        }
+    }
 
 #ifdef FDEEP_FLOAT_TYPE
     typedef FDEEP_FLOAT_TYPE float_type;
@@ -63,29 +62,30 @@ inline void assertion(bool cond, const std::string& error)
     typedef float float_type;
 #endif
 
-#if EIGEN_VERSION_AT_LEAST(3,3,0)
+#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
     typedef Eigen::Index EigenIndex;
 #else
     typedef Eigen::DenseIndex EigenIndex;
 #endif
 
-typedef std::vector<float_type> float_vec_unaligned;
+    typedef std::vector<float_type> float_vec_unaligned;
 
-template <typename T>
-using aligned_vector = std::vector<T, Eigen::aligned_allocator<T>>;
+    template <typename T>
+    using aligned_vector = std::vector<T, Eigen::aligned_allocator<T>>;
 
-typedef aligned_vector<float_type> float_vec;
-typedef fplus::shared_ref<float_vec> shared_float_vec;
+    typedef aligned_vector<float_type> float_vec;
+    typedef fplus::shared_ref<float_vec> shared_float_vec;
 
-using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
-using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
-using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
+    using ColMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
+    using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
+    using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
 
-inline float_type tanh_typed(float_type x)
-{
-    return std::tanh(x);
+    inline float_type tanh_typed(float_type x)
+    {
+        return std::tanh(x);
+    }
+
 }
-
-} } // namespace fdeep, namespace internal
+}

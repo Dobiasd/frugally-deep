@@ -10,27 +10,30 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class input_layer : public layer
-{
-public:
-    explicit input_layer(const std::string& name, const tensor_shape_variable& input_shape)
-        : layer(name), input_shape_(input_shape), output_()
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& inputs) const override
-    {
-        assertion(inputs.size() == 1, "need exactly one input");
-        assertion(inputs.front().shape() == input_shape_, "invalid input size");
-        return inputs;
-    }
-    tensor_shape_variable input_shape_;
+    class input_layer : public layer {
+    public:
+        explicit input_layer(const std::string& name, const tensor_shape_variable& input_shape)
+            : layer(name)
+            , input_shape_(input_shape)
+            , output_()
+        {
+        }
 
-    // provide initial tensor for computation
-    mutable fplus::maybe<tensor> output_;
-};
+    protected:
+        tensors apply_impl(const tensors& inputs) const override
+        {
+            assertion(inputs.size() == 1, "need exactly one input");
+            assertion(inputs.front().shape() == input_shape_, "invalid input size");
+            return inputs;
+        }
+        tensor_shape_variable input_shape_;
 
-} } // namespace fdeep, namespace internal
+        // provide initial tensor for computation
+        mutable fplus::maybe<tensor> output_;
+    };
+
+}
+}

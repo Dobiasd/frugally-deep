@@ -10,21 +10,22 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class linear_layer : public activation_layer
-{
-public:
-    explicit linear_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        return in_vol;
-    }
-};
+    class linear_layer : public activation_layer {
+    public:
+        explicit linear_layer(const std::string& name)
+            : activation_layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            return in_vol;
+        }
+    };
+
+}
+}

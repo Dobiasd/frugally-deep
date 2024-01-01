@@ -10,21 +10,22 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class softmax_layer : public activation_layer
-{
-public:
-    explicit softmax_layer(const std::string& name)
-        : activation_layer(name)
-    {
-    }
-protected:
-    tensor transform_input(const tensor& input) const override
-    {
-        return softmax(input);
-    }
-};
+    class softmax_layer : public activation_layer {
+    public:
+        explicit softmax_layer(const std::string& name)
+            : activation_layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensor transform_input(const tensor& input) const override
+        {
+            return softmax(input);
+        }
+    };
+
+}
+}

@@ -10,22 +10,24 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class concatenate_layer : public layer
-{
-public:
-    explicit concatenate_layer(const std::string& name, int axis)
-        : layer(name), axis_(axis)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        return {concatenate_tensors(input, axis_)};
-    }
-    int axis_;
-};
+    class concatenate_layer : public layer {
+    public:
+        explicit concatenate_layer(const std::string& name, int axis)
+            : layer(name)
+            , axis_(axis)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            return { concatenate_tensors(input, axis_) };
+        }
+        int axis_;
+    };
+
+}
+}

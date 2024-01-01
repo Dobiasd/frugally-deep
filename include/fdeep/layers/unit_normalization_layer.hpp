@@ -10,26 +10,27 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class unit_normalization_layer : public layer
-{
-public:
-    explicit unit_normalization_layer(const std::string& name,
-        std::vector<int> axes)
-        : layer(name),
-        axes_(axes)
-    {
-    }
-protected:
-    std::vector<int> axes_;
+    class unit_normalization_layer : public layer {
+    public:
+        explicit unit_normalization_layer(const std::string& name,
+            std::vector<int> axes)
+            : layer(name)
+            , axes_(axes)
+        {
+        }
 
-    tensors apply_impl(const tensors& inputs) const override
-    {
-        const auto& input = single_tensor_from_tensors(inputs);
-        return {l2_normalize(input, axes_)};
-    }
-};
+    protected:
+        std::vector<int> axes_;
 
-} } // namespace fdeep, namespace internal
+        tensors apply_impl(const tensors& inputs) const override
+        {
+            const auto& input = single_tensor_from_tensors(inputs);
+            return { l2_normalize(input, axes_) };
+        }
+    };
+
+}
+}

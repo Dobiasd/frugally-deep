@@ -11,27 +11,28 @@
 #include <string>
 #include <vector>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class reshape_layer : public layer
-{
-public:
-    explicit reshape_layer(const std::string& name,
-        const tensor_shape_variable& target_shape)
-        : layer(name),
-        target_shape_(target_shape)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& inputs) const override
-    {
-        const auto& input = single_tensor_from_tensors(inputs);
-        const auto fixed_target_shape = derive_fixed_tensor_shape(
-            input.shape().volume(), target_shape_);
-        return {tensor(fixed_target_shape, input.as_vector())};
-    }
-    tensor_shape_variable target_shape_;
-};
+    class reshape_layer : public layer {
+    public:
+        explicit reshape_layer(const std::string& name,
+            const tensor_shape_variable& target_shape)
+            : layer(name)
+            , target_shape_(target_shape)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& inputs) const override
+        {
+            const auto& input = single_tensor_from_tensors(inputs);
+            const auto fixed_target_shape = derive_fixed_tensor_shape(
+                input.shape().volume(), target_shape_);
+            return { tensor(fixed_target_shape, input.as_vector()) };
+        }
+        tensor_shape_variable target_shape_;
+    };
+
+}
+}

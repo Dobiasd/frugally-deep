@@ -10,28 +10,30 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class elu_layer : public activation_layer
-{
-public:
-    explicit elu_layer(const std::string& name, float_type alpha)
-        : activation_layer(name), alpha_(alpha)
-    {
-    }
-protected:
-    float_type alpha_;
-    static float_type activation_function(float_type alpha, float_type x)
-    {
-        return x >= 0 ? x : alpha * (std::exp(x) - 1);
-    }
-    tensor transform_input(const tensor& in_vol) const override
-    {
-        return transform_tensor(
-            fplus::bind_1st_of_2(activation_function, alpha_),
-            in_vol);
-    }
-};
+    class elu_layer : public activation_layer {
+    public:
+        explicit elu_layer(const std::string& name, float_type alpha)
+            : activation_layer(name)
+            , alpha_(alpha)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        float_type alpha_;
+        static float_type activation_function(float_type alpha, float_type x)
+        {
+            return x >= 0 ? x : alpha * (std::exp(x) - 1);
+        }
+        tensor transform_input(const tensor& in_vol) const override
+        {
+            return transform_tensor(
+                fplus::bind_1st_of_2(activation_function, alpha_),
+                in_vol);
+        }
+    };
+
+}
+}

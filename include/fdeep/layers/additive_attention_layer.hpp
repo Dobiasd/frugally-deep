@@ -11,25 +11,25 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class additive_attention_layer : public layer
-{
-public:
-    explicit additive_attention_layer(const std::string& name, const float_vec& scale)
-        : layer(name), scale_(scale)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        assertion(input.size() == 2 || input.size() == 3, "Invalid number of inputs for Attention layer.");
-        const tensor& query = input[0];
-        const tensor& value = input[1];
-        const tensor& key = input.size() > 2 ? input[2] : value;
-        const tensor scores = 
-            reshape(
+    class additive_attention_layer : public layer {
+    public:
+        explicit additive_attention_layer(const std::string& name, const float_vec& scale)
+            : layer(name)
+            , scale_(scale)
+        {
+        }
+
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            assertion(input.size() == 2 || input.size() == 3, "Invalid number of inputs for Attention layer.");
+            const tensor& query = input[0];
+            const tensor& value = input[1];
+            const tensor& key = input.size() > 2 ? input[2] : value;
+            const tensor scores = reshape(
                 sum_depth(
                     mult_tensors(tensor(tensor_shape(scale_.size()), float_vec(scale_)),
                         transform_tensor(tanh_typed,
@@ -37,10 +37,11 @@ protected:
                                 reshape(query, tensor_shape(query.shape().width_, 1, query.shape().depth_)),
                                 reshape(key, tensor_shape(1, key.shape().width_, key.shape().depth_)))))),
                 tensor_shape(query.shape().width_, key.shape().width_));
-        const tensor distribution = softmax(scores); 
-        return {dot_product_tensors(distribution, value, std::vector<int>({2, 1}), false)};
-    }
-    float_vec scale_;
-};
+            const tensor distribution = softmax(scores);
+            return { dot_product_tensors(distribution, value, std::vector<int>({ 2, 1 }), false) };
+        }
+        float_vec scale_;
+    };
 
-} } // namespace fdeep, namespace internal
+}
+}

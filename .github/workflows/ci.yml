@@ -60,3 +60,14 @@ jobs:
           mkdir models
           python3 stateful_recurrent_tests.py
           cd ../..
+
+
+  formatting-check:
+    name: "formatting"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+      - uses: DoozyX/clang-format-lint-action@master
+        name: "Verify formatting"
+        with:
+          clangFormatVersion: 16

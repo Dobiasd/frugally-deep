@@ -15,24 +15,25 @@
 #include <string>
 #include <vector>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-// Abstract base class for global pooling layers
-class global_pooling_layer : public layer
-{
-public:
-    explicit global_pooling_layer(const std::string& name) :
-        layer(name)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& inputs) const override final
-    {
-        const auto& input = single_tensor_from_tensors(inputs);
-        return {pool(input)};
-    }
-    virtual tensor pool(const tensor& input) const = 0;
-};
+    // Abstract base class for global pooling layers
+    class global_pooling_layer : public layer {
+    public:
+        explicit global_pooling_layer(const std::string& name)
+            : layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& inputs) const override final
+        {
+            const auto& input = single_tensor_from_tensors(inputs);
+            return { pool(input) };
+        }
+        virtual tensor pool(const tensor& input) const = 0;
+    };
+
+}
+}

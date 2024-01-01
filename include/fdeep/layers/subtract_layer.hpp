@@ -10,23 +10,24 @@
 
 #include <string>
 
-namespace fdeep { namespace internal
-{
+namespace fdeep {
+namespace internal {
 
-class subtract_layer : public layer
-{
-public:
-    explicit subtract_layer(const std::string& name)
-        : layer(name)
-    {
-    }
-protected:
-    tensors apply_impl(const tensors& input) const override
-    {
-        assertion(input.size() == 2,
-            "subtract layer needs exactly two input tensors");
-        return {subtract_tensors(input[0], input[1])};
-    }
-};
+    class subtract_layer : public layer {
+    public:
+        explicit subtract_layer(const std::string& name)
+            : layer(name)
+        {
+        }
 
-} } // namespace fdeep, namespace internal
+    protected:
+        tensors apply_impl(const tensors& input) const override
+        {
+            assertion(input.size() == 2,
+                "subtract layer needs exactly two input tensors");
+            return { subtract_tensors(input[0], input[1]) };
+        }
+    };
+
+}
+}

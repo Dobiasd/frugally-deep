@@ -31,7 +31,7 @@ WORKDIR /
 
 RUN git clone -b 'v0.2.22' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install
 RUN git clone -b '3.4.0' --single-branch --depth 1 https://gitlab.com/libeigen/eigen.git && cd eigen && mkdir -p build && cd build && cmake .. && make && make install && ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen
-RUN git clone -b 'v3.10.5' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DJSON_BuildTests=OFF .. && make && make install
+RUN git clone -b 'v3.11.3' --single-branch --depth 1 https://github.com/nlohmann/json && cd json && mkdir -p build && cd build && cmake -DJSON_BuildTests=OFF .. && make && make install
 
 ADD include frugally-deep/include
 ADD keras_export frugally-deep/keras_export

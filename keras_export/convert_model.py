@@ -887,6 +887,9 @@ def workaround_cudnn_not_found_problem():
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
 
+def assert_model_type(model):
+    import keras
+    assert type(model) in [keras.src.models.sequential.Sequential, keras.src.models.functional.Functional]
 
 def convert(in_path, out_path, no_tests=False):
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""

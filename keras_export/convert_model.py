@@ -895,6 +895,7 @@ def convert(in_path, out_path, no_tests=False):
 
     print('loading {}'.format(in_path))
     model = load_model(in_path, compile=False)
+    assert type(model) == tf.keras.models.Model
     json_output = model_to_fdeep_json(model, no_tests)
     print('writing {}'.format(out_path))
 

@@ -20,13 +20,13 @@ RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.
 RUN apt-get update && apt-get install -y bazel-5.1.1
 RUN ln -s /usr/bin/bazel-5.1.1 /usr/bin/bazel
 
-RUN git clone -b 'v2.15.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'v2.16.1' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build --jobs 3 --local_ram_resources=HOST_RAM*.3 -c opt //tensorflow/tools/pip_package:build_pip_package
 RUN apt-get install -y patchelf
 RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
-RUN pip install /tmp/tensorflow_pkg/tensorflow-2.15.0-cp310-cp310-linux_x86_64.whl
+RUN pip install /tmp/tensorflow_pkg/tensorflow-2.16.1-cp310-cp310-linux_x86_64.whl
 WORKDIR /
 
 RUN git clone -b 'v0.2.23' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install

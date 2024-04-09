@@ -827,6 +827,7 @@ def convert_sequential_to_model(model):
                 # model.layers.__setitem__(0, "asd")
                 # model.layers[:1]
                 # todo: find out how to actually replace the layer in the model object
+                # todo: see: https://stackoverflow.com/questions/78297541/how-to-replace-a-model-layer-using-tensorflow-2-16
     return model
 
 

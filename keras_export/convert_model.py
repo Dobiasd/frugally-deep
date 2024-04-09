@@ -80,7 +80,10 @@ def get_layer_input_shape(layer):
     if hasattr(layer, "batch_shape"):
         return layer.batch_shape
     if hasattr(layer, "input"):
-        return layer.input.shape
+        if hasattr(layer.input, "shape"):
+            return layer.input.shape
+        assert isinstance(layer.input, list)
+        return [inp.shape for inp in layer.input]
     raise ValueError("Can't get input shape for layer {}".format(layer))
 
 
@@ -99,18 +102,16 @@ def show_tensor(tens):
 
 def get_model_input_layers(model):
     """Works for different Keras version."""
-    if hasattr(model, '_input_layers'):
-        return model._input_layers
-    if hasattr(model, 'input_layers'):
-        return model.input_layers
-    if hasattr(model, 'layers'):
+    if len(model.inputs) == 1:
         from keras.src.layers.core.input_layer import InputLayer
         input_layers = []
         for layer in model.layers:
             if isinstance(layer, InputLayer):
                 input_layers.append(layer)
             return input_layers
-    raise ValueError('can not get (_)input(_layer)s from model')
+    input_layer_names = [model_input.name for model_input in model.inputs]
+    model_layers = {layer.name : layer for layer in model.layers}
+    return [model_layers[layer_names] for layer_names in input_layer_names]
 
 
 def measure_predict(model, data_in):
@@ -570,7 +571,7 @@ def show_attention_layer(layer):
     """Serialize Attention layer to dict"""
     assert layer.score_mode in ["dot", "concat"]
     data = {}
-    if layer.scale:
+    if layer.scale is not None:
         data['scale'] = float(layer.scale.numpy())
     if layer.score_mode == "concat":
         data['concat_score_weight'] = float(layer.concat_score_weight.numpy())
@@ -589,8 +590,6 @@ def show_additive_attention_layer(layer):
 
 def show_multi_head_attention_layer(layer):
     """Serialize MultiHeadAttention layer to dict"""
-    assert len(get_layer_input_shape(layer)) == 3
-    assert get_layer_input_shape(layer)[0] is None
     assert layer._output_shape is None
     assert layer._attention_axes == (1,), "MultiHeadAttention supported only with attention_axes=None"
     return {
@@ -802,7 +801,6 @@ def convert_sequential_to_model(model):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
             model.inbound_nodes = inbound_nodes
-    print(type(model).__name__, flush=True)# todo: remove
     if type(model).__name__ == 'TimeDistributed':
         model.layer = convert_sequential_to_model(model.layer)
     if type(model).__name__ in ['model', 'functional', 'Model', 'Functional']:
@@ -810,24 +808,9 @@ def convert_sequential_to_model(model):
             new_layer = convert_sequential_to_model(model.layers[i])
             if new_layer == model.layers[i]:
                 continue
-            layers = getattr(model, '_layers', None)
-            if not layers:
-                layers = getattr(model, 'layers', None)
-            if not layers:
-                layers = getattr(model, '_self_tracked_trackables', None)
-            layers_ref = getattr(layers, '_layers', None)
-            if not layers_ref:
-                layers_ref = layers
-            if layers_ref:
-                layers_ref[i] = new_layer
-                assert model.layers[i] == new_layer
-                # import tensorflow as tf
-                # from tensorflow.keras.models import Model, load_model, Sequential
-                # model = load_model("model.keras", compile=False)
-                # model.layers.__setitem__(0, "asd")
-                # model.layers[:1]
-                # todo: find out how to actually replace the layer in the model object
-                # todo: see: https://stackoverflow.com/questions/78297541/how-to-replace-a-model-layer-using-tensorflow-2-16
+            # https://stackoverflow.com/questions/78297541/how-to-replace-a-model-layer-using-tensorflow-2-16
+            model._operations[i] = new_layer
+            assert model.layers[i] == new_layer
     return model
 
 

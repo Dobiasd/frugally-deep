@@ -71,9 +71,22 @@ def keras_shape_to_fdeep_tensor_shape(raw_shape):
     return singleton_list_to_value(raw_shape)[1:]
 
 
+def get_layer_input_shape(layer):
+    # todo docstring
+    if hasattr(layer, "batch_input_shape"):
+        return layer.batch_input_shape
+    if hasattr(layer, "input_shape"):
+        return layer.input_shape
+    if hasattr(layer, "batch_shape"):
+        return layer.batch_shape
+    if hasattr(layer, "input"):
+        return layer.input.shape
+    raise ValueError("Can't get input shape for layer {}".format(layer))
+
+
 def get_layer_input_shape_tensor_shape(layer):
     """Convert layer input shape to an fdeep shape"""
-    return keras_shape_to_fdeep_tensor_shape(layer.input_shape)
+    return keras_shape_to_fdeep_tensor_shape(get_layer_input_shape(layer))
 
 
 def show_tensor(tens):
@@ -90,7 +103,14 @@ def get_model_input_layers(model):
         return model._input_layers
     if hasattr(model, 'input_layers'):
         return model.input_layers
-    raise ValueError('can not get (_)input_layers from model')
+    if hasattr(model, 'layers'):
+        from keras.src.layers.core.input_layer import InputLayer
+        input_layers = []
+        for layer in model.layers:
+            if isinstance(layer, InputLayer):
+                input_layers.append(layer)
+            return input_layers
+    raise ValueError('can not get (_)input(_layer)s from model')
 
 
 def measure_predict(model, data_in):
@@ -108,6 +128,15 @@ def replace_none_with(value, shape):
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
+def get_first_outbound_op(layer):
+    first_node = layer._outbound_nodes[0]
+    if hasattr(first_node, "outbound_layer"):
+        return first_node.outbound_layer
+    if hasattr(first_node, "operation"):
+        return first_node.operation
+    raise ValueError("Can't determine outbound operation")
+
+
 def are_embedding_layer_positions_ok_for_testing(model):
     """
     Test data can only be generated if all embeddings layers
@@ -121,7 +150,7 @@ def are_embedding_layer_positions_ok_for_testing(model):
             if isinstance(layer, Embedding):
                 result.add(layer.name)
         layer_type = type(layer).__name__
-        if layer_type in ['Model', 'Sequential', 'Functional']:
+        if layer_type in ['model', 'sequential', 'functional', 'Model', 'Sequential', 'Functional']:
             result.union(embedding_layer_names(layer))
         return result
 
@@ -129,8 +158,8 @@ def are_embedding_layer_positions_ok_for_testing(model):
         result = set()
         for input_layer in get_model_input_layers(model):
             if input_layer._outbound_nodes and isinstance(
-                    input_layer._outbound_nodes[0].outbound_layer, Embedding):
-                result.add(input_layer._outbound_nodes[0].outbound_layer.name)
+                    get_first_outbound_op(input_layer), Embedding):
+                result.add(get_first_outbound_op(input_layer).name)
         return set(result)
 
     return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
@@ -151,19 +180,16 @@ def gen_test_data(model):
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
         if input_layer._outbound_nodes and isinstance(
-                input_layer._outbound_nodes[0].outbound_layer, Embedding):
+                get_first_outbound_op(input_layer), Embedding):
             random_fn = lambda size: np.random.randint(
-                0, input_layer._outbound_nodes[0].outbound_layer.input_dim, size)
+                0, get_first_outbound_op(input_layer).input_dim, size)
         elif input_layer._outbound_nodes and isinstance(
-                input_layer._outbound_nodes[0].outbound_layer, CategoryEncoding):
+                get_first_outbound_op(input_layer), CategoryEncoding):
             random_fn = lambda size: np.random.randint(
-                0, input_layer._outbound_nodes[0].outbound_layer.num_tokens, size)
+                0, get_first_outbound_op(input_layer).num_tokens, size)
         else:
             random_fn = np.random.normal
-        try:
-            shape = input_layer.batch_input_shape
-        except AttributeError:
-            shape = input_layer.input_shape
+        shape = get_layer_input_shape(input_layer)
         return random_fn(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
 
@@ -233,8 +259,8 @@ def show_conv_1d_layer(layer):
     assert len(weights[0].shape) == 3
     weights_flat = prepare_filter_weights_conv_1d(weights[0])
     assert layer.padding in ['valid', 'same', 'causal']
-    assert len(layer.input_shape) == 3
-    assert layer.input_shape[0] in {None, 1}
+    assert len(get_layer_input_shape(layer)) == 3
+    assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
         'weights': encode_floats(weights_flat)
     }
@@ -251,8 +277,8 @@ def show_conv_2d_layer(layer):
     assert len(weights[0].shape) == 4
     weights_flat = prepare_filter_weights_conv_2d(weights[0])
     assert layer.padding in ['valid', 'same']
-    assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] in {None, 1}
+    assert len(get_layer_input_shape(layer)) == 4
+    assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
         'weights': encode_floats(weights_flat)
     }
@@ -275,8 +301,8 @@ def show_separable_conv_2d_layer(layer):
     stack_weights = prepare_filter_weights_conv_2d(weights[1])
 
     assert layer.padding in ['valid', 'same']
-    assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] in {None, 1}
+    assert len(get_layer_input_shape(layer)) == 4
+    assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
         'slice_weights': encode_floats(slice_weights),
         'stack_weights': encode_floats(stack_weights),
@@ -298,8 +324,8 @@ def show_depthwise_conv_2d_layer(layer):
     slice_weights = prepare_filter_weights_slice_conv_2d(weights[0])
 
     assert layer.padding in ['valid', 'same']
-    assert len(layer.input_shape) == 4
-    assert layer.input_shape[0] in {None, 1}
+    assert len(get_layer_input_shape(layer)) == 4
+    assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
         'slice_weights': encode_floats(slice_weights),
     }
@@ -354,10 +380,10 @@ def show_dense_layer(layer):
 
 def show_dot_layer(layer):
     """Check valid configuration of Dot layer"""
-    assert len(layer.input_shape) == 2
+    assert len(get_layer_input_shape(layer)) == 2
     assert isinstance(layer.axes, int) or (isinstance(layer.axes, list) and len(layer.axes) == 2)
-    assert layer.input_shape[0][0] is None
-    assert layer.input_shape[1][0] is None
+    assert get_layer_input_shape(layer)[0][0] is None
+    assert get_layer_input_shape(layer)[1][0] is None
     assert len(layer.output_shape) <= 5
 
 
@@ -563,8 +589,8 @@ def show_additive_attention_layer(layer):
 
 def show_multi_head_attention_layer(layer):
     """Serialize MultiHeadAttention layer to dict"""
-    assert len(layer.input_shape) == 3
-    assert layer.input_shape[0] is None
+    assert len(get_layer_input_shape(layer)) == 3
+    assert get_layer_input_shape(layer)[0] is None
     assert layer._output_shape is None
     assert layer._attention_axes == (1,), "MultiHeadAttention supported only with attention_axes=None"
     return {
@@ -611,15 +637,20 @@ def show_time_distributed_layer(layer):
 
     if class_name in show_layer_functions:
 
-        if len(layer.input_shape) == 3:
-            input_shape_new = (layer.input_shape[0], layer.input_shape[2])
-        elif len(layer.input_shape) == 4:
-            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3])
-        elif len(layer.input_shape) == 5:
-            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4])
-        elif len(layer.input_shape) == 6:
-            input_shape_new = (layer.input_shape[0], layer.input_shape[2], layer.input_shape[3], layer.input_shape[4],
-                               layer.input_shape[5])
+        if len(get_layer_input_shape(layer)) == 3:
+            input_shape_new = (get_layer_input_shape(layer)[0], get_layer_input_shape(layer)[2])
+        elif len(get_layer_input_shape(layer)) == 4:
+            input_shape_new = (
+                get_layer_input_shape(layer)[0], get_layer_input_shape(layer)[2], get_layer_input_shape(layer)[3])
+        elif len(get_layer_input_shape(layer)) == 5:
+            input_shape_new = (
+                get_layer_input_shape(layer)[0], get_layer_input_shape(layer)[2], get_layer_input_shape(layer)[3],
+                get_layer_input_shape(layer)[4])
+        elif len(get_layer_input_shape(layer)) == 6:
+            input_shape_new = (
+                get_layer_input_shape(layer)[0], get_layer_input_shape(layer)[2], get_layer_input_shape(layer)[3],
+                get_layer_input_shape(layer)[4],
+                get_layer_input_shape(layer)[5])
         else:
             raise Exception('Wrong input shape')
 
@@ -690,9 +721,28 @@ def get_layer_weights(layer, name):
         if name not in result:
             result[name] = {}
 
-        result[name]['td_input_len'] = encode_floats(np.array([len(layer.input_shape) - 1], dtype=np.float32))
+        result[name]['td_input_len'] = encode_floats(
+            np.array([len(get_layer_input_shape(layer)) - 1], dtype=np.float32))
         result[name]['td_output_len'] = encode_floats(np.array([len(layer.output_shape) - 1], dtype=np.float32))
     return result
+
+
+def get_layer_inbound_nodes(layer):
+    # todo: docstring
+    if hasattr(layer, "inbound_nodes"):
+        return layer.inbound_nodes
+    if hasattr(layer, "_inbound_nodes"):
+        return layer._inbound_nodes
+    raise ValueError("Layer has no (_)inbound_nodes")
+
+
+def get_node_kwargs(node):
+    # todo: docstring
+    if hasattr(node, "call_kwargs"):
+        return node.call_kwargs
+    if hasattr(node, "arguments"):
+        return node.arguments.kwargs
+    raise ValueError("Node has no call arguments")
 
 
 def get_all_weights(model, prefix):
@@ -701,18 +751,19 @@ def get_all_weights(model, prefix):
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
-        for node in layer.inbound_nodes:
-            if "training" in node.call_kwargs:
-                assert node.call_kwargs["training"] is not True, \
+        for node in get_layer_inbound_nodes(layer):
+            if "training" in get_node_kwargs(node):
+                assert get_node_kwargs(node)["training"] is not True, \
                     "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
         layer_type = type(layer).__name__
         name = prefix + layer.name
         assert is_ascii(name)
         if name in result:
             raise ValueError('duplicate layer name ' + name)
-        if layer_type in ['Model', 'Sequential', 'Functional']:
+        if layer_type in ['model', 'sequential', 'functional', 'Model', 'Sequential', 'Functional']:
             result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
-        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
+        elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['model', 'sequential', 'functional',
+                                                                                  'Model', 'Sequential', 'Functional']:
             inner_layer = layer.layer
             result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
             result = merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + "_"))
@@ -732,7 +783,7 @@ def get_model_name(model):
 
 def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
-    if type(model).__name__ == 'Sequential':
+    if type(model).__name__ in ['sequential', 'Sequential']:
         name = get_model_name(model)
         if hasattr(model, '_inbound_nodes'):
             inbound_nodes = model._inbound_nodes
@@ -740,7 +791,7 @@ def convert_sequential_to_model(model):
             inbound_nodes = model.inbound_nodes
         else:
             raise ValueError('can not get (_)inbound_nodes from model')
-        input_layer = Input(batch_shape=model.layers[0].input_shape)
+        input_layer = Input(batch_shape=get_layer_input_shape(model.layers[0]))
         prev_layer = input_layer
         for layer in model.layers:
             layer._inbound_nodes = []
@@ -751,19 +802,31 @@ def convert_sequential_to_model(model):
             model._inbound_nodes = inbound_nodes
         elif hasattr(model, 'inbound_nodes'):
             model.inbound_nodes = inbound_nodes
+    print(type(model).__name__, flush=True)# todo: remove
     if type(model).__name__ == 'TimeDistributed':
         model.layer = convert_sequential_to_model(model.layer)
-    if type(model).__name__ in ['Model', 'Functional']:
+    if type(model).__name__ in ['model', 'functional', 'Model', 'Functional']:
         for i in range(len(model.layers)):
             new_layer = convert_sequential_to_model(model.layers[i])
+            if new_layer == model.layers[i]:
+                continue
             layers = getattr(model, '_layers', None)
             if not layers:
+                layers = getattr(model, 'layers', None)
+            if not layers:
                 layers = getattr(model, '_self_tracked_trackables', None)
-            if layers:
-                if new_layer == layers[i]:
-                    continue
-                layers[i] = new_layer
+            layers_ref = getattr(layers, '_layers', None)
+            if not layers_ref:
+                layers_ref = layers
+            if layers_ref:
+                layers_ref[i] = new_layer
                 assert model.layers[i] == new_layer
+                # import tensorflow as tf
+                # from tensorflow.keras.models import Model, load_model, Sequential
+                # model = load_model("model.keras", compile=False)
+                # model.layers.__setitem__(0, "asd")
+                # model.layers[:1]
+                # todo: find out how to actually replace the layer in the model object
     return model
 
 
@@ -887,9 +950,11 @@ def workaround_cudnn_not_found_problem():
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
 
+
 def assert_model_type(model):
     import keras
     assert type(model) in [keras.src.models.sequential.Sequential, keras.src.models.functional.Functional]
+
 
 def convert(in_path, out_path, no_tests=False):
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""

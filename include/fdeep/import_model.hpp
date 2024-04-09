@@ -319,12 +319,22 @@ namespace internal {
         return create_vector<tensor_shape_variable>(create_tensor_shape_variable, data);
     }
 
-    inline node_connection create_node_connection(const nlohmann::json& data)
+    inline node_connection create_node_connection_model_layer(const nlohmann::json& data)
     {
         assertion(data.is_array(), "invalid format for inbound node");
         const std::string layer_id = data.front();
         const auto node_idx = create_size_t(data[1]);
         const auto tensor_idx = create_size_t(data[2]);
+        return node_connection(layer_id, node_idx, tensor_idx);
+    }
+
+    inline node_connection create_node_connection(const nlohmann::json& args)
+    {
+        const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
+        assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
+        const std::string layer_id = keras_history[0];
+        const auto node_idx = create_size_t(keras_history[1]);
+        const auto tensor_idx = create_size_t(keras_history[2]);
         return node_connection(layer_id, node_idx, tensor_idx);
     }
 
@@ -375,10 +385,10 @@ namespace internal {
         assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
         const auto inputs = create_vector<node_connection>(
-            create_node_connection, data["config"]["input_layers"]);
+            create_node_connection_model_layer, data["config"]["input_layers"]);
 
         const auto outputs = create_vector<node_connection>(
-            create_node_connection, data["config"]["output_layers"]);
+            create_node_connection_model_layer, data["config"]["output_layers"]);
 
         return std::make_shared<model_layer>(name, layers, inputs, outputs);
     }
@@ -497,7 +507,7 @@ namespace internal {
     {
         assertion(data["inbound_nodes"].empty(),
             "input layer is not allowed to have inbound nodes");
-        const auto input_shape = create_tensor_shape_variable_leading_null(data["config"]["batch_input_shape"]);
+        const auto input_shape = create_tensor_shape_variable_leading_null(data["config"]["batch_shape"]);
         return std::make_shared<input_layer>(name, input_shape);
     }
 
@@ -1121,9 +1131,9 @@ namespace internal {
 
     inline node create_node(const nlohmann::json& inbound_nodes_data)
     {
-        assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
-        return node(create_vector<node_connection>(create_node_connection,
-            inbound_nodes_data));
+        assertion(inbound_nodes_data["args"].is_array(), "node args need to be an array");
+        const std::vector<nlohmann::json> args = inbound_nodes_data["args"];
+        return node(fplus::transform(create_node_connection, args));
     }
 
     inline nodes create_multi_head_attention_nodes(const std::vector<nlohmann::json> inbound_nodes_data)

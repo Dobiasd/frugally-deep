@@ -24,7 +24,7 @@ from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import MaxPooling3D, AveragePooling3D
 from tensorflow.keras.layers import MultiHeadAttention
-from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum, Dot
+from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
 from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
@@ -170,11 +170,11 @@ def get_test_model_exhaustive():
     outputs.append(GlobalAveragePooling1D(keepdims=True)(inputs[6]))
 
     outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
-    #outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))  # No longer supported in TensorFlow 2.16
+    # outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))  # No longer supported in TensorFlow 2.16
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[46]))
     outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[46]))
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[47]))
-    #outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[47]))  # No longer supported in TensorFlow 2.16
+    # outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[47]))  # No longer supported in TensorFlow 2.16
     outputs.append(Normalization(axis=2, mean=2.1, variance=2.2)(inputs[47]))
     for axis in range(1, 6):
         shape = input_shapes[0][axis - 1]
@@ -225,8 +225,8 @@ def get_test_model_exhaustive():
     outputs.append(Resizing(5, 6)(inputs[4]))
     outputs.append(Resizing(19, 53, interpolation="bilinear")(inputs[23]))
     outputs.append(Resizing(19, 53, interpolation="nearest")(inputs[23]))
-    #outputs.append(Resizing(7, 9, interpolation="area")(inputs[22]))  # No longer supported in TensorFlow 2.16
-    #outputs.append(Resizing(19, 53, interpolation="area")(inputs[23]))  # No longer supported in TensorFlow 2.16
+    # outputs.append(Resizing(7, 9, interpolation="area")(inputs[22]))  # No longer supported in TensorFlow 2.16
+    # outputs.append(Resizing(19, 53, interpolation="area")(inputs[23]))  # No longer supported in TensorFlow 2.16
     outputs.append(Resizing(19, 53, crop_to_aspect_ratio=True)(inputs[23]))
 
     outputs.append(Permute((3, 4, 1, 5, 2))(inputs[0]))
@@ -364,14 +364,14 @@ def get_test_model_exhaustive():
     outputs.append(Minimum()([inputs[8], inputs[9]]))
 
     # No longer works in TensorFlow 2.16, see: https://github.com/tensorflow/tensorflow/issues/65056
-    #for normalize in [True, False]:
-        #outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[8], inputs[9]]))
-        #outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[0], inputs[10]]))
-        #outputs.append(Dot(axes=1, normalize=normalize)([inputs[0], inputs[10]]))
-        #outputs.append(Dot(axes=(3, 1), normalize=normalize)([inputs[31], inputs[32]]))
-        #outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[31], inputs[32]]))
-        #outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[14], inputs[16]]))
-        #outputs.append(Dot(axes=(3, 2), normalize=normalize)([inputs[24], inputs[26]]))
+    # for normalize in [True, False]:
+    # outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[8], inputs[9]]))
+    # outputs.append(Dot(axes=(1, 1), normalize=normalize)([inputs[0], inputs[10]]))
+    # outputs.append(Dot(axes=1, normalize=normalize)([inputs[0], inputs[10]]))
+    # outputs.append(Dot(axes=(3, 1), normalize=normalize)([inputs[31], inputs[32]]))
+    # outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[31], inputs[32]]))
+    # outputs.append(Dot(axes=(2, 3), normalize=normalize)([inputs[14], inputs[16]]))
+    # outputs.append(Dot(axes=(3, 2), normalize=normalize)([inputs[24], inputs[26]]))
 
     outputs.append(Reshape((16,))(inputs[8]))
     outputs.append(Reshape((2, 8))(inputs[8]))
@@ -397,10 +397,10 @@ def get_test_model_exhaustive():
         outputs.append(Concatenate(axis=axis)([inputs[14], inputs[15]]))
     for axis in [-1, 3]:
         outputs.append(Concatenate(axis=axis)([inputs[16], inputs[17]]))
-    #for axis in [-1, 4]:
-        #outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))  # no longer supported in TensorFlow 2.16
-    #for axis in [-1, 5]:
-        #outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))  # no longer supported in TensorFlow 2.16
+    # for axis in [-1, 4]:
+    # outputs.append(Concatenate(axis=axis)([inputs[18], inputs[19]]))  # no longer supported in TensorFlow 2.16
+    # for axis in [-1, 5]:
+    # outputs.append(Concatenate(axis=axis)([inputs[20], inputs[21]]))  # no longer supported in TensorFlow 2.16
 
     outputs.append(UpSampling1D(size=2)(inputs[6]))
     # outputs.append(UpSampling1D(size=2)(inputs[8])) # ValueError: Input 0 of layer up_sampling1d_1 is incompatible with the layer: expected ndim=3, found ndim=2. Full shape received: [None, 16]
@@ -503,39 +503,45 @@ def get_test_model_exhaustive():
     outputs.append(Maximum()([inputs[26], inputs[30], inputs[30]]))
     outputs.append(Concatenate()([inputs[26], inputs[30], inputs[30]]))
 
-    intermediate_input_shape = (3,)
-    intermediate_in = Input(intermediate_input_shape)
-    intermediate_x = intermediate_in
-    intermediate_x = Dense(8)(intermediate_x)
-    intermediate_x = Dense(5, name='duplicate_layer_name')(intermediate_x)
-    intermediate_model = Model(
-        inputs=[intermediate_in], outputs=[intermediate_x],
-        name='intermediate_model')
-    intermediate_model.compile(loss='mse', optimizer='nadam')
+    # TensorFlow 2.16 no longer puts
+    # "inbound_nodes": []
+    # for such nested models.
+    # todo: Check if the situation resolved with later versions.
+    if False:
+        intermediate_input_shape = (3,)
+        intermediate_in = Input(intermediate_input_shape)
+        intermediate_x = intermediate_in
+        intermediate_x = Dense(8)(intermediate_x)
+        intermediate_x = Dense(5, name='duplicate_layer_name')(intermediate_x)
+        intermediate_model = Model(
+            inputs=[intermediate_in], outputs=[intermediate_x],
+            name='intermediate_model')
+        intermediate_model.compile(loss='mse', optimizer='nadam')
 
-    x = intermediate_model(x)  # (1, 1, 5)
+        x = intermediate_model(x)[0]  # (1, 1, 5)
 
-    intermediate_model_2 = Sequential()
-    intermediate_model_2.add(Dense(7, input_shape=(5,)))
-    intermediate_model_2.add(Dense(5, name='duplicate_layer_name'))
-    intermediate_model_2.compile(optimizer='rmsprop',
-                                 loss='categorical_crossentropy')
 
-    x = intermediate_model_2(x)  # (1, 1, 5)
+        intermediate_model_2 = Sequential(name="intermediate_model_2")
+        intermediate_model_2.add(Dense(7, input_shape=(5,)))
+        intermediate_model_2.add(Dense(5, name='duplicate_layer_name'))
+        intermediate_model_2.compile(optimizer='rmsprop',
+                                     loss='categorical_crossentropy')
 
-    intermediate_model_3_nested = Sequential()
-    intermediate_model_3_nested.add(Dense(7, input_shape=(6,)))
-    intermediate_model_3_nested.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+        x = intermediate_model_2(x)  # (1, 1, 5)
 
-    intermediate_model_3 = Sequential()
-    intermediate_model_3.add(Dense(6, input_shape=(5,)))
-    intermediate_model_3.add(intermediate_model_3_nested)
-    intermediate_model_3.add(Dense(8))
-    intermediate_model_3.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+        intermediate_model_3_nested = Sequential(name="intermediate_model_3_nested")
+        intermediate_model_3_nested.add(Dense(7, input_shape=(6,)))
+        intermediate_model_3_nested.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
-    x = intermediate_model_3(x)  # (1, 1, 8)
+        intermediate_model_3 = Sequential(name="intermediate_model_3")
+        intermediate_model_3.add(Dense(6, input_shape=(5,)))
+        intermediate_model_3.add(intermediate_model_3_nested)
+        intermediate_model_3.add(Dense(8))
+        intermediate_model_3.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
-    x = Dense(3)(x)  # (1, 1, 3)
+        x = intermediate_model_3(x)  # (1, 1, 8)
+
+        x = Dense(3)(x)  # (1, 1, 3)
 
     shared_activation = Activation('tanh')
 
@@ -690,7 +696,7 @@ def get_test_model_recurrent():
     nested_model.compile(loss='categorical_crossentropy', optimizer='nadam')
     outputs.append(TimeDistributed(nested_model)(inputs[0]))
 
-    nested_sequential_model = Sequential()
+    nested_sequential_model = Sequential(name="nested_sequential_model")
     nested_sequential_model.add(Flatten(input_shape=input_shapes[0][1:]))
     nested_sequential_model.compile(optimizer='rmsprop',
                                     loss='categorical_crossentropy')

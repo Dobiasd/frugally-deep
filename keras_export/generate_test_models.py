@@ -1048,7 +1048,7 @@ def get_test_model_lstm_stateful():
 def main():
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
-        print('usage: [model name] [destination file path]')
+        print('usage: [model name] [destination file path]', flush=True)
         sys.exit(1)
     else:
         model_name = sys.argv[1]

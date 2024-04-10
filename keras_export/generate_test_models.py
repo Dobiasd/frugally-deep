@@ -647,17 +647,19 @@ def get_test_model_recurrent():
 
     inp = PReLU()(inputs[0])
 
-    lstm = Bidirectional(LSTM(units=4,
-                              return_sequences=True,
-                              bias_initializer='random_uniform',  # default is zero use random to test computation
-                              activation='tanh',
-                              recurrent_activation='relu'), merge_mode='concat')(inp)
+    # todo: Use Bidirectional with merge_mode concat again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+    lstm = LSTM(units=4,
+                return_sequences=True,
+                bias_initializer='random_uniform',  # default is zero use random to test computation
+                activation='tanh',
+                recurrent_activation='relu')(inp)
 
-    lstm2 = Bidirectional(LSTM(units=6,
-                               return_sequences=True,
-                               bias_initializer='random_uniform',
-                               activation='elu',
-                               recurrent_activation='hard_sigmoid'), merge_mode='sum')(lstm)
+    # todo: Use Bidirectional with merge_mode sum again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+    lstm2 = LSTM(units=6,
+                 return_sequences=True,
+                 bias_initializer='random_uniform',
+                 activation='elu',
+                 recurrent_activation='hard_sigmoid')(lstm)
 
     lstm3 = LSTM(units=10,
                  return_sequences=False,
@@ -680,29 +682,30 @@ def get_test_model_recurrent():
     time_dist_1 = TimeDistributed(Conv2D(2, (3, 3), use_bias=True))(inputs[3])
     flatten_1 = TimeDistributed(Flatten())(time_dist_1)
 
-    outputs.append(Bidirectional(LSTM(units=6,
-                                      return_sequences=True,
-                                      bias_initializer='random_uniform',
-                                      activation='tanh',
-                                      recurrent_activation='sigmoid'), merge_mode='ave')(flatten_1))
+    # todo: Use Bidirectional with merge_mode ave again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+    outputs.append(LSTM(units=6,
+                        return_sequences=True,
+                        bias_initializer='random_uniform',
+                        activation='tanh',
+                        recurrent_activation='sigmoid')(flatten_1))
 
     outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
     outputs.append(TimeDistributed(BatchNormalization())(inputs[3]))
 
     # No longer working since TF 2.16, see: https://github.com/tensorflow/tensorflow/issues/65393
-    #nested_inputs = Input(shape=input_shapes[0][1:])
-    #nested_x = Dense(5, activation='relu')(nested_inputs)
-    #nested_predictions = Dense(3, activation='softmax')(nested_x)
-    #nested_model = Model(inputs=nested_inputs, outputs=nested_predictions)
-    #nested_model.compile(loss='categorical_crossentropy', optimizer='nadam')
-    #outputs.append(TimeDistributed(nested_model)(inputs[0]))
+    # nested_inputs = Input(shape=input_shapes[0][1:])
+    # nested_x = Dense(5, activation='relu')(nested_inputs)
+    # nested_predictions = Dense(3, activation='softmax')(nested_x)
+    # nested_model = Model(inputs=nested_inputs, outputs=nested_predictions)
+    # nested_model.compile(loss='categorical_crossentropy', optimizer='nadam')
+    # outputs.append(TimeDistributed(nested_model)(inputs[0]))
 
-    #nested_sequential_model = Sequential(name="nested_sequential_model")
-    #nested_sequential_model.add(Flatten(input_shape=input_shapes[0][1:]))
-    #nested_sequential_model.compile(optimizer='rmsprop',
+    # nested_sequential_model = Sequential(name="nested_sequential_model")
+    # nested_sequential_model.add(Flatten(input_shape=input_shapes[0][1:]))
+    # nested_sequential_model.compile(optimizer='rmsprop',
     #                                loss='categorical_crossentropy')
-    #outputs.append(TimeDistributed(nested_sequential_model)(inputs[0]))
+    # outputs.append(TimeDistributed(nested_sequential_model)(inputs[0]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='nadam')

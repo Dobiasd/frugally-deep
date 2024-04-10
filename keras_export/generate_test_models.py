@@ -9,7 +9,6 @@ from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import AdditiveAttention
 from tensorflow.keras.layers import Attention
 from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
-from tensorflow.keras.layers import Bidirectional, TimeDistributed
 from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
@@ -27,6 +26,7 @@ from tensorflow.keras.layers import MultiHeadAttention
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
+from tensorflow.keras.layers import TimeDistributed
 from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -836,25 +836,24 @@ def get_test_model_gru_stateful_optional(stateful):
         )(gru_sequences)
         outputs.append(gru_regular)
 
-        gru_bidi_sequences = Bidirectional(
-            GRU(
-                stateful=stateful,
-                units=4,
-                recurrent_activation='hard_sigmoid',
-                reset_after=False,
-                return_sequences=True,
-                use_bias=True
-            )
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        gru_bidi_sequences = GRU(
+            stateful=stateful,
+            units=4,
+            recurrent_activation='hard_sigmoid',
+            reset_after=False,
+            return_sequences=True,
+            use_bias=True
         )(inp)
-        gru_bidi = Bidirectional(
-            GRU(
-                stateful=stateful,
-                units=6,
-                recurrent_activation='sigmoid',
-                reset_after=True,
-                return_sequences=False,
-                use_bias=False
-            )
+
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        gru_bidi = GRU(
+            stateful=stateful,
+            units=6,
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            return_sequences=False,
+            use_bias=False
         )(gru_bidi_sequences)
         outputs.append(gru_bidi)
 
@@ -867,15 +866,14 @@ def get_test_model_gru_stateful_optional(stateful):
             use_bias=True
         )(inp)
 
-        gru_gpu_bidi = Bidirectional(
-            GRU(
-                stateful=stateful,
-                units=3,
-                activation='tanh',
-                recurrent_activation='sigmoid',
-                reset_after=True,
-                use_bias=True
-            )
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        gru_gpu_bidi = GRU(
+            stateful=stateful,
+            units=3,
+            activation='tanh',
+            recurrent_activation='sigmoid',
+            reset_after=True,
+            use_bias=True
         )(inp)
         outputs.append(gru_gpu_regular)
         outputs.append(gru_gpu_bidi)
@@ -1006,24 +1004,24 @@ def get_test_model_lstm_stateful():
         outputs.append(state_h)
         outputs.append(state_c)
         stateful = bool((in_num + 1) % 2)
-        lstm_bidi_sequences = Bidirectional(
-            LSTM(
-                stateful=stateful,
-                units=4,
-                recurrent_activation='hard_sigmoid',
-                return_sequences=True,
-                name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
-            )
+
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        lstm_bidi_sequences = LSTM(
+            stateful=stateful,
+            units=4,
+            recurrent_activation='hard_sigmoid',
+            return_sequences=True,
+            name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
         )(inp)
-        stateful = bool((in_num) % 2)
-        lstm_bidi = Bidirectional(
-            LSTM(
-                stateful=stateful,
-                units=6,
-                recurrent_activation='linear',
-                return_sequences=False,
-                name='bi-lstm2_' + str(in_num) + '_st-' + str(stateful)
-            )
+        stateful = bool(in_num % 2)
+
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        lstm_bidi = LSTM(
+            stateful=stateful,
+            units=6,
+            recurrent_activation='linear',
+            return_sequences=False,
+            name='bi-lstm2_' + str(in_num) + '_st-' + str(stateful)
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
 

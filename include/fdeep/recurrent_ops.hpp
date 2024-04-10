@@ -39,7 +39,14 @@ namespace internal {
 
     inline float_type hard_sigmoid_activation(float_type x)
     {
-        return static_cast<float_type>(std::min(1.0, std::max(0.0, (0.2 * x) + 0.5)));
+        // https://github.com/keras-team/keras/blob/f7bc67e6c105c116a2ba7f5412137acf78174b1a/keras/ops/nn.py#L316C6-L316C74
+        if (x < -3) {
+            return 0;
+        }
+        if (x > 3) {
+            return 1;
+        }
+        return (x / static_cast<float_type>(6)) + static_cast<float_type>(0.5);
     }
 
     inline float_type relu_activation(float_type x)

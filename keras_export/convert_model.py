@@ -167,7 +167,8 @@ def gen_test_data(model):
 
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
-        print("input layer type", type(input_layer).__name__)  # todo: remove
+        print("input input_layer type", type(input_layer).__name__)  # todo: remove
+        print("input_layer._outbound_nodes type", type(input_layer._outbound_nodes).__name__)  # todo: remove
         if input_layer._outbound_nodes and isinstance(
                 get_first_outbound_op(input_layer), Embedding):
             random_fn = lambda size: np.random.randint(

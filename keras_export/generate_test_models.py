@@ -520,7 +520,6 @@ def get_test_model_exhaustive():
 
         x = intermediate_model(x)[0]  # (1, 1, 5)
 
-
         intermediate_model_2 = Sequential(name="intermediate_model_2")
         intermediate_model_2.add(Dense(7, input_shape=(5,)))
         intermediate_model_2.add(Dense(5, name='duplicate_layer_name'))
@@ -614,8 +613,10 @@ def get_test_model_embedding():
         outputs.append(lstm)
 
     outputs.append(CategoryEncoding(1024, output_mode='multi_hot', sparse=False)(inputs[0]))
-    outputs.append(CategoryEncoding(1024, output_mode='count', sparse=False)(inputs[0]))
-    outputs.append(CategoryEncoding(16, output_mode='one_hot', sparse=False)(inputs[2]))
+    # No longer working since TF 2.16: https://github.com/tensorflow/tensorflow/issues/65390
+    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
+    # outputs.append(CategoryEncoding(1024, output_mode='count', sparse=False)(inputs[0]))
+    # outputs.append(CategoryEncoding(16, output_mode='one_hot', sparse=False)(inputs[2]))
     # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
     # outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=True)(inputs[0]))
 

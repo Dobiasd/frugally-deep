@@ -1138,8 +1138,7 @@ namespace internal {
             assertion(args.size() == 1, "invalid args format");
             const std::vector<nlohmann::json> inner_args = args.front();
             return node(fplus::transform(create_node_connection, inner_args));
-        }
-        else {
+        } else {
             return node(fplus::transform(create_node_connection, args));
         }
     }

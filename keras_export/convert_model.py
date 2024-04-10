@@ -72,19 +72,10 @@ def keras_shape_to_fdeep_tensor_shape(raw_shape):
 
 
 def get_layer_input_shape(layer):
-    # todo docstring
-    if hasattr(layer, "batch_input_shape"):
-        return layer.batch_input_shape
-    if hasattr(layer, "input_shape"):
-        return layer.input_shape
+    """It is stored in a different property depending on the situation."""
     if hasattr(layer, "batch_shape"):
         return layer.batch_shape
-    if hasattr(layer, "input"):
-        if hasattr(layer.input, "shape"):
-            return layer.input.shape
-        assert isinstance(layer.input, list)
-        return [inp.shape for inp in layer.input]
-    raise ValueError("Can't get input shape for layer {}".format(layer))
+    return layer.input.shape
 
 
 def get_layer_input_shape_tensor_shape(layer):
@@ -110,7 +101,7 @@ def get_model_input_layers(model):
                 input_layers.append(layer)
             return input_layers
     input_layer_names = [model_input.name for model_input in model.inputs]
-    model_layers = {layer.name : layer for layer in model.layers}
+    model_layers = {layer.name: layer for layer in model.layers}
     return [model_layers[layer_names] for layer_names in input_layer_names]
 
 
@@ -726,33 +717,15 @@ def get_layer_weights(layer, name):
     return result
 
 
-def get_layer_inbound_nodes(layer):
-    # todo: docstring
-    if hasattr(layer, "inbound_nodes"):
-        return layer.inbound_nodes
-    if hasattr(layer, "_inbound_nodes"):
-        return layer._inbound_nodes
-    raise ValueError("Layer has no (_)inbound_nodes")
-
-
-def get_node_kwargs(node):
-    # todo: docstring
-    if hasattr(node, "call_kwargs"):
-        return node.call_kwargs
-    if hasattr(node, "arguments"):
-        return node.arguments.kwargs
-    raise ValueError("Node has no call arguments")
-
-
 def get_all_weights(model, prefix):
     """Serialize all weights of the models layers"""
     result = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
-        for node in get_layer_inbound_nodes(layer):
-            if "training" in get_node_kwargs(node):
-                assert get_node_kwargs(node)["training"] is not True, \
+        for node in layer._inbound_nodes:
+            if "training" in node.arguments.kwargs:
+                assert node.arguments.kwargs["training"] is not True, \
                     "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
         layer_type = type(layer).__name__
         name = prefix + layer.name

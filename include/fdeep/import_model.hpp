@@ -941,7 +941,7 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
-        float_type alpha = 1.0f;
+        float_type alpha = 0.3f;
         if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "alpha")) {
             alpha = data["config"]["alpha"];
         }

@@ -748,7 +748,7 @@ def get_model_name(model):
 
 def convert_sequential_to_model(model):
     """Convert a sequential model to the underlying functional format"""
-    if type(model).__name__ in ['sequential', 'Sequential']:
+    if type(model).__name__ in ['Sequential']:
         name = get_model_name(model)
         inbound_nodes = model._inbound_nodes
         input_layer = Input(batch_shape=get_layer_input_shape(model.layers[0]))

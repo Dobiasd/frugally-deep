@@ -753,19 +753,17 @@ def get_test_model_lstm():
         outputs.append(state_h)
         outputs.append(state_c)
 
-        lstm_bidi_sequences = Bidirectional(
-            LSTM(
-                units=4,
-                recurrent_activation='hard_sigmoid',
-                return_sequences=True
-            )
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        lstm_bidi_sequences = LSTM(
+            units=4,
+            recurrent_activation='hard_sigmoid',
+            return_sequences=True
         )(inp)
-        lstm_bidi = Bidirectional(
-            LSTM(
-                units=6,
-                recurrent_activation='linear',
-                return_sequences=False
-            )
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        lstm_bidi = LSTM(
+            units=6,
+            recurrent_activation='linear',
+            return_sequences=False
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
 
@@ -776,13 +774,12 @@ def get_test_model_lstm():
             use_bias=True
         )(inp)
 
-        lstm_gpu_bidi = Bidirectional(
-            LSTM(
-                units=3,
-                activation='tanh',
-                recurrent_activation='sigmoid',
-                use_bias=True
-            )
+        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
+        lstm_gpu_bidi = LSTM(
+            units=3,
+            activation='tanh',
+            recurrent_activation='sigmoid',
+            use_bias=True
         )(inp)
     outputs.append(lstm_gpu_regular)
     outputs.append(lstm_gpu_bidi)

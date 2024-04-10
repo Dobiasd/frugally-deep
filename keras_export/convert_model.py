@@ -403,8 +403,7 @@ def show_lstm_layer(layer):
     assert not layer.go_backwards
     assert not layer.unroll
     weights = layer.get_weights()
-    if isinstance(layer.input, list):
-        assert len(layer.input) in [1, 3]
+    assert not isinstance(layer.input, list), "LSTM with intial_state not supported"
     assert len(weights) == 2 or len(weights) == 3
     result = {'weights': encode_floats(weights[0]),
               'recurrent_weights': encode_floats(weights[1])}

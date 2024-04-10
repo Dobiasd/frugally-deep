@@ -784,8 +784,9 @@ def get_test_model_lstm():
     outputs.append(lstm_gpu_regular)
     outputs.append(lstm_gpu_bidi)
 
-    outputs.extend(LSTM(units=12, return_sequences=True,
-                        return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
+    # Result of LSTM layer with inital state changes in TensorFlow 2.16
+    #outputs.extend(LSTM(units=12, return_sequences=True,
+    #                    return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
     model.compile(loss='mse', optimizer='nadam')

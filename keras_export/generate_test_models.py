@@ -784,7 +784,7 @@ def get_test_model_lstm():
     outputs.append(lstm_gpu_regular)
     outputs.append(lstm_gpu_bidi)
 
-    # Result of LSTM layer with inital state changes in TensorFlow 2.16
+    # Result of LSTM layer with initial state changes in TensorFlow 2.16
     #outputs.extend(LSTM(units=12, return_sequences=True,
     #                    return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
 
@@ -1026,13 +1026,15 @@ def get_test_model_lstm_stateful():
         )(lstm_bidi_sequences)
         outputs.append(lstm_bidi)
 
-    initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True,
-                                  name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
-    outputs.extend(initial_state_stateful)
-    initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
-                                      name='initial_state_not_stateful')(inputs[2],
-                                                                         initial_state=[inputs[3], inputs[4]])
-    outputs.extend(initial_state_not_stateful)
+    # Result of LSTM layer with initial state changes in TensorFlow 2.16
+    #initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True,
+    #                              name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
+    #outputs.extend(initial_state_stateful)
+    #initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
+    #                                  name='initial_state_not_stateful')(inputs[2],
+    #                                                                     initial_state=[inputs[3], inputs[4]])
+    #outputs.extend(initial_state_not_stateful)
+
     model = Model(inputs=inputs, outputs=outputs)
     model.compile(loss='mean_squared_error', optimizer='nadam')
 

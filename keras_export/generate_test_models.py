@@ -9,24 +9,21 @@ from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import AdditiveAttention
 from tensorflow.keras.layers import Attention
 from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
-from tensorflow.keras.layers import CategoryEncoding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
-from tensorflow.keras.layers import Embedding, Normalization, Rescaling, Resizing
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from tensorflow.keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
 from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
-from tensorflow.keras.layers import LSTM, GRU
 from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from tensorflow.keras.layers import MaxPooling3D, AveragePooling3D
 from tensorflow.keras.layers import MultiHeadAttention
 from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
+from tensorflow.keras.layers import Normalization, Rescaling, Resizing
 from tensorflow.keras.layers import Permute, Reshape, RepeatVector
 from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
-from tensorflow.keras.layers import TimeDistributed
 from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
 from tensorflow.keras.models import Model, load_model, Sequential
 
@@ -583,314 +580,6 @@ def get_test_model_exhaustive():
     return model
 
 
-def get_test_model_embedding():
-    """Returns a minimalistic test model for the embedding layer."""
-
-    input_dims = [
-        1023,  # maximum integer value in input data
-        255,
-        15,
-    ]
-    input_shapes = [
-        (100,),  # must be single-element tuple (for sequence length)
-        (1000,),
-        (1,),
-    ]
-    assert len(input_dims) == len(input_shapes)
-    output_dims = [8, 3]  # embedding dimension
-
-    inputs = [Input(shape=s) for s in input_shapes]
-
-    outputs = []
-    for k in range(2):
-        embedding = Embedding(input_dim=input_dims[k], output_dim=output_dims[k])(inputs[k])
-        lstm = LSTM(
-            units=4,
-            recurrent_activation='sigmoid',
-            return_sequences=False
-        )(embedding)
-
-        outputs.append(lstm)
-
-    outputs.append(CategoryEncoding(1024, output_mode='multi_hot', sparse=False)(inputs[0]))
-    # No longer working since TF 2.16: https://github.com/tensorflow/tensorflow/issues/65390
-    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
-    # outputs.append(CategoryEncoding(1024, output_mode='count', sparse=False)(inputs[0]))
-    # outputs.append(CategoryEncoding(16, output_mode='one_hot', sparse=False)(inputs[2]))
-    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
-    # outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=True)(inputs[0]))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
-    model.compile(loss='mse', optimizer='adam')
-
-    # fit to dummy data
-    training_data_size = 2
-    data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=1)
-    return model
-
-
-def get_test_model_recurrent():
-    """Returns a minimalistic test model for recurrent layers."""
-    input_shapes = [
-        (17, 4),
-        (1, 10),
-        (20, 40),
-        (6, 7, 10, 3)
-    ]
-
-    outputs = []
-
-    inputs = [Input(shape=s) for s in input_shapes]
-
-    inp = PReLU()(inputs[0])
-
-    # todo: Use Bidirectional with merge_mode concat again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-    lstm = LSTM(units=4,
-                return_sequences=True,
-                bias_initializer='random_uniform',  # default is zero use random to test computation
-                activation='tanh',
-                recurrent_activation='relu')(inp)
-
-    # todo: Use Bidirectional with merge_mode sum again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-    lstm2 = LSTM(units=6,
-                 return_sequences=True,
-                 bias_initializer='random_uniform',
-                 activation='elu',
-                 recurrent_activation='hard_sigmoid')(lstm)
-
-    lstm3 = LSTM(units=10,
-                 return_sequences=False,
-                 bias_initializer='random_uniform',
-                 activation='selu',
-                 recurrent_activation='sigmoid')(lstm2)
-
-    outputs.append(lstm3)
-
-    conv1 = Conv1D(2, 1, activation='sigmoid')(inputs[1])
-    lstm4 = LSTM(units=15,
-                 return_sequences=False,
-                 bias_initializer='random_uniform',
-                 activation='tanh',
-                 recurrent_activation='elu')(conv1)
-
-    dense = (Dense(23, activation='sigmoid'))(lstm4)
-    outputs.append(dense)
-
-    time_dist_1 = TimeDistributed(Conv2D(2, (3, 3), use_bias=True))(inputs[3])
-    flatten_1 = TimeDistributed(Flatten())(time_dist_1)
-
-    # todo: Use Bidirectional with merge_mode ave again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-    outputs.append(LSTM(units=6,
-                        return_sequences=True,
-                        bias_initializer='random_uniform',
-                        activation='tanh',
-                        recurrent_activation='sigmoid')(flatten_1))
-
-    outputs.append(TimeDistributed(MaxPooling2D(2, 2))(inputs[3]))
-    outputs.append(TimeDistributed(AveragePooling2D(2, 2))(inputs[3]))
-    outputs.append(TimeDistributed(BatchNormalization())(inputs[3]))
-
-    # No longer working since TF 2.16, see: https://github.com/tensorflow/tensorflow/issues/65393
-    # nested_inputs = Input(shape=input_shapes[0][1:])
-    # nested_x = Dense(5, activation='relu')(nested_inputs)
-    # nested_predictions = Dense(3, activation='softmax')(nested_x)
-    # nested_model = Model(inputs=nested_inputs, outputs=nested_predictions)
-    # nested_model.compile(loss='categorical_crossentropy', optimizer='nadam')
-    # outputs.append(TimeDistributed(nested_model)(inputs[0]))
-
-    # nested_sequential_model = Sequential(name="nested_sequential_model")
-    # nested_sequential_model.add(Flatten(input_shape=input_shapes[0][1:]))
-    # nested_sequential_model.compile(optimizer='rmsprop',
-    #                                loss='categorical_crossentropy')
-    # outputs.append(TimeDistributed(nested_sequential_model)(inputs[0]))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_recurrent')
-    model.compile(loss='mse', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = 2
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
-    return model
-
-
-def get_test_model_lstm():
-    """Returns a test model for Long Short-Term Memory (LSTM) layers."""
-
-    input_shapes = [
-        (17, 4),
-        (1, 10),
-        (None, 4),
-        (12,),
-        (12,)
-    ]
-    inputs = [Input(shape=s) for s in input_shapes]
-    outputs = []
-
-    for inp in inputs[:2]:
-        lstm_sequences = LSTM(
-            units=8,
-            recurrent_activation='relu',
-            return_sequences=True
-        )(inp)
-        lstm_regular = LSTM(
-            units=3,
-            recurrent_activation='sigmoid',
-            return_sequences=False
-        )(lstm_sequences)
-        outputs.append(lstm_regular)
-        lstm_state, state_h, state_c = LSTM(
-            units=3,
-            recurrent_activation='sigmoid',
-            return_state=True
-        )(inp)
-        outputs.append(lstm_state)
-        outputs.append(state_h)
-        outputs.append(state_c)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        lstm_bidi_sequences = LSTM(
-            units=4,
-            recurrent_activation='hard_sigmoid',
-            return_sequences=True
-        )(inp)
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        lstm_bidi = LSTM(
-            units=6,
-            recurrent_activation='linear',
-            return_sequences=False
-        )(lstm_bidi_sequences)
-        outputs.append(lstm_bidi)
-
-        lstm_gpu_regular = LSTM(
-            units=3,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            use_bias=True
-        )(inp)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        lstm_gpu_bidi = LSTM(
-            units=3,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            use_bias=True
-        )(inp)
-    outputs.append(lstm_gpu_regular)
-    outputs.append(lstm_gpu_bidi)
-
-    # Result of LSTM layer with initial state changes in TensorFlow 2.16
-    #outputs.extend(LSTM(units=12, return_sequences=True,
-    #                    return_state=True)(inputs[2], initial_state=[inputs[3], inputs[4]]))
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_lstm')
-    model.compile(loss='mse', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = 2
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=10)
-    return model
-
-
-def get_test_model_gru():
-    return get_test_model_gru_stateful_optional(False)
-
-
-def get_test_model_gru_stateful():
-    return get_test_model_gru_stateful_optional(True)
-
-
-def get_test_model_gru_stateful_optional(stateful):
-    """Returns a test model for Gated Recurrent Unit (GRU) layers."""
-    input_shapes = [
-        (17, 4),
-        (1, 10)
-    ]
-    stateful_batch_size = 1
-    inputs = [Input(batch_shape=(stateful_batch_size,) + s) for s in input_shapes]
-    outputs = []
-
-    for inp in inputs:
-        gru_sequences = GRU(
-            stateful=stateful,
-            units=8,
-            recurrent_activation='relu',
-            reset_after=True,
-            return_sequences=True,
-            use_bias=True
-        )(inp)
-        gru_regular = GRU(
-            stateful=stateful,
-            units=3,
-            recurrent_activation='sigmoid',
-            reset_after=True,
-            return_sequences=False,
-            use_bias=False
-        )(gru_sequences)
-        outputs.append(gru_regular)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        gru_bidi_sequences = GRU(
-            stateful=stateful,
-            units=4,
-            recurrent_activation='hard_sigmoid',
-            reset_after=False,
-            return_sequences=True,
-            use_bias=True
-        )(inp)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        gru_bidi = GRU(
-            stateful=stateful,
-            units=6,
-            recurrent_activation='sigmoid',
-            reset_after=True,
-            return_sequences=False,
-            use_bias=False
-        )(gru_bidi_sequences)
-        outputs.append(gru_bidi)
-
-        gru_gpu_regular = GRU(
-            stateful=stateful,
-            units=3,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            reset_after=True,
-            use_bias=True
-        )(inp)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        gru_gpu_bidi = GRU(
-            stateful=stateful,
-            units=3,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            reset_after=True,
-            use_bias=True
-        )(inp)
-        outputs.append(gru_gpu_regular)
-        outputs.append(gru_gpu_bidi)
-
-    model = Model(inputs=inputs, outputs=outputs, name='test_model_gru')
-    model.compile(loss='mse', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = stateful_batch_size
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
-    return model
-
-
 def get_test_model_variable():
     """Returns a model with variably shaped input tensors."""
 
@@ -963,91 +652,6 @@ def get_test_model_sequential():
     return model
 
 
-def get_test_model_lstm_stateful():
-    stateful_batch_size = 1
-    input_shapes = [
-        (17, 4),
-        (1, 10),
-        (None, 4),
-        (12,),
-        (12,)
-    ]
-
-    inputs = [Input(batch_shape=(stateful_batch_size,) + s) for s in input_shapes]
-    outputs = []
-    for in_num, inp in enumerate(inputs[:2]):
-        stateful = bool((in_num + 1) % 2)
-        lstm_sequences = LSTM(
-            stateful=stateful,
-            units=8,
-            recurrent_activation='relu',
-            return_sequences=True,
-            name='lstm_sequences_' + str(in_num) + '_st-' + str(stateful)
-        )(inp)
-        stateful = bool((in_num) % 2)
-        lstm_regular = LSTM(
-            stateful=stateful,
-            units=3,
-            recurrent_activation='sigmoid',
-            return_sequences=False,
-            name='lstm_regular_' + str(in_num) + '_st-' + str(stateful)
-        )(lstm_sequences)
-        outputs.append(lstm_regular)
-        stateful = bool((in_num + 1) % 2)
-        lstm_state, state_h, state_c = LSTM(
-            stateful=stateful,
-            units=3,
-            recurrent_activation='sigmoid',
-            return_state=True,
-            name='lstm_state_return_' + str(in_num) + '_st-' + str(stateful)
-        )(inp)
-        outputs.append(lstm_state)
-        outputs.append(state_h)
-        outputs.append(state_c)
-        stateful = bool((in_num + 1) % 2)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        lstm_bidi_sequences = LSTM(
-            stateful=stateful,
-            units=4,
-            recurrent_activation='hard_sigmoid',
-            return_sequences=True,
-            name='bi-lstm1_' + str(in_num) + '_st-' + str(stateful)
-        )(inp)
-        stateful = bool(in_num % 2)
-
-        # todo: Use Bidirectional again when TF bug is fixed: https://github.com/tensorflow/tensorflow/issues/65395
-        lstm_bidi = LSTM(
-            stateful=stateful,
-            units=6,
-            recurrent_activation='linear',
-            return_sequences=False,
-            name='bi-lstm2_' + str(in_num) + '_st-' + str(stateful)
-        )(lstm_bidi_sequences)
-        outputs.append(lstm_bidi)
-
-    # Result of LSTM layer with initial state changes in TensorFlow 2.16
-    #initial_state_stateful = LSTM(units=12, return_sequences=True, stateful=True, return_state=True,
-    #                              name='initial_state_stateful')(inputs[2], initial_state=[inputs[3], inputs[4]])
-    #outputs.extend(initial_state_stateful)
-    #initial_state_not_stateful = LSTM(units=12, return_sequences=False, stateful=False, return_state=True,
-    #                                  name='initial_state_not_stateful')(inputs[2],
-    #                                                                     initial_state=[inputs[3], inputs[4]])
-    #outputs.extend(initial_state_not_stateful)
-
-    model = Model(inputs=inputs, outputs=outputs)
-    model.compile(loss='mean_squared_error', optimizer='nadam')
-
-    # fit to dummy data
-    training_data_size = stateful_batch_size
-    data_in = generate_input_data(training_data_size, input_shapes)
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-
-    model.fit(data_in, data_out, batch_size=stateful_batch_size, epochs=10)
-    return model
-
-
 def main():
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
@@ -1059,14 +663,8 @@ def main():
 
         get_model_functions = {
             'exhaustive': get_test_model_exhaustive,
-            'embedding': get_test_model_embedding,
-            'recurrent': get_test_model_recurrent,
-            'lstm': get_test_model_lstm,
-            'gru': get_test_model_gru,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
-            'lstm_stateful': get_test_model_lstm_stateful,
-            'gru_stateful': get_test_model_gru_stateful
         }
 
         if not model_name in get_model_functions:
@@ -1083,7 +681,7 @@ def main():
         # see https://github.com/fchollet/keras/issues/7682
         model = load_model(dest_path)
         model.summary()
-        # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)  #### DEBUG stateful
+        # plot_model(model, to_file= str(model_name) + '.png', show_shapes=True, show_layer_names=True)
 
 
 if __name__ == "__main__":

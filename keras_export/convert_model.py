@@ -9,9 +9,8 @@ import hashlib
 import json
 
 import numpy as np
-import tensorflow as tf
 from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input, Embedding, CategoryEncoding
+from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
@@ -21,42 +20,6 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 STORE_FLOATS_HUMAN_READABLE = False
-
-
-def transform_input_kernel(kernel):
-    """Transforms weights of a single CuDNN input kernel into the regular Keras format."""
-    return kernel.T.reshape(kernel.shape, order='F')
-
-
-def transform_recurrent_kernel(kernel):
-    """Transforms weights of a single CuDNN recurrent kernel into the regular Keras format."""
-    return kernel.T
-
-
-def transform_kernels(kernels, n_gates, transform_func):
-    """
-    Transforms CuDNN kernel matrices (either LSTM or GRU) into the regular Keras format.
-
-    Parameters
-    ----------
-    kernels : numpy.ndarray
-        Composite matrix of input or recurrent kernels.
-    n_gates : int
-        Number of recurrent unit gates, 3 for GRU, 4 for LSTM.
-    transform_func: function(numpy.ndarray)
-        Function to apply to each input or recurrent kernel.
-
-    Returns
-    -------
-    numpy.ndarray
-        Transformed composite matrix of input or recurrent kernels in C-contiguous layout.
-    """
-    return np.require(np.hstack([transform_func(kernel) for kernel in np.hsplit(kernels, n_gates)]), requirements='C')
-
-
-def transform_bias(bias):
-    """Transforms bias weights of an LSTM layer into the regular Keras format."""
-    return np.sum(np.split(bias, 2, axis=0), axis=0)
 
 
 def int_or_none(value):
@@ -125,34 +88,6 @@ def get_first_outbound_op(layer):
     return layer._outbound_nodes[0].operation
 
 
-def are_embedding_layer_positions_ok_for_testing(model):
-    """
-    Test data can only be generated if all embeddings layers
-    are positioned directly behind the input nodes
-    """
-
-    def embedding_layer_names(model):
-        layers = model.layers
-        result = set()
-        for layer in layers:
-            if isinstance(layer, Embedding):
-                result.add(layer.name)
-        layer_type = type(layer).__name__
-        if layer_type in ['Model', 'Sequential', 'Functional']:
-            result.union(embedding_layer_names(layer))
-        return result
-
-    def embedding_layer_names_at_input_nodes(model):
-        result = set()
-        for input_layer in get_model_input_layers(model):
-            if input_layer._outbound_nodes and isinstance(
-                    get_first_outbound_op(input_layer), Embedding):
-                result.add(get_first_outbound_op(input_layer).name)
-        return set(result)
-
-    return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
-
-
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -167,24 +102,9 @@ def gen_test_data(model):
 
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
-        print("input input_layer type", type(input_layer).__name__)  # todo: remove
-        print("input_layer._outbound_nodes type", type(input_layer._outbound_nodes).__name__)  # todo: remove
-        if input_layer._outbound_nodes and isinstance(
-                get_first_outbound_op(input_layer), Embedding):
-            random_fn = lambda size: np.random.randint(
-                0, get_first_outbound_op(input_layer).input_dim, size)
-        elif input_layer._outbound_nodes and isinstance(
-                get_first_outbound_op(input_layer), CategoryEncoding):
-            random_fn = lambda size: np.random.randint(
-                0, get_first_outbound_op(input_layer).num_tokens, size)
-        else:
-            random_fn = np.random.normal
         shape = get_layer_input_shape(input_layer)
-        return random_fn(
+        return np.random.normal(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
-
-    assert are_embedding_layer_positions_ok_for_testing(
-        model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -192,11 +112,7 @@ def gen_test_data(model):
     test_runs = 5
     for i in range(warm_up_runs):
         if i == 0:
-            # store the results of first call for the test
-            # this is because states of recurrent layers is 0.
-            # cannot call model.reset_states() in some cases in keras without an error.
-            # an error occurs when recurrent layer is stateful and the initial state is passed as input
-            data_out_test, duration = measure_predict(model, data_in)
+            data_out_test, _ = measure_predict(model, data_in)
         else:
             measure_predict(model, data_in)
     duration_sum = 0
@@ -388,132 +304,6 @@ def show_prelu_layer(layer):
     return result
 
 
-def show_embedding_layer(layer):
-    """Serialize Embedding layer to dict"""
-    weights = layer.get_weights()
-    assert len(weights) == 1
-    result = {
-        'weights': encode_floats(weights[0])
-    }
-    return result
-
-
-def show_lstm_layer(layer):
-    """Serialize LSTM layer to dict"""
-    assert not layer.go_backwards
-    assert not layer.unroll
-    weights = layer.get_weights()
-    assert not isinstance(layer.input, list), "LSTM with intial_state not supported"
-    assert len(weights) == 2 or len(weights) == 3
-    result = {'weights': encode_floats(weights[0]),
-              'recurrent_weights': encode_floats(weights[1])}
-
-    if len(weights) == 3:
-        result['bias'] = encode_floats(weights[2])
-
-    return result
-
-
-def show_gru_layer(layer):
-    """Serialize GRU layer to dict"""
-    assert not layer.go_backwards
-    assert not layer.unroll
-    assert not layer.return_state
-    weights = layer.get_weights()
-    assert len(weights) == 2 or len(weights) == 3
-    result = {'weights': encode_floats(weights[0]),
-              'recurrent_weights': encode_floats(weights[1])}
-
-    if len(weights) == 3:
-        result['bias'] = encode_floats(weights[2])
-
-    return result
-
-
-def transform_cudnn_weights(input_weights, recurrent_weights, n_gates):
-    return transform_kernels(input_weights, n_gates, transform_input_kernel), \
-        transform_kernels(recurrent_weights, n_gates, transform_recurrent_kernel)
-
-
-def show_cudnn_lstm_layer(layer):
-    """Serialize a GPU-trained LSTM layer to dict"""
-    weights = layer.get_weights()
-    if isinstance(layer.input, list):
-        assert len(layer.input) in [1, 3]
-    assert len(weights) == 3  # CuDNN LSTM always has a bias
-
-    n_gates = 4
-    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
-
-    result = {'weights': encode_floats(input_weights),
-              'recurrent_weights': encode_floats(recurrent_weights),
-              'bias': encode_floats(transform_bias(weights[2]))}
-
-    return result
-
-
-def show_cudnn_gru_layer(layer):
-    """Serialize a GPU-trained GRU layer to dict"""
-    weights = layer.get_weights()
-    assert len(weights) == 3  # CuDNN GRU always has a bias
-
-    n_gates = 3
-    input_weights, recurrent_weights = transform_cudnn_weights(weights[0], weights[1], n_gates)
-
-    result = {'weights': encode_floats(input_weights),
-              'recurrent_weights': encode_floats(recurrent_weights),
-              'bias': encode_floats(weights[2])}
-
-    return result
-
-
-def get_transform_func(layer):
-    """Returns functions that can be applied to layer weights to transform them into the standard Keras format, if applicable."""
-    if layer.__class__.__name__ in ['CuDNNGRU', 'CuDNNLSTM']:
-        if layer.__class__.__name__ == 'CuDNNGRU':
-            n_gates = 3
-        elif layer.__class__.__name__ == 'CuDNNLSTM':
-            n_gates = 4
-
-        input_transform_func = lambda kernels: transform_kernels(kernels, n_gates, transform_input_kernel)
-        recurrent_transform_func = lambda kernels: transform_kernels(kernels, n_gates, transform_recurrent_kernel)
-    else:
-        input_transform_func = lambda kernels: kernels
-        recurrent_transform_func = lambda kernels: kernels
-
-    if layer.__class__.__name__ == 'CuDNNLSTM':
-        bias_transform_func = transform_bias
-    else:
-        bias_transform_func = lambda bias: bias
-
-    return input_transform_func, recurrent_transform_func, bias_transform_func
-
-
-def show_bidirectional_layer(layer):
-    """Serialize Bidirectional layer to dict"""
-    forward_weights = layer.forward_layer.get_weights()
-    assert len(forward_weights) == 2 or len(forward_weights) == 3
-    forward_input_transform_func, forward_recurrent_transform_func, forward_bias_transform_func = get_transform_func(
-        layer.forward_layer)
-
-    backward_weights = layer.backward_layer.get_weights()
-    assert len(backward_weights) == 2 or len(backward_weights) == 3
-    backward_input_transform_func, backward_recurrent_transform_func, backward_bias_transform_func = get_transform_func(
-        layer.backward_layer)
-
-    result = {'forward_weights': encode_floats(forward_input_transform_func(forward_weights[0])),
-              'forward_recurrent_weights': encode_floats(forward_recurrent_transform_func(forward_weights[1])),
-              'backward_weights': encode_floats(backward_input_transform_func(backward_weights[0])),
-              'backward_recurrent_weights': encode_floats(backward_recurrent_transform_func(backward_weights[1]))}
-
-    if len(forward_weights) == 3:
-        result['forward_bias'] = encode_floats(forward_bias_transform_func(forward_weights[2]))
-    if len(backward_weights) == 3:
-        result['backward_bias'] = encode_floats(backward_bias_transform_func(backward_weights[2]))
-
-    return result
-
-
 def show_input_layer(layer):
     """Serialize input layer to dict"""
     assert not layer.sparse
@@ -548,11 +338,6 @@ def show_resizing_layer(layer):
 def show_rescaling_layer(layer):
     """Serialize Rescaling layer to dict"""
     assert isinstance(layer.scale, float)
-
-
-def show_category_encoding_layer(layer):
-    """Serialize CategoryEncoding layer to dict"""
-    assert layer.output_mode in ["multi_hot", "count", "one_hot"]
 
 
 def show_attention_layer(layer):
@@ -596,13 +381,7 @@ def get_layer_functions_dict():
         'Dense': show_dense_layer,
         'Dot': show_dot_layer,
         'PReLU': show_prelu_layer,
-        'Embedding': show_embedding_layer,
         'LayerNormalization': show_layer_normalization_layer,
-        'LSTM': show_lstm_layer,
-        'GRU': show_gru_layer,
-        'CuDNNLSTM': show_cudnn_lstm_layer,
-        'CuDNNGRU': show_cudnn_gru_layer,
-        'Bidirectional': show_bidirectional_layer,
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
         'Softmax': show_softmax_layer,
@@ -610,7 +389,6 @@ def get_layer_functions_dict():
         'UpSampling2D': show_upsampling2d_layer,
         'Resizing': show_resizing_layer,
         'Rescaling': show_rescaling_layer,
-        'CategoryEncoding': show_category_encoding_layer,
         'Attention': show_attention_layer,
         'AdditiveAttention': show_additive_attention_layer,
         'MultiHeadAttention': show_multi_head_attention_layer,
@@ -880,19 +658,6 @@ def model_to_fdeep_json(model, no_tests=False):
     return json_output
 
 
-def workaround_cudnn_not_found_problem():
-    """
-    Applies a workaround for a tensorflow issue that causes a misleading
-    error about cuDNN not being found when the model contains a GRU and
-    this script is run with tensorflow-gpu on a machine with available GPUs.
-    See https://github.com/tensorflow/tensorflow/issues/36508
-    and https://github.com/keras-team/keras/issues/10634
-    """
-    gpus = tf.config.experimental.list_physical_devices('GPU')
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-
-
 def assert_model_type(model):
     import keras
     assert type(model) in [keras.src.models.sequential.Sequential, keras.src.models.functional.Functional]
@@ -900,9 +665,6 @@ def assert_model_type(model):
 
 def convert(in_path, out_path, no_tests=False):
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""
-
-    workaround_cudnn_not_found_problem()
-
     print('loading {}'.format(in_path))
     model = load_model(in_path, compile=False)
     json_output = model_to_fdeep_json(model, no_tests)

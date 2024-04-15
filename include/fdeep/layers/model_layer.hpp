@@ -44,19 +44,6 @@ namespace internal {
             assertion(node_idx < nodes_.size(), "invalid node index");
             return layer::get_output(layers, output_cache, node_idx, tensor_idx);
         }
-        void reset_states() override
-        {
-            for (const auto& single_layer : layers_) {
-                single_layer->reset_states();
-            }
-        }
-        bool is_stateful() const override
-        {
-            return fplus::any_by([](const auto& single_layer) {
-                return single_layer->is_stateful();
-            },
-                layers_);
-        }
 
     protected:
         tensors apply_impl(const tensors& inputs) const override

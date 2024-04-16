@@ -20,17 +20,7 @@ namespace fdeep {
 class model {
 public:
     // A single forward pass (no batches).
-    // Will raise an exception when used with a stateful model.
-    // For those, use predict_stateful instead.
     tensors predict(const tensors& inputs) const
-    {
-        internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not const. Use predict_stateful instead.");
-        return predict_impl(inputs);
-    }
-
-    // A single forward pass, supporting stateful models.
-    tensors predict_stateful(const tensors& inputs)
     {
         return predict_impl(inputs);
     }
@@ -41,8 +31,6 @@ public:
     std::vector<tensors> predict_multi(const std::vector<tensors>& inputs_vec,
         bool parallelly) const
     {
-        internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not thread-safe.");
         const auto f = [this](const tensors& inputs) -> tensors {
             return predict(inputs);
         };
@@ -59,13 +47,6 @@ public:
     // Returns the index of the output neuron with the maximum activation.
     std::size_t predict_class(const tensors& inputs) const
     {
-        internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not const. Use predict_class_stateful instead.");
-        return predict_class_with_confidence_impl(inputs).first;
-    }
-
-    std::size_t predict_class_stateful(const tensors& inputs)
-    {
         return predict_class_with_confidence_impl(inputs).first;
     }
 
@@ -74,15 +55,7 @@ public:
     std::pair<std::size_t, float_type>
     predict_class_with_confidence(const tensors& inputs) const
     {
-        internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not const. Use predict_class_with_confidence_stateful instead.");
         return predict_class_with_confidence_impl(inputs);
-    }
-
-    std::pair<std::size_t, float_type>
-    predict_class_with_confidence_stateful(const tensors& inputs)
-    {
-        return predict_class_with_confidence_stateful_impl(inputs);
     }
 
     // Convenience wrapper around predict for models with
@@ -91,14 +64,7 @@ public:
     // Returns this one activation value.
     float_type predict_single_output(const tensors& inputs) const
     {
-        internal::assertion(!is_stateful(),
-            "Prediction on stateful models is not const. Use predict_single_output_stateful instead.");
         return predict_single_output_impl(inputs);
-    }
-
-    float_type predict_single_output_stateful(const tensors& inputs)
-    {
-        return predict_single_output_stateful_impl(inputs);
     }
 
     const std::vector<tensor_shape_variable>& get_input_shapes() const
@@ -137,15 +103,6 @@ public:
         return stopwatch.elapsed();
     }
 
-    // Measure time of one single forward pass using dummy input data.
-    double test_speed_stateful()
-    {
-        const auto inputs = generate_dummy_inputs();
-        fplus::stopwatch stopwatch;
-        predict_stateful(inputs);
-        return stopwatch.elapsed();
-    }
-
     const std::string& name() const
     {
         return model_layer_->name_;
@@ -154,16 +111,6 @@ public:
     const std::string& hash() const
     {
         return hash_;
-    }
-
-    void reset_states()
-    {
-        model_layer_->reset_states();
-    }
-
-    bool is_stateful() const
-    {
-        return model_layer_->is_stateful();
     }
 
 private:
@@ -219,30 +166,6 @@ private:
     float_type predict_single_output_impl(const tensors& inputs) const
     {
         const tensors outputs = predict(inputs);
-        internal::assertion(outputs.size() == 1,
-            "invalid number of outputs");
-        const auto output_shape = outputs.front().shape();
-        internal::assertion(output_shape.volume() == 1,
-            "invalid output shape");
-        return to_singleton_value(outputs.front());
-    }
-
-    std::pair<std::size_t, float_type>
-    predict_class_with_confidence_stateful_impl(const tensors& inputs)
-    {
-        const tensors outputs = predict_stateful(inputs);
-        internal::assertion(outputs.size() == 1,
-            std::string("invalid number of outputs.\n") + "Use model::predict instead of model::predict_class.");
-        const auto output_shape = outputs.front().shape();
-        internal::assertion(output_shape.without_depth().area() == 1,
-            std::string("invalid output shape.\n") + "Use model::predict instead of model::predict_class.");
-        const auto pos = internal::tensor_max_pos(outputs.front());
-        return std::make_pair(pos.z_, outputs.front().get(pos));
-    }
-
-    float_type predict_single_output_stateful_impl(const tensors& inputs)
-    {
-        const tensors outputs = predict_stateful(inputs);
         internal::assertion(outputs.size() == 1,
             "invalid number of outputs");
         const auto output_shape = outputs.front().shape();
@@ -341,7 +264,6 @@ inline model read_model(std::istream& model_file_stream,
                 check_test_outputs(verify_epsilon, output, tests[i].output_);
             }
         }
-        full_model.reset_states();
     }
 
     return full_model;

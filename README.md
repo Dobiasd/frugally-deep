@@ -41,7 +41,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 * `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
-* `Bidirectional`, `TimeDistributed`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`
+* `TimeDistributed`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
@@ -81,6 +81,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `LSTMCell`, `Masking`,
 `RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
+`Bidirectional`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`,
 `ThresholdedReLU`, `Upsampling3D`, `temporal` models
 
 Usage
@@ -139,7 +140,7 @@ Requirements and Installation
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.7 or higher
-- TensorFlow 2.15.0 (These are the tested versions, but somewhat older ones might work too.)
+- TensorFlow 2.16.1 (These are the tested versions, but somewhat older ones might work too.)
 
 Guides for different ways to install frugally-deep can be found in [`INSTALL.md`](INSTALL.md).
 

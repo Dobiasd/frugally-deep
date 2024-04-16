@@ -33,7 +33,6 @@
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
-#include "fdeep/layers/bidirectional_layer.hpp"
 #include "fdeep/layers/category_encoding_layer.hpp"
 #include "fdeep/layers/centercrop_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
@@ -49,14 +48,12 @@
 #include "fdeep/layers/gelu_layer.hpp"
 #include "fdeep/layers/global_average_pooling_3d_layer.hpp"
 #include "fdeep/layers/global_max_pooling_3d_layer.hpp"
-#include "fdeep/layers/gru_layer.hpp"
 #include "fdeep/layers/hard_sigmoid_layer.hpp"
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/layer_normalization_layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
-#include "fdeep/layers/lstm_layer.hpp"
 #include "fdeep/layers/max_pooling_3d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
@@ -319,12 +316,22 @@ namespace internal {
         return create_vector<tensor_shape_variable>(create_tensor_shape_variable, data);
     }
 
-    inline node_connection create_node_connection(const nlohmann::json& data)
+    inline node_connection create_node_connection_model_layer(const nlohmann::json& data)
     {
         assertion(data.is_array(), "invalid format for inbound node");
         const std::string layer_id = data.front();
         const auto node_idx = create_size_t(data[1]);
         const auto tensor_idx = create_size_t(data[2]);
+        return node_connection(layer_id, node_idx, tensor_idx);
+    }
+
+    inline node_connection create_node_connection(const nlohmann::json& args)
+    {
+        const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
+        assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
+        const std::string layer_id = keras_history[0];
+        const auto node_idx = create_size_t(keras_history[1]);
+        const auto tensor_idx = create_size_t(keras_history[2]);
         return node_connection(layer_id, node_idx, tensor_idx);
     }
 
@@ -375,10 +382,10 @@ namespace internal {
         assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
         const auto inputs = create_vector<node_connection>(
-            create_node_connection, data["config"]["input_layers"]);
+            create_node_connection_model_layer, data["config"]["input_layers"]);
 
         const auto outputs = create_vector<node_connection>(
-            create_node_connection, data["config"]["output_layers"]);
+            create_node_connection_model_layer, data["config"]["output_layers"]);
 
         return std::make_shared<model_layer>(name, layers, inputs, outputs);
     }
@@ -497,7 +504,7 @@ namespace internal {
     {
         assertion(data["inbound_nodes"].empty(),
             "input layer is not allowed to have inbound nodes");
-        const auto input_shape = create_tensor_shape_variable_leading_null(data["config"]["batch_input_shape"]);
+        const auto input_shape = create_tensor_shape_variable_leading_null(data["config"]["batch_shape"]);
         return std::make_shared<input_layer>(name, input_shape);
     }
 
@@ -931,7 +938,7 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
-        float_type alpha = 1.0f;
+        float_type alpha = 0.3f;
         if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "alpha")) {
             alpha = data["config"]["alpha"];
         }
@@ -1085,6 +1092,7 @@ namespace internal {
                 { "tanh", create_tanh_layer },
                 { "sigmoid", create_sigmoid_layer },
                 { "swish", create_swish_layer },
+                { "silu", create_swish_layer },
                 { "hard_sigmoid", create_hard_sigmoid_layer },
                 { "relu", create_relu_layer },
                 { "relu6", create_relu6_layer },
@@ -1121,37 +1129,21 @@ namespace internal {
 
     inline node create_node(const nlohmann::json& inbound_nodes_data)
     {
-        assertion(inbound_nodes_data.is_array(), "nodes need to be an array");
-        return node(create_vector<node_connection>(create_node_connection,
-            inbound_nodes_data));
-    }
-
-    inline nodes create_multi_head_attention_nodes(const std::vector<nlohmann::json> inbound_nodes_data)
-    {
-        assertion(inbound_nodes_data.size() == 1 && inbound_nodes_data.front().size() == 1,
-            "multi_head_attention needs to have exactly one primary inbound node; see https://stackoverflow.com/q/77400589/1866775");
-        const auto inbound_node_data = inbound_nodes_data.front().front();
-        const auto value = inbound_node_data[3]["value"];
-        if (json_obj_has_member(inbound_node_data[3], "key")) {
-            return {
-                node({ create_node_connection(inbound_node_data),
-                    create_node_connection(value),
-                    create_node_connection(inbound_node_data[3]["key"]) })
-            };
+        assertion(inbound_nodes_data["args"].is_array(), "node args need to be an array");
+        std::vector<nlohmann::json> args = inbound_nodes_data["args"];
+        if (args.front().is_array()) {
+            assertion(args.size() == 1, "invalid args format");
+            const std::vector<nlohmann::json> inner_args = args.front();
+            return node(fplus::transform(create_node_connection, inner_args));
+        } else {
+            return node(fplus::transform(create_node_connection, args));
         }
-        return {
-            node({ create_node_connection(inbound_node_data),
-                create_node_connection(value) })
-        };
     }
 
     inline nodes create_nodes(const nlohmann::json& data)
     {
         assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
         const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];
-        if (data["class_name"] == "MultiHeadAttention") {
-            return create_multi_head_attention_nodes(inbound_nodes_data);
-        }
         return fplus::transform(create_node, inbound_nodes_data);
     }
 
@@ -1164,115 +1156,6 @@ namespace internal {
         const float_vec weights = decode_floats(get_param(name, "weights"));
 
         return std::make_shared<embedding_layer>(name, input_dim, output_dim, weights);
-    }
-
-    inline layer_ptr create_lstm_layer(const get_param_f& get_param,
-        const nlohmann::json& data,
-        const std::string& name)
-    {
-        auto&& config = data["config"];
-        const std::size_t units = config["units"];
-        const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
-        const std::string recurrent_activation = json_object_get(config,
-            "recurrent_activation",
-            data["class_name"] == "CuDNNLSTM"
-                ? std::string("sigmoid")
-                : std::string("hard_sigmoid"));
-        const bool use_bias = json_object_get(config, "use_bias", true);
-
-        float_vec bias;
-        if (use_bias)
-            bias = decode_floats(get_param(name, "bias"));
-
-        const float_vec weights = decode_floats(get_param(name, "weights"));
-        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
-        const bool return_sequences = json_object_get(config, "return_sequences", false);
-        const bool return_state = json_object_get(config, "return_state", false);
-        const bool stateful = json_object_get(config, "stateful", false);
-
-        return std::make_shared<lstm_layer>(name, units, unit_activation,
-            recurrent_activation, use_bias,
-            return_sequences, return_state, stateful,
-            weights, recurrent_weights, bias);
-    }
-
-    inline layer_ptr create_gru_layer(const get_param_f& get_param,
-        const nlohmann::json& data,
-        const std::string& name)
-    {
-        auto&& config = data["config"];
-        const std::size_t units = config["units"];
-        const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
-        const std::string recurrent_activation = json_object_get(config,
-            "recurrent_activation",
-            data["class_name"] == "CuDNNGRU"
-                ? std::string("sigmoid")
-                : std::string("hard_sigmoid"));
-
-        const bool use_bias = json_object_get(config, "use_bias", true);
-        const bool return_sequences = json_object_get(config, "return_sequences", false);
-        const bool return_state = json_object_get(config, "return_state", false);
-        const bool stateful = json_object_get(config, "stateful", false);
-
-        float_vec bias;
-        if (use_bias)
-            bias = decode_floats(get_param(name, "bias"));
-
-        const float_vec weights = decode_floats(get_param(name, "weights"));
-        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
-
-        bool reset_after = json_object_get(config,
-            "reset_after",
-            data["class_name"] == "CuDNNGRU");
-
-        return std::make_shared<gru_layer>(name, units, unit_activation,
-            recurrent_activation, use_bias, reset_after,
-            return_sequences, return_state, stateful,
-            weights, recurrent_weights, bias);
-    }
-
-    inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
-        const nlohmann::json& data,
-        const std::string& name)
-    {
-        const std::string merge_mode = data["config"]["merge_mode"];
-        auto&& layer = data["config"]["layer"];
-        auto&& layer_config = layer["config"];
-        const std::string wrapped_layer_type = layer["class_name"];
-        const std::size_t units = layer_config["units"];
-        const std::string unit_activation = json_object_get_activation_with_default(layer_config, "tanh");
-        const std::string recurrent_activation = json_object_get(layer_config,
-            "recurrent_activation",
-            wrapped_layer_type == "CuDNNGRU" || wrapped_layer_type == "CuDNNLSTM"
-                ? std::string("sigmoid")
-                : std::string("hard_sigmoid"));
-        const bool use_bias = json_object_get(layer_config, "use_bias", true);
-
-        float_vec forward_bias;
-        float_vec backward_bias;
-
-        if (use_bias) {
-            forward_bias = decode_floats(get_param(name, "forward_bias"));
-            backward_bias = decode_floats(get_param(name, "backward_bias"));
-        }
-
-        const float_vec forward_weights = decode_floats(get_param(name, "forward_weights"));
-        const float_vec backward_weights = decode_floats(get_param(name, "backward_weights"));
-
-        const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
-        const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
-
-        const bool reset_after = json_object_get(layer_config,
-            "reset_after",
-            wrapped_layer_type == "CuDNNGRU");
-        const bool return_sequences = json_object_get(layer_config, "return_sequences", false);
-        const bool stateful = json_object_get(layer_config, "stateful", false);
-
-        return std::make_shared<bidirectional_layer>(name, merge_mode, units, unit_activation,
-            recurrent_activation, wrapped_layer_type,
-            use_bias, reset_after, return_sequences, stateful,
-            forward_weights, forward_recurrent_weights, forward_bias,
-            backward_weights, backward_recurrent_weights, backward_bias);
     }
 
     inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
@@ -1368,11 +1251,6 @@ namespace internal {
             { "Reshape", create_reshape_layer },
             { "Resizing", create_resizing_layer },
             { "Embedding", create_embedding_layer },
-            { "LSTM", create_lstm_layer },
-            { "CuDNNLSTM", create_lstm_layer },
-            { "GRU", create_gru_layer },
-            { "CuDNNGRU", create_gru_layer },
-            { "Bidirectional", create_bidirectional_layer },
             { "Softmax", create_softmax_layer },
             { "Normalization", create_normalization_layer },
             { "CategoryEncoding", create_category_encoding_layer },
@@ -1403,10 +1281,7 @@ namespace internal {
                 fplus::get_from_map(creators, type))(
                 get_param, data, name);
 
-            if (type != "Activation" && json_obj_has_member(data["config"], "activation")
-                && type != "GRU"
-                && type != "LSTM"
-                && type != "Bidirectional") {
+            if (type != "Activation" && json_obj_has_member(data["config"], "activation")) {
                 const std::string activation = get_activation_type(data["config"]["activation"]);
                 result->set_activation(
                     create_activation_layer_type_name(get_param, data,

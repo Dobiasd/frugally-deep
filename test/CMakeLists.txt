@@ -12,26 +12,6 @@ add_custom_command ( OUTPUT test_model_embedding.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
-add_custom_command ( OUTPUT test_model_recurrent.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.keras"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_lstm.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm test_model_lstm.keras"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_lstm_stateful.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py lstm_stateful test_model_lstm_stateful.keras"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_gru.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru test_model_gru.keras"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_gru_stateful.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py gru_stateful test_model_gru_stateful.keras"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
 add_custom_command ( OUTPUT test_model_variable.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -52,31 +32,6 @@ add_custom_command ( OUTPUT test_model_exhaustive.json
 add_custom_command ( OUTPUT test_model_embedding.json
                      DEPENDS test_model_embedding.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.keras test_model_embedding.json"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_recurrent.json
-                     DEPENDS test_model_recurrent.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_recurrent.keras test_model_recurrent.json"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_lstm.json
-                     DEPENDS test_model_lstm.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm.keras test_model_lstm.json"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_lstm_stateful.json
-                     DEPENDS test_model_lstm_stateful.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_lstm_stateful.keras test_model_lstm_stateful.json"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_gru.json
-                     DEPENDS test_model_gru.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru.keras test_model_gru.json"
-                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
-
-add_custom_command ( OUTPUT test_model_gru_stateful.json
-                     DEPENDS test_model_gru_stateful.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_gru_stateful.keras test_model_gru_stateful.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.json
@@ -107,11 +62,6 @@ endmacro()
 
 _add_test(test_model_exhaustive_test test_model_exhaustive.json)
 _add_test(test_model_embedding_test test_model_embedding.json)
-_add_test(test_model_recurrent_test test_model_recurrent.json)
-_add_test(test_model_lstm_test test_model_lstm.json)
-_add_test(test_model_lstm_stateful_test test_model_lstm_stateful.json)
-_add_test(test_model_gru_test test_model_gru.json)
-_add_test(test_model_gru_stateful_test test_model_gru_stateful.json)
 _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 _add_test(readme_example_main readme_example_model.json)
@@ -119,11 +69,6 @@ _add_test(readme_example_main readme_example_model.json)
 add_custom_target(unittest
   COMMAND test_model_exhaustive_test
   COMMAND test_model_embedding_test
-  COMMAND test_model_recurrent_test
-  COMMAND test_model_lstm_test
-  COMMAND test_model_lstm_stateful_test
-  COMMAND test_model_gru_test
-  COMMAND test_model_gru_stateful_test
   COMMAND test_model_variable_test
   COMMAND test_model_sequential_test
   COMMAND readme_example_main

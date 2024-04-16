@@ -79,18 +79,6 @@ namespace internal {
             return outputs[tensor_idx];
         }
 
-        virtual void reset_states()
-        {
-            // Stateful layers should override that function,
-            // and take care to reset their internal states if appropriate.
-        }
-
-        virtual bool is_stateful() const
-        {
-            return false;
-            // Stateful layers should override that function, with return true.
-        }
-
         std::string name_;
         nodes nodes_;
 

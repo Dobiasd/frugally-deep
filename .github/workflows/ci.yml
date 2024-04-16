@@ -13,7 +13,9 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.15.0"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.16.1"
+          echo "Python version:"
+          python3 --version
           echo "Version numbers of TensorFlow and Keras:"
           python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__)"
           # FunctionalPlus
@@ -54,12 +56,6 @@ jobs:
           cmake .. -DFDEEP_BUILD_UNITTEST=ON
           cmake --build . --target unittest --config Release --
           cd ..
-          # run stateful tests
-          cd test/stateful_test
-          g++ -I../../include -std=c++14 -O3 stateful_recurrent_tests.cpp -o stateful_recurrent_tests_cpp
-          mkdir models
-          python3 stateful_recurrent_tests.py
-          cd ../..
 
 
   formatting-check:

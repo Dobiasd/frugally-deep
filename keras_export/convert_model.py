@@ -88,6 +88,35 @@ def get_first_outbound_op(layer):
     return layer._outbound_nodes[0].operation
 
 
+def are_embedding_and_category_encoding_layer_positions_ok_for_testing(model):
+    """
+    Test data can only be generated if all Embedding layers
+    and CategoryEncoding layers are positioned directly behind the input nodes.
+    """
+
+    def embedding_layer_names(model):
+        layers = model.layers
+        result = set()
+        for layer in layers:
+            if isinstance(layer, Embedding):
+                result.add(layer.name)
+        layer_type = type(layer).__name__
+        if layer_type in ['Model', 'Sequential', 'Functional']:
+            result.union(embedding_layer_names(layer))
+        return result
+
+    def embedding_layer_names_at_input_nodes(model):
+        result = set()
+        for input_layer in get_model_input_layers(model):
+            if input_layer._outbound_nodes and (
+                    isinstance(get_first_outbound_op(input_layer), Embedding) or
+                    isinstance(get_first_outbound_op(input_layer), CategoryEncoding)):
+                result.add(get_first_outbound_op(input_layer).name)
+        return set(result)
+
+    return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
+
+
 def gen_test_data(model):
     """Generate data for model verification test."""
 
@@ -117,6 +146,9 @@ def gen_test_data(model):
         shape = get_layer_input_shape(input_layer)
         return random_fn(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
+
+    assert are_embedding_and_category_encoding_layer_positions_ok_for_testing(
+        model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
 

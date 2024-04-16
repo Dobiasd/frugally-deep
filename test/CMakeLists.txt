@@ -8,6 +8,10 @@ add_custom_command ( OUTPUT test_model_exhaustive.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py exhaustive test_model_exhaustive.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_embedding.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.keras"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_variable.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -25,8 +29,9 @@ add_custom_command ( OUTPUT test_model_exhaustive.json
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_exhaustive.keras test_model_exhaustive.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
-add_custom_command ( OUTPUT test_model_embedding.keras
-                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py embedding test_model_embedding.keras"
+add_custom_command ( OUTPUT test_model_embedding.json
+                     DEPENDS test_model_embedding.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_embedding.keras test_model_embedding.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_variable.json

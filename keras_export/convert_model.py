@@ -10,7 +10,7 @@ import json
 
 import numpy as np
 from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Input, Embedding, CategoryEncoding
 from tensorflow.keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
@@ -102,8 +102,20 @@ def gen_test_data(model):
 
     def generate_input_data(input_layer):
         """Random data fitting the input shape of a layer."""
+        print("input input_layer type", type(input_layer).__name__)  # todo: remove
+        print("input_layer._outbound_nodes type", type(input_layer._outbound_nodes).__name__)  # todo: remove
+        if input_layer._outbound_nodes and isinstance(
+                get_first_outbound_op(input_layer), Embedding):
+            random_fn = lambda size: np.random.randint(
+                0, get_first_outbound_op(input_layer).input_dim, size)
+        elif input_layer._outbound_nodes and isinstance(
+                get_first_outbound_op(input_layer), CategoryEncoding):
+            random_fn = lambda size: np.random.randint(
+                0, get_first_outbound_op(input_layer).num_tokens, size)
+        else:
+            random_fn = np.random.normal
         shape = get_layer_input_shape(input_layer)
-        return np.random.normal(
+        return random_fn(
             size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
 
     data_in = list(map(generate_input_data, get_model_input_layers(model)))
@@ -304,6 +316,16 @@ def show_prelu_layer(layer):
     return result
 
 
+def show_embedding_layer(layer):
+    """Serialize Embedding layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1
+    result = {
+        'weights': encode_floats(weights[0])
+    }
+    return result
+
+
 def show_input_layer(layer):
     """Serialize input layer to dict"""
     assert not layer.sparse
@@ -338,6 +360,11 @@ def show_resizing_layer(layer):
 def show_rescaling_layer(layer):
     """Serialize Rescaling layer to dict"""
     assert isinstance(layer.scale, float)
+
+
+def show_category_encoding_layer(layer):
+    """Serialize CategoryEncoding layer to dict"""
+    assert layer.output_mode in ["multi_hot", "count", "one_hot"]
 
 
 def show_attention_layer(layer):
@@ -381,6 +408,7 @@ def get_layer_functions_dict():
         'Dense': show_dense_layer,
         'Dot': show_dot_layer,
         'PReLU': show_prelu_layer,
+        'Embedding': show_embedding_layer,
         'LayerNormalization': show_layer_normalization_layer,
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
@@ -389,6 +417,7 @@ def get_layer_functions_dict():
         'UpSampling2D': show_upsampling2d_layer,
         'Resizing': show_resizing_layer,
         'Rescaling': show_rescaling_layer,
+        'CategoryEncoding': show_category_encoding_layer,
         'Attention': show_attention_layer,
         'AdditiveAttention': show_additive_attention_layer,
         'MultiHeadAttention': show_multi_head_attention_layer,

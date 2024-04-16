@@ -9,6 +9,7 @@ from tensorflow.keras.layers import ActivityRegularization
 from tensorflow.keras.layers import AdditiveAttention
 from tensorflow.keras.layers import Attention
 from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
+from tensorflow.keras.layers import CategoryEncoding, Embedding
 from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
 from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
@@ -580,6 +581,49 @@ def get_test_model_exhaustive():
     return model
 
 
+def get_test_model_embedding():
+    """Returns a minimalistic test model for the Embedding and CategoryEncoding layers."""
+
+    input_dims = [
+        1023,  # maximum integer value in input data
+        255,
+        15,
+    ]
+    input_shapes = [
+        (100,),  # must be single-element tuple (for sequence length)
+        (1000,),
+        (1,),
+    ]
+    assert len(input_dims) == len(input_shapes)
+    output_dims = [8, 3]  # embedding dimension
+
+    inputs = [Input(shape=s) for s in input_shapes]
+
+    outputs = []
+    for k in range(2):
+        embedding = Embedding(input_dim=input_dims[k], output_dim=output_dims[k])(inputs[k])
+        outputs.append(embedding)
+
+    outputs.append(CategoryEncoding(1024, output_mode='multi_hot', sparse=False)(inputs[0]))
+    # No longer working since TF 2.16: https://github.com/tensorflow/tensorflow/issues/65390
+    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
+    # outputs.append(CategoryEncoding(1024, output_mode='count', sparse=False)(inputs[0]))
+    # outputs.append(CategoryEncoding(16, output_mode='one_hot', sparse=False)(inputs[2]))
+    # Error: Value passed to parameter 'values' has DataType float32 not in list of allowed values: int32, int64
+    # outputs.append(CategoryEncoding(1023, output_mode='multi_hot', sparse=True)(inputs[0]))
+
+    model = Model(inputs=inputs, outputs=outputs, name='test_model_embedding')
+    model.compile(loss='mse', optimizer='adam')
+
+    # fit to dummy data
+    training_data_size = 2
+    data_in = generate_integer_input_data(training_data_size, 0, input_dims, input_shapes)
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=1)
+    return model
+
+
 def get_test_model_variable():
     """Returns a model with variably shaped input tensors."""
 
@@ -663,6 +707,7 @@ def main():
 
         get_model_functions = {
             'exhaustive': get_test_model_exhaustive,
+            'embedding': get_test_model_embedding,
             'variable': get_test_model_variable,
             'sequential': get_test_model_sequential,
         }

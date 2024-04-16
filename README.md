@@ -41,7 +41,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 * `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
-* `TimeDistributed`
+* `TimeDistributed`, `Embedding`, `CategoryEncoding`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
@@ -80,7 +80,6 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `LSTMCell`, `Masking`,
 `RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
-`Embedding`, `CategoryEncoding`,
 `Bidirectional`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`,
 `ThresholdedReLU`, `Upsampling3D`, `temporal` models
 

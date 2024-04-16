@@ -33,6 +33,7 @@
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
+#include "fdeep/layers/category_encoding_layer.hpp"
 #include "fdeep/layers/centercrop_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
@@ -41,6 +42,7 @@
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
 #include "fdeep/layers/dot_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
+#include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/exponential_layer.hpp"
 #include "fdeep/layers/flatten_layer.hpp"
 #include "fdeep/layers/gelu_layer.hpp"
@@ -998,6 +1000,15 @@ namespace internal {
         return std::make_shared<normalization_layer>(name, axex, mean, variance);
     }
 
+    inline layer_ptr create_category_encoding_layer(
+        const get_param_f&,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const std::size_t num_tokens = data["config"]["num_tokens"];
+        const std::string output_mode = data["config"]["output_mode"];
+        return std::make_shared<category_encoding_layer>(name, num_tokens, output_mode);
+    }
+
     inline layer_ptr create_attention_layer(
         const get_param_f& get_param,
         const nlohmann::json& data, const std::string& name)
@@ -1136,6 +1147,17 @@ namespace internal {
         return fplus::transform(create_node, inbound_nodes_data);
     }
 
+    inline layer_ptr create_embedding_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
+    {
+        const std::size_t input_dim = data["config"]["input_dim"];
+        const std::size_t output_dim = data["config"]["output_dim"];
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+
+        return std::make_shared<embedding_layer>(name, input_dim, output_dim, weights);
+    }
+
     inline layer_ptr create_time_distributed_layer(const get_param_f& get_param,
         const nlohmann::json& data,
         const std::string& name,
@@ -1228,8 +1250,10 @@ namespace internal {
             { "Rescaling", create_rescaling_layer },
             { "Reshape", create_reshape_layer },
             { "Resizing", create_resizing_layer },
+            { "Embedding", create_embedding_layer },
             { "Softmax", create_softmax_layer },
             { "Normalization", create_normalization_layer },
+            { "CategoryEncoding", create_category_encoding_layer },
             { "Attention", create_attention_layer },
             { "AdditiveAttention", create_additive_attention_layer },
             { "MultiHeadAttention", create_multi_head_attention_layer },

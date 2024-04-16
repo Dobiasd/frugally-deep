@@ -1,6 +1,6 @@
 [requires]
 eigen/3.4.0
-functionalplus/v0.2.23
+functionalplus/v0.2.24
 nlohmann_json/3.11.3
 
 [generators]

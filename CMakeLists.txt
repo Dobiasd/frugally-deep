@@ -51,7 +51,7 @@ target_link_libraries(fdeep INTERFACE nlohmann_json)
 
 if(FDEEP_BUILD_UNITTEST)
     enable_testing()
-    subdirs(test)
+    add_subdirectory(test)
 endif()
 
 # pkgconfig installation:

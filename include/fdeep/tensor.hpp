@@ -187,16 +187,6 @@ namespace internal {
         return t.get(tensor_pos(static_cast<std::size_t>(0)));
     }
 
-    inline tensor from_singleton_value(float_type value)
-    {
-        return tensor(tensor_shape(static_cast<std::size_t>(1)), value);
-    }
-
-    inline tensor tensor_with_changed_rank(const tensor& t, std::size_t rank)
-    {
-        return tensor(tensor_shape_with_changed_rank(t.shape(), rank), t.as_vector());
-    }
-
     template <typename F>
     tensor transform_tensor(F f, const tensor& m)
     {
@@ -900,17 +890,6 @@ namespace internal {
         return tensor(ts.front().shape(), std::move(result_values));
     }
 
-    // When using this function, make sure the data pointer is not invalidated
-    // before the last access to the returned matrix happens.
-    inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,
-        std::size_t width, float_type* data)
-    {
-        return MappedRowMajorMatrixXf(
-            data,
-            static_cast<EigenIndex>(height),
-            static_cast<EigenIndex>(width));
-    }
-
     inline RowMajorMatrixXf eigen_row_major_mat_from_values(std::size_t height,
         std::size_t width, const float_vec& values)
     {
@@ -918,14 +897,6 @@ namespace internal {
         RowMajorMatrixXf m(height, width);
         std::memcpy(m.data(), values.data(), values.size() * sizeof(float_type));
         return m;
-    }
-
-    inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
-    {
-        shared_float_vec result = fplus::make_shared_ref<float_vec>();
-        result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
-        std::memcpy(result->data(), m.data(), result->size() * sizeof(float_type));
-        return result;
     }
 
     inline tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)

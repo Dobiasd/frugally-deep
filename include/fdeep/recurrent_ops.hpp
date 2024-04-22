@@ -17,11 +17,6 @@ namespace internal {
     template <int Count>
     using RowVector = Eigen::Matrix<float_type, 1, Count>;
 
-    inline float_type linear_activation(float_type x)
-    {
-        return x;
-    }
-
     inline float_type tanh_activation(float_type x)
     {
         return std::tanh(x);
@@ -47,11 +42,6 @@ namespace internal {
             return 1;
         }
         return (x / static_cast<float_type>(6)) + static_cast<float_type>(0.5);
-    }
-
-    inline float_type relu_activation(float_type x)
-    {
-        return std::max<float_type>(x, 0);
     }
 
     inline float_type selu_activation(float_type x)

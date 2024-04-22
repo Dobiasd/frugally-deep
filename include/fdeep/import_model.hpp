@@ -130,35 +130,36 @@ namespace internal {
         return fplus::just(result);
     }
 
-    inline tensor_shape_variable create_tensor_shape_variable(const nlohmann::json& data)
+    inline tensor_shape_variable create_tensor_shape_variable_offset(
+        const nlohmann::json& data, std::size_t offset)
     {
         assertion(data.is_array(), "tensor_shape_variable needs to be an array");
         assertion(data.size() > 0, "need at least one dimension");
-        if (data.size() == 1)
+        if (data.size() == 1 + offset)
             return tensor_shape_variable(
-                create_maybe_size_t(data[0]));
-        if (data.size() == 2)
+                create_maybe_size_t(data[0 + offset]));
+        if (data.size() == 2 + offset)
             return tensor_shape_variable(
-                create_maybe_size_t(data[0]),
-                create_maybe_size_t(data[1]));
-        if (data.size() == 3)
+                create_maybe_size_t(data[0 + offset]),
+                create_maybe_size_t(data[1 + offset]));
+        if (data.size() == 3 + offset)
             return tensor_shape_variable(
-                create_maybe_size_t(data[0]),
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]));
-        if (data.size() == 4)
+                create_maybe_size_t(data[0 + offset]),
+                create_maybe_size_t(data[1 + offset]),
+                create_maybe_size_t(data[2 + offset]));
+        if (data.size() == 4 + offset)
             return tensor_shape_variable(
-                create_maybe_size_t(data[0]),
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]),
-                create_maybe_size_t(data[3]));
-        if (data.size() == 5)
+                create_maybe_size_t(data[0 + offset]),
+                create_maybe_size_t(data[1 + offset]),
+                create_maybe_size_t(data[2 + offset]),
+                create_maybe_size_t(data[3 + offset]));
+        if (data.size() == 5 + offset)
             return tensor_shape_variable(
-                create_maybe_size_t(data[0]),
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]),
-                create_maybe_size_t(data[3]),
-                create_maybe_size_t(data[4]));
+                create_maybe_size_t(data[0 + offset]),
+                create_maybe_size_t(data[1 + offset]),
+                create_maybe_size_t(data[2 + offset]),
+                create_maybe_size_t(data[3 + offset]),
+                create_maybe_size_t(data[4 + offset]));
 
         raise_error("tensor_shape_variable needs 1, 2, 3, 4 or 5 dimensions");
         return tensor_shape_variable(
@@ -168,44 +169,15 @@ namespace internal {
             fplus::nothing<std::size_t>(),
             fplus::nothing<std::size_t>()); // Is never called
     }
+    
+    inline tensor_shape_variable create_tensor_shape_variable(const nlohmann::json& data)
+    {
+        return create_tensor_shape_variable_offset(data, 0);
+    }
 
     inline tensor_shape_variable create_tensor_shape_variable_leading_null(const nlohmann::json& data)
     {
-        assertion(data.is_array(), "tensor_shape_variable needs to be an array");
-        assertion(data.size() > 0, "need at least one dimension");
-        if (data.size() == 2)
-            return tensor_shape_variable(
-                create_maybe_size_t(data[1]));
-        if (data.size() == 3)
-            return tensor_shape_variable(
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]));
-        if (data.size() == 4)
-            return tensor_shape_variable(
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]),
-                create_maybe_size_t(data[3]));
-        if (data.size() == 5)
-            return tensor_shape_variable(
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]),
-                create_maybe_size_t(data[3]),
-                create_maybe_size_t(data[4]));
-        if (data.size() == 6)
-            return tensor_shape_variable(
-                create_maybe_size_t(data[1]),
-                create_maybe_size_t(data[2]),
-                create_maybe_size_t(data[3]),
-                create_maybe_size_t(data[4]),
-                create_maybe_size_t(data[5]));
-
-        raise_error("tensor_shape_variable needs 1, 2, 3, 4 or 5 dimensions");
-        return tensor_shape_variable(
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>(),
-            fplus::nothing<std::size_t>()); // Is never called
+        return create_tensor_shape_variable_offset(data, 1);
     }
 
     inline tensor_shape create_tensor_shape(const nlohmann::json& data)
@@ -388,11 +360,6 @@ namespace internal {
             create_node_connection_model_layer, data["config"]["output_layers"]);
 
         return std::make_shared<model_layer>(name, layers, inputs, outputs);
-    }
-
-    inline void fill_with_zeros(float_vec& xs)
-    {
-        std::fill(std::begin(xs), std::end(xs), static_cast<float_type>(0));
     }
 
     inline padding create_padding(const std::string& padding_str)
@@ -1065,15 +1032,6 @@ namespace internal {
     {
         assertion(data.is_string(), "Layer activation must be a string.");
         return data;
-    }
-
-    inline std::string json_object_get_activation_with_default(const nlohmann::json& config,
-        const std::string& default_activation)
-    {
-        if (json_obj_has_member(config, "activation")) {
-            return get_activation_type(config["activation"]);
-        }
-        return default_activation;
     }
 
     inline activation_layer_ptr create_activation_layer_type_name(

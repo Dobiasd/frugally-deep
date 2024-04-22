@@ -59,12 +59,6 @@ namespace internal {
         return { shape, filters.size(), biases, use_bias, filter_mats };
     }
 
-    inline convolution_filter_matrices generate_im2col_single_filter_matrix(
-        const filter& filter)
-    {
-        return generate_im2col_filter_matrix(filter_vec(1, filter));
-    }
-
     inline tensor init_conv_output_tensor(
         std::size_t out_height,
         std::size_t out_width,

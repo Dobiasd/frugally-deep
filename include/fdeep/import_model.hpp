@@ -169,7 +169,7 @@ namespace internal {
             fplus::nothing<std::size_t>(),
             fplus::nothing<std::size_t>()); // Is never called
     }
-    
+
     inline tensor_shape_variable create_tensor_shape_variable(const nlohmann::json& data)
     {
         return create_tensor_shape_variable_offset(data, 0);

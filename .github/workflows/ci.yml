@@ -17,7 +17,7 @@ jobs:
           echo "Python version:"
           python3 --version
           echo "Version numbers of TensorFlow and Keras:"
-          python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__)"
+          python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tf.keras.__version__)"
           # FunctionalPlus
           git clone -b 'v0.2.24' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
           cd FunctionalPlus

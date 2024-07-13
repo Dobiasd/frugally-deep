@@ -20,7 +20,7 @@ RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.
 RUN apt-get update && apt-get install -y bazel-5.1.1
 RUN ln -s /usr/bin/bazel-5.1.1 /usr/bin/bazel
 
-RUN git clone -b 'v2.16.1' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'v2.17' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build --jobs 3 --local_ram_resources=HOST_RAM*.3 -c opt //tensorflow/tools/pip_package:build_pip_package

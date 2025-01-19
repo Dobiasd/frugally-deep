@@ -158,7 +158,7 @@ To check if the input values really are the same, you can print them, in Python 
 input = ...
 print(input)
 print(input.shape)
-result = model.predict([input])
+result = model([input]).numpy()
 print(result)
 print(result.shape)  # result[0].shape in case of multiple output tensors
 ```

@@ -13,7 +13,7 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.17"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.18"
           echo "Python version:"
           python3 --version
           echo "Version numbers of TensorFlow and Keras:"

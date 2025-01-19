@@ -558,11 +558,14 @@ def get_all_weights(model, prefix):
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
+        layer_type = type(layer).__name__
         for node in layer._inbound_nodes:
             if "training" in node.arguments.kwargs:
-                assert node.arguments.kwargs["training"] is not True, \
+                is_layer_with_accidental_training_flag = layer_type in ("CenterCrop", "Resizing")
+                has_training = node.arguments.kwargs["training"] is True
+                assert not has_training or is_layer_with_accidental_training_flag, \
                     "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
-        layer_type = type(layer).__name__
+
         name = prefix + layer.name
         assert is_ascii(name)
         if name in result:

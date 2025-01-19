@@ -71,7 +71,7 @@ def get_model_input_layers(model):
 def measure_predict(model, data_in):
     """Returns output and duration in seconds"""
     start_time = datetime.datetime.now()
-    data_out = model(data_in).numpy()
+    data_out = model.predict(data_in)
     end_time = datetime.datetime.now()
     duration = end_time - start_time
     print('Forward pass took {} s.'.format(duration.total_seconds()))

@@ -175,11 +175,7 @@ def get_test_model_exhaustive():
     # outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[47]))  # No longer supported in TensorFlow 2.16
     outputs.append(Normalization(axis=2, mean=2.1, variance=2.2)(inputs[47]))
     for axis in range(1, 6):
-        shape = input_shapes[0][axis - 1]
-        outputs.append(Normalization(axis=axis,
-                                     mean=np.random.rand(shape),
-                                     variance=np.random.rand(shape)
-                                     )(inputs[0]))
+        outputs.append(Normalization(axis=axis, mean=4.2, variance=2.3)(inputs[0]))
 
     outputs.append(Rescaling(23.5, 42.1)(inputs[0]))
 

@@ -614,47 +614,6 @@ def convert_sequential_to_model(model):
     return model
 
 
-def offset_conv2d_eval(depth, padding, x):
-    """Perform a conv2d on x with a given padding"""
-    kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-                        dtype='float32')
-    return K.conv2d(x, kernel, strides=(3, 3), padding=padding)
-
-
-def offset_sep_conv2d_eval(depth, padding, x):
-    """Perform a separable conv2d on x with a given padding"""
-    depthwise_kernel = K.variable(value=np.array([[[[1]] * depth]]),
-                                  dtype='float32')
-    pointwise_kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-                                  dtype='float32')
-    return K.separable_conv2d(x, depthwise_kernel,
-                              pointwise_kernel, strides=(3, 3), padding=padding)
-
-
-def conv2d_offset_max_pool_eval(_, padding, x):
-    """Perform a max pooling operation on x"""
-    return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='max')
-
-
-def conv2d_offset_average_pool_eval(_, padding, x):
-    """Perform an average pooling operation on x"""
-    return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='avg')
-
-
-def check_operation_offset(depth, eval_f, padding):
-    """Check if backend used an offset while placing the filter
-    e.g. during a convolution.
-    TensorFlow is inconsistent in doing so depending
-    on the type of operation, the used device (CPU/GPU) and the input depth.
-    """
-    in_arr = np.array([[[[i] * depth for i in range(6)]]])
-    input_data = K.variable(value=in_arr, dtype='float32')
-    output = eval_f(depth, padding, input_data)
-    result = K.eval(output).flatten().tolist()
-    assert result in [[0, 3], [1, 4]]
-    return result == [1, 4]
-
-
 def get_shapes(tensors):
     """Return shapes of a list of tensors"""
     return [t['shape'] for t in tensors]

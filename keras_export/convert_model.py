@@ -9,9 +9,9 @@ import hashlib
 import json
 
 import numpy as np
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input, Embedding, CategoryEncoding
-from tensorflow.keras.models import Model, load_model
+from keras import backend as K
+from keras.layers import Input, Embedding, CategoryEncoding
+from keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -287,16 +287,16 @@ def show_depthwise_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    moving_mean = K.get_value(layer.moving_mean)
-    moving_variance = K.get_value(layer.moving_variance)
+    moving_mean = layer.moving_mean.numpy()
+    moving_variance = layer.moving_variance.numpy()
     result = {}
     result['moving_mean'] = encode_floats(moving_mean)
     result['moving_variance'] = encode_floats(moving_variance)
     if layer.center:
-        beta = K.get_value(layer.beta)
+        beta = layer.beta.numpy()
         result['beta'] = encode_floats(beta)
     if layer.scale:
-        gamma = K.get_value(layer.gamma)
+        gamma = layer.gamma.numpy()
         result['gamma'] = encode_floats(gamma)
     return result
 
@@ -305,10 +305,10 @@ def show_layer_normalization_layer(layer):
     """Serialize layer normalization layer to dict"""
     result = {}
     if layer.center:
-        beta = K.get_value(layer.beta)
+        beta = layer.beta.numpy()
         result['beta'] = encode_floats(beta)
     if layer.scale:
-        gamma = K.get_value(layer.gamma)
+        gamma = layer.gamma.numpy()
         result['gamma'] = encode_floats(gamma)
     return result
 

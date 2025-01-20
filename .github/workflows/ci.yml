@@ -13,11 +13,11 @@ jobs:
           sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
           # python libs
           sudo pip3 install --upgrade pip
-          sudo pip3 install numpy scipy h5py "tensorflow==2.18"
+          sudo pip3 install numpy scipy h5py "tensorflow==2.18 keras=3.8.0"
           echo "Python version:"
           python3 --version
           echo "Version numbers of TensorFlow and Keras:"
-          python3 -c "import tensorflow as tf; import tensorflow.keras; print(tf.__version__); print(tf.keras.__version__)"
+          python3 -c "import tensorflow as tf; import tensorflow; import keras; print(tf.__version__); print(keras.__version__)"
           # FunctionalPlus
           git clone -b 'v0.2.24' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus
           cd FunctionalPlus

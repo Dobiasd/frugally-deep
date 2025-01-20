@@ -5,28 +5,28 @@
 import sys
 
 import numpy as np
-from tensorflow.keras.layers import ActivityRegularization
-from tensorflow.keras.layers import AdditiveAttention
-from tensorflow.keras.layers import Attention
-from tensorflow.keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
-from tensorflow.keras.layers import CategoryEncoding, Embedding
-from tensorflow.keras.layers import Conv1D, ZeroPadding1D, Cropping1D
-from tensorflow.keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
-from tensorflow.keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
-from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-from tensorflow.keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
-from tensorflow.keras.layers import Input, Dense, Dropout, Flatten, Activation
-from tensorflow.keras.layers import LeakyReLU, ELU, PReLU, ReLU
-from tensorflow.keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
-from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
-from tensorflow.keras.layers import MaxPooling3D, AveragePooling3D
-from tensorflow.keras.layers import MultiHeadAttention
-from tensorflow.keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
-from tensorflow.keras.layers import Normalization, Rescaling, Resizing
-from tensorflow.keras.layers import Permute, Reshape, RepeatVector
-from tensorflow.keras.layers import SeparableConv2D, DepthwiseConv2D
-from tensorflow.keras.layers import ZeroPadding3D, Cropping3D
-from tensorflow.keras.models import Model, load_model, Sequential
+from keras.layers import ActivityRegularization
+from keras.layers import AdditiveAttention
+from keras.layers import Attention
+from keras.layers import BatchNormalization, Concatenate, LayerNormalization, UnitNormalization
+from keras.layers import CategoryEncoding, Embedding
+from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
+from keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
+from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
+from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
+from keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
+from keras.layers import Input, Dense, Dropout, Flatten, Activation
+from keras.layers import LeakyReLU, ELU, PReLU, ReLU
+from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
+from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
+from keras.layers import MaxPooling3D, AveragePooling3D
+from keras.layers import MultiHeadAttention
+from keras.layers import Multiply, Add, Subtract, Average, Maximum, Minimum
+from keras.layers import Normalization, Rescaling, Resizing
+from keras.layers import Permute, Reshape, RepeatVector
+from keras.layers import SeparableConv2D, DepthwiseConv2D
+from keras.layers import ZeroPadding3D, Cropping3D
+from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"

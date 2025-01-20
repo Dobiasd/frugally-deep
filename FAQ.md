@@ -65,9 +65,8 @@ This `fdeep::model::predict` takes (and returns) not one `fdeep::tensor` but an 
 Example:
 
 ```python
-import tensorflow.keras as keras
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Concatenate, Add
+from keras.models import Model
+from keras.layers import Input, Concatenate, Add
 
 inputs = [
     Input(shape=(240, 320, 3)),

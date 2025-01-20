@@ -9,9 +9,9 @@ import hashlib
 import json
 
 import numpy as np
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Input, Embedding, CategoryEncoding
-from tensorflow.keras.models import Model, load_model
+from keras import backend as K
+from keras.layers import Input, Embedding, CategoryEncoding
+from keras.models import Model, load_model
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -287,16 +287,16 @@ def show_depthwise_conv_2d_layer(layer):
 
 def show_batch_normalization_layer(layer):
     """Serialize batch normalization layer to dict"""
-    moving_mean = K.get_value(layer.moving_mean)
-    moving_variance = K.get_value(layer.moving_variance)
+    moving_mean = layer.moving_mean.numpy()
+    moving_variance = layer.moving_variance.numpy()
     result = {}
     result['moving_mean'] = encode_floats(moving_mean)
     result['moving_variance'] = encode_floats(moving_variance)
     if layer.center:
-        beta = K.get_value(layer.beta)
+        beta = layer.beta.numpy()
         result['beta'] = encode_floats(beta)
     if layer.scale:
-        gamma = K.get_value(layer.gamma)
+        gamma = layer.gamma.numpy()
         result['gamma'] = encode_floats(gamma)
     return result
 
@@ -305,10 +305,10 @@ def show_layer_normalization_layer(layer):
     """Serialize layer normalization layer to dict"""
     result = {}
     if layer.center:
-        beta = K.get_value(layer.beta)
+        beta = layer.beta.numpy()
         result['beta'] = encode_floats(beta)
     if layer.scale:
-        gamma = K.get_value(layer.gamma)
+        gamma = layer.gamma.numpy()
         result['gamma'] = encode_floats(gamma)
     return result
 
@@ -612,47 +612,6 @@ def convert_sequential_to_model(model):
             model._operations[i] = new_layer
             assert model.layers[i] == new_layer
     return model
-
-
-def offset_conv2d_eval(depth, padding, x):
-    """Perform a conv2d on x with a given padding"""
-    kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-                        dtype='float32')
-    return K.conv2d(x, kernel, strides=(3, 3), padding=padding)
-
-
-def offset_sep_conv2d_eval(depth, padding, x):
-    """Perform a separable conv2d on x with a given padding"""
-    depthwise_kernel = K.variable(value=np.array([[[[1]] * depth]]),
-                                  dtype='float32')
-    pointwise_kernel = K.variable(value=np.array([[[[1]] + [[0]] * (depth - 1)]]),
-                                  dtype='float32')
-    return K.separable_conv2d(x, depthwise_kernel,
-                              pointwise_kernel, strides=(3, 3), padding=padding)
-
-
-def conv2d_offset_max_pool_eval(_, padding, x):
-    """Perform a max pooling operation on x"""
-    return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='max')
-
-
-def conv2d_offset_average_pool_eval(_, padding, x):
-    """Perform an average pooling operation on x"""
-    return K.pool2d(x, (1, 1), strides=(3, 3), padding=padding, pool_mode='avg')
-
-
-def check_operation_offset(depth, eval_f, padding):
-    """Check if backend used an offset while placing the filter
-    e.g. during a convolution.
-    TensorFlow is inconsistent in doing so depending
-    on the type of operation, the used device (CPU/GPU) and the input depth.
-    """
-    in_arr = np.array([[[[i] * depth for i in range(6)]]])
-    input_data = K.variable(value=in_arr, dtype='float32')
-    output = eval_f(depth, padding, input_data)
-    result = K.eval(output).flatten().tolist()
-    assert result in [[0, 3], [1, 4]]
-    return result == [1, 4]
 
 
 def get_shapes(tensors):

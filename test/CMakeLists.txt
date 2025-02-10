@@ -16,6 +16,10 @@ add_custom_command ( OUTPUT test_model_variable.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py variable test_model_variable.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_autoencoder.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py autoencoder test_model_autoencoder.keras"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT test_model_sequential.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py sequential test_model_sequential.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -37,6 +41,11 @@ add_custom_command ( OUTPUT test_model_embedding.json
 add_custom_command ( OUTPUT test_model_variable.json
                      DEPENDS test_model_variable.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_variable.keras test_model_variable.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
+add_custom_command ( OUTPUT test_model_autoencoder.json
+                     DEPENDS test_model_autoencoder.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_autoencoder.keras test_model_autoencoder.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
 add_custom_command ( OUTPUT test_model_sequential.json
@@ -63,6 +72,7 @@ endmacro()
 _add_test(test_model_exhaustive_test test_model_exhaustive.json)
 _add_test(test_model_embedding_test test_model_embedding.json)
 _add_test(test_model_variable_test test_model_variable.json)
+_add_test(test_model_autoencoder_test test_model_autoencoder.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 _add_test(readme_example_main readme_example_model.json)
 
@@ -70,6 +80,7 @@ add_custom_target(unittest
   COMMAND test_model_exhaustive_test
   COMMAND test_model_embedding_test
   COMMAND test_model_variable_test
+  COMMAND test_model_autoencoder_test
   COMMAND test_model_sequential_test
   COMMAND readme_example_main
 

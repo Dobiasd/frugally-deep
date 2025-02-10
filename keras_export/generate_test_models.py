@@ -660,6 +660,26 @@ def get_test_model_variable():
     return model
 
 
+def get_test_model_autoencoder():
+    """Returns a minimal autoencoder test model."""
+    input_img = Input(shape=(28, 28, 1))
+    x = Conv2D(4, (7, 7), activation='relu', padding='same')(input_img)
+    x = MaxPooling2D((4, 4), padding='same')(x)
+    encoded = Conv2D(1, (3, 3), activation='relu', padding='same')(x)
+    encoder = Model(input_img, encoded, name="encoder")
+
+    input_encoded = Input(shape=(7, 7, 1))
+    x = Conv2D(4, (3, 3), activation='relu', padding='same')(input_encoded)
+    x = UpSampling2D((4, 4))(x)
+    decoded = Conv2D(1, (7, 7), activation='sigmoid', padding='same')(x)
+    decoder = Model(input_encoded, decoded, name="decoder")
+
+    autoencoder_input = Input(shape=(28, 28, 1))
+    autoencoder = Model(inputs=autoencoder_input, outputs=decoder(encoder(autoencoder_input)), name="autoencoder")
+    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+    return autoencoder
+
+
 def get_test_model_sequential():
     """Returns a typical (VGG-like) sequential test model."""
     model = Sequential()
@@ -705,6 +725,7 @@ def main():
             'exhaustive': get_test_model_exhaustive,
             'embedding': get_test_model_embedding,
             'variable': get_test_model_variable,
+            'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
         }
 

@@ -676,7 +676,7 @@ def get_test_model_autoencoder():
 
     autoencoder_input = Input(shape=(28, 28, 1))
     autoencoder = Model(inputs=autoencoder_input, outputs=decoder(encoder(autoencoder_input)), name="autoencoder")
-    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+    autoencoder.compile(optimizer='sgd', loss='mse')
     return autoencoder
 
 

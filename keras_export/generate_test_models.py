@@ -674,9 +674,10 @@ def get_test_model_autoencoder():
     decoded = Conv2D(1, (7, 7), activation='sigmoid', padding='same', name='conv3_decoder')(x)
     decoder = Model(input_encoded, decoded, name="decoder")
 
-    autoencoder = Sequential()
-    autoencoder.add(encoder)
-    autoencoder.add(decoder)
+    autoencoder_input = Input(shape=(28, 28, 1), name='input_autoencoder')
+    x = encoder(autoencoder_input)
+    autoencodedanddecoded = decoder(x)
+    autoencoder = Model(inputs=autoencoder_input, outputs=autoencodedanddecoded, name="autoencoder")
     autoencoder.compile(optimizer='sgd', loss='mse')
     return autoencoder
 

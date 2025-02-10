@@ -34,6 +34,8 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
+from keras.src.layers import Identity
+
 
 def replace_none_with(value, shape):
     """Replace every None with a fixed value."""
@@ -660,6 +662,24 @@ def get_test_model_variable():
     return model
 
 
+def get_test_model_autoencoder():
+    """Returns a minimal autoencoder test model."""
+    input_img = Input(shape=(1,), name='input_img')
+    encoded = Identity()(input_img)  # Since it's about testing node connections, this suffices.
+    encoder = Model(input_img, encoded, name="encoder")
+
+    input_encoded = Input(shape=(1,), name='input_encoded')
+    decoded = Identity()(input_encoded)
+    decoder = Model(input_encoded, decoded, name="decoder")
+
+    autoencoder_input = Input(shape=(1,), name='input_autoencoder')
+    x = encoder(autoencoder_input)
+    autoencodedanddecoded = decoder(x)
+    autoencoder = Model(inputs=autoencoder_input, outputs=autoencodedanddecoded, name="autoencoder")
+    autoencoder.compile(optimizer='sgd', loss='mse')
+    return autoencoder
+
+
 def get_test_model_sequential():
     """Returns a typical (VGG-like) sequential test model."""
     model = Sequential()
@@ -705,6 +725,7 @@ def main():
             'exhaustive': get_test_model_exhaustive,
             'embedding': get_test_model_embedding,
             'variable': get_test_model_variable,
+            'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
         }
 

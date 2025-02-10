@@ -1142,6 +1142,7 @@ namespace internal {
         const std::string name = data["name"];
 
         const layer_creators default_creators = {
+            { "Identity", create_identity_layer },
             { "Conv1D", create_conv_2d_layer },
             { "Conv2D", create_conv_2d_layer },
             { "SeparableConv1D", create_separable_conv_2D_layer },

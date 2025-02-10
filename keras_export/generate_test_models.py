@@ -34,6 +34,8 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
+from keras.src.layers import Identity
+
 
 def replace_none_with(value, shape):
     """Replace every None with a fixed value."""
@@ -662,19 +664,15 @@ def get_test_model_variable():
 
 def get_test_model_autoencoder():
     """Returns a minimal autoencoder test model."""
-    input_img = Input(shape=(28, 28, 1), name='input_img')
-    x = Conv2D(4, (7, 7), activation='relu', padding='same', name='conv_encoder')(input_img)
-    x = MaxPooling2D((4, 4), padding='same', name='pool_encoder')(x)
-    encoded = Conv2D(1, (3, 3), activation='relu', padding='same', name='conv2_encoder')(x)
+    input_img = Input(shape=(1,), name='input_img')
+    encoded = Identity()(input_img)  # Since it's about testing node connections, this suffices.
     encoder = Model(input_img, encoded, name="encoder")
 
-    input_encoded = Input(shape=(7, 7, 1), name='input_encoded')
-    x = Conv2D(4, (3, 3), activation='relu', padding='same', name='conv_decoder')(input_encoded)
-    x = UpSampling2D((4, 4), name='upsampling_encoder')(x)
-    decoded = Conv2D(1, (7, 7), activation='sigmoid', padding='same', name='conv3_decoder')(x)
+    input_encoded = Input(shape=(1,), name='input_encoded')
+    decoded = Identity()(input_encoded)
     decoder = Model(input_encoded, decoded, name="decoder")
 
-    autoencoder_input = Input(shape=(28, 28, 1), name='input_autoencoder')
+    autoencoder_input = Input(shape=(1,), name='input_autoencoder')
     x = encoder(autoencoder_input)
     autoencodedanddecoded = decoder(x)
     autoencoder = Model(inputs=autoencoder_input, outputs=autoencodedanddecoded, name="autoencoder")

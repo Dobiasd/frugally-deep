@@ -40,8 +40,9 @@ namespace internal {
             std::size_t node_idx, std::size_t tensor_idx) const override
         {
             // https://stackoverflow.com/questions/46011749/understanding-keras-model-architecture-node-index-of-nested-model
-            assertion(node_idx >= 1, "node index must be >= 1");
-            node_idx = node_idx - 1;
+            if (node_idx >= 1) {
+                node_idx = node_idx - 1;
+            }
             assertion(node_idx < nodes_.size(), "invalid node index: " + std::to_string(node_idx) + " of " + std::to_string(nodes_.size()));
             return layer::get_output(layers, output_cache, node_idx, tensor_idx);
         }

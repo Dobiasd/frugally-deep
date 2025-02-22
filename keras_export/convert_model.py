@@ -44,7 +44,7 @@ def keras_shape_to_fdeep_tensor_shape(raw_shape: Shape) -> Shape:
 
 def get_layer_input_shape(layer: Layer) -> Shape:
     """It is stored in a different property depending on the situation."""
-    if hasattr(layer, "batch_shape"):
+    if hasattr(layer, 'batch_shape'):
         return tuple(layer.batch_shape)
     return tuple(layer.input.shape)
 
@@ -155,7 +155,7 @@ def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, L
         return data
 
     assert are_embedding_and_category_encoding_layer_positions_ok_for_testing(
-        model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
+        model), 'Test data can only be generated if embedding layers are positioned directly after input nodes.'
 
     data_in: List[NDFloat32Array] = list(map(generate_input_data, get_model_input_layers(model)))
 
@@ -164,7 +164,8 @@ def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, L
     test_runs = 5
     for i in range(warm_up_runs):
         if i == 0:
-            data_out_test, _ = measure_predict(model, data_in)
+            data_out_test_raw, _ = measure_predict(model, data_in)
+            data_out_test = as_list(data_out_test_raw)
         else:
             measure_predict(model, data_in)
     duration_sum = 0.0
@@ -376,9 +377,9 @@ def show_softmax_layer(layer: Layer) -> None:
 
 def show_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize normalization layer to dict"""
-    assert len(layer.axis) <= 1, "Multiple normalization axes are not supported"
+    assert len(layer.axis) <= 1, 'Multiple normalization axes are not supported'
     if len(layer.axis) == 1:
-        assert layer.axis[0] in (-1, 1, 2, 3, 4, 5), "Invalid axis for Normalization layer."
+        assert layer.axis[0] in (-1, 1, 2, 3, 4, 5), 'Invalid axis for Normalization layer.'
     return {
         'mean': encode_floats(layer.mean),
         'variance': encode_floats(layer.variance)
@@ -387,12 +388,12 @@ def show_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
 
 def show_upsampling2d_layer(layer: Layer) -> None:
     """Serialize UpSampling2D layer to dict"""
-    assert layer.interpolation in ["nearest", "bilinear"]
+    assert layer.interpolation in ['nearest', 'bilinear']
 
 
 def show_resizing_layer(layer: Layer) -> None:
     """Serialize Resizing layer to dict"""
-    assert layer.interpolation in ["nearest", "bilinear", "area"]
+    assert layer.interpolation in ['nearest', 'bilinear', 'area']
 
 
 def show_rescaling_layer(layer: Layer) -> None:
@@ -402,16 +403,16 @@ def show_rescaling_layer(layer: Layer) -> None:
 
 def show_category_encoding_layer(layer: Layer) -> None:
     """Serialize CategoryEncoding layer to dict"""
-    assert layer.output_mode in ["multi_hot", "count", "one_hot"]
+    assert layer.output_mode in ['multi_hot', 'count', 'one_hot']
 
 
 def show_attention_layer(layer: Layer) -> Mapping[str, float]:
     """Serialize Attention layer to dict"""
-    assert layer.score_mode in ["dot", "concat"]
+    assert layer.score_mode in ['dot', 'concat']
     data = {}
     if layer.scale is not None:
         data['scale'] = float(layer.scale.numpy())
-    if layer.score_mode == "concat":
+    if layer.score_mode == 'concat':
         data['concat_score_weight'] = float(layer.concat_score_weight.numpy())
     return data
 
@@ -427,7 +428,7 @@ def show_additive_attention_layer(layer: Layer) -> Mapping[str, List[str]]:
 def show_multi_head_attention_layer(layer: Layer) -> Mapping[str, List[list[str]]]:
     """Serialize MultiHeadAttention layer to dict"""
     assert layer._output_shape is None
-    assert layer._attention_axes == (1,), "MultiHeadAttention supported only with attention_axes=None"
+    assert layer._attention_axes == (1,), 'MultiHeadAttention supported only with attention_axes=None'
     return {
         'weight_shapes': list(map(lambda w: list(w.shape), layer.weights)),
         'weights': list(map(lambda w: encode_floats(w.numpy()), layer.weights)),
@@ -500,7 +501,7 @@ def show_time_distributed_layer(layer: Layer) -> Union[None, LayerConfig]:
                 continue
 
         setattr(copied_layer, 'batch_shape', input_shape_new)
-        setattr(copied_layer, "output_shape", layer.output.shape)
+        setattr(copied_layer, 'output_shape', layer.output.shape)
 
         return layer_function(copied_layer)
     else:
@@ -561,11 +562,11 @@ def get_all_weights(model: Model, prefix: str) -> Mapping[str, LayerConfig]:
     for layer in layers:
         layer_type = type(layer).__name__
         for node in layer._inbound_nodes:
-            if "training" in node.arguments.kwargs:
-                is_layer_with_accidental_training_flag = layer_type in ("CenterCrop", "Resizing")
-                has_training = node.arguments.kwargs["training"] is True
+            if 'training' in node.arguments.kwargs:
+                is_layer_with_accidental_training_flag = layer_type in ('CenterCrop', 'Resizing')
+                has_training = node.arguments.kwargs['training'] is True
                 assert not has_training or is_layer_with_accidental_training_flag, \
-                    "training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284"
+                    'training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284'
 
         name = prefix + layer.name
         assert is_ascii(name)
@@ -576,7 +577,7 @@ def get_all_weights(model: Model, prefix: str) -> Mapping[str, LayerConfig]:
         elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
             inner_layer = layer.layer
             result = dict(merge_two_disjunct_dicts(result, get_layer_weights(layer, name)))
-            result = dict(merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + "_")))
+            result = dict(merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + '_')))
         else:
             result = dict(merge_two_disjunct_dicts(result, get_layer_weights(layer, name)))
     return result
@@ -694,5 +695,5 @@ def main() -> None:
     convert(args.input_path, args.output_path, args.no_tests)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

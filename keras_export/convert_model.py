@@ -7,11 +7,14 @@ import base64
 import datetime
 import hashlib
 import json
+from typing import Tuple, Union, Mapping, List, Callable, Set, Any
 
 import numpy as np
-from keras import backend as K
+import numpy.typing  # pylint: disable=unused-import
+from keras import backend as K, Layer
 from keras.layers import Input, Embedding, CategoryEncoding
 from keras.models import Model, load_model
+from keras.src import Functional
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -19,34 +22,30 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-STORE_FLOATS_HUMAN_READABLE = False
+NDFloat32Array = np.typing.NDArray[np.float32]
+NDUInt32Array = np.typing.NDArray[np.int32]
+Shape = Tuple[int, ...]
+LayerConfig = Union[None, Mapping[str, Union[float, list[str], list[list[str]]]]]
 
 
-def int_or_none(value):
-    """Leave None values as is, convert everything else to int"""
-    if value is None:
-        return value
-    return int(value)
-
-
-def keras_shape_to_fdeep_tensor_shape(raw_shape):
+def keras_shape_to_fdeep_tensor_shape(raw_shape: Shape) -> Shape:
     """Convert a keras shape to an fdeep shape"""
-    return singleton_list_to_value(raw_shape)[1:]
+    return raw_shape[1:]
 
 
-def get_layer_input_shape(layer):
+def get_layer_input_shape(layer: Layer) -> Shape:
     """It is stored in a different property depending on the situation."""
     if hasattr(layer, "batch_shape"):
-        return layer.batch_shape
-    return layer.input.shape
+        return tuple(layer.batch_shape)
+    return tuple(layer.input.shape)
 
 
-def get_layer_input_shape_tensor_shape(layer):
+def get_layer_input_shape_tensor_shape(layer: Layer) -> Shape:
     """Convert layer input shape to an fdeep shape"""
     return keras_shape_to_fdeep_tensor_shape(get_layer_input_shape(layer))
 
 
-def show_tensor(tens):
+def show_tensor(tens: NDFloat32Array) -> Mapping[str, Union[Shape, List[str]]]:
     """Serialize 3-tensor to a dict"""
     return {
         'shape': tens.shape[1:],
@@ -54,7 +53,7 @@ def show_tensor(tens):
     }
 
 
-def get_model_input_layers(model):
+def get_model_input_layers(model: Model) -> List[Layer]:
     """Gets the input layers from model.layers in the correct input order."""
     if len(model.inputs) == 1:
         from keras.src.layers.core.input_layer import InputLayer
@@ -68,7 +67,7 @@ def get_model_input_layers(model):
     return [model_layers[layer_names] for layer_names in input_layer_names]
 
 
-def measure_predict(model, data_in):
+def measure_predict(model: Model, data_in: List[NDFloat32Array]) -> Tuple[List[NDFloat32Array], float]:
     """Returns output and duration in seconds"""
     start_time = datetime.datetime.now()
     data_out = model.predict(data_in)
@@ -78,23 +77,23 @@ def measure_predict(model, data_in):
     return data_out, duration.total_seconds()
 
 
-def replace_none_with(value, shape):
+def replace_none_with(value: int, shape: Shape) -> Shape:
     """Replace every None with a fixed value."""
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
-def get_first_outbound_op(layer):
+def get_first_outbound_op(layer: Layer) -> Functional:
     """Determine primary outbound operation"""
     return layer._outbound_nodes[0].operation
 
 
-def are_embedding_and_category_encoding_layer_positions_ok_for_testing(model):
+def are_embedding_and_category_encoding_layer_positions_ok_for_testing(model: Model) -> bool:
     """
     Test data can only be generated if all Embedding layers
     and CategoryEncoding layers are positioned directly behind the input nodes.
     """
 
-    def embedding_layer_names(model):
+    def embedding_layer_names(model: Model) -> Set[str]:
         layers = model.layers
         result = set()
         for layer in layers:
@@ -105,22 +104,22 @@ def are_embedding_and_category_encoding_layer_positions_ok_for_testing(model):
             result.union(embedding_layer_names(layer))
         return result
 
-    def embedding_layer_names_at_input_nodes(model):
+    def embedding_layer_names_at_input_nodes(model: Model) -> Set[str]:
         result = set()
         for input_layer in get_model_input_layers(model):
             if input_layer._outbound_nodes and (
                     isinstance(get_first_outbound_op(input_layer), Embedding) or
                     isinstance(get_first_outbound_op(input_layer), CategoryEncoding)):
                 result.add(get_first_outbound_op(input_layer).name)
-        return set(result)
+        return result
 
     return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
 
 
-def gen_test_data(model):
+def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, List[str]]]]]:
     """Generate data for model verification test."""
 
-    def set_shape_idx_0_to_1_if_none(shape):
+    def set_shape_idx_0_to_1_if_none(shape: Shape) -> Shape:
         """Change first element in tuple to 1."""
         if shape[0] is not None:
             return shape
@@ -129,10 +128,11 @@ def gen_test_data(model):
         shape = tuple(shape_lst)
         return shape
 
-    def generate_input_data(input_layer):
+    def generate_input_data(input_layer: Layer) -> NDFloat32Array:
         """Random data fitting the input shape of a layer."""
         print("input input_layer type", type(input_layer).__name__)  # todo: remove
         print("input_layer._outbound_nodes type", type(input_layer._outbound_nodes).__name__)  # todo: remove
+        random_fn: Callable[[Shape], Union[NDFloat32Array, NDUInt32Array]]
         if input_layer._outbound_nodes and isinstance(
                 get_first_outbound_op(input_layer), Embedding):
             random_fn = lambda size: np.random.randint(
@@ -142,16 +142,17 @@ def gen_test_data(model):
             random_fn = lambda size: np.random.randint(
                 0, get_first_outbound_op(input_layer).num_tokens, size)
         else:
-            random_fn = np.random.normal
+            random_fn = lambda size: np.random.normal(size).astype(np.float32)
         shape = get_layer_input_shape(input_layer)
-        return random_fn(
-            size=replace_none_with(32, set_shape_idx_0_to_1_if_none(singleton_list_to_value(shape)))).astype(np.float32)
+        data = random_fn(replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
+        return data
 
     assert are_embedding_and_category_encoding_layer_positions_ok_for_testing(
         model), "Test data can only be generated if embedding layers are positioned directly after input nodes."
 
-    data_in = list(map(generate_input_data, get_model_input_layers(model)))
+    data_in: List[NDFloat32Array] = list(map(generate_input_data, get_model_input_layers(model)))
 
+    data_out_test: List[NDFloat32Array]
     warm_up_runs = 3
     test_runs = 5
     for i in range(warm_up_runs):
@@ -159,7 +160,7 @@ def gen_test_data(model):
             data_out_test, _ = measure_predict(model, data_in)
         else:
             measure_predict(model, data_in)
-    duration_sum = 0
+    duration_sum = 0.0
     print('Starting performance measurements.')
     for _ in range(test_runs):
         data_out, duration = measure_predict(model, data_in)
@@ -167,42 +168,40 @@ def gen_test_data(model):
     duration_avg = duration_sum / test_runs
     print('Forward pass took {} s on average.'.format(duration_avg))
     return {
-        'inputs': list(map(show_tensor, as_list(data_in))),
-        'outputs': list(map(show_tensor, as_list(data_out_test)))
+        'inputs': list(map(show_tensor, data_in)),
+        'outputs': list(map(show_tensor, data_out_test))
     }
 
 
-def split_every(size, seq):
+def split_every(size: int, seq: str) -> List[str]:
     """Split a sequence every seq elements."""
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 
-def encode_floats(arr):
+def encode_floats(arr: NDFloat32Array) -> List[str]:
     """Serialize a sequence of floats."""
-    if STORE_FLOATS_HUMAN_READABLE:
-        return arr.flatten().tolist()
     return list(split_every(1024, base64.b64encode(arr).decode('ascii')))
 
 
-def prepare_filter_weights_conv_2d(weights):
+def prepare_filter_weights_conv_2d(weights: NDFloat32Array) -> NDFloat32Array:
     """Change dimension order of 2d filter weights to the one used in fdeep"""
     assert len(weights.shape) == 4
     return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 3, 0]).flatten()
 
 
-def prepare_filter_weights_slice_conv_2d(weights):
+def prepare_filter_weights_slice_conv_2d(weights: NDFloat32Array) -> NDFloat32Array:
     """Change dimension order of 2d filter weights to the one used in fdeep"""
     assert len(weights.shape) == 4
     return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 0, 3]).flatten()
 
 
-def prepare_filter_weights_conv_1d(weights):
+def prepare_filter_weights_conv_1d(weights: NDFloat32Array) -> NDFloat32Array:
     """Change dimension order of 1d filter weights to the one used in fdeep"""
     assert len(weights.shape) == 3
     return np.moveaxis(weights, [0, 1, 2], [1, 2, 0]).flatten()
 
 
-def show_conv_1d_layer(layer):
+def show_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv1D layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
@@ -220,7 +219,7 @@ def show_conv_1d_layer(layer):
     return result
 
 
-def show_conv_2d_layer(layer):
+def show_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv2D layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
@@ -238,7 +237,7 @@ def show_conv_2d_layer(layer):
     return result
 
 
-def show_separable_conv_2d_layer(layer):
+def show_separable_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize SeparableConv2D layer to dict"""
     weights = layer.get_weights()
     assert layer.depth_multiplier == 1
@@ -263,7 +262,7 @@ def show_separable_conv_2d_layer(layer):
     return result
 
 
-def show_depthwise_conv_2d_layer(layer):
+def show_depthwise_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize DepthwiseConv2D layer to dict"""
     weights = layer.get_weights()
     assert layer.depth_multiplier == 1
@@ -285,7 +284,7 @@ def show_depthwise_conv_2d_layer(layer):
     return result
 
 
-def show_batch_normalization_layer(layer):
+def show_batch_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize batch normalization layer to dict"""
     moving_mean = layer.moving_mean.numpy()
     moving_variance = layer.moving_variance.numpy()
@@ -301,7 +300,7 @@ def show_batch_normalization_layer(layer):
     return result
 
 
-def show_layer_normalization_layer(layer):
+def show_layer_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize layer normalization layer to dict"""
     result = {}
     if layer.center:
@@ -313,7 +312,7 @@ def show_layer_normalization_layer(layer):
     return result
 
 
-def show_dense_layer(layer):
+def show_dense_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize dense layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
@@ -328,16 +327,16 @@ def show_dense_layer(layer):
     return result
 
 
-def show_dot_layer(layer):
+def show_dot_layer(layer: Layer) -> None:
     """Check valid configuration of Dot layer"""
     assert len(get_layer_input_shape(layer)) == 2
     assert isinstance(layer.axes, int) or (isinstance(layer.axes, list) and len(layer.axes) == 2)
-    assert get_layer_input_shape(layer)[0][0] is None
-    assert get_layer_input_shape(layer)[1][0] is None
+    assert layer.input.shape[0][0] is None
+    assert layer.input.shape[1][0] is None
     assert len(layer.output_shape) <= 5
 
 
-def show_prelu_layer(layer):
+def show_prelu_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize prelu layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1
@@ -348,7 +347,7 @@ def show_prelu_layer(layer):
     return result
 
 
-def show_embedding_layer(layer):
+def show_embedding_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Embedding layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1
@@ -358,17 +357,17 @@ def show_embedding_layer(layer):
     return result
 
 
-def show_input_layer(layer):
+def show_input_layer(layer: Layer) -> None:
     """Serialize input layer to dict"""
     assert not layer.sparse
 
 
-def show_softmax_layer(layer):
+def show_softmax_layer(layer: Layer) -> None:
     """Serialize softmax layer to dict"""
     assert layer.axis == -1
 
 
-def show_normalization_layer(layer):
+def show_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize normalization layer to dict"""
     assert len(layer.axis) <= 1, "Multiple normalization axes are not supported"
     if len(layer.axis) == 1:
@@ -379,27 +378,27 @@ def show_normalization_layer(layer):
     }
 
 
-def show_upsampling2d_layer(layer):
+def show_upsampling2d_layer(layer: Layer) -> None:
     """Serialize UpSampling2D layer to dict"""
     assert layer.interpolation in ["nearest", "bilinear"]
 
 
-def show_resizing_layer(layer):
+def show_resizing_layer(layer: Layer) -> None:
     """Serialize Resizing layer to dict"""
     assert layer.interpolation in ["nearest", "bilinear", "area"]
 
 
-def show_rescaling_layer(layer):
+def show_rescaling_layer(layer: Layer) -> None:
     """Serialize Rescaling layer to dict"""
     assert isinstance(layer.scale, float)
 
 
-def show_category_encoding_layer(layer):
+def show_category_encoding_layer(layer: Layer) -> None:
     """Serialize CategoryEncoding layer to dict"""
     assert layer.output_mode in ["multi_hot", "count", "one_hot"]
 
 
-def show_attention_layer(layer):
+def show_attention_layer(layer: Layer) -> Mapping[str, float]:
     """Serialize Attention layer to dict"""
     assert layer.score_mode in ["dot", "concat"]
     data = {}
@@ -407,20 +406,18 @@ def show_attention_layer(layer):
         data['scale'] = float(layer.scale.numpy())
     if layer.score_mode == "concat":
         data['concat_score_weight'] = float(layer.concat_score_weight.numpy())
-    if data:
-        return data
+    return data
 
 
-def show_additive_attention_layer(layer):
+def show_additive_attention_layer(layer: Layer) -> Mapping[str, List[str]]:
     """Serialize AdditiveAttention layer to dict"""
     data = {}
     if layer.scale is not None:
         data['scale'] = encode_floats(layer.scale.numpy())
-    if data:
-        return data
+    return data
 
 
-def show_multi_head_attention_layer(layer):
+def show_multi_head_attention_layer(layer: Layer) -> Mapping[str, List[list[str]]]:
     """Serialize MultiHeadAttention layer to dict"""
     assert layer._output_shape is None
     assert layer._attention_axes == (1,), "MultiHeadAttention supported only with attention_axes=None"
@@ -430,7 +427,7 @@ def show_multi_head_attention_layer(layer):
     }
 
 
-def get_layer_functions_dict():
+def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
     return {
         'Conv1D': show_conv_1d_layer,
         'Conv2D': show_conv_2d_layer,
@@ -456,13 +453,13 @@ def get_layer_functions_dict():
     }
 
 
-def show_time_distributed_layer(layer):
+def show_time_distributed_layer(layer: Layer) -> Union[None, LayerConfig]:
     show_layer_functions = get_layer_functions_dict()
     config = layer.get_config()
-    class_name = config['layer']['class_name']
+    class_name = str(config['layer']['class_name'])
 
-    if class_name in show_layer_functions:
-
+    if show_layer_functions and class_name in show_layer_functions:
+        input_shape_new: Shape
         if len(get_layer_input_shape(layer)) == 3:
             input_shape_new = (get_layer_input_shape(layer)[0], get_layer_input_shape(layer)[2])
         elif len(get_layer_input_shape(layer)) == 4:
@@ -499,27 +496,27 @@ def show_time_distributed_layer(layer):
         setattr(copied_layer, "output_shape", layer.output.shape)
 
         return layer_function(copied_layer)
-
     else:
         return None
 
 
-def get_dict_keys(d):
+def get_dict_keys(d: Mapping[str, LayerConfig]) -> list[str]:
     """Return keys of a dictionary"""
     return [key for key in d]
 
 
-def merge_two_disjunct_dicts(x, y):
+def merge_two_disjunct_dicts(x: Mapping[str, LayerConfig], y: Mapping[str, LayerConfig]) -> Mapping[str, LayerConfig]:
     """Given two dicts, merge them into a new dict as a shallow copy.
     No Key is allowed to be present in both dictionaries.
     """
     assert set(get_dict_keys(x)).isdisjoint(get_dict_keys(y))
+    assert isinstance(x, dict) and isinstance(y, dict)
     z = x.copy()
     z.update(y)
     return z
 
 
-def is_ascii(some_string):
+def is_ascii(some_string: str) -> bool:
     """Check if a string only contains ascii characters"""
     try:
         some_string.encode('ascii')
@@ -529,9 +526,9 @@ def is_ascii(some_string):
         return True
 
 
-def get_layer_weights(layer, name):
+def get_layer_weights(layer: Layer, name: str) -> Mapping[str, LayerConfig]:
     """Serialize all weights of a single normal layer"""
-    result = {}
+    result: dict[str, LayerConfig] = {}
     layer_type = type(layer).__name__
     if hasattr(layer, 'data_format'):
         assert layer.data_format == 'channels_last'
@@ -543,18 +540,15 @@ def get_layer_weights(layer, name):
     if shown_layer:
         result[name] = shown_layer
     if show_func and layer_type == 'TimeDistributed':
-        if name not in result:
-            result[name] = {}
-
-        result[name]['td_input_len'] = encode_floats(
-            np.array([len(get_layer_input_shape(layer)) - 1], dtype=np.float32))
-        result[name]['td_output_len'] = encode_floats(np.array([len(layer.output.shape) - 1], dtype=np.float32))
+        result[name] = {'td_input_len': encode_floats(
+            np.array([len(get_layer_input_shape(layer)) - 1], dtype=np.float32)),
+            'td_output_len': encode_floats(np.array([len(layer.output.shape) - 1], dtype=np.float32))}
     return result
 
 
-def get_all_weights(model, prefix):
+def get_all_weights(model: Model, prefix: str) -> Mapping[str, LayerConfig]:
     """Serialize all weights of the models layers"""
-    result = {}
+    result: dict[str, LayerConfig] = {}
     layers = model.layers
     assert K.image_data_format() == 'channels_last'
     for layer in layers:
@@ -571,24 +565,24 @@ def get_all_weights(model, prefix):
         if name in result:
             raise ValueError('duplicate layer name ' + name)
         if layer_type in ['Model', 'Sequential', 'Functional']:
-            result = merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_'))
+            result = dict(merge_two_disjunct_dicts(result, get_all_weights(layer, name + '_')))
         elif layer_type in ['TimeDistributed'] and type(layer.layer).__name__ in ['Model', 'Sequential', 'Functional']:
             inner_layer = layer.layer
-            result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
-            result = merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + "_"))
+            result = dict(merge_two_disjunct_dicts(result, get_layer_weights(layer, name)))
+            result = dict(merge_two_disjunct_dicts(result, get_all_weights(inner_layer, name + "_")))
         else:
-            result = merge_two_disjunct_dicts(result, get_layer_weights(layer, name))
+            result = dict(merge_two_disjunct_dicts(result, get_layer_weights(layer, name)))
     return result
 
 
-def get_model_name(model):
+def get_model_name(model: Model) -> str:
     """Return .name or ._name"""
     if hasattr(model, 'name'):
-        return model.name
-    return model._name
+        return str(model.name)
+    return str(model._name)
 
 
-def convert_sequential_to_model(model):
+def convert_sequential_to_model(model: Model) -> Model:
     """Convert a sequential model to the underlying functional format"""
     if type(model).__name__ in ['Sequential']:
         name = get_model_name(model)
@@ -614,12 +608,12 @@ def convert_sequential_to_model(model):
     return model
 
 
-def get_shapes(tensors):
+def get_shapes(tensors: List[Mapping[str, Shape]]) -> List[Shape]:
     """Return shapes of a list of tensors"""
     return [t['shape'] for t in tensors]
 
 
-def calculate_hash(model):
+def calculate_hash(model: Model) -> str:
     layers = model.layers
     hash_m = hashlib.sha256()
     for layer in layers:
@@ -630,25 +624,7 @@ def calculate_hash(model):
     return hash_m.hexdigest()
 
 
-def as_list(value_or_values):
-    """Leave lists untouched, convert non-list types to a singleton list"""
-    if isinstance(value_or_values, list):
-        return value_or_values
-    return [value_or_values]
-
-
-def singleton_list_to_value(value_or_values):
-    """
-    Leaves non-list values untouched.
-    Raises an Exception in case the input list does not have exactly one element.
-    """
-    if isinstance(value_or_values, list):
-        assert len(value_or_values) == 1
-        return value_or_values[0]
-    return value_or_values
-
-
-def model_to_fdeep_json(model, no_tests=False):
+def model_to_fdeep_json(model: Model, no_tests: bool = False) -> Mapping[str, Any]:
     """Convert any Keras model to the frugally-deep model format."""
 
     # Force creation of underlying functional model.
@@ -665,7 +641,7 @@ def model_to_fdeep_json(model, no_tests=False):
     json_output['architecture'] = json.loads(model.to_json())
     json_output['image_data_format'] = K.image_data_format()
     json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
-    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, as_list(model.output_shape)))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, [model.output_shape]))
 
     if test_data:
         json_output['tests'] = [test_data]
@@ -681,12 +657,12 @@ def model_to_fdeep_json(model, no_tests=False):
     return json_output
 
 
-def assert_model_type(model):
+def assert_model_type(model: Model) -> None:
     import keras
     assert type(model) in [keras.src.models.sequential.Sequential, keras.src.models.functional.Functional]
 
 
-def convert(in_path, out_path, no_tests=False):
+def convert(in_path: str, out_path: str, no_tests: bool = False) -> None:
     """Convert any (h5-)stored Keras model to the frugally-deep model format."""
     print('loading {}'.format(in_path))
     model = load_model(in_path, compile=False)
@@ -697,7 +673,7 @@ def convert(in_path, out_path, no_tests=False):
         json.dump(json_output, f, allow_nan=False, separators=(',', ':'))
 
 
-def main():
+def main() -> None:
     """Parse command line and convert model."""
 
     parser = argparse.ArgumentParser(

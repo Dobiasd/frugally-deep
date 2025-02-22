@@ -130,8 +130,6 @@ def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, L
 
     def generate_input_data(input_layer: Layer) -> NDFloat32Array:
         """Random data fitting the input shape of a layer."""
-        print("input input_layer type", type(input_layer).__name__)  # todo: remove
-        print("input_layer._outbound_nodes type", type(input_layer._outbound_nodes).__name__)  # todo: remove
         random_fn: Callable[[Shape], Union[NDFloat32Array, NDUInt32Array]]
         if input_layer._outbound_nodes and isinstance(
                 get_first_outbound_op(input_layer), Embedding):
@@ -142,7 +140,7 @@ def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, L
             random_fn = lambda size: np.random.randint(
                 0, get_first_outbound_op(input_layer).num_tokens, size)
         else:
-            random_fn = lambda size: np.random.normal(size).astype(np.float32)
+            random_fn = lambda size: np.random.normal(size=size).astype(np.float32)
         shape = get_layer_input_shape(input_layer)
         data = random_fn(replace_none_with(32, set_shape_idx_0_to_1_if_none(shape))).astype(np.float32)
         return data

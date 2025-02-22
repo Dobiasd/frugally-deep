@@ -3,6 +3,7 @@
 """
 
 import sys
+from typing import Tuple, List, Union
 
 import numpy as np
 from keras.layers import ActivityRegularization
@@ -27,6 +28,7 @@ from keras.layers import Permute, Reshape, RepeatVector
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import ZeroPadding3D, Cropping3D
 from keras.models import Model, load_model, Sequential
+from keras.src.layers import Identity
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -34,15 +36,18 @@ __license__ = "MIT"
 __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
-from keras.src.layers import Identity
+NDFloat32Array = np.typing.NDArray[np.float32]
+NDUInt32Array = np.typing.NDArray[np.int32]
+Shape = Tuple[int, ...]
+VariableShape = Tuple[Union[None, int], ...]
 
 
-def replace_none_with(value, shape):
+def replace_none_with(value: int, shape: VariableShape) -> Shape:
     """Replace every None with a fixed value."""
     return tuple(list(map(lambda x: x if x is not None else value, shape)))
 
 
-def get_shape_for_random_data(data_size, shape):
+def get_shape_for_random_data(data_size: int, shape: Shape) -> Shape:
     """Include size of data to generate into shape."""
     if len(shape) == 5:
         return (data_size, shape[0], shape[1], shape[2], shape[3], shape[4])
@@ -57,46 +62,47 @@ def get_shape_for_random_data(data_size, shape):
     raise ValueError('can not use shape for random data:', shape)
 
 
-def generate_random_data(data_size, shape):
+def generate_random_data(data_size: int, shape: VariableShape) -> NDFloat32Array:
     """Random data for training."""
     return np.random.random(
-        size=get_shape_for_random_data(data_size, replace_none_with(42, shape)))
+        size=get_shape_for_random_data(data_size, replace_none_with(42, shape))).astype(np.float32)
 
 
-def generate_input_data(data_size, input_shapes):
+def generate_input_data(data_size: int, input_shapes: List[VariableShape]) -> List[NDFloat32Array]:
     """Random input data for training."""
     return [generate_random_data(data_size, input_shape)
             for input_shape in input_shapes]
 
 
-def generate_integer_random_data(data_size, low, high, shape):
+def generate_integer_random_data(data_size: int, low: int, high: int, shape: Shape) -> NDUInt32Array:
     """Random data for training."""
     return np.random.randint(
         low=low, high=high, size=get_shape_for_random_data(data_size, replace_none_with(42, shape)))
 
 
-def generate_integer_input_data(data_size, low, highs, input_shapes):
+def generate_integer_input_data(data_size: int, low: int, highs: List[int], input_shapes: List[Shape]) -> List[
+    NDUInt32Array]:
     """Random input data for training."""
     return [generate_integer_random_data(data_size, low, high, input_shape)
             for high, input_shape in zip(highs, input_shapes)]
 
 
-def as_list(value_or_values):
+def as_list(value_or_values: Union[NDFloat32Array, List[NDFloat32Array]]) -> List[NDFloat32Array]:
     """Leave lists untouched, convert non-list types to a singleton list"""
     if isinstance(value_or_values, list):
         return value_or_values
     return [value_or_values]
 
 
-def generate_output_data(data_size, outputs):
+def generate_output_data(data_size: int, outputs: List[NDFloat32Array]) -> List[NDFloat32Array]:
     """Random output data for training."""
     return [generate_random_data(data_size, output.shape[1:])
             for output in as_list(outputs)]
 
 
-def get_test_model_exhaustive():
+def get_test_model_exhaustive() -> Model:
     """Returns a exhaustive test model."""
-    input_shapes = [
+    input_shapes: List[VariableShape] = [
         (2, 3, 4, 5, 6),  # 0
         (2, 3, 4, 5, 6),
         (7, 8, 9, 10),
@@ -579,7 +585,7 @@ def get_test_model_exhaustive():
     return model
 
 
-def get_test_model_embedding():
+def get_test_model_embedding() -> Model:
     """Returns a minimalistic test model for the Embedding and CategoryEncoding layers."""
 
     input_dims = [
@@ -587,7 +593,7 @@ def get_test_model_embedding():
         255,
         15,
     ]
-    input_shapes = [
+    input_shapes: list[tuple[int, ...]] = [
         (100,),  # must be single-element tuple (for sequence length)
         (1000,),
         (1,),
@@ -622,7 +628,7 @@ def get_test_model_embedding():
     return model
 
 
-def get_test_model_variable():
+def get_test_model_variable() -> Model:
     """Returns a model with variably shaped input tensors."""
 
     input_shapes = [
@@ -662,7 +668,7 @@ def get_test_model_variable():
     return model
 
 
-def get_test_model_autoencoder():
+def get_test_model_autoencoder() -> Model:
     """Returns a minimal autoencoder test model."""
     input_img = Input(shape=(1,), name='input_img')
     encoded = Identity()(input_img)  # Since it's about testing node connections, this suffices.
@@ -680,7 +686,7 @@ def get_test_model_autoencoder():
     return autoencoder
 
 
-def get_test_model_sequential():
+def get_test_model_sequential() -> Model:
     """Returns a typical (VGG-like) sequential test model."""
     model = Sequential()
     model.add(Conv2D(8, (3, 3), activation='relu', input_shape=(32, 32, 3)))
@@ -712,7 +718,7 @@ def get_test_model_sequential():
     return model
 
 
-def main():
+def main() -> None:
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
         print('usage: [model name] [destination file path]', flush=True)

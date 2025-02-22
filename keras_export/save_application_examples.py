@@ -3,6 +3,7 @@
 """
 
 import keras
+from keras.models import Model
 
 import convert_model
 
@@ -13,7 +14,7 @@ __maintainer__ = "Tobias Hermann, https://github.com/Dobiasd/frugally-deep"
 __email__ = "editgym@gmail.com"
 
 
-def save_model(file_name_base, model):
+def save_model(file_name_base: str, model: Model) -> None:
     """Save and convert Keras model"""
     keras_file = f'{file_name_base}.keras'
     fdeep_file = f'{file_name_base}.json'
@@ -24,7 +25,7 @@ def save_model(file_name_base, model):
     print(f'Conversion of model {keras_file} to {fdeep_file} done.')
 
 
-def main():
+def main() -> None:
     """Save famous example models in Keras-h5 and fdeep-json format."""
     print('Saving application examples')
     # save_model('convnextbase', keras.applications.convnext.ConvNeXtBase())  # custom object LayerScale

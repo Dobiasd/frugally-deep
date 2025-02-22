@@ -7,7 +7,7 @@ import base64
 import datetime
 import hashlib
 import json
-from typing import Tuple, Union, Mapping, List, Callable, Set, Any
+from typing import Tuple, Union, Mapping, List, Callable, Set, Any, TypeVar
 
 import numpy as np
 import numpy.typing  # pylint: disable=unused-import
@@ -26,6 +26,15 @@ NDFloat32Array = np.typing.NDArray[np.float32]
 NDUInt32Array = np.typing.NDArray[np.int32]
 Shape = Tuple[int, ...]
 LayerConfig = Union[None, Mapping[str, Union[float, list[str], list[list[str]]]]]
+
+TypeT = TypeVar('TypeT')
+
+
+def as_list(value_or_values: Union[TypeT, List[TypeT]]) -> List[TypeT]:
+    """Leave lists untouched, convert non-list types to a singleton list"""
+    if isinstance(value_or_values, list):
+        return value_or_values
+    return [value_or_values]
 
 
 def keras_shape_to_fdeep_tensor_shape(raw_shape: Shape) -> Shape:
@@ -639,7 +648,7 @@ def model_to_fdeep_json(model: Model, no_tests: bool = False) -> Mapping[str, An
     json_output['architecture'] = json.loads(model.to_json())
     json_output['image_data_format'] = K.image_data_format()
     json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
-    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, model.output_shape))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, as_list(model.output_shape)))
 
     if test_data:
         json_output['tests'] = [test_data]

@@ -639,7 +639,7 @@ def model_to_fdeep_json(model: Model, no_tests: bool = False) -> Mapping[str, An
     json_output['architecture'] = json.loads(model.to_json())
     json_output['image_data_format'] = K.image_data_format()
     json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
-    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, [model.output_shape]))
+    json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, model.output_shape))
 
     if test_data:
         json_output['tests'] = [test_data]

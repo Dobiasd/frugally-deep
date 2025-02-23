@@ -26,6 +26,7 @@ NDFloat32Array = np.typing.NDArray[np.float32]
 NDUInt32Array = np.typing.NDArray[np.int32]
 Shape = Tuple[int, ...]
 LayerConfig = Union[None, Mapping[str, Union[float, list[str], list[list[str]]]]]
+TensorRepr = Mapping[str, Union[Shape, List[str]]]
 
 TypeT = TypeVar('TypeT')
 
@@ -54,7 +55,7 @@ def get_layer_input_shape_tensor_shape(layer: Layer) -> Shape:
     return keras_shape_to_fdeep_tensor_shape(get_layer_input_shape(layer))
 
 
-def show_tensor(tens: NDFloat32Array) -> Mapping[str, Union[Shape, List[str]]]:
+def show_tensor(tens: NDFloat32Array) -> TensorRepr:
     """Serialize 3-tensor to a dict"""
     return {
         'shape': tens.shape[1:],
@@ -125,7 +126,7 @@ def are_embedding_and_category_encoding_layer_positions_ok_for_testing(model: Mo
     return embedding_layer_names(model) == embedding_layer_names_at_input_nodes(model)
 
 
-def gen_test_data(model: Model) -> Mapping[str, List[Mapping[str, Union[Shape, List[str]]]]]:
+def gen_test_data(model: Model) -> Mapping[str, List[TensorRepr]]:
     """Generate data for model verification test."""
 
     def set_shape_idx_0_to_1_if_none(shape: Shape) -> Shape:

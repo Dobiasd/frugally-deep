@@ -164,11 +164,11 @@ print(result.shape)  # result[0].shape in case of multiple output tensors
 
 ```cpp
 const fdeep::tensor input = ...
-std::cout << fdeep::show_tensor(input);
-std::cout << fdeep::show_tensor_shape(input.shape());
+std::cout << fdeep::show_tensor(input) << std::endl;
+std::cout << fdeep::show_tensor_shape(input.shape()) << std::endl;
 const auto result = model.predict({input});
-std::cout << fdeep::show_tensor_shape(result.front().shape());
-std::cout << fdeep::show_tensors(result);
+std::cout << fdeep::show_tensor_shape(result.front().shape()) << std::endl;
+std::cout << fdeep::show_tensors(result) << std::endl;
 ```
 
 And then check if they actually are identical.

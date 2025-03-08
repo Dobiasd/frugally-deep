@@ -217,6 +217,7 @@ def show_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
     assert len(weights[0].shape) == 3
     weights_flat = prepare_filter_weights_conv_1d(weights[0])
     assert layer.padding in ['valid', 'same', 'causal']
+    assert layer.groups == 1
     assert len(get_layer_input_shape(layer)) == 3
     assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
@@ -230,6 +231,43 @@ def show_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
 
 def show_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv2D layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 4
+    weights_flat = prepare_filter_weights_conv_2d(weights[0])
+    assert layer.padding in ['valid', 'same']
+    assert layer.groups == 1
+    assert len(get_layer_input_shape(layer)) == 4
+    assert get_layer_input_shape(layer)[0] in {None, 1}
+    result = {
+        'weights': encode_floats(weights_flat)
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+    return result
+
+
+def show_conv_1d_transpose_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize Conv1D transpose layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 3
+    weights_flat = prepare_filter_weights_conv_1d(weights[0])
+    assert layer.padding in ['valid', 'same', 'causal']
+    assert len(get_layer_input_shape(layer)) == 3
+    assert get_layer_input_shape(layer)[0] in {None, 1}
+    result = {
+        'weights': encode_floats(weights_flat)
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+    return result
+
+
+def show_conv_2d_transpose_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize Conv2D transpose layer to dict"""
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
@@ -440,6 +478,8 @@ def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
     return {
         'Conv1D': show_conv_1d_layer,
         'Conv2D': show_conv_2d_layer,
+        'Conv1DTranspose': show_conv_1d_transpose_layer,
+        'Conv2DTranspose': show_conv_2d_transpose_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,
         'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,

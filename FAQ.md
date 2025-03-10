@@ -458,29 +458,6 @@ int main()
 }
 ```
 
-Why are `Conv2DTranspose` layers not supported?
------------------------------------------------
-
-The combination of `UpSampling2D` and `Conv2D` layers seems to be the better alternative:
-https://distill.pub/2016/deconv-checkerboard/
-
-Basically, instead of this:
-
-```python
-x = Conv2DTranspose(8, (3, 3), strides=(2, 2), padding='same')(x)
-```
-
-one uses that:
-
-```python
-x = Conv2D(8, (3, 3), padding='same')(UpSampling2D(2)(x))
-```
-
-In case you are not in the position to change your model's
-architecture to make that change,
-feel free to implement `Conv2DTranspose` in frugally-deep and
-submit a [pull request](https://github.com/Dobiasd/frugally-deep/pulls). :)
-
 How can I use `BatchNormalization` and `Dropout` layers with `training=True`?
 -----------------------------------------------------------------------------
 

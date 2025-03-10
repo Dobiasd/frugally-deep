@@ -210,6 +210,18 @@ def prepare_filter_weights_conv_1d(weights: NDFloat32Array) -> NDFloat32Array:
     return np.moveaxis(weights, [0, 1, 2], [1, 2, 0]).flatten()
 
 
+def prepare_filter_weights_conv_1d_transpose(weights: NDFloat32Array) -> NDFloat32Array:
+    """Change dimension order of 1d filter weights to the one used in fdeep"""
+    assert len(weights.shape) == 3
+    return np.moveaxis(weights, [0, 1, 2], [1, 0, 2]).flatten()
+
+
+def prepare_filter_weights_conv_2d_transpose(weights: NDFloat32Array) -> NDFloat32Array:
+    """Change dimension order of 2d filter weights to the one used in fdeep"""
+    assert len(weights.shape) == 4
+    return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 0, 3]).flatten()
+
+
 def show_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv1D layer to dict"""
     weights = layer.get_weights()
@@ -253,7 +265,7 @@ def show_conv_1d_transpose_layer(layer: Layer) -> Mapping[str, list[str]]:
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 3
-    weights_flat = prepare_filter_weights_conv_1d(weights[0])
+    weights_flat = prepare_filter_weights_conv_1d_transpose(weights[0])
     assert layer.padding in ['valid', 'same', 'causal']
     assert len(get_layer_input_shape(layer)) == 3
     assert get_layer_input_shape(layer)[0] in {None, 1}
@@ -271,7 +283,7 @@ def show_conv_2d_transpose_layer(layer: Layer) -> Mapping[str, list[str]]:
     weights = layer.get_weights()
     assert len(weights) == 1 or len(weights) == 2
     assert len(weights[0].shape) == 4
-    weights_flat = prepare_filter_weights_conv_2d(weights[0])
+    weights_flat = prepare_filter_weights_conv_2d_transpose(weights[0])
     assert layer.padding in ['valid', 'same']
     assert len(get_layer_input_shape(layer)) == 4
     assert get_layer_input_shape(layer)[0] in {None, 1}

@@ -546,6 +546,36 @@ namespace internal {
         return out;
     }
 
+    inline tensor reverse_depth_dimension(const tensor& in)
+    {
+        tensor out = tensor(in.shape(), static_cast<float_type>(0));
+        loop_over_all_dims(in.shape(), [&in, &out](std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) {
+            out.set_ignore_rank(tensor_pos(dim5, dim4, y, x, in.shape().depth_ - z - 1),
+                in.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
+        });
+        return out;
+    }
+
+    inline tensor reverse_width_dimension(const tensor& in)
+    {
+        tensor out = tensor(in.shape(), static_cast<float_type>(0));
+        loop_over_all_dims(in.shape(), [&in, &out](std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) {
+            out.set_ignore_rank(tensor_pos(dim5, dim4, y, in.shape().width_ - x - 1, z),
+                in.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
+        });
+        return out;
+    }
+
+    inline tensor reverse_height_dimension(const tensor& in)
+    {
+        tensor out = tensor(in.shape(), static_cast<float_type>(0));
+        loop_over_all_dims(in.shape(), [&in, &out](std::size_t dim5, std::size_t dim4, std::size_t y, std::size_t x, std::size_t z) {
+            out.set_ignore_rank(tensor_pos(dim5, dim4, in.shape().height_ - y - 1, x, z),
+                in.get_ignore_rank(tensor_pos(dim5, dim4, y, x, z)));
+        });
+        return out;
+    }
+
     inline tensor transpose(const tensor& in)
     {
         return permute_tensor(in, std::vector<std::size_t>({ 2, 1 }));
@@ -577,20 +607,28 @@ namespace internal {
         return result;
     }
 
-    inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in)
+    inline tensor dilate_tensor(const shape2& dilation_rate, const tensor& in, bool trailing_zeros)
     {
         assertion(in.shape().rank() <= 3, "Invalid rank for dilation");
         if (dilation_rate == shape2(1, 1)) {
             return in;
         }
 
-        tensor result(dilate_tensor_shape(dilation_rate, in.shape()), 0);
+        const std::size_t expansion_x = trailing_zeros ? (dilation_rate.width_ - 1) : 0;
+        const std::size_t expansion_y = trailing_zeros ? (dilation_rate.height_ - 1) : 0;
+
+        auto dilated_shape = dilate_tensor_shape(dilation_rate, in.shape());
+        dilated_shape.width_ += expansion_x;
+        dilated_shape.height_ += expansion_y;
+        const std::size_t offset_x = expansion_x - expansion_x / 2;
+        const std::size_t offset_y = expansion_y - expansion_y / 2;
+        tensor result(dilated_shape, 0);
         for (std::size_t y = 0; y < in.shape().height_; ++y) {
             for (std::size_t x = 0; x < in.shape().width_; ++x) {
                 for (std::size_t z = 0; z < in.shape().depth_; ++z) {
                     result.set_ignore_rank(tensor_pos(
-                                               y * dilation_rate.height_,
-                                               x * dilation_rate.width_,
+                                               y * dilation_rate.height_ + offset_y,
+                                               x * dilation_rate.width_ + offset_x,
                                                z),
                         in.get_ignore_rank(tensor_pos(y, x, z)));
                 }

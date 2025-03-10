@@ -225,7 +225,8 @@ namespace internal {
         const shape2& strides,
         padding pad_type,
         std::size_t input_shape_height,
-        std::size_t input_shape_width)
+        std::size_t input_shape_width,
+        bool transposed)
     {
         // https://www.tensorflow.org/api_guides/python/nn#Convolution
         const int filter_height = static_cast<int>(filter_shape.height_);
@@ -242,14 +243,26 @@ namespace internal {
             out_height = fplus::ceil(static_cast<float>(in_height) / static_cast<float>(strides_y) - 0.001);
             out_width = fplus::ceil(static_cast<float>(in_width) / static_cast<float>(strides_x) - 0.001);
         } else {
-            out_height = fplus::ceil(static_cast<float>(in_height - filter_height + 1) / static_cast<float>(strides_y) - 0.001);
-            out_width = fplus::ceil(static_cast<float>(in_width - filter_width + 1) / static_cast<float>(strides_x) - 0.001);
+            if (transposed) {
+                out_height = fplus::ceil(static_cast<float>(in_height + filter_height - 1) / static_cast<float>(strides_y) - 0.001);
+                out_width = fplus::ceil(static_cast<float>(in_width + filter_width - 1) / static_cast<float>(strides_x) - 0.001);
+            } else {
+                out_height = fplus::ceil(static_cast<float>(in_height - filter_height + 1) / static_cast<float>(strides_y) - 0.001);
+                out_width = fplus::ceil(static_cast<float>(in_width - filter_width + 1) / static_cast<float>(strides_x) - 0.001);
+            }
         }
 
         int pad_top = 0;
         int pad_bottom = 0;
         int pad_left = 0;
         int pad_right = 0;
+
+        if (transposed) {
+            pad_top = filter_height - 1;
+            pad_bottom = filter_height - 1;
+            pad_left = filter_width - 1;
+            pad_right = filter_width - 1;
+        }
 
         if (pad_type == padding::same) {
             int pad_along_height = 0;
@@ -296,7 +309,7 @@ namespace internal {
 
         const auto conv_cfg = preprocess_convolution(
             filter_mat.filter_shape_.without_depth(),
-            strides, pad_type, input.shape().height_, input.shape().width_);
+            strides, pad_type, input.shape().height_, input.shape().width_, false);
 
         // The padding step usually (on a VGG19 net) only takes about 1% of the overall runtime.
         // So the increased code complexity of doing it inside the convolution step
@@ -308,6 +321,33 @@ namespace internal {
         return convolve_accumulative(
             conv_cfg.out_height_, conv_cfg.out_width_,
             strides.height_, strides.width_,
+            filter_mat,
+            in_padded);
+    }
+
+    inline tensor convolve_transposed(
+        const shape2& strides,
+        const padding& pad_type,
+        const convolution_filter_matrices& filter_mat,
+        const tensor& input)
+    {
+        assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
+            "invalid filter depth");
+
+        const auto input_dilated = dilate_tensor(strides, input, pad_type == padding::same);
+
+        const auto conv_cfg = preprocess_convolution(
+            filter_mat.filter_shape_.without_depth(),
+            shape2(1, 1), pad_type, input_dilated.shape().height_, input_dilated.shape().width_,
+            true);
+
+        const auto in_padded = pad_tensor(0, 0, 0,
+            conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
+            input_dilated);
+
+        return convolve_accumulative(
+            conv_cfg.out_height_, conv_cfg.out_width_,
+            1, 1,
             filter_mat,
             in_padded);
     }

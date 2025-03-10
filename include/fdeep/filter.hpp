@@ -62,14 +62,15 @@ namespace internal {
 
     inline filter dilate_filter(const shape2& dilation_rate, const filter& undilated)
     {
-        return filter(dilate_tensor(dilation_rate, undilated.get_tensor()),
+        return filter(dilate_tensor(dilation_rate, undilated.get_tensor(), false),
             undilated.get_bias());
     }
 
     inline filter_vec generate_filters(
         const shape2& dilation_rate,
         const tensor_shape& filter_shape, std::size_t k,
-        const float_vec& weights, const float_vec& bias)
+        const float_vec& weights, const float_vec& bias,
+        bool transpose)
     {
         filter_vec filters(k, filter(tensor(filter_shape, 0), 0));
 
@@ -90,6 +91,10 @@ namespace internal {
         for (auto& filt : filters) {
             filt.set_params(*it_filter_val, *it_filter_bias);
             filt = dilate_filter(dilation_rate, filt);
+            if (transpose) {
+                filt = filter(reverse_height_dimension(filt.get_tensor()), filt.get_bias());
+                filt = filter(reverse_width_dimension(filt.get_tensor()), filt.get_bias());
+            }
             ++it_filter_val;
             ++it_filter_bias;
         }

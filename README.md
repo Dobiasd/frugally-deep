@@ -43,6 +43,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
 * `TimeDistributed`
 * `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
+* `Conv1DTranspose`, `Conv2DTranspose`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
@@ -59,7 +60,6 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `Embedding`, `CategoryEncoding`
 * `Attention`, `AdditiveAttention`, `MultiHeadAttention`
 
-
 ### Also supported
 
 * multiple inputs and outputs
@@ -72,7 +72,6 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 ### Currently not supported are the following:
 
-`Conv2DTranspose` ([why](FAQ.md#why-are-conv2dtranspose-layers-not-supported)),
 `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
 `Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,

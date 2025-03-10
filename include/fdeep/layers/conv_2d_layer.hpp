@@ -30,7 +30,7 @@ namespace internal {
             const float_vec& weights, const float_vec& bias)
             : layer(name)
             , filters_(generate_im2col_filter_matrix(
-                  generate_filters(dilation_rate, filter_shape, k, weights, bias)))
+                  generate_filters(dilation_rate, filter_shape, k, weights, bias, false)))
             , strides_(strides)
             , padding_(p)
         {

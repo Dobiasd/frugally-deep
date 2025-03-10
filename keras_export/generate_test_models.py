@@ -16,6 +16,7 @@ from keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
+from keras.layers import Identity, Conv2DTranspose, Conv1DTranspose
 from keras.layers import Input, Dense, Dropout, Flatten, Activation
 from keras.layers import LeakyReLU, ELU, PReLU, ReLU
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
@@ -28,7 +29,6 @@ from keras.layers import Permute, Reshape, RepeatVector
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import ZeroPadding3D, Cropping3D
 from keras.models import Model, load_model, Sequential
-from keras.src.layers import Identity
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -161,8 +161,43 @@ def get_test_model_exhaustive() -> Model:
 
     outputs = []
 
+    outputs.append(Conv1DTranspose(4, 3, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv2DTranspose(4, (5, 3), padding='valid', use_bias=False)(inputs[4]))
+
+    outputs.append(Conv1DTranspose(4, 1, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(4, 1, padding='same', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(1, 3, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 3, padding='same')(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 5, padding='same', strides=2)(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 5, padding='valid', strides=2)(inputs[6]))
+    # Current CPU implementations do not yet support dilation rates larger than 1
+    # https://github.com/keras-team/keras/issues/20408
+    # https://github.com/keras-team/keras/pull/20737
+    #outputs.append(Conv1DTranspose(3, 5, padding='same', dilation_rate=2)(inputs[6]))
+    #outputs.append(Conv1DTranspose(3, 5, padding='valid', dilation_rate=2)(inputs[6]))
+
+    outputs.append(Conv2DTranspose(4, (1, 1), padding='valid', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (1, 1), padding='same', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(1, (3, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), padding='valid', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), padding='same')(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='same', strides=(2, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='valid', strides=(2, 3))(inputs[4]))
+    #outputs.append(Conv2DTranspose(4, (5, 5), padding='same', dilation_rate=(2, 3))(inputs[4]))
+    #outputs.append(Conv2DTranspose(4, (5, 5), padding='valid', dilation_rate=(2, 3))(inputs[4]))
+
+    outputs.append(Conv1DTranspose(1, 3, padding='valid')(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 1, padding='same')(inputs[6]))
+    #outputs.append(Conv1DTranspose(3, 4, padding='same', dilation_rate=2)(inputs[6]))
+
+    outputs.append(Conv2DTranspose(4, (3, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (2, 4), strides=(2, 2), padding='same')(inputs[4]))
+    #outputs.append(Conv2DTranspose(4, (2, 4), padding='same', dilation_rate=(2, 2))(inputs[4]))
+
     outputs.append(Conv1D(1, 3, padding='valid')(inputs[6]))
     outputs.append(Conv1D(2, 1, padding='same')(inputs[6]))
+    outputs.append(Conv1D(2, 1, padding='same', strides=2)(inputs[6]))
     outputs.append(Conv1D(3, 4, padding='causal', dilation_rate=2)(inputs[6]))
     outputs.append(ZeroPadding1D(2)(inputs[6]))
     outputs.append(Cropping1D((2, 3))(inputs[6]))
@@ -188,7 +223,7 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Rescaling(23.5, 42.1)(inputs[0]))
 
     outputs.append(Conv2D(4, (3, 3))(inputs[4]))
-    outputs.append(Conv2D(4, (3, 3), use_bias=False)(inputs[4]))
+    outputs.append(Conv2D(4, (3, 3), use_bias=False, padding='valid')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), padding='same', dilation_rate=(2, 3))(inputs[4]))
 

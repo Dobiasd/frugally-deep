@@ -39,7 +39,7 @@ namespace internal {
                   depthwise_weights, bias_0)
             , filters_pointwise_(generate_im2col_filter_matrix(
                   generate_filters(shape2(1, 1),
-                      tensor_shape(input_depth), k, pointwise_weights, bias)))
+                      tensor_shape(input_depth), k, pointwise_weights, bias, false)))
         {
         }
 

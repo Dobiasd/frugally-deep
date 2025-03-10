@@ -91,8 +91,7 @@ namespace internal {
         for (auto& filt : filters) {
             filt.set_params(*it_filter_val, *it_filter_bias);
             filt = dilate_filter(dilation_rate, filt);
-            if (transpose)
-            {
+            if (transpose) {
                 filt = filter(reverse_height_dimension(filt.get_tensor()), filt.get_bias());
                 filt = filter(reverse_width_dimension(filt.get_tensor()), filt.get_bias());
             }

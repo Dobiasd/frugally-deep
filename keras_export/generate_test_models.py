@@ -161,14 +161,41 @@ def get_test_model_exhaustive() -> Model:
 
     outputs = []
 
+    outputs.append(Conv1DTranspose(4, 3, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv2DTranspose(4, (5, 3), padding='valid', use_bias=False)(inputs[4]))
+
+    outputs.append(Conv1DTranspose(4, 1, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(4, 1, padding='same', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(1, 3, padding='valid', use_bias=False)(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 3, padding='same')(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 5, padding='same', strides=2)(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 5, padding='valid', strides=2)(inputs[6]))
+    outputs.append(Conv1DTranspose(3, 5, padding='same', dilation_rate=2)(inputs[6]))
+    outputs.append(Conv1DTranspose(3, 5, padding='valid', dilation_rate=2)(inputs[6]))
+
+    outputs.append(Conv2DTranspose(4, (1, 1), padding='valid', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (1, 1), padding='same', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(1, (3, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), padding='valid', use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), padding='same')(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='same', strides=(2, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='valid', strides=(2, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='same', dilation_rate=(2, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (5, 5), padding='valid', dilation_rate=(2, 3))(inputs[4]))
+
+    outputs.append(Conv1DTranspose(1, 3, padding='valid')(inputs[6]))
+    outputs.append(Conv1DTranspose(2, 1, padding='same')(inputs[6]))
+    outputs.append(Conv1DTranspose(3, 4, padding='same', dilation_rate=2)(inputs[6]))
+
+    outputs.append(Conv2DTranspose(4, (3, 3))(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (3, 3), use_bias=False)(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (2, 4), strides=(2, 2), padding='same')(inputs[4]))
+    outputs.append(Conv2DTranspose(4, (2, 4), padding='same', dilation_rate=(2, 2))(inputs[4]))
+
     outputs.append(Conv1D(1, 3, padding='valid')(inputs[6]))
     outputs.append(Conv1D(2, 1, padding='same')(inputs[6]))
     outputs.append(Conv1D(2, 1, padding='same', strides=2)(inputs[6]))
     outputs.append(Conv1D(3, 4, padding='causal', dilation_rate=2)(inputs[6]))
-    outputs.append(Conv1DTranspose(1, 3, padding='valid')(inputs[6]))
-    outputs.append(Conv1DTranspose(2, 1, padding='same')(inputs[6]))
-    outputs.append(Conv1DTranspose(2, 1, padding='same', strides=2)(inputs[6]))
-    outputs.append(Conv1DTranspose(3, 4, padding='same', dilation_rate=2)(inputs[6]))
     outputs.append(ZeroPadding1D(2)(inputs[6]))
     outputs.append(Cropping1D((2, 3))(inputs[6]))
     outputs.append(MaxPooling1D(2)(inputs[6]))
@@ -196,10 +223,6 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Conv2D(4, (3, 3), use_bias=False, padding='valid')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), padding='same', dilation_rate=(2, 3))(inputs[4]))
-    outputs.append(Conv2DTranspose(4, (3, 3))(inputs[4]))
-    outputs.append(Conv2DTranspose(4, (3, 3), use_bias=False)(inputs[4]))
-    outputs.append(Conv2DTranspose(4, (2, 4), strides=(2, 3), padding='same')(inputs[4]))
-    outputs.append(Conv2DTranspose(4, (2, 4), padding='same', dilation_rate=(2, 3))(inputs[4]))
 
     outputs.append(SeparableConv2D(3, (3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))

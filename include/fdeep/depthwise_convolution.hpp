@@ -85,7 +85,7 @@ namespace internal {
 
         const auto conv_cfg = preprocess_convolution(
             filter_mat.filter_shape_.without_depth(),
-            strides, pad_type, input.shape().height_, input.shape().width_);
+            strides, pad_type, input.shape().height_, input.shape().width_, false);
 
         const auto in_padded = pad_tensor(0, 0, 0,
             conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,

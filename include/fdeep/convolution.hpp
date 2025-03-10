@@ -312,5 +312,95 @@ namespace internal {
             in_padded);
     }
 
+    inline convolution_config preprocess_convolution_transposed(
+        const shape2& filter_shape,
+        const shape2& strides,
+        padding pad_type,
+        std::size_t input_shape_height,
+        std::size_t input_shape_width)
+    {
+        const int filter_height = static_cast<int>(filter_shape.height_);
+        const int filter_width = static_cast<int>(filter_shape.width_);
+        const int in_height = static_cast<int>(input_shape_height);
+        const int in_width = static_cast<int>(input_shape_width);
+        const int strides_y = static_cast<int>(strides.height_);
+        const int strides_x = static_cast<int>(strides.width_);
+
+        int out_height = 0;
+        int out_width = 0;
+
+        if (pad_type == padding::same || pad_type == padding::causal) {
+            out_height = fplus::ceil(static_cast<float>(in_height) / static_cast<float>(strides_y) - 0.001);
+            out_width = fplus::ceil(static_cast<float>(in_width) / static_cast<float>(strides_x) - 0.001);
+        } else {
+            out_height = fplus::ceil(static_cast<float>(in_height + filter_height - 1) / static_cast<float>(strides_y) - 0.001);
+            out_width = fplus::ceil(static_cast<float>(in_width + filter_width - 1) / static_cast<float>(strides_x) - 0.001);
+        }
+
+        int pad_top = filter_height - 1;
+        int pad_bottom = filter_height - 1;
+        int pad_left = filter_width - 1;
+        int pad_right = filter_width - 1;
+
+        if (pad_type == padding::same) {
+            int pad_along_height = 0;
+            int pad_along_width = 0;
+
+            if (in_height % strides_y == 0)
+                pad_along_height = std::max(filter_height - strides_y, 0);
+            else
+                pad_along_height = std::max(filter_height - (in_height % strides_y), 0);
+            if (in_width % strides_x == 0)
+                pad_along_width = std::max(filter_width - strides_x, 0);
+            else
+                pad_along_width = std::max(filter_width - (in_width % strides_x), 0);
+
+            pad_top = pad_along_height / 2;
+            pad_bottom = pad_along_height - pad_top;
+            pad_left = pad_along_width / 2;
+            pad_right = pad_along_width - pad_left;
+        } else if (pad_type == padding::causal) {
+            pad_top = filter_height - 1;
+            pad_left = filter_width - 1;
+        }
+
+        std::size_t out_height_size_t = fplus::integral_cast_throw<std::size_t>(out_height);
+        std::size_t out_width_size_t = fplus::integral_cast_throw<std::size_t>(out_width);
+        std::size_t pad_top_size_t = fplus::integral_cast_throw<std::size_t>(pad_top);
+        std::size_t pad_bottom_size_t = fplus::integral_cast_throw<std::size_t>(pad_bottom);
+        std::size_t pad_left_size_t = fplus::integral_cast_throw<std::size_t>(pad_left);
+        std::size_t pad_right_size_t = fplus::integral_cast_throw<std::size_t>(pad_right);
+
+        return { pad_top_size_t, pad_bottom_size_t,
+            pad_left_size_t, pad_right_size_t,
+            out_height_size_t, out_width_size_t };
+    }
+
+    inline tensor convolve_transposed(
+        const shape2& strides,
+        const padding& pad_type,
+        const convolution_filter_matrices& filter_mat,
+        const tensor& input)
+    {
+        assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
+            "invalid filter depth");
+
+        const auto input_dilated = dilate_tensor(strides, input, pad_type == padding::same);
+
+        const auto conv_cfg = preprocess_convolution_transposed(
+            filter_mat.filter_shape_.without_depth(),
+            shape2(1, 1), pad_type, input_dilated.shape().height_, input_dilated.shape().width_);
+
+        const auto in_padded = pad_tensor(0, 0, 0,
+            conv_cfg.pad_top_, conv_cfg.pad_bottom_, conv_cfg.pad_left_, conv_cfg.pad_right_,
+            input_dilated);
+
+        return convolve_accumulative(
+            conv_cfg.out_height_, conv_cfg.out_width_,
+            1, 1,
+            filter_mat,
+            in_padded);
+    }
+
 }
 }

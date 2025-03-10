@@ -1,92 +1,55 @@
-// Copyright 2016, Tobias Hermann.
-// https://github.com/Dobiasd/frugally-deep
-// Distributed under the MIT License.
-// (See accompanying LICENSE file or at
-//  https://opensource.org/licenses/MIT)
+/*
+https://github.com/Dobiasd/frugally-deep/issues/435
+https://keras.io/api/layers/convolution_layers/convolution1d_transpose/
+https://www.reddit.com/r/learnmachinelearning/comments/1byw5lb/understanding_conv2dtranspose/
+https://arxiv.org/pdf/1603.07285
+https://datascience.stackexchange.com/questions/6107/what-are-deconvolutional-layers
+https://stackoverflow.com/questions/39373230/what-does-tensorflows-conv2d-transpose-operation-do
+https://towardsdatascience.com/transposed-convolution-demystified-84ca81b4baba/
+*/
+
+/*
+import numpy as np
+import keras
+
+x = np.array([[[[10.0, 20.0]]]])
+
+l = keras.layers.Conv2DTranspose(3, 1, use_bias=False)
+l.set_weights(np.array([[[[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]]]]))
+
+#l = keras.layers.Conv2D(3, 1, use_bias=False)
+#l.set_weights(np.array([[[[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]]]]))
+
+y = l(x)
+
+x
+l.weights[0].value
+y.numpy()
+*/
+
+/*
+    const auto w = fdeep::float_vec({1.0, 2.0, 3.0, 4.0});
+    const auto l = fdeep::internal::conv_2d_transpose_layer(
+        "t",
+        fdeep::tensor_shape(1, 1, 2),
+        2,
+        fdeep::internal::shape2(1, 1),
+        fdeep::internal::padding::valid,
+        fdeep::internal::shape2(1, 1),
+        w,
+        fdeep::float_vec({0.0, 0.0})
+    );
+
+    const auto x = fdeep::tensor(fdeep::tensor_shape(1, 1, 1, 2), fdeep::float_vec({10.0, 20.0}));
+    const auto y = l.apply({x}).front();
+    std::cout << fdeep::show_tensor(x) << std::endl;
+    std::cout << fplus::show_cont(w) << std::endl;
+    std::cout << fdeep::show_tensor(y) << std::endl;
+*/
 
 #include "fdeep/fdeep.hpp"
 
 int main()
 {
-    std::vector<std::string> model_paths = {
-        // "convnextbase.json",
-        // "convnextlarge.json",
-        // "convnextsmall.json",
-        // "convnexttiny.json",
-        // "convnextxlarge.json",
-        "densenet121.json",
-        "densenet169.json",
-        "densenet201.json",
-        "efficientnetb0.json",
-        "efficientnetb1.json",
-        "efficientnetb2.json",
-        "efficientnetb3.json",
-        "efficientnetb4.json",
-        "efficientnetb5.json",
-        "efficientnetb6.json",
-        "efficientnetb7.json",
-        "efficientnetv2b0.json",
-        "efficientnetv2b1.json",
-        "efficientnetv2b2.json",
-        "efficientnetv2b3.json",
-        "efficientnetv2l.json",
-        "efficientnetv2m.json",
-        "efficientnetv2s.json",
-        // "inceptionresnetv2.json",
-        "inceptionv3.json",
-        "mobilenet.json",
-        "mobilenetv2.json",
-        "nasnetlarge.json",
-        "nasnetmobile.json",
-        "resnet101.json",
-        "resnet101v2.json",
-        "resnet152.json",
-        "resnet152v2.json",
-        "resnet50.json",
-        "resnet50v2.json",
-        "vgg16.json",
-        "vgg19.json",
-        "xception.json"
-    };
-
-    bool error = false;
-
-    for (const auto& model_path : model_paths) {
-        std::cout << "----" << std::endl;
-        std::cout << model_path << std::endl;
-#ifdef NDEBUG
-        try {
-            const auto model = fdeep::load_model(model_path, true);
-            const std::size_t warm_up_runs = 3;
-            const std::size_t test_runs = 5;
-            for (std::size_t i = 0; i < warm_up_runs; ++i) {
-                const double duration = model.test_speed();
-                std::cout << "Forward pass took "
-                          << duration << " s." << std::endl;
-            }
-            double duration_sum = 0;
-            std::cout << "Starting performance measurements." << std::endl;
-            for (std::size_t i = 0; i < test_runs; ++i) {
-                const double duration = model.test_speed();
-                duration_sum += duration;
-                std::cout << "Forward pass took "
-                          << duration << " s." << std::endl;
-            }
-            const double duration_avg = duration_sum / static_cast<double>(test_runs);
-            std::cout << "Forward pass took "
-                      << duration_avg << " s on average." << std::endl;
-        } catch (const std::exception& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-            error = true;
-        }
-#else
-        const auto model = fdeep::load_model(model_path, true);
-#endif
-    }
-
-    if (error) {
-        std::cout << "There were errors." << std::endl;
-        return 1;
-    }
-    std::cout << "All imports and test OK." << std::endl;
+    fdeep::load_model("test_model_exhaustive.json");
 }

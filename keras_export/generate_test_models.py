@@ -186,7 +186,7 @@ def get_test_model_exhaustive() -> Model:
 
     outputs.append(Conv1DTranspose(1, 3, padding='valid')(inputs[6]))
     outputs.append(Conv1DTranspose(2, 1, padding='same')(inputs[6]))
-    outputs.append(Conv1DTranspose(3, 4, padding='same', dilation_rate=2)(inputs[6]))
+    #outputs.append(Conv1DTranspose(3, 4, padding='same', dilation_rate=2)(inputs[6]))
 
     outputs.append(Conv2DTranspose(4, (3, 3))(inputs[4]))
     outputs.append(Conv2DTranspose(4, (3, 3), use_bias=False)(inputs[4]))

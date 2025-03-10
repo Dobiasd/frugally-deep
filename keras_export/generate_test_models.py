@@ -170,8 +170,9 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Conv1DTranspose(2, 3, padding='same')(inputs[6]))
     outputs.append(Conv1DTranspose(2, 5, padding='same', strides=2)(inputs[6]))
     outputs.append(Conv1DTranspose(2, 5, padding='valid', strides=2)(inputs[6]))
-    outputs.append(Conv1DTranspose(3, 5, padding='same', dilation_rate=2)(inputs[6]))
-    outputs.append(Conv1DTranspose(3, 5, padding='valid', dilation_rate=2)(inputs[6]))
+    # Current CPU implementations do not yet support dilation rates larger than 1
+    #outputs.append(Conv1DTranspose(3, 5, padding='same', dilation_rate=2)(inputs[6]))
+    #outputs.append(Conv1DTranspose(3, 5, padding='valid', dilation_rate=2)(inputs[6]))
 
     outputs.append(Conv2DTranspose(4, (1, 1), padding='valid', use_bias=False)(inputs[4]))
     outputs.append(Conv2DTranspose(4, (1, 1), padding='same', use_bias=False)(inputs[4]))

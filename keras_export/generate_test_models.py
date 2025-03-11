@@ -594,7 +594,7 @@ def get_test_model_exhaustive() -> Model:
         Activation('exponential')(inputs[25]),
         Activation('gelu')(inputs[25]),
         Activation('softsign')(inputs[25]),
-        LeakyReLU()(inputs[25]),
+        LeakyReLU(negative_slope=0.5)(inputs[25]),
         ReLU()(inputs[25]),
         ReLU(max_value=0.4, negative_slope=1.1, threshold=0.3)(inputs[25]),
         ELU()(inputs[25]),

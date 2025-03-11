@@ -936,11 +936,11 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
-        float_type alpha = 0.3f;
-        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "alpha")) {
-            alpha = data["config"]["alpha"];
+        float_type negative_slope = 0.3f;
+        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "negative_slope")) {
+            negative_slope = data["config"]["negative_slope"];
         }
-        return std::make_shared<leaky_relu_layer>(name, alpha);
+        return std::make_shared<leaky_relu_layer>(name, negative_slope);
     }
 
     inline layer_ptr create_leaky_relu_layer_isolated(

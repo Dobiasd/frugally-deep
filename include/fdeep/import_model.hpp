@@ -1000,9 +1000,13 @@ namespace internal {
     }
 
     inline activation_layer_ptr create_gelu_layer(
-        const get_param_f&, const nlohmann::json&,
+        const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
+        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "approximate") && !data["config"]["approximate"].is_null()) {
+            const bool approximate = data["config"]["approximate"];
+            assertion(approximate == false, "Gelu with approximate = True is not supported.");
+        }
         return std::make_shared<gelu_layer>(name);
     }
 

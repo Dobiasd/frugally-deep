@@ -62,7 +62,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 ### Also supported
 
-* different layer activiation functions (`elu`, `exponential`, `gelu`, `hard_sigmoid`, `linear`, `relu`, `relu6`, `selu`, `sigmoid`, `silu`, `softmax`, `softplus`, `softsign`, `swish`, `tanh`)
+* different layer activiation functions (`celu`, `elu`, `exponential`, `gelu`, `hard_shrink`, `hard_sigmoid`, `hard_tanh`, `leaky_relu`, `leakyrelu`, `linear`, `log_sigmoid`, `log_softmax`, `prelu`, `relu`, `relu6`, `selu`, `shared_activation`, `sigmoid`, `silu`, `soft_shrink`, `softmax`, `softplus`, `softsign`, `sparse_plus`, `squareplus`, `swish`, `tanh`, `tanh_shrink`, `threshold`, )
 * multiple inputs and outputs
 * nested models
 * residual connections

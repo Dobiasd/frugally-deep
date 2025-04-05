@@ -47,7 +47,7 @@ namespace internal {
             const shape3& pool_size, const shape3& strides,
             padding p)
             : pooling_3d_layer(name, pool_size, strides, p,
-                &inner_average_pool)
+                  &inner_average_pool)
         {
         }
     };

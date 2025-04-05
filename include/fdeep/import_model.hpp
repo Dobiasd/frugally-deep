@@ -925,7 +925,7 @@ namespace internal {
         float_type threshold = data["config"]["threshold"];
         return std::make_shared<soft_shrink_layer>(name, threshold);
     }
-    
+
     inline activation_layer_ptr create_sparse_plus_layer(
         const get_param_f&, const nlohmann::json&,
         const std::string& name)
@@ -959,7 +959,7 @@ namespace internal {
         float_type default_value = data["config"]["value"];
         return std::make_shared<threshold_layer>(name, threshold, default_value);
     }
-    
+
     inline activation_layer_ptr create_relu_layer(
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)

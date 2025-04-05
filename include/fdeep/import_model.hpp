@@ -1035,13 +1035,6 @@ namespace internal {
         return std::make_shared<leaky_relu_layer>(name, negative_slope);
     }
 
-    inline layer_ptr create_leaky_relu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_leaky_relu_layer(get_param, data, name);
-    }
-
     inline layer_ptr create_prelu_layer(
         const get_param_f& get_param,
         const nlohmann::json& data, const std::string& name)
@@ -1064,20 +1057,6 @@ namespace internal {
             alpha = data["config"]["alpha"];
         }
         return std::make_shared<elu_layer>(name, alpha);
-    }
-
-    inline layer_ptr create_elu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_elu_layer(get_param, data, name);
-    }
-
-    inline layer_ptr create_relu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_relu_layer(get_param, data, name);
     }
 
     inline layer_ptr create_normalization_layer(
@@ -1303,11 +1282,11 @@ namespace internal {
             { "RandomTranslation", create_identity_layer },
             { "RandomWidth", create_identity_layer },
             { "RandomZoom", create_identity_layer },
-            { "LeakyReLU", create_leaky_relu_layer_isolated },
+            { "LeakyReLU", create_leaky_relu_layer },
             { "Permute", create_permute_layer },
             { "PReLU", create_prelu_layer },
-            { "ELU", create_elu_layer_isolated },
-            { "ReLU", create_relu_layer_isolated },
+            { "ELU", create_elu_layer },
+            { "ReLU", create_relu_layer },
             { "Relu6", create_relu6_layer },
             { "Celu", create_celu_layer },
             { "Elu", create_elu_layer },

@@ -25,7 +25,6 @@ namespace internal {
         float_type alpha_;
         static float_type activation_function(float_type alpha, float_type x)
         {
-            // todo: implement
             return x >= 0 ? x : alpha * (std::exp(x) - 1);
         }
         tensor transform_input(const tensor& in_vol) const override

@@ -52,17 +52,14 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `RandomContrast`, `RandomFlip`, `RandomHeight`
 * `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
 * `MaxPooling1D/2D/3D`, `GlobalMaxPooling1D/2D/3D`
-* `ELU`, `LeakyReLU`, `ReLU`, `SeLU`, `PReLU`
-* `Sigmoid`, `Softmax`, `Softplus`, `Tanh`
-* `Exponential`, `GELU`, `Softsign`, `Rescaling`
-* `UpSampling1D/2D`, `Resizing`
+* `UpSampling1D/2D`, `Resizing`, `Rescaling`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`, `CategoryEncoding`
 * `Attention`, `AdditiveAttention`, `MultiHeadAttention`
 
 ### Also supported
 
-* different layer activiation functions (`celu`, `elu`, `exponential`, `gelu`, `hard_shrink`, `hard_sigmoid`, `hard_tanh`, `leaky_relu`, `leakyrelu`, `linear`, `log_sigmoid`, `log_softmax`, `prelu`, `relu`, `relu6`, `selu`, `shared_activation`, `sigmoid`, `silu`, `soft_shrink`, `softmax`, `softplus`, `softsign`, `sparse_plus`, `squareplus`, `swish`, `tanh`, `tanh_shrink`, `threshold`, )
+* different activiations (`celu`, `elu`, `exponential`, `gelu`, `hard_shrink`, `hard_sigmoid`, `hard_tanh`, `leaky_relu`, `leakyrelu`, `linear`, `log_sigmoid`, `log_softmax`, `prelu`, `relu`, `relu6`, `selu`, `shared_activation`, `sigmoid`, `silu`, `soft_shrink`, `softmax`, `softplus`, `softsign`, `sparse_plus`, `squareplus`, `swish`, `tanh`, `tanh_shrink`, `threshold`)
 * multiple inputs and outputs
 * nested models
 * residual connections

@@ -34,6 +34,7 @@
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
 #include "fdeep/layers/category_encoding_layer.hpp"
+#include "fdeep/layers/celu_layer.hpp"
 #include "fdeep/layers/centercrop_layer.hpp"
 #include "fdeep/layers/concatenate_layer.hpp"
 #include "fdeep/layers/conv_2d_layer.hpp"
@@ -49,12 +50,16 @@
 #include "fdeep/layers/gelu_layer.hpp"
 #include "fdeep/layers/global_average_pooling_3d_layer.hpp"
 #include "fdeep/layers/global_max_pooling_3d_layer.hpp"
+#include "fdeep/layers/hard_shrink_layer.hpp"
 #include "fdeep/layers/hard_sigmoid_layer.hpp"
+#include "fdeep/layers/hard_tanh_layer.hpp"
 #include "fdeep/layers/input_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/layer_normalization_layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
+#include "fdeep/layers/log_sigmoid_layer.hpp"
+#include "fdeep/layers/log_softmax_layer.hpp"
 #include "fdeep/layers/max_pooling_3d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
@@ -73,12 +78,17 @@
 #include "fdeep/layers/selu_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
+#include "fdeep/layers/soft_shrink_layer.hpp"
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
 #include "fdeep/layers/softsign_layer.hpp"
+#include "fdeep/layers/sparse_plus_layer.hpp"
+#include "fdeep/layers/square_plus_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/swish_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
+#include "fdeep/layers/tanh_shrink_layer.hpp"
+#include "fdeep/layers/threshold_layer.hpp"
 #include "fdeep/layers/time_distributed_layer.hpp"
 #include "fdeep/layers/unit_normalization_layer.hpp"
 #include "fdeep/layers/upsampling_1d_layer.hpp"
@@ -879,6 +889,77 @@ namespace internal {
         return std::make_shared<hard_sigmoid_layer>(name);
     }
 
+    inline activation_layer_ptr create_hard_shrink_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        float_type threshold = data["config"]["threshold"];
+        return std::make_shared<hard_shrink_layer>(name, threshold);
+    }
+
+    inline activation_layer_ptr create_hard_tanh_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+    {
+        return std::make_shared<hard_tanh_layer>(name);
+    }
+
+    inline activation_layer_ptr create_log_sigmoid_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+    {
+        return std::make_shared<log_sigmoid_layer>(name);
+    }
+
+    inline activation_layer_ptr create_log_softmax_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+    {
+        return std::make_shared<log_softmax_layer>(name);
+    }
+
+    inline activation_layer_ptr create_soft_shrink_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        float_type threshold = data["config"]["threshold"];
+        return std::make_shared<soft_shrink_layer>(name, threshold);
+    }
+
+    inline activation_layer_ptr create_sparse_plus_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+    {
+        return std::make_shared<sparse_plus_layer>(name);
+    }
+
+    inline activation_layer_ptr create_square_plus_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        float_type b = static_cast<float_type>(4.0);
+        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "b") && !data["config"]["b"].is_null()) {
+            b = data["config"]["b"];
+        }
+        return std::make_shared<square_plus_layer>(name, b);
+    }
+
+    inline activation_layer_ptr create_tanh_shrink_layer(
+        const get_param_f&, const nlohmann::json&,
+        const std::string& name)
+    {
+        return std::make_shared<tanh_shrink_layer>(name);
+    }
+
+    inline activation_layer_ptr create_threshold_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        float_type threshold = data["config"]["threshold_value"];
+        float_type default_value = data["config"]["value"];
+        return std::make_shared<threshold_layer>(name, threshold, default_value);
+    }
+
     inline activation_layer_ptr create_relu_layer(
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
@@ -919,9 +1000,13 @@ namespace internal {
     }
 
     inline activation_layer_ptr create_gelu_layer(
-        const get_param_f&, const nlohmann::json&,
+        const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
+        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "approximate") && !data["config"]["approximate"].is_null()) {
+            const bool approximate = data["config"]["approximate"];
+            assertion(approximate == false, "Gelu with approximate = True is not supported.");
+        }
         return std::make_shared<gelu_layer>(name);
     }
 
@@ -930,6 +1015,17 @@ namespace internal {
         const std::string& name)
     {
         return std::make_shared<softsign_layer>(name);
+    }
+
+    inline activation_layer_ptr create_celu_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        float_type alpha = 1.0f;
+        if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "alpha")) {
+            alpha = data["config"]["alpha"];
+        }
+        return std::make_shared<celu_layer>(name, alpha);
     }
 
     inline activation_layer_ptr create_leaky_relu_layer(
@@ -941,13 +1037,6 @@ namespace internal {
             negative_slope = data["config"]["negative_slope"];
         }
         return std::make_shared<leaky_relu_layer>(name, negative_slope);
-    }
-
-    inline layer_ptr create_leaky_relu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_leaky_relu_layer(get_param, data, name);
     }
 
     inline layer_ptr create_prelu_layer(
@@ -972,20 +1061,6 @@ namespace internal {
             alpha = data["config"]["alpha"];
         }
         return std::make_shared<elu_layer>(name, alpha);
-    }
-
-    inline layer_ptr create_elu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_elu_layer(get_param, data, name);
-    }
-
-    inline layer_ptr create_relu_layer_isolated(
-        const get_param_f& get_param,
-        const nlohmann::json& data, const std::string& name)
-    {
-        return create_relu_layer(get_param, data, name);
     }
 
     inline layer_ptr create_normalization_layer(
@@ -1083,10 +1158,20 @@ namespace internal {
                 { "swish", create_swish_layer },
                 { "silu", create_swish_layer },
                 { "hard_sigmoid", create_hard_sigmoid_layer },
+                { "hard_shrink", create_hard_shrink_layer },
+                { "hard_tanh", create_hard_tanh_layer },
+                { "log_sigmoid", create_log_sigmoid_layer },
+                { "log_softmax", create_log_softmax_layer },
+                { "leaky_relu", create_leaky_relu_layer },
+                { "soft_shrink", create_soft_shrink_layer },
+                { "sparse_plus", create_sparse_plus_layer },
+                { "squareplus", create_square_plus_layer },
+                { "tanh_shrink", create_tanh_shrink_layer },
                 { "relu", create_relu_layer },
                 { "relu6", create_relu6_layer },
                 { "selu", create_selu_layer },
                 { "elu", create_elu_layer },
+                { "celu", create_celu_layer },
                 { "exponential", create_exponential_layer },
                 { "gelu", create_gelu_layer },
                 { "softsign", create_softsign_layer }
@@ -1201,11 +1286,33 @@ namespace internal {
             { "RandomTranslation", create_identity_layer },
             { "RandomWidth", create_identity_layer },
             { "RandomZoom", create_identity_layer },
-            { "LeakyReLU", create_leaky_relu_layer_isolated },
+            { "LeakyReLU", create_leaky_relu_layer },
             { "Permute", create_permute_layer },
             { "PReLU", create_prelu_layer },
-            { "ELU", create_elu_layer_isolated },
-            { "ReLU", create_relu_layer_isolated },
+            { "ELU", create_elu_layer },
+            { "ReLU", create_relu_layer },
+            { "Relu6", create_relu6_layer },
+            { "Celu", create_celu_layer },
+            { "Elu", create_elu_layer },
+            { "Exp", create_exponential_layer },
+            { "Gelu", create_gelu_layer },
+            { "Selu", create_selu_layer },
+            { "Silu", create_swish_layer },
+            { "Tanh", create_tanh_layer },
+            { "TanhShrink", create_tanh_shrink_layer },
+            { "Threshold", create_threshold_layer },
+            { "Sigmoid", create_sigmoid_layer },
+            { "HardShrink", create_hard_shrink_layer },
+            { "HardSigmoid", create_hard_sigmoid_layer },
+            { "HardTanh", create_hard_tanh_layer },
+            { "SoftShrink", create_soft_shrink_layer },
+            { "Softplus", create_softplus_layer },
+            { "Softsign", create_softsign_layer },
+            { "SparsePlus", create_sparse_plus_layer },
+            { "Squareplus", create_square_plus_layer },
+            { "LeakyRelu", create_leaky_relu_layer },
+            { "LogSigmoid", create_log_sigmoid_layer },
+            { "LogSoftmax", create_log_softmax_layer },
             { "MaxPooling1D", create_max_pooling_3d_layer },
             { "MaxPooling2D", create_max_pooling_3d_layer },
             { "MaxPooling3D", create_max_pooling_3d_layer },
@@ -1314,7 +1421,7 @@ namespace internal {
             const auto& output = outputs[i];
             const auto& target = targets[i];
             assertion(output.shape() == target.shape(),
-                "Wrong output size. Is " + show_tensor_shape(output.shape()) + ", should be " + show_tensor_shape(target.shape()) + ".");
+                std::string("test failed: ") + "output=" + fplus::show(i) + " " + "Wrong output size. Is " + show_tensor_shape(output.shape()) + ", should be " + show_tensor_shape(target.shape()) + ".");
             for (std::size_t pos_dim_5 = 0; pos_dim_5 < output.shape().size_dim_5_; ++pos_dim_5) {
                 for (std::size_t pos_dim_4 = 0; pos_dim_4 < output.shape().size_dim_4_; ++pos_dim_4) {
                     for (std::size_t y = 0; y < output.shape().height_; ++y) {

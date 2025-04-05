@@ -6,6 +6,7 @@ import sys
 from typing import Tuple, List, Union
 
 import numpy as np
+from keras import activations
 from keras.layers import ActivityRegularization
 from keras.layers import AdditiveAttention
 from keras.layers import Attention
@@ -18,7 +19,7 @@ from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
 from keras.layers import Identity, Conv2DTranspose, Conv1DTranspose
 from keras.layers import Input, Dense, Dropout, Flatten, Activation
-from keras.layers import LeakyReLU, ELU, PReLU, ReLU
+from keras.layers import LeakyReLU, ELU, PReLU, ReLU, Softmax
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
 from keras.layers import MaxPooling2D, AveragePooling2D, UpSampling2D
 from keras.layers import MaxPooling3D, AveragePooling3D
@@ -155,6 +156,7 @@ def get_test_model_exhaustive() -> Model:
         (5, 4),
         (7, 4),  # 50
         (7, 4),
+        (2, 4, 6, 8, 10),
     ]
 
     inputs = [Input(shape=s) for s in input_shapes]
@@ -594,16 +596,56 @@ def get_test_model_exhaustive() -> Model:
         Activation('exponential')(inputs[25]),
         Activation('gelu')(inputs[25]),
         Activation('softsign')(inputs[25]),
-        LeakyReLU(negative_slope=0.5)(inputs[25]),
-        ReLU()(inputs[25]),
-        ReLU(max_value=0.4, negative_slope=1.1, threshold=0.3)(inputs[25]),
-        ELU()(inputs[25]),
-        PReLU()(inputs[24]),
-        PReLU()(inputs[25]),
-        PReLU()(inputs[26]),
+        Activation('celu')(inputs[25]),
+        Activation('elu')(inputs[25]),
+        Activation('exponential')(inputs[25]),
+        Activation('gelu')(inputs[25]),
+        Activation('hard_tanh')(inputs[25]),
+        Activation('linear')(inputs[25]),
+        Activation('log_sigmoid')(inputs[25]),
+        Activation('silu')(inputs[25]),
+        Activation('softmax')(inputs[25]),
+        Activation('softsign')(inputs[25]),
+        Activation('sparse_plus')(inputs[25]),
+        Activation('squareplus')(inputs[25]),
+        Activation('tanh')(inputs[25]),
+        Activation('tanh_shrink')(inputs[25]),
+        LeakyReLU(name="real_LeakyReLU_layer", negative_slope=0.5)(inputs[25]),
+        ReLU(name="real_ReLU_layer_1")(inputs[25]),
+        ReLU(name="real_ReLU_layer_2", max_value=0.4, negative_slope=1.1, threshold=0.3)(inputs[25]),
+        ELU(name="real_ELU_layer")(inputs[25]),
+        PReLU(name="real_PReLU_layer_1")(inputs[24]),
+        PReLU(name="real_PReLU_layer_2")(inputs[25]),
+        PReLU(name="real_PReLU_layer_3")(inputs[26]),
+        Softmax(name="real_Softmax_layer")(inputs[25]),
         shared_activation(inputs[25]),
         Activation('linear')(inputs[26]),
         Activation('linear')(inputs[23]),
+        activations.celu(inputs[25]),
+        activations.elu(inputs[25], alpha=0.71),
+        activations.exponential(inputs[25]),
+        activations.gelu(inputs[25]),
+        activations.hard_shrink(inputs[25], threshold=0.31),
+        activations.hard_sigmoid(inputs[25]),
+        activations.hard_tanh(inputs[25]),
+        activations.leaky_relu(inputs[25], negative_slope=0.31),
+        activations.linear(inputs[25]),
+        activations.log_sigmoid(inputs[25]),
+        activations.log_softmax(inputs[25]),
+        activations.relu(inputs[25], negative_slope=0.1, max_value=0.8, threshold=0.3),
+        activations.relu6(inputs[25]),
+        activations.selu(inputs[25]),
+        activations.sigmoid(inputs[25]),
+        activations.silu(inputs[25]),
+        activations.softmax(inputs[25]),
+        activations.soft_shrink(inputs[25], threshold=0.31),
+        activations.softplus(inputs[25]),
+        activations.softsign(inputs[25]),
+        activations.sparse_plus(inputs[25]),
+        activations.squareplus(inputs[25], b=3),
+        activations.tanh(inputs[25]),
+        activations.tanh_shrink(inputs[25]),
+        activations.threshold(inputs[25], 0.123, 0.423),
         x,
         shared_activation(x),
     ]

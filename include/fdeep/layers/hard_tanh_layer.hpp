@@ -28,8 +28,7 @@ namespace internal {
             return transform_tensor([this](float_type x) {
                 if (x < -1) {
                     return static_cast<float_type>(-1);
-                } else if (x > 1)
-                {
+                } else if (x > 1) {
                     return static_cast<float_type>(1);
                 }
                 return x;

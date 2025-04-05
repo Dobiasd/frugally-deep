@@ -26,7 +26,7 @@ namespace internal {
         tensor transform_input(const tensor& in_vol) const override
         {
             return transform_tensor([this](float_type x) {
-                return (x + std::sqrt(x*x + b_)) / static_cast<float_type>(2.0);
+                return (x + std::sqrt(x * x + b_)) / static_cast<float_type>(2.0);
             },
                 in_vol);
         }

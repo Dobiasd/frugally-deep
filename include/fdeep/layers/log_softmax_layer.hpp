@@ -27,7 +27,8 @@ namespace internal {
         {
             return transform_tensor([this](float_type x) {
                 return std::log(x);
-            }, softmax(in_vol));
+            },
+                softmax(in_vol));
         }
     };
 

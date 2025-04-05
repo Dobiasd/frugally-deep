@@ -25,7 +25,7 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x){
+            return transform_tensor([this](float_type x) {
                 if (x < -1) {
                     return static_cast<float_type>(-1);
                 } else if (x > 1)
@@ -33,7 +33,8 @@ namespace internal {
                     return static_cast<float_type>(1);
                 }
                 return x;
-            }, in_vol);
+            },
+                in_vol);
             return transform_tensor(hard_sigmoid_activation, in_vol);
         }
     };

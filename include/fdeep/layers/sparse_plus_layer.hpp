@@ -24,14 +24,15 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x){
+            return transform_tensor([this](float_type x) {
                 if (x <= -1) {
                     return static_cast<float_type>(0);
                 } else if (x < 1) {
                     return static_cast<float_type>(0.25) * (x + static_cast<float_type>(1)) * (x + static_cast<float_type>(1));
                 }
                 return x;
-            }, in_vol);
+            },
+                in_vol);
         }
     };
 

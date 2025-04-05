@@ -18,18 +18,19 @@ namespace internal {
     class threshold_layer : public activation_layer {
     public:
         explicit threshold_layer(const std::string& name, float_type threshold, float_type default_value)
-            : activation_layer(name),
-                threshold_(threshold),
-                default_value_(default_value)
+            : activation_layer(name)
+            , threshold_(threshold)
+            , default_value_(default_value)
         {
         }
 
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x){
+            return transform_tensor([this](float_type x)    {
                 return x > threshold_ ? x : default_value_;
-            }, in_vol);
+            },
+                in_vol);
         }
         float_type threshold_;
         float_type default_value_;

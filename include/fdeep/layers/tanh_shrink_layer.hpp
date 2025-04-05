@@ -24,9 +24,10 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x){
+            return transform_tensor([this](float_type x) {
                 return x - std::tanh(x);
-            }, in_vol);
+            },
+                in_vol);
         }
     };
 

@@ -17,17 +17,18 @@ namespace internal {
     class hard_shrink_layer : public activation_layer {
     public:
         explicit hard_shrink_layer(const std::string& name, float_type threshold)
-            : activation_layer(name),
-            threshold_(threshold)
+            : activation_layer(name)
+            , threshold_(threshold)
         {
         }
 
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x){
+            return transform_tensor([this](float_type x) {
                 return std::abs(x) > threshold_ ? x : 0;
-            }, in_vol);
+            },
+                in_vol);
         }
         float_type threshold_;
     };

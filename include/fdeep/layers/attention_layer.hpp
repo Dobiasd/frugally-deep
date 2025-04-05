@@ -34,9 +34,9 @@ namespace internal {
             const tensor& value = input[1];
             const tensor& key = input.size() > 2 ? input[2] : value;
             const tensor scores = score_mode_ == "dot" ? transform_tensor(fplus::multiply_with(scale_),
-                                                             dot_product_tensors(query, transpose(key), std::vector<int>({ 2, 1 }), false))
-                                                       :
-                                                       // https://github.com/keras-team/keras/blob/v2.13.1/keras/layers/attention/attention.py
+               dot_product_tensors(query, transpose(key), std::vector<int>({ 2, 1 }), false))
+            :
+            // https://github.com/keras-team/keras/blob/v2.13.1/keras/layers/attention/attention.py
                 transform_tensor(fplus::multiply_with(concat_score_weight_),
                     reshape(
                         sum_depth(

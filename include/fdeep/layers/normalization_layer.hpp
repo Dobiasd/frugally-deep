@@ -22,11 +22,13 @@ namespace internal {
         explicit normalization_layer(
             const std::string& name,
             const std::vector<int>& axes,
-            const float_vec& mean, const float_vec& variance)
+            const float_vec& mean, const float_vec& variance,
+            bool invert)
             : layer(name)
             , axes_(axes)
             , mean_(mean)
             , variance_(variance)
+            , invert_(invert)
         {
             assertion(axes.size() <= 1, "Unsupported number of axes for Normalization layer");
         }
@@ -38,10 +40,17 @@ namespace internal {
 
             const int rank = static_cast<int>(input.shape().rank());
 
-            const auto transform_slice = [&](const std::size_t idx, const tensor& slice) -> tensor {
+            const std::function<tensor(const std::size_t, const tensor&)> transform_slice_default =
+            [&](const std::size_t idx, const tensor& slice) -> tensor {
                 const auto sqrt_of_variance = std::sqrt(variance_[idx]);
                 return transform_tensor([&](float_type x) { return (x - mean_[idx]) / std::fmax(sqrt_of_variance, 1e-7); }, slice);
             };
+            const std::function<tensor(const std::size_t, const tensor&)> transform_slice_invert =
+            [&](const std::size_t idx, const tensor& slice) -> tensor {
+                const auto sqrt_of_variance = std::sqrt(variance_[idx]);
+                return transform_tensor([&](float_type x) { return (mean_[idx] + (x * std::fmax(sqrt_of_variance, 1e-7))); }, slice);
+            };
+            const auto transform_slice = invert_ ? transform_slice_invert : transform_slice_default;
 
             if (axes_.empty()) {
                 assertion(variance_.size() == 1, "Invalid number of variance values in Normalization layer.");
@@ -70,8 +79,9 @@ namespace internal {
             return {};
         }
         const std::vector<int> axes_;
-        float_vec mean_;
-        float_vec variance_;
+        const float_vec mean_;
+        const float_vec variance_;
+        const bool invert_;
     };
 
 }

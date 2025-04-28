@@ -1070,7 +1070,11 @@ namespace internal {
         const auto axex = create_vector<int>(create_int, data["config"]["axis"]);
         const float_vec mean = decode_floats(get_param(name, "mean"));
         const float_vec variance = decode_floats(get_param(name, "variance"));
-        return std::make_shared<normalization_layer>(name, axex, mean, variance);
+        bool invert = false;
+        if (json_obj_has_member(data["config"], "invert")) {
+            invert = data["config"]["invert"];
+        }
+        return std::make_shared<normalization_layer>(name, axex, mean, variance, invert);
     }
 
     inline layer_ptr create_category_encoding_layer(

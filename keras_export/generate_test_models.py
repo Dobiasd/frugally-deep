@@ -213,6 +213,7 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(GlobalAveragePooling1D(keepdims=True)(inputs[6]))
 
     outputs.append(Normalization(axis=None, mean=2.1, variance=2.2)(inputs[4]))
+    outputs.append(Normalization(axis=None, mean=2.1, variance=2.2, invert=True)(inputs[4]))
     # outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[6]))  # No longer supported in TensorFlow 2.16
     outputs.append(Normalization(axis=-1, mean=2.1, variance=2.2)(inputs[46]))
     outputs.append(Normalization(axis=1, mean=2.1, variance=2.2)(inputs[46]))

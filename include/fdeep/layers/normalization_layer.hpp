@@ -41,12 +41,12 @@ namespace internal {
             const int rank = static_cast<int>(input.shape().rank());
 
             const std::function<tensor(const std::size_t, const tensor&)> transform_slice_default =
-            [&](const std::size_t idx, const tensor& slice) -> tensor {
+                [&](const std::size_t idx, const tensor& slice) -> tensor {
                 const auto sqrt_of_variance = std::sqrt(variance_[idx]);
                 return transform_tensor([&](float_type x) { return (x - mean_[idx]) / std::fmax(sqrt_of_variance, 1e-7); }, slice);
             };
             const std::function<tensor(const std::size_t, const tensor&)> transform_slice_invert =
-            [&](const std::size_t idx, const tensor& slice) -> tensor {
+                [&](const std::size_t idx, const tensor& slice) -> tensor {
                 const auto sqrt_of_variance = std::sqrt(variance_[idx]);
                 return transform_tensor([&](float_type x) { return (mean_[idx] + (x * std::fmax(sqrt_of_variance, 1e-7))); }, slice);
             };

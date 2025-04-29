@@ -310,7 +310,7 @@ namespace internal {
 
     inline node_connection create_node_connection(const nlohmann::json& args)
     {
-        if (json_obj_has_member(args["config"], "keras_history")) {        
+        if (json_obj_has_member(args["config"], "keras_history")) {
             const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
             assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
             const std::string layer_id = keras_history[0];

@@ -14,7 +14,6 @@
 #include <utility>
 #include <vector>
 
-
 /*
 Layers own nodes.
 Nodes own node connections.

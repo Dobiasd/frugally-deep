@@ -89,10 +89,9 @@ namespace internal {
 
     inline tensor get_layer_output(const layer_ptrs& layers,
         output_dict& output_cache,
-        const layer_ptr& layer,
-        std::size_t node_idx, std::size_t tensor_idx)
+        const node_connection& conn)
     {
-        return layer->get_output(layers, output_cache, node_idx, tensor_idx);
+        return get_layer(layers, conn.layer_id_)->get_output(layers, output_cache, conn.node_idx_, conn.tensor_idx_);
     }
 
     inline tensors apply_layer(const layer& layer, const tensors& inputs)

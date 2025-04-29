@@ -54,8 +54,7 @@ namespace internal {
     typedef std::shared_ptr<layer> layer_ptr;
     typedef std::vector<layer_ptr> layer_ptrs;
     layer_ptr get_layer(const layer_ptrs& layers, const std::string& layer_id);
-    tensor get_layer_output(const layer_ptrs& layers, output_dict& output_cache,
-        const layer_ptr& layer, std::size_t node_idx, std::size_t tensor_idx);
+    tensor get_layer_output(const layer_ptrs& layers, output_dict& output_cache, const node_connection& conn);
     tensors apply_layer(const layer& layer, const tensors& inputs);
 
     class node {
@@ -68,9 +67,7 @@ namespace internal {
             const layer& layer) const
         {
             const auto get_input = [&output_cache, &layers](const node_connection& conn) -> tensor {
-                return get_layer_output(layers, output_cache,
-                    get_layer(layers, conn.layer_id_),
-                    conn.node_idx_, conn.tensor_idx_);
+                return get_layer_output(layers, output_cache, conn);
             };
             return apply_layer(layer,
                 fplus::transform(get_input, inbound_connections_));

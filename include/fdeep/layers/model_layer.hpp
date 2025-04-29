@@ -60,7 +60,7 @@ namespace internal {
             }
 
             const auto get_output = [this, &output_cache](const node_connection& conn) -> tensor {
-                return get_layer(layers_, conn.layer_id_)->get_output(layers_, output_cache, conn.node_idx_, conn.tensor_idx_);
+                return get_layer_output(layers_, output_cache, conn);
             };
             return fplus::transform(get_output, output_connections_);
         }

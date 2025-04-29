@@ -18,21 +18,18 @@ namespace internal {
         explicit input_layer(const std::string& name, const tensor_shape_variable& input_shape)
             : layer(name)
             , input_shape_(input_shape)
-            , output_()
         {
         }
 
     protected:
         tensors apply_impl(const tensors& inputs) const override
         {
+            raise_error("Input layer should not be called.");
             assertion(inputs.size() == 1, "need exactly one input");
             assertion(inputs.front().shape() == input_shape_, "invalid input size");
             return inputs;
         }
         tensor_shape_variable input_shape_;
-
-        // provide initial tensor for computation
-        mutable fplus::maybe<tensor> output_;
     };
 
 }

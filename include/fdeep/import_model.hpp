@@ -310,6 +310,8 @@ namespace internal {
 
     inline node_connection create_node_connection(const nlohmann::json& args)
     {
+        assertion(json_obj_has_member(args["config"], "keras_history"),
+            "No keras_history on node connection. Constant-value tensors are not supported.");
         const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
         assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
         const std::string layer_id = keras_history[0];

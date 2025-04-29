@@ -310,17 +310,14 @@ namespace internal {
 
     inline node_connection create_node_connection(const nlohmann::json& args)
     {
-        if (json_obj_has_member(args["config"], "keras_history")) {
-            const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
-            assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
-            const std::string layer_id = keras_history[0];
-            const auto node_idx = create_size_t(keras_history[1]);
-            const auto tensor_idx = create_size_t(keras_history[2]);
-            return node_connection(layer_id, node_idx, tensor_idx);
-        } else {
-            raise_error("No keras_history. Constant-value layers are not supported.");
-            return node_connection("asdasd", 0, 0);
-        }
+        assertion(json_obj_has_member(args["config"], "keras_history"),
+            "No keras_history on node connection. Constant-value tensors are not supported.");
+        const std::vector<nlohmann::json> keras_history = args["config"]["keras_history"];
+        assertion(keras_history.size() >= 3, "invalid number of items in keras_history");
+        const std::string layer_id = keras_history[0];
+        const auto node_idx = create_size_t(keras_history[1]);
+        const auto tensor_idx = create_size_t(keras_history[2]);
+        return node_connection(layer_id, node_idx, tensor_idx);
     }
 
     using get_param_f = std::function<nlohmann::json(const std::string&, const std::string&)>;

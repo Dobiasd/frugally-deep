@@ -318,7 +318,7 @@ namespace internal {
             const auto tensor_idx = create_size_t(keras_history[2]);
             return node_connection(layer_id, node_idx, tensor_idx);
         } else {
-            raise_error("No keras_history. Constant-value layers are not supported yet.");
+            raise_error("No keras_history. Constant-value layers are not supported.");
             return node_connection("asdasd", 0, 0);
         }
     }

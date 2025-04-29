@@ -112,16 +112,9 @@ def get_test_model_exhaustive() -> Model:
 
     outputs = []
 
-    # input_norm_layer = Normalization()
-    # input_norm_layer.adapt(np.array([[0.1, 0.2]]))
-    # outputs.append((inputs[0] - input_norm_layer.mean) / tf.sqrt(input_norm_layer.variance))
-
-    fixed_tensor_value = tf.constant([[1.0, 1.0]], dtype=tf.float32)
-    constant_input_layer = Input(tensor=fixed_tensor_value, name='constant_input')
-    outputs.append(constant_input_layer)
-
-    #outputs.append((inputs[0] - Input(tensor=tf.constant(input_norm_layer.mean.numpy()))) / tf.sqrt(
-#        Input(tensor=tf.constant(input_norm_layer.variance.numpy()))))
+    input_norm_layer = Normalization()
+    input_norm_layer.adapt(np.array([[0.1, 0.2]]))
+    outputs.append((inputs[0] - input_norm_layer.mean) / tf.sqrt(input_norm_layer.variance))
 
     model = Model(inputs=inputs, outputs=outputs, name='test_model_exhaustive')
     model.compile(loss='mse', optimizer='nadam')

@@ -25,6 +25,7 @@ namespace internal {
     protected:
         tensors apply_impl(const tensors& inputs) const override
         {
+            // todo: Find out of this is ever called at all.
             assertion(inputs.size() == 1, "need exactly one input");
             assertion(inputs.front().shape() == input_shape_, "invalid input size");
             return inputs;

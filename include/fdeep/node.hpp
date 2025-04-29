@@ -14,6 +14,19 @@
 #include <utility>
 #include <vector>
 
+
+/*
+Layers own nodes.
+Nodes own node connections.
+Node connections are pointers to a specific tensor of a specific node of a specific layer.
+Getting the output of a layer means:
+- Get the output for each of the layer's nodes.
+Getting the output of a node means:
+- Get the referenced tensor from each of the node's node connections.
+- Apply the layer to this collection of tensors.
+Getting a tensor from a node connection means:
+- Getting the output of the node the connection points to, and then only returning the tensor at the requested tensor index.
+*/
 namespace fdeep {
 namespace internal {
 

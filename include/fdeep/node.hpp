@@ -24,7 +24,7 @@ Getting the output of a node means:
 - Get the referenced tensor from each of the node's node connections.
 - Apply the layer to this collection of tensors.
 Getting a tensor from a node connection means:
-- Getting the output of the node the connection points to, and then only returning the tensor at the requested tensor index.
+- Get the output of the node the connection points to, and then only returning the tensor at the requested tensor index.
 */
 namespace fdeep {
 namespace internal {

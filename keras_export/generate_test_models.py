@@ -611,6 +611,7 @@ def get_test_model_exhaustive() -> Model:
         Activation('squareplus')(inputs[25]),
         Activation('tanh')(inputs[25]),
         Activation('tanh_shrink')(inputs[25]),
+        Activation('leaky_relu')(inputs[25]),
         LeakyReLU(name="real_LeakyReLU_layer", negative_slope=0.5)(inputs[25]),
         ReLU(name="real_ReLU_layer_1")(inputs[25]),
         ReLU(name="real_ReLU_layer_2", max_value=0.4, negative_slope=1.1, threshold=0.3)(inputs[25]),

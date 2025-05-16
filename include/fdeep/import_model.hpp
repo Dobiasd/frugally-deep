@@ -1034,7 +1034,7 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
-        float_type negative_slope = 0.3f;
+        float_type negative_slope = 0.2f;
         if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "negative_slope")) {
             negative_slope = data["config"]["negative_slope"];
         }

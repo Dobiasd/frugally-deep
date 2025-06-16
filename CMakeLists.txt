@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.10...4.0)
 
 set(FDEEP_TOP_DIR ${CMAKE_CURRENT_LIST_DIR})
 

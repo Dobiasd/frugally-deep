@@ -85,7 +85,7 @@ The basic idea is to use the standard hunter setup but to add a git submodule to
 Your CMakeLists.txt should look something like
 
 ```cmake
-cmake_minimum_required(VERSION 3.0) # minimum requirement for Hunter
+cmake_minimum_required(VERSION 3.10...4.0) # minimum requirement for Hunter
 
 include("cmake/HunterGate.cmake") # teach your project about Hunter (before project())
 HunterGate( # Latest release shown here: https://github.com/ruslo/hunter/releases

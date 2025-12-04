@@ -34,7 +34,6 @@ namespace internal {
                 return x;
             },
                 in_vol);
-            return transform_tensor(hard_sigmoid_activation, in_vol);
         }
     };
 

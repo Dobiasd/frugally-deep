@@ -139,21 +139,29 @@ namespace internal {
 
             const auto input = get_im2col_mapping(in, f_width, f_depth, 1, mapping_width, 0, y_filt);
 
-            Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
+                Eigen::Map<Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Unaligned>
                 output_temp_map(&output_temp.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0)),
                     static_cast<EigenIndex>(out_depth),
                     static_cast<EigenIndex>(mapping_width));
 
-            output_temp_map.noalias() += filter * input;
+            // Use = (beta=0) for the first filter row to avoid reading the
+            // zero-initialized output_temp values, saving memory bandwidth.
+            if (y_filt == 0) {
+                output_temp_map.noalias() = filter * input;
+            } else {
+                output_temp_map.noalias() += filter * input;
+            }
         }
 
-        // Dropping the superfluous results from "between" the rows.
+        // Add the valid portion of each output_temp row into the bias-initialized
+        // output tensor. Process one full row (out_width * out_depth contiguous
+        // elements) per iteration using Eigen's SIMD-vectorized addition.
         for (std::size_t y_out = 0; y_out < out_height; ++y_out) {
-            for (std::size_t x_out = 0; x_out < out_width; ++x_out) {
-                for (std::size_t z_out = 0; z_out < out_depth; ++z_out) {
-                    output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) += output_temp.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out));
-                }
-            }
+            const float_type* src = &output_temp.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0));
+            float_type* dst = &output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0));
+            const EigenIndex n = static_cast<EigenIndex>(out_width * out_depth);
+            Eigen::Map<Eigen::Array<float_type, Eigen::Dynamic, 1>>(dst, n) +=
+                Eigen::Map<const Eigen::Array<float_type, Eigen::Dynamic, 1>>(src, n);
         }
 
         return output;

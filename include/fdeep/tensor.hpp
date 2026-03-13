@@ -190,10 +190,7 @@ namespace internal {
     template <typename F>
     tensor transform_tensor(F f, const tensor& m)
     {
-        const auto& src = *m.as_vector();
-        float_vec result(src.size());
-        std::transform(src.begin(), src.end(), result.begin(), f);
-        return tensor(m.shape(), std::move(result));
+        return tensor(m.shape(), fplus::transform(f, float_vec(*m.as_vector())));
     }
 
     inline std::vector<tensor> tensor_to_depth_slices(const tensor& m)

@@ -8,8 +8,6 @@
 
 #include "fdeep/layers/activation_layer.hpp"
 
-#include <algorithm>
-#include <limits>
 #include <string>
 
 namespace fdeep {
@@ -31,28 +29,13 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            // Fast path for the common standard ReLU (max(0, x)):
-            // std::transform with a simple lambda allows GCC/Clang to emit
-            // SIMD vmaxps, unlike fplus::transform_convert which uses push_back.
-            if (negative_slope_ == static_cast<float_type>(0) &&
-                threshold_ == static_cast<float_type>(0) &&
-                max_value_ == std::numeric_limits<float_type>::max()) {
-                const auto& src = *in_vol.as_vector();
-                float_vec result(src.size());
-                std::transform(src.begin(), src.end(), result.begin(),
-                    [](float_type x) -> float_type {
-                        return std::max(static_cast<float_type>(0), x);
-                    });
-                return tensor(in_vol.shape(), std::move(result));
-            }
-            auto activation_function = [&](float_type x) -> float_type {
+            return transform_tensor([&](float_type x) -> float_type {
                 if (x >= max_value_)
                     return max_value_;
                 if (threshold_ <= x && x < max_value_)
                     return x;
                 return negative_slope_ * (x - threshold_);
-            };
-            return transform_tensor(activation_function, in_vol);
+            }, in_vol);
         }
         float_type max_value_;
         float_type negative_slope_;

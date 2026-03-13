@@ -31,12 +31,11 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            if (negative_slope_ == static_cast<float_type>(0) &&
-                threshold_ == static_cast<float_type>(0) &&
-                max_value_ == std::numeric_limits<float_type>::max()) {
+            if (negative_slope_ == static_cast<float_type>(0) && threshold_ == static_cast<float_type>(0) && max_value_ == std::numeric_limits<float_type>::max()) {
                 return transform_tensor([](float_type x) -> float_type {
                     return std::max(static_cast<float_type>(0), x);
-                }, in_vol);
+                },
+                    in_vol);
             }
             return transform_tensor([&](float_type x) -> float_type {
                 if (x >= max_value_)
@@ -44,7 +43,8 @@ namespace internal {
                 if (threshold_ <= x && x < max_value_)
                     return x;
                 return negative_slope_ * (x - threshold_);
-            }, in_vol);
+            },
+                in_vol);
         }
         float_type max_value_;
         float_type negative_slope_;

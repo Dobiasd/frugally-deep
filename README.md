@@ -42,7 +42,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
 * `TimeDistributed`
-* `Conv1D/2D`, `SeparableConv2D`, `DepthwiseConv2D`
+* `Conv1D/2D/3D`, `SeparableConv2D`, `DepthwiseConv2D`
 * `Conv1DTranspose`, `Conv2DTranspose`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
@@ -71,7 +71,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 ### Currently not supported are the following:
 
 `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
-`Conv3D`, `ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
+`ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
 `GRUCell`, `Hashing`,
 `IntegerLookup`,
 `LocallyConnected1D`, `LocallyConnected2D`,

@@ -14,6 +14,7 @@ from keras.layers import BatchNormalization, Concatenate, LayerNormalization, Un
 from keras.layers import CategoryEncoding, Embedding
 from keras.layers import Conv1D, ZeroPadding1D, Cropping1D
 from keras.layers import Conv2D, ZeroPadding2D, Cropping2D, CenterCrop
+from keras.layers import Conv3D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
@@ -229,6 +230,11 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Conv2D(4, (3, 3), use_bias=False, padding='valid')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), strides=(2, 3), padding='same')(inputs[4]))
     outputs.append(Conv2D(4, (2, 4), padding='same', dilation_rate=(2, 3))(inputs[4]))
+
+    outputs.append(Conv3D(4, (2, 3, 3))(inputs[2]))
+    outputs.append(Conv3D(4, (2, 3, 3), use_bias=False, padding='valid')(inputs[2]))
+    outputs.append(Conv3D(4, (1, 2, 4), strides=(2, 2, 3), padding='same')(inputs[2]))
+    outputs.append(Conv3D(4, (1, 2, 4), padding='same', dilation_rate=(2, 2, 3))(inputs[2]))
 
     outputs.append(SeparableConv2D(3, (3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))

@@ -43,7 +43,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
 * `TimeDistributed`
 * `Conv1D/2D/3D`, `SeparableConv2D`, `DepthwiseConv2D`
-* `Conv1DTranspose`, `Conv2DTranspose`
+* `Conv1DTranspose`, `Conv2DTranspose`, `Conv3DTranspose`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
 * `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
@@ -52,7 +52,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 * `RandomContrast`, `RandomFlip`, `RandomHeight`
 * `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
 * `MaxPooling1D/2D/3D`, `GlobalMaxPooling1D/2D/3D`
-* `UpSampling1D/2D`, `Resizing`, `Rescaling`
+* `UpSampling1D/2D/3D`, `Resizing`, `Rescaling`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`, `CategoryEncoding`
 * `Attention`, `AdditiveAttention`, `MultiHeadAttention`
@@ -79,7 +79,7 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 `RepeatVector`, `RNN`, `SimpleRNN`,
 `SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
 `Bidirectional`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`,
-`ThresholdedReLU`, `Upsampling3D`, `temporal` models
+`ThresholdedReLU`, `temporal` models
 
 Usage
 -----

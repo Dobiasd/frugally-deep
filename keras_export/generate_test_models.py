@@ -18,7 +18,8 @@ from keras.layers import Conv3D
 from keras.layers import GlobalAveragePooling1D, GlobalMaxPooling1D
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
 from keras.layers import GlobalAveragePooling3D, GlobalMaxPooling3D
-from keras.layers import Identity, Conv2DTranspose, Conv1DTranspose
+from keras.layers import Identity, Conv2DTranspose, Conv1DTranspose, Conv3DTranspose
+from keras.layers import UpSampling3D
 from keras.layers import Input, Dense, Dropout, Flatten, Activation
 from keras.layers import LeakyReLU, ELU, PReLU, ReLU, Softmax
 from keras.layers import MaxPooling1D, AveragePooling1D, UpSampling1D
@@ -236,6 +237,12 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Conv3D(4, (1, 2, 4), strides=(2, 2, 3), padding='same')(inputs[2]))
     outputs.append(Conv3D(4, (1, 2, 4), padding='same', dilation_rate=(2, 2, 3))(inputs[2]))
 
+    outputs.append(Conv3DTranspose(4, (3, 3, 3))(inputs[2]))
+    outputs.append(Conv3DTranspose(4, (3, 3, 3), use_bias=False, padding='valid')(inputs[2]))
+    outputs.append(Conv3DTranspose(4, (3, 3, 3), padding='same')(inputs[2]))
+    outputs.append(Conv3DTranspose(4, (2, 2, 2), strides=(2, 2, 2), padding='valid')(inputs[2]))
+    outputs.append(Conv3DTranspose(4, (2, 2, 2), strides=(2, 2, 2), padding='same')(inputs[2]))
+
     outputs.append(SeparableConv2D(3, (3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((3, 3))(inputs[4]))
     outputs.append(DepthwiseConv2D((1, 2))(inputs[4]))
@@ -266,6 +273,10 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(UpSampling2D(size=(5, 3), interpolation='nearest')(inputs[4]))
     outputs.append(UpSampling2D(size=(1, 2), interpolation='bilinear')(inputs[4]))
     outputs.append(UpSampling2D(size=(5, 3), interpolation='bilinear')(inputs[4]))
+
+    outputs.append(UpSampling3D(size=(2, 2, 2))(inputs[2]))
+    outputs.append(UpSampling3D(size=(1, 3, 5))(inputs[2]))
+    outputs.append(UpSampling3D(size=(2, 1, 1))(inputs[2]))
 
     outputs.append(Resizing(4, 5)(inputs[4]))
     outputs.append(Resizing(5, 6)(inputs[4]))

@@ -956,6 +956,27 @@ namespace internal {
         return out_vol;
     }
 
+    inline tensor resize3d_nearest(const tensor& in_vol, const shape3& target_size)
+    {
+        tensor out_vol(tensor_shape(target_size.size_dim_4_, target_size.height_, target_size.width_, in_vol.shape().depth_), 0);
+        const float_type scale_d4 = static_cast<float_type>(target_size.size_dim_4_) / static_cast<float_type>(in_vol.shape().size_dim_4_);
+        const float_type scale_y = static_cast<float_type>(target_size.height_) / static_cast<float_type>(in_vol.shape().height_);
+        const float_type scale_x = static_cast<float_type>(target_size.width_) / static_cast<float_type>(in_vol.shape().width_);
+        for (std::size_t d4 = 0; d4 < out_vol.shape().size_dim_4_; ++d4) {
+            const std::size_t d4_in = fplus::round<float_type, std::size_t>((static_cast<float_type>(d4) + 0.5f) / scale_d4 - 0.5f);
+            for (std::size_t y = 0; y < out_vol.shape().height_; ++y) {
+                const std::size_t y_in = fplus::round<float_type, std::size_t>((static_cast<float_type>(y) + 0.5f) / scale_y - 0.5f);
+                for (std::size_t x = 0; x < out_vol.shape().width_; ++x) {
+                    const std::size_t x_in = fplus::round<float_type, std::size_t>((static_cast<float_type>(x) + 0.5f) / scale_x - 0.5f);
+                    for (std::size_t z = 0; z < in_vol.shape().depth_; ++z) {
+                        out_vol.set_ignore_rank(tensor_pos(d4, y, x, z), in_vol.get_ignore_rank(tensor_pos(d4_in, y_in, x_in, z)));
+                    }
+                }
+            }
+        }
+        return out_vol;
+    }
+
     inline float_type interpolate_2d_value_bilinearly(const tensor& t, float_type y, float_type x, std::size_t z)
     {
         y = fplus::max(0, y);

@@ -40,6 +40,7 @@
 #include "fdeep/layers/conv_2d_layer.hpp"
 #include "fdeep/layers/conv_2d_transpose_layer.hpp"
 #include "fdeep/layers/conv_3d_layer.hpp"
+#include "fdeep/layers/conv_3d_transpose_layer.hpp"
 #include "fdeep/layers/cropping_3d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
@@ -94,6 +95,7 @@
 #include "fdeep/layers/unit_normalization_layer.hpp"
 #include "fdeep/layers/upsampling_1d_layer.hpp"
 #include "fdeep/layers/upsampling_2d_layer.hpp"
+#include "fdeep/layers/upsampling_3d_layer.hpp"
 #include "fdeep/layers/zero_padding_3d_layer.hpp"
 #include "fdeep/tensor.hpp"
 #include "fdeep/tensor_shape.hpp"
@@ -447,6 +449,36 @@ namespace internal {
             dilation_rate, weights, bias);
     }
 
+    inline layer_ptr create_conv_3d_transpose_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
+    {
+        const std::string padding_str = data["config"]["padding"];
+        const auto pad_type = create_padding(padding_str);
+
+        const shape3 strides = create_shape3(data["config"]["strides"]);
+        const shape3 dilation_rate = create_shape3(data["config"]["dilation_rate"]);
+
+        const auto filter_count = create_size_t(data["config"]["filters"]);
+        float_vec bias(filter_count, 0);
+        const bool use_bias = data["config"]["use_bias"];
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+        assertion(bias.size() == filter_count, "size of bias does not match");
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const shape3 kernel_size = create_shape3(data["config"]["kernel_size"]);
+        assertion(weights.size() % kernel_size.volume() == 0,
+            "invalid number of weights");
+        const std::size_t filter_depths = weights.size() / (kernel_size.volume() * filter_count);
+        const tensor_shape filter_shape(
+            kernel_size.size_dim_4_, kernel_size.height_, kernel_size.width_, filter_depths);
+
+        return std::make_shared<conv_3d_transpose_layer>(name,
+            filter_shape, filter_count, strides, pad_type,
+            dilation_rate, weights, bias);
+    }
+
     inline layer_ptr create_conv_2d_transpose_layer(const get_param_f& get_param,
         const nlohmann::json& data,
         const std::string& name)
@@ -658,6 +690,15 @@ namespace internal {
         const std::string interpolation = data["config"]["interpolation"];
         return std::make_shared<upsampling_2d_layer>(
             name, scale_factor, interpolation);
+    }
+
+    inline layer_ptr create_upsampling_3d_layer(
+        const get_param_f&, const nlohmann::json& data,
+        const std::string& name)
+    {
+        const auto scale_factor = create_shape3(data["config"]["size"]);
+        return std::make_shared<upsampling_3d_layer>(
+            name, scale_factor);
     }
 
     inline layer_ptr create_dense_layer(const get_param_f& get_param,
@@ -1301,6 +1342,7 @@ namespace internal {
             { "Conv3D", create_conv_3d_layer },
             { "Conv1DTranspose", create_conv_2d_transpose_layer },
             { "Conv2DTranspose", create_conv_2d_transpose_layer },
+            { "Conv3DTranspose", create_conv_3d_transpose_layer },
             { "SeparableConv1D", create_separable_conv_2D_layer },
             { "SeparableConv2D", create_separable_conv_2D_layer },
             { "DepthwiseConv2D", create_depthwise_conv_2D_layer },
@@ -1365,6 +1407,7 @@ namespace internal {
             { "GlobalAveragePooling3D", create_global_average_pooling_3d_layer },
             { "UpSampling1D", create_upsampling_1d_layer },
             { "UpSampling2D", create_upsampling_2d_layer },
+            { "UpSampling3D", create_upsampling_3d_layer },
             { "Dense", create_dense_layer },
             { "Add", create_add_layer },
             { "Maximum", create_maximum_layer },

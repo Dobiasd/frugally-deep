@@ -9,6 +9,7 @@
 #include "fdeep/common.hpp"
 
 #include "fdeep/shape2.hpp"
+#include "fdeep/shape3.hpp"
 #include "fdeep/tensor_shape_variable.hpp"
 
 #include <algorithm>

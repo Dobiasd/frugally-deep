@@ -222,6 +222,12 @@ def prepare_filter_weights_conv_2d_transpose(weights: NDFloat32Array) -> NDFloat
     return np.moveaxis(weights, [0, 1, 2, 3], [1, 2, 0, 3]).flatten()
 
 
+def prepare_filter_weights_conv_3d(weights: NDFloat32Array) -> NDFloat32Array:
+    """Change dimension order of 3d filter weights to the one used in fdeep"""
+    assert len(weights.shape) == 5
+    return np.moveaxis(weights, [0, 1, 2, 3, 4], [1, 2, 3, 4, 0]).flatten()
+
+
 def show_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv1D layer to dict"""
     weights = layer.get_weights()
@@ -250,6 +256,25 @@ def show_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     assert layer.padding in ['valid', 'same']
     assert layer.groups == 1
     assert len(get_layer_input_shape(layer)) == 4
+    assert get_layer_input_shape(layer)[0] in {None, 1}
+    result = {
+        'weights': encode_floats(weights_flat)
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+    return result
+
+
+def show_conv_3d_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize Conv3D layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) == 1 or len(weights) == 2
+    assert len(weights[0].shape) == 5
+    weights_flat = prepare_filter_weights_conv_3d(weights[0])
+    assert layer.padding in ['valid', 'same']
+    assert layer.groups == 1
+    assert len(get_layer_input_shape(layer)) == 5
     assert get_layer_input_shape(layer)[0] in {None, 1}
     result = {
         'weights': encode_floats(weights_flat)
@@ -498,6 +523,7 @@ def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
     return {
         'Conv1D': show_conv_1d_layer,
         'Conv2D': show_conv_2d_layer,
+        'Conv3D': show_conv_3d_layer,
         'Conv1DTranspose': show_conv_1d_transpose_layer,
         'Conv2DTranspose': show_conv_2d_transpose_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,

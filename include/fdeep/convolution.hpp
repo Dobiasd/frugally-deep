@@ -159,11 +159,74 @@ namespace internal {
         return output;
     }
 
+    // Dilated variant: filter values are at positions (y_filt * dil_y, x_filt * dil_x) in the
+    // effective receptive field. We loop over the un-dilated filter positions and do one GEMM
+    // per (y_filt, x_filt), which avoids multiplying by the zeros of an inflated kernel.
+    inline tensor convolve_accumulative_s1x1_dilated(
+        std::size_t out_height,
+        std::size_t out_width,
+        const shape2& dilation_rate,
+        const convolution_filter_matrices& filter_mat,
+        const tensor& in)
+    {
+        const tensor& filter_mats = filter_mat.filter_mats_;
+        const auto f_height = filter_mat.filter_shape_.height_;
+        const auto f_width = filter_mat.filter_shape_.width_;
+        const auto f_depth = filter_mat.filter_shape_.depth_;
+        const auto out_depth = filter_mat.filter_count_;
+        const auto dil_y = dilation_rate.height_;
+        const auto dil_x = dilation_rate.width_;
+        const auto eff_f_width = (f_width - 1) * dil_x + 1;
+
+        tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
+
+        const std::size_t out_width_temp = out_width + eff_f_width - 1;
+        tensor output_temp(tensor_shape_with_changed_rank(
+                               tensor_shape(out_height, out_width_temp, out_depth),
+                               in.shape().rank()),
+            static_cast<float_type>(0));
+
+        const auto mapping_width = out_width_temp * (out_height - 1) + out_width;
+
+        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt) {
+            for (std::size_t x_filt = 0; x_filt < f_width; ++x_filt) {
+                const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                    filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, x_filt, 0, 0))),
+                        static_cast<EigenIndex>(out_depth),
+                        static_cast<EigenIndex>(f_depth));
+
+                const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>
+                    input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y_filt * dil_y, x_filt * dil_x, 0))),
+                        static_cast<EigenIndex>(f_depth),
+                        static_cast<EigenIndex>(mapping_width),
+                        Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth)));
+
+                Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                    output_temp_map(&output_temp.get_ref_ignore_rank(tensor_pos(0, 0, 0, 0, 0)),
+                        static_cast<EigenIndex>(out_depth),
+                        static_cast<EigenIndex>(mapping_width));
+
+                output_temp_map.noalias() += filter * input;
+            }
+        }
+
+        for (std::size_t y_out = 0; y_out < out_height; ++y_out) {
+            for (std::size_t x_out = 0; x_out < out_width; ++x_out) {
+                for (std::size_t z_out = 0; z_out < out_depth; ++z_out) {
+                    output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out)) += output_temp.get_ref_ignore_rank(tensor_pos(0, 0, y_out, x_out, z_out));
+                }
+            }
+        }
+
+        return output;
+    }
+
     inline tensor convolve_accumulative(
         std::size_t out_height,
         std::size_t out_width,
         std::size_t strides_y,
         std::size_t strides_x,
+        const shape2& dilation_rate,
         const convolution_filter_matrices& filter_mat,
         const tensor& in)
     {
@@ -176,31 +239,65 @@ namespace internal {
         const auto f_width = filter_mat.filter_shape_.width_;
         const auto f_depth = filter_mat.filter_shape_.depth_;
         const auto out_depth = filter_mat.filter_count_;
+        const auto dil_y = dilation_rate.height_;
+        const auto dil_x = dilation_rate.width_;
+        const auto eff_f_height = (f_height - 1) * dil_y + 1;
+        const auto eff_f_width = (f_width - 1) * dil_x + 1;
 
         assertion(f_depth == in.shape().depth_, "filter depth does not match input");
         assertion(filter_mats.shape().size_dim_4_ == f_height, "incorrect number of filter levels in y direction");
-        assertion(out_width == (in.shape().width_ - f_width) / strides_x + 1, "output width does not match");
+        assertion(out_width == (in.shape().width_ - eff_f_width) / strides_x + 1, "output width does not match");
         assertion(out_depth == filter_mat.biases_.size(), "invlid bias count");
 
         if (strides_x == 1 && strides_y == 1) {
-            return convolve_accumulative_s1x1(out_height, out_width, filter_mat, in);
+            if (dil_x == 1 && dil_y == 1) {
+                return convolve_accumulative_s1x1(out_height, out_width, filter_mat, in);
+            }
+            return convolve_accumulative_s1x1_dilated(out_height, out_width, dilation_rate, filter_mat, in);
         }
 
         tensor output = init_conv_output_tensor(out_height, out_width, out_depth, in.shape().rank(), filter_mat);
 
-        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt) {
-            const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
-                filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
-                    static_cast<EigenIndex>(out_depth),
-                    static_cast<EigenIndex>(f_width * f_depth));
-            for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out) {
-                const auto input = get_im2col_mapping(in, f_width, f_depth, strides_x, out_width, y, y_filt);
-                Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
-                    output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
+        if (dil_x == 1 && dil_y == 1) {
+            for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt) {
+                const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                    filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, 0, 0, 0))),
                         static_cast<EigenIndex>(out_depth),
-                        static_cast<EigenIndex>(out_width));
+                        static_cast<EigenIndex>(f_width * f_depth));
+                for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - f_height; y += strides_y, ++y_out) {
+                    const auto input = get_im2col_mapping(in, f_width, f_depth, strides_x, out_width, y, y_filt);
+                    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                        output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
+                            static_cast<EigenIndex>(out_depth),
+                            static_cast<EigenIndex>(out_width));
 
-                output_map.noalias() += filter * input;
+                    output_map.noalias() += filter * input;
+                }
+            }
+            return output;
+        }
+
+        // Strided + dilated: nested f_height x f_width x out_height GEMMs.
+        for (std::size_t y_filt = 0; y_filt < f_height; ++y_filt) {
+            for (std::size_t x_filt = 0; x_filt < f_width; ++x_filt) {
+                const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                    filter(const_cast<float_type*>(&filter_mats.get_ref_ignore_rank(tensor_pos(0, y_filt, x_filt, 0, 0))),
+                        static_cast<EigenIndex>(out_depth),
+                        static_cast<EigenIndex>(f_depth));
+                for (std::size_t y = 0, y_out = 0; y < in.shape().height_ + 1 - eff_f_height; y += strides_y, ++y_out) {
+                    const Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned, Eigen::OuterStride<>>
+                        input(const_cast<float_type*>(&in.get_ref_ignore_rank(tensor_pos(0, 0, y + y_filt * dil_y, x_filt * dil_x, 0))),
+                            static_cast<EigenIndex>(f_depth),
+                            static_cast<EigenIndex>(out_width),
+                            Eigen::OuterStride<>(static_cast<EigenIndex>(f_depth * strides_x)));
+
+                    Eigen::Map<ColMajorMatrixXf, Eigen::Unaligned>
+                        output_map(&output.get_ref_ignore_rank(tensor_pos(0, 0, y_out, 0, 0)),
+                            static_cast<EigenIndex>(out_depth),
+                            static_cast<EigenIndex>(out_width));
+
+                    output_map.noalias() += filter * input;
+                }
             }
         }
 
@@ -301,14 +398,19 @@ namespace internal {
     inline tensor convolve(
         const shape2& strides,
         const padding& pad_type,
+        const shape2& dilation_rate,
         const convolution_filter_matrices& filter_mat,
         const tensor& input)
     {
         assertion(filter_mat.filter_shape_.depth_ == input.shape().depth_,
             "invalid filter depth");
 
+        const shape2 eff_filter_shape(
+            (filter_mat.filter_shape_.height_ - 1) * dilation_rate.height_ + 1,
+            (filter_mat.filter_shape_.width_ - 1) * dilation_rate.width_ + 1);
+
         const auto conv_cfg = preprocess_convolution(
-            filter_mat.filter_shape_.without_depth(),
+            eff_filter_shape,
             strides, pad_type, input.shape().height_, input.shape().width_, false);
 
         // The padding step usually (on a VGG19 net) only takes about 1% of the overall runtime.
@@ -321,8 +423,21 @@ namespace internal {
         return convolve_accumulative(
             conv_cfg.out_height_, conv_cfg.out_width_,
             strides.height_, strides.width_,
+            dilation_rate,
             filter_mat,
             in_padded);
+    }
+
+    // Backward-compatible overload for callers (e.g., transposed conv, depthwise conv,
+    // separable pointwise conv) where the filter has already been pre-dilated or
+    // dilation does not apply.
+    inline tensor convolve(
+        const shape2& strides,
+        const padding& pad_type,
+        const convolution_filter_matrices& filter_mat,
+        const tensor& input)
+    {
+        return convolve(strides, pad_type, shape2(1, 1), filter_mat, input);
     }
 
     inline tensor convolve_transposed(
@@ -348,6 +463,7 @@ namespace internal {
         return convolve_accumulative(
             conv_cfg.out_height_, conv_cfg.out_width_,
             1, 1,
+            shape2(1, 1),
             filter_mat,
             in_padded);
     }

@@ -30,7 +30,8 @@ namespace internal {
             const float_vec& weights, const float_vec& bias)
             : layer(name)
             , filters_(generate_im2col_filter_matrix(
-                  generate_filters(dilation_rate, filter_shape, k, weights, bias, false)))
+                  generate_filters(shape2(1, 1), filter_shape, k, weights, bias, false)))
+            , dilation_rate_(dilation_rate)
             , strides_(strides)
             , padding_(p)
         {
@@ -43,9 +44,10 @@ namespace internal {
         tensors apply_impl(const tensors& inputs) const override
         {
             const auto& input = single_tensor_from_tensors(inputs);
-            return { convolve(strides_, padding_, filters_, input) };
+            return { convolve(strides_, padding_, dilation_rate_, filters_, input) };
         }
         convolution_filter_matrices filters_;
+        shape2 dilation_rate_;
         shape2 strides_;
         padding padding_;
     };

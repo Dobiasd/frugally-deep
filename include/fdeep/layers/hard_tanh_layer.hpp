@@ -25,7 +25,7 @@ namespace internal {
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor([this](float_type x) {
+            return transform_tensor([](float_type x) {
                 if (x < -1) {
                     return static_cast<float_type>(-1);
                 } else if (x > 1) {

@@ -58,6 +58,11 @@ add_custom_command ( OUTPUT readme_example_model.json
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py readme_example_model.keras readme_example_model.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT readme_example_flat_format_model.json
+                     DEPENDS readme_example_model.json
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/test/readme_example_flat_format_generate.py readme_example_model.json readme_example_flat_format_model.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 hunter_add_package(doctest)
 find_package(doctest CONFIG REQUIRED)
 
@@ -75,6 +80,7 @@ _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_autoencoder_test test_model_autoencoder.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 _add_test(readme_example_main readme_example_model.json)
+_add_test(readme_example_flat_format_test readme_example_flat_format_model.json)
 
 add_custom_target(unittest
   COMMAND test_model_exhaustive_test
@@ -83,6 +89,7 @@ add_custom_target(unittest
   COMMAND test_model_autoencoder_test
   COMMAND test_model_sequential_test
   COMMAND readme_example_main
+  COMMAND readme_example_flat_format_test
 
   COMMENT "Running unittests\n\n"
   VERBATIM

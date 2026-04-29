@@ -1182,7 +1182,7 @@ namespace internal {
         const nlohmann::json& data, const std::string& name)
     {
         const bool use_scale = data["config"]["use_scale"];
-        float_vec scale(static_cast<float_type>(1), 1);
+        float_vec scale(1, static_cast<float_type>(1));
         if (use_scale) {
             scale = decode_floats(get_param(name, "scale"));
         }

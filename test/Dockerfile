@@ -14,11 +14,12 @@ RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gp
 RUN apt-get update -y && apt-get install -y bazel-6.5.0
 RUN ln -s /usr/bin/bazel-6.5.0 /usr/bin/bazel
 
-RUN git clone -b 'v2.18.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
+RUN git clone -b 'v2.21.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow
 RUN ./configure
 RUN bazel build -c opt --copt=-march=native --jobs 16 --local_ram_resources=HOST_RAM*.3 -c opt //tensorflow/tools/pip_package:wheel --repo_env=WHEEL_NAME=tensorflow_cpu
-RUN pip install --break-system-packages bazel-bin/tensorflow/tools/pip_package/wheel_house/tensorflow_cpu-2.18.0-cp312-cp312-linux_x86_64.whl
+RUN pip install --break-system-packages bazel-bin/tensorflow/tools/pip_package/wheel_house/tensorflow_cpu-2.21.0-cp312-cp312-linux_x86_64.whl
+RUN pip install --break-system-packages "keras==3.14.0"
 WORKDIR /
 
 RUN git clone -b 'v0.2.24' --single-branch --depth 1 https://github.com/Dobiasd/FunctionalPlus && cd FunctionalPlus && mkdir -p build && cd build && cmake .. && make && make install

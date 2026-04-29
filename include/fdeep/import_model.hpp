@@ -311,6 +311,16 @@ namespace internal {
         return node_connection(layer_id, node_idx, tensor_idx);
     }
 
+    inline std::vector<node_connection> create_node_connections_model_layer(const nlohmann::json& data)
+    {
+        assertion(data.is_array(), "input_layers/output_layers must be an array");
+        // Keras serializes a single connection as a flat triple ["layer", node_idx, tensor_idx],
+        // and multiple connections as a list of such triples.
+        if (!data.empty() && !data.front().is_array())
+            return { create_node_connection_model_layer(data) };
+        return create_vector<node_connection>(create_node_connection_model_layer, data);
+    }
+
     inline node_connection create_node_connection(const nlohmann::json& args)
     {
         assertion(json_obj_has_member(args["config"], "keras_history"),
@@ -369,11 +379,9 @@ namespace internal {
 
         assertion(data["config"]["input_layers"].is_array(), "no input layers");
 
-        const auto inputs = create_vector<node_connection>(
-            create_node_connection_model_layer, data["config"]["input_layers"]);
+        const auto inputs = create_node_connections_model_layer(data["config"]["input_layers"]);
 
-        const auto outputs = create_vector<node_connection>(
-            create_node_connection_model_layer, data["config"]["output_layers"]);
+        const auto outputs = create_node_connections_model_layer(data["config"]["output_layers"]);
 
         return std::make_shared<model_layer>(name, layers, inputs, outputs);
     }

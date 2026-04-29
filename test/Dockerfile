@@ -6,13 +6,13 @@ FROM ubuntu:24.04
 RUN apt-get update -y --fix-missing
 ENV DEBIAN_FRONTEND=noninteractive
 RUN TZ=Etc/UTC apt-get -y install tzdata
-RUN apt-get install -y build-essential apt-utils cmake python3 python3-pip git llvm-17 clang-17 apt-transport-https curl gnupg patchelf
+RUN apt-get install -y build-essential apt-utils cmake python3 python3-pip git llvm-17 clang-17 apt-transport-https curl gnupg patchelf xxd
 
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg
 RUN mv bazel-archive-keyring.gpg /usr/share/keyrings
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt-get update -y && apt-get install -y bazel-6.5.0
-RUN ln -s /usr/bin/bazel-6.5.0 /usr/bin/bazel
+RUN apt-get update -y && apt-get install -y bazel-7.7.0
+RUN ln -s /usr/bin/bazel-7.7.0 /usr/bin/bazel
 
 RUN git clone -b 'v2.21.0' --single-branch --depth 1 https://github.com/tensorflow/tensorflow.git
 WORKDIR /tensorflow

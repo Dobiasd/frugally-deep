@@ -137,8 +137,8 @@ Requirements and Installation
 
 - A **C++14**-compatible compiler: Compilers from these versions on are fine: GCC 4.9, Clang 3.7 (libc++ 3.7) and Visual C++ 2015
 - Python 3.9 or higher
-- TensorFlow 2.18.0
-- Keras 3.8.0
+- TensorFlow 2.21.0
+- Keras 3.14.0
 
 (These are the tested versions, but somewhat older ones might work too.)
 

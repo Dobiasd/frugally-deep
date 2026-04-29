@@ -1037,8 +1037,14 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
-        float_type threshold = data["config"]["threshold_value"];
-        float_type default_value = data["config"]["value"];
+        // Keras renamed these config keys: threshold_value -> threshold, value -> default_value.
+        const auto& config = data["config"];
+        float_type threshold = json_obj_has_member(config, "threshold")
+            ? static_cast<float_type>(config["threshold"])
+            : static_cast<float_type>(config["threshold_value"]);
+        float_type default_value = json_obj_has_member(config, "default_value")
+            ? static_cast<float_type>(config["default_value"])
+            : static_cast<float_type>(config["value"]);
         return std::make_shared<threshold_layer>(name, threshold, default_value);
     }
 

@@ -96,10 +96,10 @@
 #include "fdeep/layers/soft_shrink_layer.hpp"
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
-#include "fdeep/layers/stacked_rnn_layer.hpp"
 #include "fdeep/layers/softsign_layer.hpp"
 #include "fdeep/layers/sparse_plus_layer.hpp"
 #include "fdeep/layers/square_plus_layer.hpp"
+#include "fdeep/layers/stacked_rnn_layer.hpp"
 #include "fdeep/layers/subtract_layer.hpp"
 #include "fdeep/layers/swish_layer.hpp"
 #include "fdeep/layers/tanh_layer.hpp"
@@ -808,7 +808,8 @@ namespace internal {
         const std::size_t num_oov_indices = cfg["num_oov_indices"];
         const bool has_mask_token = !cfg["mask_token"].is_null();
         const std::int64_t mask_token = has_mask_token
-            ? static_cast<std::int64_t>(cfg["mask_token"]) : 0;
+            ? static_cast<std::int64_t>(cfg["mask_token"])
+            : 0;
         std::vector<std::int64_t> vocabulary;
         for (const auto& v : cfg["vocabulary"])
             vocabulary.push_back(static_cast<std::int64_t>(v));
@@ -1484,7 +1485,6 @@ namespace internal {
             num_heads, key_dim, value_dim, use_bias, weights_and_biases);
     }
 
-
     inline layer_ptr create_lstm_layer(const get_param_f& get_param,
         const nlohmann::json& data,
         const std::string& name)
@@ -1566,9 +1566,9 @@ namespace internal {
     {
         nlohmann::json synthetic;
         synthetic["class_name"] = cell_class == "LSTMCell" ? "LSTM"
-            : cell_class == "GRUCell" ? "GRU"
-            : cell_class == "SimpleRNNCell" ? "SimpleRNN"
-            : std::string("");
+            : cell_class == "GRUCell"                      ? "GRU"
+            : cell_class == "SimpleRNNCell"                ? "SimpleRNN"
+                                                           : std::string("");
         synthetic["config"] = cell_config;
         for (const char* key : { "return_sequences", "return_state", "go_backwards", "stateful", "unroll" }) {
             if (json_obj_has_member(outer_cfg, key))

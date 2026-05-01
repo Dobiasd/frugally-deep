@@ -27,12 +27,14 @@
 
 #include "fdeep/common.hpp"
 
+#include "fdeep/layers/adaptive_pooling_3d_layer.hpp"
 #include "fdeep/layers/add_layer.hpp"
 #include "fdeep/layers/additive_attention_layer.hpp"
 #include "fdeep/layers/attention_layer.hpp"
 #include "fdeep/layers/average_layer.hpp"
 #include "fdeep/layers/average_pooling_3d_layer.hpp"
 #include "fdeep/layers/batch_normalization_layer.hpp"
+#include "fdeep/layers/bidirectional_layer.hpp"
 #include "fdeep/layers/category_encoding_layer.hpp"
 #include "fdeep/layers/celu_layer.hpp"
 #include "fdeep/layers/centercrop_layer.hpp"
@@ -41,10 +43,14 @@
 #include "fdeep/layers/conv_2d_transpose_layer.hpp"
 #include "fdeep/layers/conv_3d_layer.hpp"
 #include "fdeep/layers/conv_3d_transpose_layer.hpp"
+#include "fdeep/layers/conv_lstm_2d_layer.hpp"
+#include "fdeep/layers/conv_lstm_3d_layer.hpp"
 #include "fdeep/layers/cropping_3d_layer.hpp"
 #include "fdeep/layers/dense_layer.hpp"
 #include "fdeep/layers/depthwise_conv_2d_layer.hpp"
+#include "fdeep/layers/discretization_layer.hpp"
 #include "fdeep/layers/dot_layer.hpp"
+#include "fdeep/layers/einsum_dense_layer.hpp"
 #include "fdeep/layers/elu_layer.hpp"
 #include "fdeep/layers/embedding_layer.hpp"
 #include "fdeep/layers/exponential_layer.hpp"
@@ -52,16 +58,21 @@
 #include "fdeep/layers/gelu_layer.hpp"
 #include "fdeep/layers/global_average_pooling_3d_layer.hpp"
 #include "fdeep/layers/global_max_pooling_3d_layer.hpp"
+#include "fdeep/layers/group_normalization_layer.hpp"
+#include "fdeep/layers/group_query_attention_layer.hpp"
+#include "fdeep/layers/gru_layer.hpp"
 #include "fdeep/layers/hard_shrink_layer.hpp"
 #include "fdeep/layers/hard_sigmoid_layer.hpp"
 #include "fdeep/layers/hard_tanh_layer.hpp"
 #include "fdeep/layers/input_layer.hpp"
+#include "fdeep/layers/integer_lookup_layer.hpp"
 #include "fdeep/layers/layer.hpp"
 #include "fdeep/layers/layer_normalization_layer.hpp"
 #include "fdeep/layers/leaky_relu_layer.hpp"
 #include "fdeep/layers/linear_layer.hpp"
 #include "fdeep/layers/log_sigmoid_layer.hpp"
 #include "fdeep/layers/log_softmax_layer.hpp"
+#include "fdeep/layers/lstm_layer.hpp"
 #include "fdeep/layers/max_pooling_3d_layer.hpp"
 #include "fdeep/layers/maximum_layer.hpp"
 #include "fdeep/layers/minimum_layer.hpp"
@@ -77,12 +88,15 @@
 #include "fdeep/layers/rescaling_layer.hpp"
 #include "fdeep/layers/reshape_layer.hpp"
 #include "fdeep/layers/resizing_layer.hpp"
+#include "fdeep/layers/rms_normalization_layer.hpp"
 #include "fdeep/layers/selu_layer.hpp"
 #include "fdeep/layers/separable_conv_2d_layer.hpp"
 #include "fdeep/layers/sigmoid_layer.hpp"
+#include "fdeep/layers/simple_rnn_layer.hpp"
 #include "fdeep/layers/soft_shrink_layer.hpp"
 #include "fdeep/layers/softmax_layer.hpp"
 #include "fdeep/layers/softplus_layer.hpp"
+#include "fdeep/layers/stacked_rnn_layer.hpp"
 #include "fdeep/layers/softsign_layer.hpp"
 #include "fdeep/layers/sparse_plus_layer.hpp"
 #include "fdeep/layers/square_plus_layer.hpp"
@@ -280,6 +294,30 @@ namespace internal {
             out.push_back(val);
         }
         return out;
+    }
+
+    inline std::string get_activation_type(const nlohmann::json& data)
+    {
+        assertion(data.is_string(), "Layer activation must be a string.");
+        return data;
+    }
+
+    inline std::string json_object_get_activation_with_default(const nlohmann::json& config,
+        const std::string& default_activation)
+    {
+        if (json_obj_has_member(config, "activation")) {
+            return get_activation_type(config["activation"]);
+        }
+        return default_activation;
+    }
+
+    inline std::string json_object_get_named_activation_with_default(const nlohmann::json& config,
+        const std::string& key, const std::string& default_activation)
+    {
+        if (json_obj_has_member(config, key)) {
+            return get_activation_type(config[key]);
+        }
+        return default_activation;
     }
 
     inline tensor create_tensor(const nlohmann::json& data)
@@ -625,6 +663,202 @@ namespace internal {
             beta = decode_floats(get_param(name, "beta"));
         return std::make_shared<layer_normalization_layer>(
             name, axes, beta, gamma, epsilon);
+    }
+
+    inline layer_ptr create_rms_normalization_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const auto axes = create_vector<int>(create_int, data["config"]["axis"]);
+        const float_type epsilon = data["config"]["epsilon"];
+        const float_vec scale = decode_floats(get_param(name, "scale"));
+        return std::make_shared<rms_normalization_layer>(
+            name, axes, scale, epsilon);
+    }
+
+    inline layer_ptr create_adaptive_avg_pooling_layer(const get_param_f&,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const auto& sz = data["config"]["output_size"];
+        std::vector<std::size_t> dims;
+        if (sz.is_array())
+            for (const auto& v : sz)
+                dims.push_back(static_cast<std::size_t>(v));
+        else
+            dims.push_back(static_cast<std::size_t>(sz));
+        const std::size_t d4 = dims.size() >= 3 ? dims[dims.size() - 3] : 1;
+        const std::size_t h = dims.size() >= 2 ? dims[dims.size() - 2] : 1;
+        const std::size_t w = dims.back();
+        return std::make_shared<adaptive_pooling_3d_layer>(name, d4, h, w,
+            adaptive_pooling_kind::avg);
+    }
+
+    inline layer_ptr create_adaptive_max_pooling_layer(const get_param_f&,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const auto& sz = data["config"]["output_size"];
+        std::vector<std::size_t> dims;
+        if (sz.is_array())
+            for (const auto& v : sz)
+                dims.push_back(static_cast<std::size_t>(v));
+        else
+            dims.push_back(static_cast<std::size_t>(sz));
+        const std::size_t d4 = dims.size() >= 3 ? dims[dims.size() - 3] : 1;
+        const std::size_t h = dims.size() >= 2 ? dims[dims.size() - 2] : 1;
+        const std::size_t w = dims.back();
+        return std::make_shared<adaptive_pooling_3d_layer>(name, d4, h, w,
+            adaptive_pooling_kind::max);
+    }
+
+    inline layer_ptr create_conv_lstm_3d_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        auto&& cfg = data["config"];
+        const std::size_t units = cfg["filters"];
+        const shape3 strides = create_shape3(cfg["strides"]);
+        const shape3 dilation_rate = create_shape3(cfg["dilation_rate"]);
+        const std::string padding_str = cfg["padding"];
+        const auto pad_type = create_padding(padding_str);
+        const shape3 kernel_size = create_shape3(cfg["kernel_size"]);
+        const std::string activation = json_object_get_activation_with_default(cfg, "tanh");
+        const std::string recurrent_activation = json_object_get_named_activation_with_default(
+            cfg, "recurrent_activation", "sigmoid");
+        const bool use_bias = json_object_get(cfg, "use_bias", true);
+        const bool return_sequences = json_object_get(cfg, "return_sequences", false);
+        const bool return_state = json_object_get(cfg, "return_state", false);
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+        float_vec bias(units * 4, 0);
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+
+        const std::size_t kernel_volume = kernel_size.size_dim_4_
+            * kernel_size.height_ * kernel_size.width_;
+        const std::size_t in_c = weights.size() / (kernel_volume * units * 4);
+        const tensor_shape filter_shape(kernel_size.size_dim_4_,
+            kernel_size.height_, kernel_size.width_, in_c);
+
+        return std::make_shared<conv_lstm_3d_layer>(name, units,
+            filter_shape, strides, pad_type, dilation_rate,
+            weights, recurrent_weights, bias,
+            activation, recurrent_activation,
+            return_sequences, return_state);
+    }
+
+    inline layer_ptr create_conv_lstm_2d_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        auto&& cfg = data["config"];
+        const std::string class_name = data["class_name"];
+        const std::size_t rank = (class_name == "ConvLSTM1D") ? 1 : 2;
+        assertion(class_name == "ConvLSTM1D" || class_name == "ConvLSTM2D",
+            "create_conv_lstm_2d_layer: unsupported layer class.");
+        const std::size_t units = cfg["filters"];
+        const shape2 strides = create_shape2(cfg["strides"]);
+        const shape2 dilation_rate = create_shape2(cfg["dilation_rate"]);
+        const std::string padding_str = cfg["padding"];
+        const auto pad_type = create_padding(padding_str);
+        const shape2 kernel_size = create_shape2(cfg["kernel_size"]);
+        const std::string activation = json_object_get_activation_with_default(cfg, "tanh");
+        const std::string recurrent_activation = json_object_get_named_activation_with_default(
+            cfg, "recurrent_activation", "sigmoid");
+        const bool use_bias = json_object_get(cfg, "use_bias", true);
+        const bool return_sequences = json_object_get(cfg, "return_sequences", false);
+        const bool return_state = json_object_get(cfg, "return_state", false);
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+        float_vec bias(units * 4, 0);
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+
+        // Determine in_channels from weight count.
+        // Input weights: (k_h, k_w, in_c, units*4).
+        const std::size_t in_c = weights.size() / (kernel_size.area() * units * 4);
+        const tensor_shape filter_shape(kernel_size.height_, kernel_size.width_, in_c);
+
+        return std::make_shared<conv_lstm_2d_layer>(name, units, rank,
+            filter_shape, strides, pad_type, dilation_rate,
+            weights, recurrent_weights, bias,
+            activation, recurrent_activation,
+            return_sequences, return_state);
+    }
+
+    inline layer_ptr create_discretization_layer(const get_param_f&,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const std::string output_mode = data["config"]["output_mode"];
+        assertion(output_mode == "int",
+            "Discretization only supports output_mode='int'.");
+        std::vector<float_type> boundaries;
+        for (const auto& v : data["config"]["bin_boundaries"])
+            boundaries.push_back(static_cast<float_type>(v));
+        return std::make_shared<discretization_layer>(name, boundaries);
+    }
+
+    inline layer_ptr create_integer_lookup_layer(const get_param_f&,
+        const nlohmann::json& data, const std::string& name)
+    {
+        auto&& cfg = data["config"];
+        const std::string output_mode = cfg["output_mode"];
+        assertion(output_mode == "int",
+            "IntegerLookup only supports output_mode='int'.");
+        assertion(!cfg.value("invert", false),
+            "IntegerLookup with invert=True is not supported.");
+        const std::size_t num_oov_indices = cfg["num_oov_indices"];
+        const bool has_mask_token = !cfg["mask_token"].is_null();
+        const std::int64_t mask_token = has_mask_token
+            ? static_cast<std::int64_t>(cfg["mask_token"]) : 0;
+        std::vector<std::int64_t> vocabulary;
+        for (const auto& v : cfg["vocabulary"])
+            vocabulary.push_back(static_cast<std::int64_t>(v));
+        return std::make_shared<integer_lookup_layer>(name, vocabulary,
+            num_oov_indices, has_mask_token, mask_token);
+    }
+
+    inline layer_ptr create_einsum_dense_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        auto&& config = data["config"];
+        const std::string equation = config["equation"];
+        const std::string bias_axes = config["bias_axes"].is_null()
+            ? std::string("")
+            : std::string(config["bias_axes"]);
+        std::vector<int> output_shape;
+        for (const auto& dim : config["output_shape"])
+            output_shape.push_back(dim.is_null() ? -1 : static_cast<int>(dim));
+
+        const auto kernel_shape = create_vector<std::size_t>(create_size_t, get_param(name, "kernel_shape"));
+        auto kernel_values = decode_floats(get_param(name, "kernel"));
+        const tensor kernel_tensor(create_tensor_shape_from_dims(kernel_shape), std::move(kernel_values));
+
+        tensor bias_tensor(tensor_shape(static_cast<std::size_t>(1)), float_type(0));
+        if (!bias_axes.empty()) {
+            const auto bias_shape = create_vector<std::size_t>(create_size_t, get_param(name, "bias_shape"));
+            auto bias_values = decode_floats(get_param(name, "bias"));
+            bias_tensor = tensor(create_tensor_shape_from_dims(bias_shape), std::move(bias_values));
+        }
+
+        return std::make_shared<einsum_dense_layer>(name, equation,
+            output_shape, bias_axes, kernel_tensor, bias_tensor);
+    }
+
+    inline layer_ptr create_group_normalization_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const std::size_t groups = data["config"]["groups"];
+        const int axis = data["config"]["axis"];
+        const float_type epsilon = data["config"]["epsilon"];
+        const bool center = data["config"]["center"];
+        const bool scale = data["config"]["scale"];
+        float_vec gamma;
+        float_vec beta;
+        if (scale)
+            gamma = decode_floats(get_param(name, "gamma"));
+        if (center)
+            beta = decode_floats(get_param(name, "beta"));
+        return std::make_shared<group_normalization_layer>(
+            name, groups, axis, epsilon, beta, gamma);
     }
 
     inline layer_ptr create_unit_normalization_layer(const get_param_f&,
@@ -1203,6 +1437,30 @@ namespace internal {
         return std::make_shared<additive_attention_layer>(name, scale);
     }
 
+    inline layer_ptr create_group_query_attention_layer(
+        const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        const std::size_t head_dim = data["config"]["head_dim"];
+        const std::size_t num_query_heads = data["config"]["num_query_heads"];
+        const std::size_t num_kv_heads = data["config"]["num_key_value_heads"];
+        const bool use_bias = data["config"]["use_bias"];
+        const bool use_gate = json_object_get(data["config"], "use_gate", false);
+
+        const auto weight_shapes = create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
+                                                                               create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
+            get_param(name, "weight_shapes"));
+        const auto weight_values = create_vector<float_vec>(decode_floats, get_param(name, "weights"));
+        const auto weights = fplus::zip_with(
+            [](const std::vector<std::size_t>& shape, const float_vec& values) -> tensor {
+                return tensor(create_tensor_shape_from_dims(shape),
+                    fplus::convert_container<float_vec>(values));
+            },
+            weight_shapes, weight_values);
+        return std::make_shared<group_query_attention_layer>(name,
+            head_dim, num_query_heads, num_kv_heads, use_bias, use_gate, weights);
+    }
+
     inline layer_ptr create_multi_head_attention_layer(
         const get_param_f& get_param,
         const nlohmann::json& data, const std::string& name)
@@ -1226,10 +1484,175 @@ namespace internal {
             num_heads, key_dim, value_dim, use_bias, weights_and_biases);
     }
 
-    inline std::string get_activation_type(const nlohmann::json& data)
+
+    inline layer_ptr create_lstm_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
     {
-        assertion(data.is_string(), "Layer activation must be a string.");
-        return data;
+        auto&& config = data["config"];
+        const std::size_t units = config["units"];
+        const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
+        const std::string recurrent_activation = json_object_get_named_activation_with_default(config, "recurrent_activation", "sigmoid");
+        const bool use_bias = json_object_get(config, "use_bias", true);
+        const bool return_sequences = json_object_get(config, "return_sequences", false);
+        const bool return_state = json_object_get(config, "return_state", false);
+
+        float_vec bias;
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+
+        return std::make_shared<lstm_layer>(name, units, unit_activation,
+            recurrent_activation, use_bias,
+            return_sequences, return_state,
+            weights, recurrent_weights, bias);
+    }
+
+    inline layer_ptr create_gru_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
+    {
+        auto&& config = data["config"];
+        const std::size_t units = config["units"];
+        const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
+        const std::string recurrent_activation = json_object_get_named_activation_with_default(config, "recurrent_activation", "sigmoid");
+        const bool use_bias = json_object_get(config, "use_bias", true);
+        const bool return_sequences = json_object_get(config, "return_sequences", false);
+        const bool return_state = json_object_get(config, "return_state", false);
+        const bool reset_after = json_object_get(config, "reset_after", true);
+
+        float_vec bias;
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+
+        return std::make_shared<gru_layer>(name, units, unit_activation,
+            recurrent_activation, use_bias, reset_after,
+            return_sequences, return_state,
+            weights, recurrent_weights, bias);
+    }
+
+    inline layer_ptr create_simple_rnn_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
+    {
+        auto&& config = data["config"];
+        const std::size_t units = config["units"];
+        const std::string unit_activation = json_object_get_activation_with_default(config, "tanh");
+        const bool use_bias = json_object_get(config, "use_bias", true);
+        const bool return_sequences = json_object_get(config, "return_sequences", false);
+        const bool return_state = json_object_get(config, "return_state", false);
+
+        float_vec bias;
+        if (use_bias)
+            bias = decode_floats(get_param(name, "bias"));
+
+        const float_vec weights = decode_floats(get_param(name, "weights"));
+        const float_vec recurrent_weights = decode_floats(get_param(name, "recurrent_weights"));
+
+        return std::make_shared<simple_rnn_layer>(name, units, unit_activation,
+            use_bias, return_sequences, return_state,
+            weights, recurrent_weights, bias);
+    }
+
+    inline layer_ptr create_rnn_from_cell(const get_param_f& get_param,
+        const std::string& cell_class, const nlohmann::json& cell_config,
+        const nlohmann::json& outer_cfg, const std::string& name,
+        bool override_return_sequences)
+    {
+        nlohmann::json synthetic;
+        synthetic["class_name"] = cell_class == "LSTMCell" ? "LSTM"
+            : cell_class == "GRUCell" ? "GRU"
+            : cell_class == "SimpleRNNCell" ? "SimpleRNN"
+            : std::string("");
+        synthetic["config"] = cell_config;
+        for (const char* key : { "return_sequences", "return_state", "go_backwards", "stateful", "unroll" }) {
+            if (json_obj_has_member(outer_cfg, key))
+                synthetic["config"][key] = outer_cfg[key];
+        }
+        if (override_return_sequences)
+            synthetic["config"]["return_sequences"] = true;
+
+        if (cell_class == "LSTMCell")
+            return create_lstm_layer(get_param, synthetic, name);
+        if (cell_class == "GRUCell")
+            return create_gru_layer(get_param, synthetic, name);
+        if (cell_class == "SimpleRNNCell")
+            return create_simple_rnn_layer(get_param, synthetic, name);
+        raise_error("RNN cell '" + cell_class + "' is not supported.");
+        return {};
+    }
+
+    inline layer_ptr create_rnn_layer(const get_param_f& get_param,
+        const nlohmann::json& data, const std::string& name)
+    {
+        auto&& cfg = data["config"];
+        const auto& cell = cfg["cell"];
+        const std::string cell_class = cell["class_name"];
+
+        if (cell_class == "StackedRNNCells") {
+            const auto& cells = cell["config"]["cells"];
+            const std::size_t num_cells = cells.size();
+            assertion(num_cells > 0, "StackedRNNCells must contain at least one cell.");
+            std::vector<layer_ptr> inner_layers;
+            inner_layers.reserve(num_cells);
+            for (std::size_t i = 0; i < num_cells; ++i) {
+                const auto& sub_cell = cells[i];
+                const std::string sub_class = sub_cell["class_name"];
+                const std::string sub_name = name + "_cell" + std::to_string(i);
+                const std::string prefix = "cell" + std::to_string(i) + "_";
+                const get_param_f sub_get_param =
+                    [&get_param, name, prefix](const std::string& layer_name, const std::string& key) {
+                        (void)layer_name;
+                        return get_param(name, prefix + key);
+                    };
+                const bool is_last = (i + 1 == num_cells);
+                inner_layers.push_back(create_rnn_from_cell(sub_get_param,
+                    sub_class, sub_cell["config"], cfg, sub_name, !is_last));
+            }
+            return std::make_shared<stacked_rnn_layer>(name, inner_layers);
+        }
+
+        return create_rnn_from_cell(get_param, cell_class, cell["config"],
+            cfg, name, false);
+    }
+
+    inline layer_ptr create_bidirectional_layer(const get_param_f& get_param,
+        const nlohmann::json& data,
+        const std::string& name)
+    {
+        const std::string merge_mode = data["config"]["merge_mode"];
+        auto&& wrapped = data["config"]["layer"];
+        auto&& wrapped_config = wrapped["config"];
+        const std::string wrapped_layer_type = wrapped["class_name"];
+        const std::size_t units = wrapped_config["units"];
+        const std::string unit_activation = json_object_get_activation_with_default(wrapped_config, "tanh");
+        const std::string recurrent_activation = json_object_get_named_activation_with_default(wrapped_config, "recurrent_activation", "sigmoid");
+        const bool use_bias = json_object_get(wrapped_config, "use_bias", true);
+        const bool return_sequences = json_object_get(wrapped_config, "return_sequences", false);
+        const bool reset_after = json_object_get(wrapped_config, "reset_after", true);
+
+        float_vec forward_bias;
+        float_vec backward_bias;
+        if (use_bias) {
+            forward_bias = decode_floats(get_param(name, "forward_bias"));
+            backward_bias = decode_floats(get_param(name, "backward_bias"));
+        }
+
+        const float_vec forward_weights = decode_floats(get_param(name, "forward_weights"));
+        const float_vec backward_weights = decode_floats(get_param(name, "backward_weights"));
+        const float_vec forward_recurrent_weights = decode_floats(get_param(name, "forward_recurrent_weights"));
+        const float_vec backward_recurrent_weights = decode_floats(get_param(name, "backward_recurrent_weights"));
+
+        return std::make_shared<bidirectional_layer>(name, merge_mode, units,
+            unit_activation, recurrent_activation, wrapped_layer_type,
+            use_bias, reset_after, return_sequences,
+            forward_weights, forward_recurrent_weights, forward_bias,
+            backward_weights, backward_recurrent_weights, backward_bias);
     }
 
     inline activation_layer_ptr create_activation_layer_type_name(
@@ -1359,12 +1782,16 @@ namespace internal {
             { "Conv3DTranspose", create_conv_3d_transpose_layer },
             { "SeparableConv1D", create_separable_conv_2D_layer },
             { "SeparableConv2D", create_separable_conv_2D_layer },
+            { "DepthwiseConv1D", create_depthwise_conv_2D_layer },
             { "DepthwiseConv2D", create_depthwise_conv_2D_layer },
             { "InputLayer", create_input_layer },
             { "BatchNormalization", create_batch_normalization_layer },
+            { "GroupNormalization", create_group_normalization_layer },
             { "LayerNormalization", create_layer_normalization_layer },
+            { "RMSNormalization", create_rms_normalization_layer },
             { "UnitNormalization", create_unit_normalization_layer },
             { "Dropout", create_identity_layer },
+            { "Masking", create_identity_layer },
             { "ActivityRegularization", create_identity_layer },
             { "AlphaDropout", create_identity_layer },
             { "FixedDropout", create_identity_layer },
@@ -1373,13 +1800,37 @@ namespace internal {
             { "SpatialDropout1D", create_identity_layer },
             { "SpatialDropout2D", create_identity_layer },
             { "SpatialDropout3D", create_identity_layer },
+            { "RandomBrightness", create_identity_layer },
+            { "RandomColorDegeneration", create_identity_layer },
+            { "RandomColorJitter", create_identity_layer },
             { "RandomContrast", create_identity_layer },
+            { "RandomCrop", create_identity_layer },
+            { "RandomElasticTransform", create_identity_layer },
+            { "RandomErasing", create_identity_layer },
             { "RandomFlip", create_identity_layer },
+            { "RandomGaussianBlur", create_identity_layer },
+            { "RandomGrayscale", create_identity_layer },
             { "RandomHeight", create_identity_layer },
+            { "RandomHue", create_identity_layer },
+            { "RandomInvert", create_identity_layer },
+            { "RandomPerspective", create_identity_layer },
+            { "RandomPosterization", create_identity_layer },
             { "RandomRotation", create_identity_layer },
+            { "RandomSaturation", create_identity_layer },
+            { "RandomSharpness", create_identity_layer },
+            { "RandomShear", create_identity_layer },
             { "RandomTranslation", create_identity_layer },
             { "RandomWidth", create_identity_layer },
             { "RandomZoom", create_identity_layer },
+            { "AugMix", create_identity_layer },
+            { "AutoContrast", create_identity_layer },
+            { "CutMix", create_identity_layer },
+            { "Equalization", create_identity_layer },
+            { "MaxNumBoundingBoxes", create_identity_layer },
+            { "MixUp", create_identity_layer },
+            { "Pipeline", create_identity_layer },
+            { "RandAugment", create_identity_layer },
+            { "Solarization", create_identity_layer },
             { "LeakyReLU", create_leaky_relu_layer },
             { "Permute", create_permute_layer },
             { "PReLU", create_prelu_layer },
@@ -1413,6 +1864,12 @@ namespace internal {
             { "AveragePooling1D", create_average_pooling_3d_layer },
             { "AveragePooling2D", create_average_pooling_3d_layer },
             { "AveragePooling3D", create_average_pooling_3d_layer },
+            { "AdaptiveAveragePooling1D", create_adaptive_avg_pooling_layer },
+            { "AdaptiveAveragePooling2D", create_adaptive_avg_pooling_layer },
+            { "AdaptiveAveragePooling3D", create_adaptive_avg_pooling_layer },
+            { "AdaptiveMaxPooling1D", create_adaptive_max_pooling_layer },
+            { "AdaptiveMaxPooling2D", create_adaptive_max_pooling_layer },
+            { "AdaptiveMaxPooling3D", create_adaptive_max_pooling_layer },
             { "GlobalMaxPooling1D", create_global_max_pooling_3d_layer },
             { "GlobalMaxPooling2D", create_global_max_pooling_3d_layer },
             { "GlobalMaxPooling3D", create_global_max_pooling_3d_layer },
@@ -1444,6 +1901,12 @@ namespace internal {
             { "Rescaling", create_rescaling_layer },
             { "Reshape", create_reshape_layer },
             { "Resizing", create_resizing_layer },
+            { "ConvLSTM1D", create_conv_lstm_2d_layer },
+            { "ConvLSTM2D", create_conv_lstm_2d_layer },
+            { "ConvLSTM3D", create_conv_lstm_3d_layer },
+            { "Discretization", create_discretization_layer },
+            { "IntegerLookup", create_integer_lookup_layer },
+            { "EinsumDense", create_einsum_dense_layer },
             { "Embedding", create_embedding_layer },
             { "Softmax", create_softmax_layer },
             { "Normalization", create_normalization_layer },
@@ -1451,6 +1914,13 @@ namespace internal {
             { "Attention", create_attention_layer },
             { "AdditiveAttention", create_additive_attention_layer },
             { "MultiHeadAttention", create_multi_head_attention_layer },
+            { "GroupQueryAttention", create_group_query_attention_layer },
+            { "GroupedQueryAttention", create_group_query_attention_layer },
+            { "LSTM", create_lstm_layer },
+            { "GRU", create_gru_layer },
+            { "SimpleRNN", create_simple_rnn_layer },
+            { "RNN", create_rnn_layer },
+            { "Bidirectional", create_bidirectional_layer },
         };
 
         const wrapper_layer_creators wrapper_creators = {
@@ -1475,7 +1945,11 @@ namespace internal {
                 fplus::get_from_map(creators, type))(
                 get_param, data, name);
 
-            if (type != "Activation" && json_obj_has_member(data["config"], "activation")) {
+            const bool layer_consumes_activation_internally = type == "Activation"
+                || type == "LSTM" || type == "GRU" || type == "SimpleRNN"
+                || type == "Bidirectional"
+                || type == "ConvLSTM1D" || type == "ConvLSTM2D" || type == "ConvLSTM3D";
+            if (!layer_consumes_activation_internally && json_obj_has_member(data["config"], "activation")) {
                 const std::string activation = get_activation_type(data["config"]["activation"]);
                 result->set_activation(
                     create_activation_layer_type_name(get_param, data,

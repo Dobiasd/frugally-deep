@@ -31,6 +31,16 @@ from keras.layers import Normalization, Rescaling, Resizing
 from keras.layers import Permute, Reshape, RepeatVector
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import ZeroPadding3D, Cropping3D
+from keras.layers import LSTM, GRU, SimpleRNN, Bidirectional
+from keras.layers import DepthwiseConv1D, EinsumDense
+from keras.layers import RMSNormalization, GroupNormalization
+from keras.layers import AdaptiveAveragePooling1D, AdaptiveMaxPooling1D
+from keras.layers import AdaptiveAveragePooling2D, AdaptiveMaxPooling2D
+from keras.layers import AdaptiveAveragePooling3D, AdaptiveMaxPooling3D
+from keras.layers import GroupQueryAttention
+from keras.layers import ConvLSTM1D, ConvLSTM2D, ConvLSTM3D
+from keras.layers import RNN, LSTMCell, GRUCell, SimpleRNNCell, StackedRNNCells
+from keras.layers import Discretization, IntegerLookup, Masking
 from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -814,6 +824,128 @@ def get_test_model_sequential() -> Model:
     return model
 
 
+def get_test_model_recurrent() -> Model:
+    """Returns a test model exercising LSTM, GRU, SimpleRNN, Bidirectional, and other newer layers."""
+    seq_len = 5
+    n_features = 4
+
+    inputs = Input(shape=(seq_len, n_features))
+    inputs_2d = Input(shape=(7, 8, 4))
+    inputs_3d = Input(shape=(5, 6, 7, 4))
+
+    lstm_seq = LSTM(6, return_sequences=True)(inputs)
+    lstm_last = LSTM(7)(lstm_seq)
+    lstm_no_bias = LSTM(5, use_bias=False)(inputs)
+    lstm_relu = LSTM(4, activation='relu', recurrent_activation='hard_sigmoid')(inputs)
+
+    gru_seq = GRU(5, return_sequences=True)(inputs)
+    gru_seq_no_reset_after = GRU(5, return_sequences=True, reset_after=False)(inputs)
+    gru_last = GRU(8, activation='relu', recurrent_activation='hard_sigmoid')(gru_seq)
+    gru_no_bias = GRU(4, use_bias=False)(gru_seq_no_reset_after)
+
+    rnn_seq = SimpleRNN(6, return_sequences=True)(inputs)
+    rnn_last = SimpleRNN(5, activation='tanh')(rnn_seq)
+    rnn_relu_no_bias = SimpleRNN(4, activation='relu', use_bias=False)(inputs)
+
+    bidi_lstm_seq = Bidirectional(LSTM(4, return_sequences=True))(inputs)
+    bidi_lstm_last_concat = Bidirectional(LSTM(3))(bidi_lstm_seq)
+    bidi_lstm_sum = Bidirectional(LSTM(3), merge_mode='sum')(inputs)
+    bidi_gru_mul = Bidirectional(GRU(4), merge_mode='mul')(inputs)
+    bidi_gru_ave = Bidirectional(GRU(4), merge_mode='ave')(inputs)
+    bidi_rnn_concat = Bidirectional(SimpleRNN(3, return_sequences=True))(inputs)
+
+    dwc1d_same = DepthwiseConv1D(kernel_size=3, padding='same')(inputs)
+    dwc1d_valid = DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs)
+    dwc1d_no_bias = DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs)
+
+    rms = RMSNormalization()(inputs)
+    rms_eps = RMSNormalization(epsilon=1e-3)(inputs)
+    gn = GroupNormalization(groups=2)(inputs)
+    gn_no_scale = GroupNormalization(groups=2, scale=False)(inputs)
+    gn_no_center = GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs)
+
+    ed_dense = EinsumDense('abc,cd->abd', output_shape=(None, 8), bias_axes='d')(inputs)
+    ed_heads = EinsumDense('abc,cde->abde', output_shape=(None, 3, 4), bias_axes='de')(inputs)
+    ed_no_bias = EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs)
+    ed_collapse = EinsumDense('abcd,cde->abe', output_shape=(None, 5), bias_axes='e')(
+        EinsumDense('abc,cde->abde', output_shape=(None, 3, 4))(inputs))
+
+    ap1d_a = AdaptiveAveragePooling1D(output_size=3)(inputs)
+    ap1d_m = AdaptiveMaxPooling1D(output_size=3)(inputs)
+    ap1d_alt = AdaptiveAveragePooling1D(output_size=2)(inputs)
+    ap2d_a = AdaptiveAveragePooling2D(output_size=(3, 4))(inputs_2d)
+    ap2d_m = AdaptiveMaxPooling2D(output_size=(3, 4))(inputs_2d)
+    ap2d_uneven = AdaptiveMaxPooling2D(output_size=(7, 2))(inputs_2d)
+    ap3d_a = AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs_3d)
+    ap3d_m = AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs_3d)
+    ap3d_uneven = AdaptiveAveragePooling3D(output_size=(5, 2, 3))(inputs_3d)
+
+    gqa = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2)(
+        inputs, inputs, inputs)
+    gqa_gated = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2,
+        use_gate=True)(inputs, inputs, inputs)
+
+    rnn_lstm = RNN(LSTMCell(4))(inputs)
+    rnn_gru = RNN(GRUCell(5), return_sequences=True)(inputs)
+    rnn_simple = RNN(SimpleRNNCell(3))(inputs)
+    rnn_stacked = RNN(StackedRNNCells([LSTMCell(6), GRUCell(4), SimpleRNNCell(3)]))(inputs)
+    rnn_stacked_seq = RNN(StackedRNNCells([LSTMCell(5), GRUCell(3)]),
+        return_sequences=True)(inputs)
+
+    inputs_clstm1d = Input(shape=(4, 6, 3))
+    inputs_clstm2d = Input(shape=(3, 5, 5, 3))
+    inputs_clstm3d = Input(shape=(2, 3, 4, 4, 3))
+    clstm1d = ConvLSTM1D(filters=2, kernel_size=3, padding='same')(inputs_clstm1d)
+    clstm1d_valid = ConvLSTM1D(filters=2, kernel_size=2, padding='valid',
+        return_sequences=True)(inputs_clstm1d)
+    clstm2d = ConvLSTM2D(filters=2, kernel_size=(3, 3), padding='same',
+        return_sequences=True)(inputs_clstm2d)
+    clstm2d_valid_no_bias = ConvLSTM2D(filters=3, kernel_size=(2, 2), padding='valid',
+        use_bias=False, activation='relu')(inputs_clstm2d)
+    clstm3d = ConvLSTM3D(filters=2, kernel_size=(2, 2, 2), padding='same')(inputs_clstm3d)
+    clstm3d_valid = ConvLSTM3D(filters=2, kernel_size=(1, 2, 2), padding='valid',
+        return_sequences=True)(inputs_clstm3d)
+
+    outputs = [
+        lstm_last, lstm_no_bias, lstm_relu,
+        gru_last, gru_no_bias,
+        rnn_last, rnn_relu_no_bias,
+        bidi_lstm_last_concat,
+        bidi_lstm_sum,
+        bidi_gru_mul,
+        bidi_gru_ave,
+        bidi_rnn_concat,
+        dwc1d_same, dwc1d_valid, dwc1d_no_bias,
+        rms, rms_eps,
+        gn, gn_no_scale, gn_no_center,
+        ed_dense, ed_heads, ed_no_bias, ed_collapse,
+        ap1d_a, ap1d_m, ap1d_alt,
+        ap2d_a, ap2d_m, ap2d_uneven,
+        ap3d_a, ap3d_m, ap3d_uneven,
+        gqa,
+        gqa_gated,
+        rnn_lstm, rnn_gru, rnn_simple,
+        rnn_stacked, rnn_stacked_seq,
+        clstm1d, clstm1d_valid,
+        clstm2d, clstm2d_valid_no_bias,
+        clstm3d, clstm3d_valid,
+    ]
+
+    model = Model(inputs=[inputs, inputs_2d, inputs_3d,
+                          inputs_clstm1d, inputs_clstm2d, inputs_clstm3d],
+        outputs=outputs, name='test_model_recurrent')
+    model.compile(loss='mse', optimizer='adam')
+
+    training_data_size = 2
+    data_in = generate_input_data(training_data_size,
+        [(seq_len, n_features), (7, 8, 4), (5, 6, 7, 4),
+         (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3)])
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=1)
+    return model
+
+
 def main() -> None:
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
@@ -829,6 +961,7 @@ def main() -> None:
             'variable': get_test_model_variable,
             'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
+            'recurrent': get_test_model_recurrent,
         }
 
         if not model_name in get_model_functions:

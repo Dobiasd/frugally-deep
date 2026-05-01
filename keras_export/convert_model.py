@@ -57,6 +57,8 @@ def get_layer_input_shape_tensor_shape(layer: Layer) -> Shape:
 
 def show_tensor(tens: NDFloat32Array) -> TensorRepr:
     """Serialize 3-tensor to a dict"""
+    if tens.dtype != np.float32:
+        tens = tens.astype(np.float32)
     return {
         'shape': tens.shape[1:],
         'values': encode_floats(tens.flatten())
@@ -359,6 +361,27 @@ def show_depthwise_conv_2d_layer(layer: Layer) -> Mapping[str, list[str]]:
     return result
 
 
+def show_depthwise_conv_1d_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize DepthwiseConv1D layer to dict by promoting to a 2D depthwise representation."""
+    weights = layer.get_weights()
+    assert layer.depth_multiplier == 1
+    assert len(weights) in [1, 2]
+    assert len(weights[0].shape) == 3
+    promoted = np.expand_dims(weights[0], axis=0)
+    slice_weights = prepare_filter_weights_slice_conv_2d(promoted)
+
+    assert layer.padding in ['valid', 'same', 'causal']
+    assert len(get_layer_input_shape(layer)) == 3
+    assert get_layer_input_shape(layer)[0] in {None, 1}
+    result = {
+        'slice_weights': encode_floats(slice_weights),
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+    return result
+
+
 def show_conv_1d_transpose_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Conv1D transpose layer to dict"""
     weights = layer.get_weights()
@@ -476,6 +499,22 @@ def show_embedding_layer(layer: Layer) -> Mapping[str, list[str]]:
     return result
 
 
+def show_einsum_dense_layer(layer: Layer) -> Mapping[str, Union[list[str], list[int]]]:
+    """Serialize EinsumDense layer to dict"""
+    weights = layer.get_weights()
+    assert len(weights) in (1, 2)
+    kernel = weights[0]
+    result: dict[str, Union[list[str], list[int]]] = {
+        'kernel': encode_floats(kernel),
+        'kernel_shape': list(kernel.shape),
+    }
+    if len(weights) == 2:
+        bias = weights[1]
+        result['bias'] = encode_floats(bias)
+        result['bias_shape'] = list(bias.shape)
+    return result
+
+
 def show_input_layer(layer: Layer) -> None:
     """Serialize input layer to dict"""
     assert not layer.sparse
@@ -495,6 +534,23 @@ def show_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
         'mean': encode_floats(layer.mean),
         'variance': encode_floats(layer.variance)
     }
+
+
+def show_rms_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize RMSNormalization layer to dict"""
+    return {'scale': encode_floats(layer.scale.numpy())}
+
+
+def show_group_normalization_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize GroupNormalization layer to dict"""
+    assert layer.axis in (-1, len(get_layer_input_shape(layer)) - 1), \
+        'GroupNormalization is only supported on the last (channel) axis.'
+    result: dict[str, list[str]] = {}
+    if layer.scale:
+        result['gamma'] = encode_floats(layer.gamma.numpy())
+    if layer.center:
+        result['beta'] = encode_floats(layer.beta.numpy())
+    return result
 
 
 def show_upsampling2d_layer(layer: Layer) -> None:
@@ -551,6 +607,133 @@ def show_multi_head_attention_layer(layer: Layer) -> Mapping[str, List[list[str]
     }
 
 
+def show_group_query_attention_layer(layer: Layer) -> Mapping[str, List[list[str]]]:
+    """Serialize GroupedQueryAttention layer to dict"""
+    return {
+        'weight_shapes': list(map(lambda w: list(w.shape), layer.weights)),
+        'weights': list(map(lambda w: encode_floats(w.numpy()), layer.weights)),
+    }
+
+
+def show_recurrent_layer_weights(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize LSTM/GRU/SimpleRNN weights to dict"""
+    assert not layer.go_backwards, 'go_backwards=True is not supported for standalone recurrent layers; use Bidirectional instead.'
+    assert not layer.unroll, 'unroll=True is not supported.'
+    assert not layer.stateful, 'stateful=True is not supported.'
+    weights = layer.get_weights()
+    assert len(weights) in (2, 3)
+    result: dict[str, list[str]] = {
+        'weights': encode_floats(weights[0]),
+        'recurrent_weights': encode_floats(weights[1]),
+    }
+    if len(weights) == 3:
+        result['bias'] = encode_floats(weights[2])
+    return result
+
+
+def show_lstm_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize LSTM layer to dict"""
+    return show_recurrent_layer_weights(layer)
+
+
+def _prepare_conv_lstm_kernel(kernel: NDFloat32Array) -> NDFloat32Array:
+    """Reshape ConvLSTM kernel to fdeep's (filters, ..., in_c) flat layout."""
+    if kernel.ndim == 3:  # ConvLSTM1D: (k_w, in_c, filters)
+        kernel = np.expand_dims(kernel, axis=0)  # (1, k_w, in_c, filters)
+    if kernel.ndim == 4:  # ConvLSTM2D: (k_h, k_w, in_c, filters)
+        return np.moveaxis(kernel, [0, 1, 2, 3], [1, 2, 3, 0]).flatten()
+    assert kernel.ndim == 5  # ConvLSTM3D: (k_d4, k_h, k_w, in_c, filters)
+    return np.moveaxis(kernel, [0, 1, 2, 3, 4], [1, 2, 3, 4, 0]).flatten()
+
+
+def show_conv_lstm_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize ConvLSTM1D/2D layer to dict"""
+    assert not layer.go_backwards, 'go_backwards=True is not supported for ConvLSTM.'
+    assert not layer.unroll, 'unroll=True is not supported.'
+    assert not layer.stateful, 'stateful=True is not supported.'
+    weights = layer.get_weights()
+    assert len(weights) in (2, 3)
+    result: dict[str, list[str]] = {
+        'weights': encode_floats(_prepare_conv_lstm_kernel(weights[0])),
+        'recurrent_weights': encode_floats(_prepare_conv_lstm_kernel(weights[1])),
+    }
+    if len(weights) == 3:
+        result['bias'] = encode_floats(weights[2])
+    return result
+
+
+def show_gru_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize GRU layer to dict"""
+    return show_recurrent_layer_weights(layer)
+
+
+def show_simple_rnn_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize SimpleRNN layer to dict"""
+    return show_recurrent_layer_weights(layer)
+
+
+def show_rnn_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize a generic RNN layer wrapping LSTMCell/GRUCell/SimpleRNNCell or StackedRNNCells."""
+    assert not layer.go_backwards, 'go_backwards=True is not supported.'
+    assert not layer.unroll, 'unroll=True is not supported.'
+    assert not layer.stateful, 'stateful=True is not supported.'
+
+    cell_type = type(layer.cell).__name__
+    if cell_type == 'StackedRNNCells':
+        result: dict[str, list[str]] = {}
+        for i, sub_cell in enumerate(layer.cell.cells):
+            sub_class = type(sub_cell).__name__
+            assert sub_class in ('LSTMCell', 'GRUCell', 'SimpleRNNCell'), \
+                f'StackedRNNCells with inner cell {sub_class} is not supported.'
+            sub_weights = sub_cell.get_weights()
+            assert len(sub_weights) in (2, 3)
+            prefix = f'cell{i}_'
+            result[prefix + 'weights'] = encode_floats(sub_weights[0])
+            result[prefix + 'recurrent_weights'] = encode_floats(sub_weights[1])
+            if len(sub_weights) == 3:
+                result[prefix + 'bias'] = encode_floats(sub_weights[2])
+        return result
+
+    assert cell_type in ('LSTMCell', 'GRUCell', 'SimpleRNNCell'), \
+        f'RNN with cell {cell_type} is not supported.'
+    weights = layer.get_weights()
+    assert len(weights) in (2, 3)
+    res: dict[str, list[str]] = {
+        'weights': encode_floats(weights[0]),
+        'recurrent_weights': encode_floats(weights[1]),
+    }
+    if len(weights) == 3:
+        res['bias'] = encode_floats(weights[2])
+    return res
+
+
+def show_bidirectional_layer(layer: Layer) -> Mapping[str, list[str]]:
+    """Serialize Bidirectional wrapper around an LSTM/GRU/SimpleRNN to dict"""
+    forward_layer = layer.forward_layer
+    backward_layer = layer.backward_layer
+    assert type(forward_layer).__name__ in ('LSTM', 'GRU', 'SimpleRNN'), \
+        'Bidirectional wrapping ' + type(forward_layer).__name__ + ' not supported.'
+    assert type(backward_layer).__name__ == type(forward_layer).__name__
+    assert not forward_layer.unroll and not backward_layer.unroll, 'unroll=True is not supported.'
+    assert not forward_layer.stateful and not backward_layer.stateful, 'stateful=True is not supported.'
+
+    forward_weights = forward_layer.get_weights()
+    backward_weights = backward_layer.get_weights()
+    assert len(forward_weights) in (2, 3)
+    assert len(forward_weights) == len(backward_weights)
+
+    result: dict[str, list[str]] = {
+        'forward_weights': encode_floats(forward_weights[0]),
+        'forward_recurrent_weights': encode_floats(forward_weights[1]),
+        'backward_weights': encode_floats(backward_weights[0]),
+        'backward_recurrent_weights': encode_floats(backward_weights[1]),
+    }
+    if len(forward_weights) == 3:
+        result['forward_bias'] = encode_floats(forward_weights[2])
+        result['backward_bias'] = encode_floats(backward_weights[2])
+    return result
+
+
 def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
     return {
         'Conv1D': show_conv_1d_layer,
@@ -560,17 +743,21 @@ def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
         'Conv2DTranspose': show_conv_2d_transpose_layer,
         'Conv3DTranspose': show_conv_3d_transpose_layer,
         'SeparableConv2D': show_separable_conv_2d_layer,
+        'DepthwiseConv1D': show_depthwise_conv_1d_layer,
         'DepthwiseConv2D': show_depthwise_conv_2d_layer,
         'BatchNormalization': show_batch_normalization_layer,
         'Dense': show_dense_layer,
         'Dot': show_dot_layer,
         'PReLU': show_prelu_layer,
+        'EinsumDense': show_einsum_dense_layer,
         'Embedding': show_embedding_layer,
         'LayerNormalization': show_layer_normalization_layer,
         'TimeDistributed': show_time_distributed_layer,
         'Input': show_input_layer,
         'Softmax': show_softmax_layer,
         'Normalization': show_normalization_layer,
+        'RMSNormalization': show_rms_normalization_layer,
+        'GroupNormalization': show_group_normalization_layer,
         'UpSampling2D': show_upsampling2d_layer,
         'UpSampling3D': show_upsampling3d_layer,
         'Resizing': show_resizing_layer,
@@ -579,6 +766,16 @@ def get_layer_functions_dict() -> Mapping[str, Callable[[Layer], LayerConfig]]:
         'Attention': show_attention_layer,
         'AdditiveAttention': show_additive_attention_layer,
         'MultiHeadAttention': show_multi_head_attention_layer,
+        'GroupedQueryAttention': show_group_query_attention_layer,
+        'GroupQueryAttention': show_group_query_attention_layer,
+        'ConvLSTM1D': show_conv_lstm_layer,
+        'ConvLSTM2D': show_conv_lstm_layer,
+        'ConvLSTM3D': show_conv_lstm_layer,
+        'LSTM': show_lstm_layer,
+        'GRU': show_gru_layer,
+        'SimpleRNN': show_simple_rnn_layer,
+        'RNN': show_rnn_layer,
+        'Bidirectional': show_bidirectional_layer,
     }
 
 

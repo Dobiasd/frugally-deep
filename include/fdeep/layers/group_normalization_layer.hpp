@@ -33,11 +33,11 @@ namespace internal {
         }
 
     protected:
-        std::size_t groups_;
-        int axis_;
-        float_type epsilon_;
-        float_vec beta_;
-        float_vec gamma_;
+        const std::size_t groups_;
+        const int axis_;
+        const float_type epsilon_;
+        const float_vec beta_;
+        const float_vec gamma_;
 
         tensors apply_impl(const tensors& inputs) const override
         {

@@ -127,9 +127,9 @@ namespace internal {
     {
         const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(
             weights.size() / (n_units * 4), n_units * 4,
-            const_cast<float_type*>(weights.data()));
+            weights.data());
         const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(
-            n_units, n_units * 4, const_cast<float_type*>(recurrent_weights.data()));
+            n_units, n_units * 4, recurrent_weights.data());
 
         RowMajorMatrixXf h = RowMajorMatrixXf::Zero(1, static_cast<EigenIndex>(n_units));
         RowMajorMatrixXf c = RowMajorMatrixXf::Zero(1, static_cast<EigenIndex>(n_units));
@@ -138,14 +138,14 @@ namespace internal {
         const std::size_t n_features = input.shape().depth_;
 
         const MappedRowMajorMatrixXf in = eigen_row_major_mat_from_shared_values(
-            n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
+            n_timesteps, n_features, input.as_vector()->data());
 
         RowMajorMatrixXf X = in * W;
 
         if (use_bias) {
             typedef Eigen::Matrix<float_type, 1, Eigen::Dynamic> Vector_Xf;
             const Vector_Xf b = eigen_row_major_mat_from_shared_values(
-                1, n_units * 4, const_cast<float_type*>(bias.data()));
+                1, n_units * 4, bias.data());
             X.rowwise() += b;
         }
 
@@ -210,19 +210,27 @@ namespace internal {
 
         const EigenIndex n = static_cast<EigenIndex>(n_units);
         const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(
-            n_features, n_units * 3, const_cast<float_type*>(weights.data()));
+            n_features, n_units * 3, weights.data());
         const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(
-            n_units, n_units * 3, const_cast<float_type*>(recurrent_weights.data()));
+            n_units, n_units * 3, recurrent_weights.data());
 
+        // Keras GRU bias layout:
+        //   reset_after=False, use_bias=True  -> shape (3*units,)
+        //   reset_after=True,  use_bias=True  -> shape (2, 3*units)
+        if (use_bias) {
+            const std::size_t expected = reset_after ? 2 * n_units * 3 : n_units * 3;
+            assertion(bias.size() == expected,
+                "GRU bias size does not match reset_after setting.");
+        }
         RowVector<Dynamic> b_x(static_cast<EigenIndex>(n_units * 3));
-        if (use_bias && bias.size() >= 1 * n_units * 3)
+        if (use_bias)
             std::copy_n(bias.cbegin(), n_units * 3, b_x.data());
         else
             b_x.setZero();
 
         RowVector<Dynamic> b_h(static_cast<EigenIndex>(n_units * 3));
-        if (use_bias && bias.size() >= 2 * n_units * 3)
-            std::copy_n(bias.cbegin() + static_cast<float_vec::const_iterator::difference_type>(n_units * 3),
+        if (use_bias && reset_after)
+            std::copy_n(bias.cbegin() + static_cast<std::ptrdiff_t>(n_units * 3),
                 n_units * 3, b_h.data());
         else
             b_h.setZero();
@@ -230,7 +238,7 @@ namespace internal {
         RowMajorMatrixXf h = RowMajorMatrixXf::Zero(1, n);
 
         const MappedRowMajorMatrixXf x = eigen_row_major_mat_from_shared_values(
-            n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
+            n_timesteps, n_features, input.as_vector()->data());
 
         RowMajorMatrixXf Wx = x * W;
         Wx.rowwise() += b_x;
@@ -296,18 +304,18 @@ namespace internal {
         const std::size_t n_features = input.shape().depth_;
 
         const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(
-            n_features, n_units, const_cast<float_type*>(weights.data()));
+            n_features, n_units, weights.data());
         const MappedRowMajorMatrixXf U = eigen_row_major_mat_from_shared_values(
-            n_units, n_units, const_cast<float_type*>(recurrent_weights.data()));
+            n_units, n_units, recurrent_weights.data());
 
         const MappedRowMajorMatrixXf in = eigen_row_major_mat_from_shared_values(
-            n_timesteps, n_features, const_cast<float_type*>(input.as_vector()->data()));
+            n_timesteps, n_features, input.as_vector()->data());
 
         RowMajorMatrixXf X = in * W;
         if (use_bias) {
             typedef Eigen::Matrix<float_type, 1, Eigen::Dynamic> Vector_Xf;
             const Vector_Xf b = eigen_row_major_mat_from_shared_values(
-                1, n_units, const_cast<float_type*>(bias.data()));
+                1, n_units, bias.data());
             X.rowwise() += b;
         }
 

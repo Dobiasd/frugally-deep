@@ -1822,8 +1822,10 @@ namespace internal {
             { "RandomTranslation", create_identity_layer },
             { "RandomWidth", create_identity_layer },
             { "RandomZoom", create_identity_layer },
+            // AutoContrast is intentionally NOT registered as a passthrough:
+            // it applies a deterministic per-image min/max stretch even at
+            // inference. Supporting it would require a real implementation.
             { "AugMix", create_identity_layer },
-            { "AutoContrast", create_identity_layer },
             { "CutMix", create_identity_layer },
             { "Equalization", create_identity_layer },
             { "MaxNumBoundingBoxes", create_identity_layer },

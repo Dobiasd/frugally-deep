@@ -29,17 +29,19 @@ namespace internal {
             , use_gate_(use_gate)
             , weights_(weights)
         {
+            assertion(num_kv_heads_ > 0,
+                "num_key_value_heads must be > 0.");
             assertion(num_query_heads_ % num_kv_heads_ == 0,
                 "num_query_heads must be divisible by num_key_value_heads.");
         }
 
     protected:
-        std::size_t head_dim_;
-        std::size_t num_query_heads_;
-        std::size_t num_kv_heads_;
-        bool use_bias_;
-        bool use_gate_;
-        std::vector<tensor> weights_;
+        const std::size_t head_dim_;
+        const std::size_t num_query_heads_;
+        const std::size_t num_kv_heads_;
+        const bool use_bias_;
+        const bool use_gate_;
+        const std::vector<tensor> weights_;
 
         // Weight order in Keras: Q, K, [Gate], V, Out, with bias right after each kernel.
         std::size_t weight_idx(std::size_t projection_idx) const

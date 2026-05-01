@@ -25,7 +25,7 @@ namespace internal {
         }
 
     protected:
-        std::vector<float_type> boundaries_;
+        const std::vector<float_type> boundaries_;
 
         tensors apply_impl(const tensors& inputs) const override
         {

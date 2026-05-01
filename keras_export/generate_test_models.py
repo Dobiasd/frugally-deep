@@ -41,6 +41,7 @@ from keras.layers import GroupQueryAttention
 from keras.layers import ConvLSTM1D, ConvLSTM2D, ConvLSTM3D
 from keras.layers import RNN, LSTMCell, GRUCell, SimpleRNNCell, StackedRNNCells
 from keras.layers import Discretization, IntegerLookup, Masking
+from keras.layers import RandomBrightness, RandomFlip, RandomCrop
 from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -837,6 +838,8 @@ def get_test_model_recurrent() -> Model:
     lstm_last = LSTM(7)(lstm_seq)
     lstm_no_bias = LSTM(5, use_bias=False)(inputs)
     lstm_relu = LSTM(4, activation='relu', recurrent_activation='hard_sigmoid')(inputs)
+    lstm_no_unit_forget = LSTM(4, unit_forget_bias=False)(inputs)
+    lstm_state_out, lstm_state_h, lstm_state_c = LSTM(3, return_state=True)(inputs)
 
     gru_seq = GRU(5, return_sequences=True)(inputs)
     gru_seq_no_reset_after = GRU(5, return_sequences=True, reset_after=False)(inputs)
@@ -863,6 +866,8 @@ def get_test_model_recurrent() -> Model:
     gn = GroupNormalization(groups=2)(inputs)
     gn_no_scale = GroupNormalization(groups=2, scale=False)(inputs)
     gn_no_center = GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs)
+    gn_one = GroupNormalization(groups=1)(inputs)
+    gn_per_channel = GroupNormalization(groups=n_features)(inputs)
 
     ed_dense = EinsumDense('abc,cd->abd', output_shape=(None, 8), bias_axes='d')(inputs)
     ed_heads = EinsumDense('abc,cde->abde', output_shape=(None, 3, 4), bias_axes='de')(inputs)
@@ -884,6 +889,19 @@ def get_test_model_recurrent() -> Model:
         inputs, inputs, inputs)
     gqa_gated = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2,
         use_gate=True)(inputs, inputs, inputs)
+    # num_query_heads == num_key_value_heads is the multi-head-attention degenerate case.
+    gqa_eq_heads = GroupQueryAttention(head_dim=4, num_query_heads=4, num_key_value_heads=4)(
+        inputs, inputs, inputs)
+    # distinct sequence lengths for query vs key/value.
+    inputs_kv = Input(shape=(8, n_features))
+    gqa_kv_diff = GroupQueryAttention(head_dim=3, num_query_heads=4, num_key_value_heads=2)(
+        inputs, inputs_kv, inputs_kv)
+
+    discretized = Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs)
+    masked = Masking(mask_value=0.0)(inputs)
+    rand_brightness = RandomBrightness(factor=0.1)(inputs_2d)
+    rand_flip = RandomFlip(mode='horizontal')(inputs_2d)
+    rand_crop = RandomCrop(height=7, width=8)(inputs_2d)
 
     rnn_lstm = RNN(LSTMCell(4))(inputs)
     rnn_gru = RNN(GRUCell(5), return_sequences=True)(inputs)
@@ -898,16 +916,23 @@ def get_test_model_recurrent() -> Model:
     clstm1d = ConvLSTM1D(filters=2, kernel_size=3, padding='same')(inputs_clstm1d)
     clstm1d_valid = ConvLSTM1D(filters=2, kernel_size=2, padding='valid',
         return_sequences=True)(inputs_clstm1d)
+    clstm1d_dilated = ConvLSTM1D(filters=2, kernel_size=2, padding='same',
+        dilation_rate=2)(inputs_clstm1d)
     clstm2d = ConvLSTM2D(filters=2, kernel_size=(3, 3), padding='same',
         return_sequences=True)(inputs_clstm2d)
     clstm2d_valid_no_bias = ConvLSTM2D(filters=3, kernel_size=(2, 2), padding='valid',
         use_bias=False, activation='relu')(inputs_clstm2d)
+    # Two ConvLSTM2Ds chained: validates state handoff between successive temporal layers.
+    clstm2d_chained = ConvLSTM2D(filters=2, kernel_size=(2, 2), padding='same')(
+        ConvLSTM2D(filters=3, kernel_size=(3, 3), padding='same',
+            return_sequences=True)(inputs_clstm2d))
     clstm3d = ConvLSTM3D(filters=2, kernel_size=(2, 2, 2), padding='same')(inputs_clstm3d)
     clstm3d_valid = ConvLSTM3D(filters=2, kernel_size=(1, 2, 2), padding='valid',
         return_sequences=True)(inputs_clstm3d)
 
     outputs = [
-        lstm_last, lstm_no_bias, lstm_relu,
+        lstm_last, lstm_no_bias, lstm_relu, lstm_no_unit_forget,
+        lstm_state_out, lstm_state_h, lstm_state_c,
         gru_last, gru_no_bias,
         rnn_last, rnn_relu_no_bias,
         bidi_lstm_last_concat,
@@ -917,29 +942,30 @@ def get_test_model_recurrent() -> Model:
         bidi_rnn_concat,
         dwc1d_same, dwc1d_valid, dwc1d_no_bias,
         rms, rms_eps,
-        gn, gn_no_scale, gn_no_center,
+        gn, gn_no_scale, gn_no_center, gn_one, gn_per_channel,
         ed_dense, ed_heads, ed_no_bias, ed_collapse,
         ap1d_a, ap1d_m, ap1d_alt,
         ap2d_a, ap2d_m, ap2d_uneven,
         ap3d_a, ap3d_m, ap3d_uneven,
-        gqa,
-        gqa_gated,
+        gqa, gqa_gated, gqa_eq_heads, gqa_kv_diff,
         rnn_lstm, rnn_gru, rnn_simple,
         rnn_stacked, rnn_stacked_seq,
-        clstm1d, clstm1d_valid,
-        clstm2d, clstm2d_valid_no_bias,
+        clstm1d, clstm1d_valid, clstm1d_dilated,
+        clstm2d, clstm2d_valid_no_bias, clstm2d_chained,
         clstm3d, clstm3d_valid,
+        discretized, masked,
+        rand_brightness, rand_flip, rand_crop,
     ]
 
     model = Model(inputs=[inputs, inputs_2d, inputs_3d,
-                          inputs_clstm1d, inputs_clstm2d, inputs_clstm3d],
+                          inputs_clstm1d, inputs_clstm2d, inputs_clstm3d, inputs_kv],
         outputs=outputs, name='test_model_recurrent')
     model.compile(loss='mse', optimizer='adam')
 
     training_data_size = 2
     data_in = generate_input_data(training_data_size,
         [(seq_len, n_features), (7, 8, 4), (5, 6, 7, 4),
-         (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3)])
+         (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3), (8, n_features)])
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=1)

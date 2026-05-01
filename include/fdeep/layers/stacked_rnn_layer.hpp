@@ -28,7 +28,7 @@ namespace internal {
         }
 
     protected:
-        std::vector<layer_ptr> inner_layers_;
+        const std::vector<layer_ptr> inner_layers_;
 
         tensors apply_impl(const tensors& inputs) const override
         {

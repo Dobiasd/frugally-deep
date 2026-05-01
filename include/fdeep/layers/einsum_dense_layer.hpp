@@ -37,16 +37,16 @@ namespace internal {
         }
 
     protected:
-        std::string equation_;
-        std::vector<int> full_output_shape_;
-        std::string bias_axes_;
-        tensor kernel_;
-        tensor bias_;
+        const std::string equation_;
+        const std::vector<int> full_output_shape_;
+        const std::string bias_axes_;
+        const tensor kernel_;
+        const tensor bias_;
 
-        std::string lhs_;
-        std::string rhs_kernel_;
-        std::string rhs_;
-        std::string summed_;
+        const std::string lhs_;
+        const std::string rhs_kernel_;
+        const std::string rhs_;
+        const std::string summed_;
 
         static std::string parse_lhs(const std::string& eq)
         {
@@ -157,6 +157,7 @@ namespace internal {
             const auto lhs_strides = compute_strides(lhs_sizes);
             const auto kernel_strides = compute_strides(kernel_sizes);
             const auto rhs_strides = compute_strides(rhs_sizes);
+            const auto summed_strides = compute_strides(summed_sizes);
 
             std::size_t out_volume = 1;
             for (auto sz : rhs_sizes)
@@ -189,11 +190,8 @@ namespace internal {
                     {
                         std::size_t rem = s_idx;
                         for (std::size_t i = 0; i < summed_.size(); ++i) {
-                            std::size_t stride = 1;
-                            for (std::size_t j = i + 1; j < summed_.size(); ++j)
-                                stride *= summed_sizes[j];
-                            pos[summed_[i]] = rem / stride;
-                            rem %= stride;
+                            pos[summed_[i]] = rem / summed_strides[i];
+                            rem %= summed_strides[i];
                         }
                     }
                     std::size_t lhs_offset = 0;
@@ -231,6 +229,8 @@ namespace internal {
 
             // Build the output tensor shape from rhs_sizes minus the leading
             // batch char (its size in fdeep is 1, dropped).
+            assertion(rhs_sizes.size() >= 2,
+                "EinsumDense output equation must have at least a batch char and one feature char.");
             std::vector<std::size_t> out_dims_no_batch(rhs_sizes.begin() + 1, rhs_sizes.end());
             return { tensor(create_tensor_shape_from_dims(out_dims_no_batch), std::move(out)) };
         }

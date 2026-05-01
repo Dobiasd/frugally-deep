@@ -28,9 +28,9 @@ namespace internal {
         }
 
     protected:
-        std::vector<int> axes_;
-        shared_float_vec scale_;
-        float_type epsilon_;
+        const std::vector<int> axes_;
+        const shared_float_vec scale_;
+        const float_type epsilon_;
 
         tensors apply_impl(const tensors& inputs) const override
         {

@@ -35,10 +35,10 @@ namespace internal {
         }
 
     protected:
-        std::size_t out_d4_;
-        std::size_t out_h_;
-        std::size_t out_w_;
-        adaptive_pooling_kind kind_;
+        const std::size_t out_d4_;
+        const std::size_t out_h_;
+        const std::size_t out_w_;
+        const adaptive_pooling_kind kind_;
 
         static std::size_t adapt_start(std::size_t i, std::size_t in_size, std::size_t out_size)
         {

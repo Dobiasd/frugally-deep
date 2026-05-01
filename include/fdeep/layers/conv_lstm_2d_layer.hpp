@@ -45,14 +45,14 @@ namespace internal {
         }
 
     protected:
-        std::size_t units_;
-        std::size_t rank_;
-        bool return_sequences_;
-        bool return_state_;
-        std::string activation_;
-        std::string recurrent_activation_;
-        conv_2d_layer input_conv_;
-        conv_2d_layer recurrent_conv_;
+        const std::size_t units_;
+        const std::size_t rank_;
+        const bool return_sequences_;
+        const bool return_state_;
+        const std::string activation_;
+        const std::string recurrent_activation_;
+        const conv_2d_layer input_conv_;
+        const conv_2d_layer recurrent_conv_;
 
         static tensor extract_timestep(const tensor& input, std::size_t t,
             std::size_t rank)

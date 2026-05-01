@@ -709,11 +709,14 @@ def show_rnn_layer(layer: Layer) -> Mapping[str, list[str]]:
 
 def show_bidirectional_layer(layer: Layer) -> Mapping[str, list[str]]:
     """Serialize Bidirectional wrapper around an LSTM/GRU/SimpleRNN to dict"""
+    assert layer.merge_mode in ('concat', 'sum', 'mul', 'ave'), \
+        'Bidirectional merge_mode=' + str(layer.merge_mode) + ' is not supported.'
     forward_layer = layer.forward_layer
     backward_layer = layer.backward_layer
     assert type(forward_layer).__name__ in ('LSTM', 'GRU', 'SimpleRNN'), \
         'Bidirectional wrapping ' + type(forward_layer).__name__ + ' not supported.'
     assert type(backward_layer).__name__ == type(forward_layer).__name__
+    assert not forward_layer.go_backwards, 'forward_layer.go_backwards=True is not supported.'
     assert not forward_layer.unroll and not backward_layer.unroll, 'unroll=True is not supported.'
     assert not forward_layer.stateful and not backward_layer.stateful, 'stateful=True is not supported.'
 
@@ -881,7 +884,22 @@ def get_all_weights(model: Model, prefix: str) -> Mapping[str, LayerConfig]:
         layer_type = type(layer).__name__
         for node in layer._inbound_nodes:
             if 'training' in node.arguments.kwargs:
-                is_layer_with_accidental_training_flag = layer_type in ('CenterCrop', 'Resizing')
+                is_layer_with_accidental_training_flag = layer_type in (
+                    'CenterCrop', 'Resizing',
+                    # Image augmentation layers below are identity at
+                    # inference, so a stray training=True is harmless.
+                    # AutoContrast is intentionally excluded — it transforms
+                    # at inference and is not currently supported.
+                    'RandomBrightness', 'RandomColorDegeneration', 'RandomColorJitter',
+                    'RandomContrast', 'RandomCrop', 'RandomElasticTransform',
+                    'RandomErasing', 'RandomFlip', 'RandomGaussianBlur',
+                    'RandomGrayscale', 'RandomHeight', 'RandomHue', 'RandomInvert',
+                    'RandomPerspective', 'RandomPosterization', 'RandomRotation',
+                    'RandomSaturation', 'RandomSharpness', 'RandomShear',
+                    'RandomTranslation', 'RandomWidth', 'RandomZoom',
+                    'AugMix', 'CutMix', 'Equalization',
+                    'MaxNumBoundingBoxes', 'MixUp', 'Pipeline', 'RandAugment',
+                    'Solarization')
                 has_training = node.arguments.kwargs['training'] is True
                 assert not has_training or is_layer_with_accidental_training_flag, \
                     'training=true is not supported, see https://github.com/Dobiasd/frugally-deep/issues/284'

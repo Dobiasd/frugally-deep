@@ -940,7 +940,7 @@ namespace internal {
     }
 
     inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,
-        std::size_t width, float_type* data)
+        std::size_t width, const float_type* data)
     {
         return MappedRowMajorMatrixXf(
             data,

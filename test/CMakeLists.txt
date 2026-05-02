@@ -28,6 +28,10 @@ add_custom_command ( OUTPUT test_model_recurrent.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py recurrent test_model_recurrent.keras"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_extended.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/generate_test_models.py extended test_model_extended.keras"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT readme_example_model.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/test/readme_example_generate.py"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
@@ -62,6 +66,11 @@ add_custom_command ( OUTPUT test_model_recurrent.json
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_recurrent.keras test_model_recurrent.json"
                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
 
+add_custom_command ( OUTPUT test_model_extended.json
+                     DEPENDS test_model_extended.keras
+                     COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py test_model_extended.keras test_model_extended.json"
+                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/)
+
 add_custom_command ( OUTPUT readme_example_model.json
                      DEPENDS readme_example_model.keras
                      COMMAND bash -c "${Python3_EXECUTABLE} ${FDEEP_TOP_DIR}/keras_export/convert_model.py readme_example_model.keras readme_example_model.json"
@@ -84,6 +93,7 @@ _add_test(test_model_variable_test test_model_variable.json)
 _add_test(test_model_autoencoder_test test_model_autoencoder.json)
 _add_test(test_model_sequential_test test_model_sequential.json)
 _add_test(test_model_recurrent_test test_model_recurrent.json)
+_add_test(test_model_extended_test test_model_extended.json)
 _add_test(readme_example_main readme_example_model.json)
 
 add_custom_target(unittest
@@ -93,6 +103,7 @@ add_custom_target(unittest
   COMMAND test_model_autoencoder_test
   COMMAND test_model_sequential_test
   COMMAND test_model_recurrent_test
+  COMMAND test_model_extended_test
   COMMAND readme_example_main
 
   COMMENT "Running unittests\n\n"

@@ -826,13 +826,12 @@ def get_test_model_sequential() -> Model:
 
 
 def get_test_model_recurrent() -> Model:
-    """Returns a test model exercising LSTM, GRU, SimpleRNN, Bidirectional, and other newer layers."""
+    """Returns a test model exercising recurrent layers (LSTM, GRU, SimpleRNN,
+    Bidirectional, RNN with cells, ConvLSTM, Masking)."""
     seq_len = 5
     n_features = 4
 
     inputs = Input(shape=(seq_len, n_features))
-    inputs_2d = Input(shape=(7, 8, 4))
-    inputs_3d = Input(shape=(5, 6, 7, 4))
 
     lstm_seq = LSTM(6, return_sequences=True)(inputs)
     lstm_last = LSTM(7)(lstm_seq)
@@ -857,51 +856,7 @@ def get_test_model_recurrent() -> Model:
     bidi_gru_ave = Bidirectional(GRU(4), merge_mode='ave')(inputs)
     bidi_rnn_concat = Bidirectional(SimpleRNN(3, return_sequences=True))(inputs)
 
-    dwc1d_same = DepthwiseConv1D(kernel_size=3, padding='same')(inputs)
-    dwc1d_valid = DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs)
-    dwc1d_no_bias = DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs)
-
-    rms = RMSNormalization()(inputs)
-    rms_eps = RMSNormalization(epsilon=1e-3)(inputs)
-    gn = GroupNormalization(groups=2)(inputs)
-    gn_no_scale = GroupNormalization(groups=2, scale=False)(inputs)
-    gn_no_center = GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs)
-    gn_one = GroupNormalization(groups=1)(inputs)
-    gn_per_channel = GroupNormalization(groups=n_features)(inputs)
-
-    ed_dense = EinsumDense('abc,cd->abd', output_shape=(None, 8), bias_axes='d')(inputs)
-    ed_heads = EinsumDense('abc,cde->abde', output_shape=(None, 3, 4), bias_axes='de')(inputs)
-    ed_no_bias = EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs)
-    ed_collapse = EinsumDense('abcd,cde->abe', output_shape=(None, 5), bias_axes='e')(
-        EinsumDense('abc,cde->abde', output_shape=(None, 3, 4))(inputs))
-
-    ap1d_a = AdaptiveAveragePooling1D(output_size=3)(inputs)
-    ap1d_m = AdaptiveMaxPooling1D(output_size=3)(inputs)
-    ap1d_alt = AdaptiveAveragePooling1D(output_size=2)(inputs)
-    ap2d_a = AdaptiveAveragePooling2D(output_size=(3, 4))(inputs_2d)
-    ap2d_m = AdaptiveMaxPooling2D(output_size=(3, 4))(inputs_2d)
-    ap2d_uneven = AdaptiveMaxPooling2D(output_size=(7, 2))(inputs_2d)
-    ap3d_a = AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs_3d)
-    ap3d_m = AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs_3d)
-    ap3d_uneven = AdaptiveAveragePooling3D(output_size=(5, 2, 3))(inputs_3d)
-
-    gqa = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2)(
-        inputs, inputs, inputs)
-    gqa_gated = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2,
-        use_gate=True)(inputs, inputs, inputs)
-    # num_query_heads == num_key_value_heads is the multi-head-attention degenerate case.
-    gqa_eq_heads = GroupQueryAttention(head_dim=4, num_query_heads=4, num_key_value_heads=4)(
-        inputs, inputs, inputs)
-    # distinct sequence lengths for query vs key/value.
-    inputs_kv = Input(shape=(8, n_features))
-    gqa_kv_diff = GroupQueryAttention(head_dim=3, num_query_heads=4, num_key_value_heads=2)(
-        inputs, inputs_kv, inputs_kv)
-
-    discretized = Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs)
     masked = Masking(mask_value=0.0)(inputs)
-    rand_brightness = RandomBrightness(factor=0.1)(inputs_2d)
-    rand_flip = RandomFlip(mode='horizontal')(inputs_2d)
-    rand_crop = RandomCrop(height=7, width=8)(inputs_2d)
 
     rnn_lstm = RNN(LSTMCell(4))(inputs)
     rnn_gru = RNN(GRUCell(5), return_sequences=True)(inputs)
@@ -940,6 +895,85 @@ def get_test_model_recurrent() -> Model:
         bidi_gru_mul,
         bidi_gru_ave,
         bidi_rnn_concat,
+        masked,
+        rnn_lstm, rnn_gru, rnn_simple,
+        rnn_stacked, rnn_stacked_seq,
+        clstm1d, clstm1d_valid, clstm1d_dilated,
+        clstm2d, clstm2d_valid_no_bias, clstm2d_chained,
+        clstm3d, clstm3d_valid,
+    ]
+
+    model = Model(inputs=[inputs, inputs_clstm1d, inputs_clstm2d, inputs_clstm3d],
+        outputs=outputs, name='test_model_recurrent')
+    model.compile(loss='mse', optimizer='adam')
+
+    training_data_size = 2
+    data_in = generate_input_data(training_data_size,
+        [(seq_len, n_features), (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3)])
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=1)
+    return model
+
+
+def get_test_model_extended() -> Model:
+    """Returns a test model exercising recently-added non-recurrent layers
+    (DepthwiseConv1D, EinsumDense, RMSNormalization, GroupNormalization,
+    AdaptiveAvg/MaxPooling, GroupedQueryAttention, Discretization, and a
+    handful of training-only Random* augmentation passthroughs)."""
+    seq_len = 5
+    n_features = 4
+
+    inputs = Input(shape=(seq_len, n_features))
+    inputs_2d = Input(shape=(7, 8, 4))
+    inputs_3d = Input(shape=(5, 6, 7, 4))
+    inputs_kv = Input(shape=(8, n_features))
+
+    dwc1d_same = DepthwiseConv1D(kernel_size=3, padding='same')(inputs)
+    dwc1d_valid = DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs)
+    dwc1d_no_bias = DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs)
+
+    rms = RMSNormalization()(inputs)
+    rms_eps = RMSNormalization(epsilon=1e-3)(inputs)
+    gn = GroupNormalization(groups=2)(inputs)
+    gn_no_scale = GroupNormalization(groups=2, scale=False)(inputs)
+    gn_no_center = GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs)
+    gn_one = GroupNormalization(groups=1)(inputs)
+    gn_per_channel = GroupNormalization(groups=n_features)(inputs)
+
+    ed_dense = EinsumDense('abc,cd->abd', output_shape=(None, 8), bias_axes='d')(inputs)
+    ed_heads = EinsumDense('abc,cde->abde', output_shape=(None, 3, 4), bias_axes='de')(inputs)
+    ed_no_bias = EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs)
+    ed_collapse = EinsumDense('abcd,cde->abe', output_shape=(None, 5), bias_axes='e')(
+        EinsumDense('abc,cde->abde', output_shape=(None, 3, 4))(inputs))
+
+    ap1d_a = AdaptiveAveragePooling1D(output_size=3)(inputs)
+    ap1d_m = AdaptiveMaxPooling1D(output_size=3)(inputs)
+    ap1d_alt = AdaptiveAveragePooling1D(output_size=2)(inputs)
+    ap2d_a = AdaptiveAveragePooling2D(output_size=(3, 4))(inputs_2d)
+    ap2d_m = AdaptiveMaxPooling2D(output_size=(3, 4))(inputs_2d)
+    ap2d_uneven = AdaptiveMaxPooling2D(output_size=(7, 2))(inputs_2d)
+    ap3d_a = AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs_3d)
+    ap3d_m = AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs_3d)
+    ap3d_uneven = AdaptiveAveragePooling3D(output_size=(5, 2, 3))(inputs_3d)
+
+    gqa = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2)(
+        inputs, inputs, inputs)
+    gqa_gated = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2,
+        use_gate=True)(inputs, inputs, inputs)
+    # num_query_heads == num_key_value_heads is the multi-head-attention degenerate case.
+    gqa_eq_heads = GroupQueryAttention(head_dim=4, num_query_heads=4, num_key_value_heads=4)(
+        inputs, inputs, inputs)
+    # distinct sequence lengths for query vs key/value.
+    gqa_kv_diff = GroupQueryAttention(head_dim=3, num_query_heads=4, num_key_value_heads=2)(
+        inputs, inputs_kv, inputs_kv)
+
+    discretized = Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs)
+    rand_brightness = RandomBrightness(factor=0.1)(inputs_2d)
+    rand_flip = RandomFlip(mode='horizontal')(inputs_2d)
+    rand_crop = RandomCrop(height=7, width=8)(inputs_2d)
+
+    outputs = [
         dwc1d_same, dwc1d_valid, dwc1d_no_bias,
         rms, rms_eps,
         gn, gn_no_scale, gn_no_center, gn_one, gn_per_channel,
@@ -948,24 +982,17 @@ def get_test_model_recurrent() -> Model:
         ap2d_a, ap2d_m, ap2d_uneven,
         ap3d_a, ap3d_m, ap3d_uneven,
         gqa, gqa_gated, gqa_eq_heads, gqa_kv_diff,
-        rnn_lstm, rnn_gru, rnn_simple,
-        rnn_stacked, rnn_stacked_seq,
-        clstm1d, clstm1d_valid, clstm1d_dilated,
-        clstm2d, clstm2d_valid_no_bias, clstm2d_chained,
-        clstm3d, clstm3d_valid,
-        discretized, masked,
+        discretized,
         rand_brightness, rand_flip, rand_crop,
     ]
 
-    model = Model(inputs=[inputs, inputs_2d, inputs_3d,
-                          inputs_clstm1d, inputs_clstm2d, inputs_clstm3d, inputs_kv],
-        outputs=outputs, name='test_model_recurrent')
+    model = Model(inputs=[inputs, inputs_2d, inputs_3d, inputs_kv],
+        outputs=outputs, name='test_model_extended')
     model.compile(loss='mse', optimizer='adam')
 
     training_data_size = 2
     data_in = generate_input_data(training_data_size,
-        [(seq_len, n_features), (7, 8, 4), (5, 6, 7, 4),
-         (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3), (8, n_features)])
+        [(seq_len, n_features), (7, 8, 4), (5, 6, 7, 4), (8, n_features)])
     initial_data_out = model.predict(data_in)
     data_out = generate_output_data(training_data_size, initial_data_out)
     model.fit(data_in, data_out, epochs=1)
@@ -988,6 +1015,7 @@ def main() -> None:
             'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
             'recurrent': get_test_model_recurrent,
+            'extended': get_test_model_extended,
         }
 
         if not model_name in get_model_functions:

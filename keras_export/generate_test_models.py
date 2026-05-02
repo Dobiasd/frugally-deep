@@ -539,6 +539,59 @@ def get_test_model_exhaustive() -> Model:
         num_heads=2, key_dim=3, value_dim=5,
         use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
 
+    # GroupedQueryAttention: shared Q/K/V seq, separate K/V seq, with/without gate.
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=6,
+        num_key_value_heads=2)(inputs[49], inputs[49], inputs[49]))
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=6,
+        num_key_value_heads=2, use_gate=True)(inputs[49], inputs[49], inputs[49]))
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=4,
+        num_key_value_heads=4)(inputs[49], inputs[49], inputs[49]))
+    outputs.append(GroupQueryAttention(head_dim=3, num_query_heads=4,
+        num_key_value_heads=2)(inputs[49], inputs[50], inputs[51]))
+
+    # DepthwiseConv1D variants on rank-2 sequence input.
+    outputs.append(DepthwiseConv1D(kernel_size=3, padding='same')(inputs[49]))
+    outputs.append(DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs[49]))
+    outputs.append(DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs[49]))
+
+    # RMSNormalization / GroupNormalization on a (T, F=4) input.
+    outputs.append(RMSNormalization()(inputs[49]))
+    outputs.append(RMSNormalization(epsilon=1e-3)(inputs[49]))
+    outputs.append(GroupNormalization(groups=2)(inputs[49]))
+    outputs.append(GroupNormalization(groups=2, scale=False)(inputs[49]))
+    outputs.append(GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs[49]))
+    outputs.append(GroupNormalization(groups=1)(inputs[49]))  # = LayerNormalization
+    outputs.append(GroupNormalization(groups=4)(inputs[49]))  # = InstanceNormalization
+
+    # EinsumDense: Dense-equivalent, multi-head projection, no-bias, chained collapse.
+    outputs.append(EinsumDense('abc,cd->abd', output_shape=(None, 8),
+        bias_axes='d')(inputs[49]))
+    outputs.append(EinsumDense('abc,cde->abde', output_shape=(None, 3, 4),
+        bias_axes='de')(inputs[49]))
+    outputs.append(EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs[49]))
+    outputs.append(EinsumDense('abcd,cde->abe', output_shape=(None, 5),
+        bias_axes='e')(EinsumDense('abc,cde->abde',
+            output_shape=(None, 3, 4))(inputs[49])))
+
+    # AdaptiveAvg/MaxPooling 1D/2D/3D variants.
+    outputs.append(AdaptiveAveragePooling1D(output_size=3)(inputs[49]))
+    outputs.append(AdaptiveMaxPooling1D(output_size=3)(inputs[49]))
+    outputs.append(AdaptiveAveragePooling1D(output_size=2)(inputs[49]))
+    outputs.append(AdaptiveAveragePooling2D(output_size=(3, 4))(inputs[22]))
+    outputs.append(AdaptiveMaxPooling2D(output_size=(3, 4))(inputs[22]))
+    outputs.append(AdaptiveMaxPooling2D(output_size=(13, 14))(inputs[22]))
+    outputs.append(AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs[2]))
+    outputs.append(AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs[2]))
+    outputs.append(AdaptiveAveragePooling3D(output_size=(7, 2, 3))(inputs[2]))
+
+    # Discretization on a float input.
+    outputs.append(Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs[49]))
+
+    # Training-only Random* augmentation layers (passed through at inference).
+    outputs.append(RandomBrightness(factor=0.1)(inputs[22]))
+    outputs.append(RandomFlip(mode='horizontal')(inputs[22]))
+    outputs.append(RandomCrop(height=26, width=28)(inputs[22]))
+
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')
 
@@ -916,89 +969,6 @@ def get_test_model_recurrent() -> Model:
     return model
 
 
-def get_test_model_extended() -> Model:
-    """Returns a test model exercising recently-added non-recurrent layers
-    (DepthwiseConv1D, EinsumDense, RMSNormalization, GroupNormalization,
-    AdaptiveAvg/MaxPooling, GroupedQueryAttention, Discretization, and a
-    handful of training-only Random* augmentation passthroughs)."""
-    seq_len = 5
-    n_features = 4
-
-    inputs = Input(shape=(seq_len, n_features))
-    inputs_2d = Input(shape=(7, 8, 4))
-    inputs_3d = Input(shape=(5, 6, 7, 4))
-    inputs_kv = Input(shape=(8, n_features))
-
-    dwc1d_same = DepthwiseConv1D(kernel_size=3, padding='same')(inputs)
-    dwc1d_valid = DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs)
-    dwc1d_no_bias = DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs)
-
-    rms = RMSNormalization()(inputs)
-    rms_eps = RMSNormalization(epsilon=1e-3)(inputs)
-    gn = GroupNormalization(groups=2)(inputs)
-    gn_no_scale = GroupNormalization(groups=2, scale=False)(inputs)
-    gn_no_center = GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs)
-    gn_one = GroupNormalization(groups=1)(inputs)
-    gn_per_channel = GroupNormalization(groups=n_features)(inputs)
-
-    ed_dense = EinsumDense('abc,cd->abd', output_shape=(None, 8), bias_axes='d')(inputs)
-    ed_heads = EinsumDense('abc,cde->abde', output_shape=(None, 3, 4), bias_axes='de')(inputs)
-    ed_no_bias = EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs)
-    ed_collapse = EinsumDense('abcd,cde->abe', output_shape=(None, 5), bias_axes='e')(
-        EinsumDense('abc,cde->abde', output_shape=(None, 3, 4))(inputs))
-
-    ap1d_a = AdaptiveAveragePooling1D(output_size=3)(inputs)
-    ap1d_m = AdaptiveMaxPooling1D(output_size=3)(inputs)
-    ap1d_alt = AdaptiveAveragePooling1D(output_size=2)(inputs)
-    ap2d_a = AdaptiveAveragePooling2D(output_size=(3, 4))(inputs_2d)
-    ap2d_m = AdaptiveMaxPooling2D(output_size=(3, 4))(inputs_2d)
-    ap2d_uneven = AdaptiveMaxPooling2D(output_size=(7, 2))(inputs_2d)
-    ap3d_a = AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs_3d)
-    ap3d_m = AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs_3d)
-    ap3d_uneven = AdaptiveAveragePooling3D(output_size=(5, 2, 3))(inputs_3d)
-
-    gqa = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2)(
-        inputs, inputs, inputs)
-    gqa_gated = GroupQueryAttention(head_dim=4, num_query_heads=6, num_key_value_heads=2,
-        use_gate=True)(inputs, inputs, inputs)
-    # num_query_heads == num_key_value_heads is the multi-head-attention degenerate case.
-    gqa_eq_heads = GroupQueryAttention(head_dim=4, num_query_heads=4, num_key_value_heads=4)(
-        inputs, inputs, inputs)
-    # distinct sequence lengths for query vs key/value.
-    gqa_kv_diff = GroupQueryAttention(head_dim=3, num_query_heads=4, num_key_value_heads=2)(
-        inputs, inputs_kv, inputs_kv)
-
-    discretized = Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs)
-    rand_brightness = RandomBrightness(factor=0.1)(inputs_2d)
-    rand_flip = RandomFlip(mode='horizontal')(inputs_2d)
-    rand_crop = RandomCrop(height=7, width=8)(inputs_2d)
-
-    outputs = [
-        dwc1d_same, dwc1d_valid, dwc1d_no_bias,
-        rms, rms_eps,
-        gn, gn_no_scale, gn_no_center, gn_one, gn_per_channel,
-        ed_dense, ed_heads, ed_no_bias, ed_collapse,
-        ap1d_a, ap1d_m, ap1d_alt,
-        ap2d_a, ap2d_m, ap2d_uneven,
-        ap3d_a, ap3d_m, ap3d_uneven,
-        gqa, gqa_gated, gqa_eq_heads, gqa_kv_diff,
-        discretized,
-        rand_brightness, rand_flip, rand_crop,
-    ]
-
-    model = Model(inputs=[inputs, inputs_2d, inputs_3d, inputs_kv],
-        outputs=outputs, name='test_model_extended')
-    model.compile(loss='mse', optimizer='adam')
-
-    training_data_size = 2
-    data_in = generate_input_data(training_data_size,
-        [(seq_len, n_features), (7, 8, 4), (5, 6, 7, 4), (8, n_features)])
-    initial_data_out = model.predict(data_in)
-    data_out = generate_output_data(training_data_size, initial_data_out)
-    model.fit(data_in, data_out, epochs=1)
-    return model
-
-
 def main() -> None:
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
@@ -1015,7 +985,6 @@ def main() -> None:
             'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
             'recurrent': get_test_model_recurrent,
-            'extended': get_test_model_extended,
         }
 
         if not model_name in get_model_functions:

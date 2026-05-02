@@ -40,73 +40,81 @@ namespace internal {
         const std::size_t out_w_;
         const adaptive_pooling_kind kind_;
 
-        static std::size_t adapt_start(std::size_t i, std::size_t in_size, std::size_t out_size)
+        struct range {
+            std::size_t start;
+            std::size_t end;
+        };
+
+        // Adaptive pooling maps output index i to input range
+        // [floor(i * in / out), ceil((i+1) * in / out)). For length-1 input
+        // dimensions (which can occur for promoted 1D/2D tensors) the range
+        // collapses to [0, 1).
+        static range adapt_range(std::size_t i, std::size_t in_size, std::size_t out_size)
         {
-            return static_cast<std::size_t>(std::floor(
+            if (in_size == 1)
+                return { 0, 1 };
+            const auto start = static_cast<std::size_t>(std::floor(
                 static_cast<double>(i * in_size) / static_cast<double>(out_size)));
+            const auto end = static_cast<std::size_t>(std::ceil(
+                static_cast<double>((i + 1) * in_size) / static_cast<double>(out_size)));
+            return { start, end };
         }
 
-        static std::size_t adapt_end(std::size_t i, std::size_t in_size, std::size_t out_size)
+        static tensor_shape output_shape_for(const tensor_shape& in_shape,
+            std::size_t out_d4, std::size_t out_h, std::size_t out_w)
         {
-            return static_cast<std::size_t>(std::ceil(
-                static_cast<double>((i + 1) * in_size) / static_cast<double>(out_size)));
+            const std::size_t depth = in_shape.depth_;
+            switch (in_shape.rank()) {
+            case 2:
+                return tensor_shape(out_w, depth);
+            case 3:
+                return tensor_shape(out_h, out_w, depth);
+            default:
+                return tensor_shape(out_d4, out_h, out_w, depth);
+            }
+        }
+
+        float_type pool_window(const tensor& input,
+            range d, range h, range w, std::size_t z) const
+        {
+            const bool is_max = kind_ == adaptive_pooling_kind::max;
+            float_type acc = is_max
+                ? std::numeric_limits<float_type>::lowest()
+                : float_type(0);
+            std::size_t count = 0;
+            for (std::size_t di = d.start; di < d.end; ++di) {
+                for (std::size_t yi = h.start; yi < h.end; ++yi) {
+                    for (std::size_t xi = w.start; xi < w.end; ++xi) {
+                        const float_type v = input.get_ignore_rank(tensor_pos(0, di, yi, xi, z));
+                        acc = is_max ? std::max(acc, v) : acc + v;
+                        ++count;
+                    }
+                }
+            }
+            if (!is_max && count > 0)
+                acc /= static_cast<float_type>(count);
+            return acc;
         }
 
         tensors apply_impl(const tensors& inputs) const override
         {
             const auto& input = single_tensor_from_tensors(inputs);
             const auto& sh = input.shape();
-            const std::size_t in_d4 = sh.size_dim_4_;
-            const std::size_t in_h = sh.height_;
-            const std::size_t in_w = sh.width_;
-            const std::size_t depth = sh.depth_;
-            const std::size_t out_d4 = out_d4_ == 0 ? in_d4 : out_d4_;
-            const std::size_t out_h = out_h_ == 0 ? in_h : out_h_;
+            const std::size_t out_d4 = out_d4_ == 0 ? sh.size_dim_4_ : out_d4_;
+            const std::size_t out_h = out_h_ == 0 ? sh.height_ : out_h_;
             const std::size_t out_w = out_w_;
 
-            tensor_shape out_shape(out_d4, out_h, out_w, depth);
-            // Match input rank when possible (so 1D/2D inputs produce 1D/2D outputs).
-            if (sh.rank() <= 3) {
-                if (sh.rank() == 2)
-                    out_shape = tensor_shape(out_w, depth);
-                else
-                    out_shape = tensor_shape(out_h, out_w, depth);
-            } else if (sh.rank() == 4) {
-                out_shape = tensor_shape(out_d4, out_h, out_w, depth);
-            }
-
-            tensor out(out_shape, float_type(0));
+            tensor out(output_shape_for(sh, out_d4, out_h, out_w), float_type(0));
 
             for (std::size_t od = 0; od < out_d4; ++od) {
-                const std::size_t d_start = in_d4 == 1 ? 0 : adapt_start(od, in_d4, out_d4);
-                const std::size_t d_end = in_d4 == 1 ? 1 : adapt_end(od, in_d4, out_d4);
+                const range d = adapt_range(od, sh.size_dim_4_, out_d4);
                 for (std::size_t oy = 0; oy < out_h; ++oy) {
-                    const std::size_t y_start = in_h == 1 ? 0 : adapt_start(oy, in_h, out_h);
-                    const std::size_t y_end = in_h == 1 ? 1 : adapt_end(oy, in_h, out_h);
+                    const range h = adapt_range(oy, sh.height_, out_h);
                     for (std::size_t ox = 0; ox < out_w; ++ox) {
-                        const std::size_t x_start = adapt_start(ox, in_w, out_w);
-                        const std::size_t x_end = adapt_end(ox, in_w, out_w);
-                        for (std::size_t z = 0; z < depth; ++z) {
-                            float_type acc = kind_ == adaptive_pooling_kind::max
-                                ? std::numeric_limits<float_type>::lowest()
-                                : float_type(0);
-                            std::size_t count = 0;
-                            for (std::size_t d = d_start; d < d_end; ++d) {
-                                for (std::size_t y = y_start; y < y_end; ++y) {
-                                    for (std::size_t x = x_start; x < x_end; ++x) {
-                                        const float_type v = input.get_ignore_rank(
-                                            tensor_pos(0, d, y, x, z));
-                                        if (kind_ == adaptive_pooling_kind::max)
-                                            acc = std::max(acc, v);
-                                        else
-                                            acc += v;
-                                        ++count;
-                                    }
-                                }
-                            }
-                            if (kind_ == adaptive_pooling_kind::avg && count > 0)
-                                acc /= static_cast<float_type>(count);
-                            out.set_ignore_rank(tensor_pos(0, od, oy, ox, z), acc);
+                        const range w = adapt_range(ox, sh.width_, out_w);
+                        for (std::size_t z = 0; z < sh.depth_; ++z) {
+                            out.set_ignore_rank(tensor_pos(0, od, oy, ox, z),
+                                pool_window(input, d, h, w, z));
                         }
                     }
                 }

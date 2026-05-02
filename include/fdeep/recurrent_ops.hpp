@@ -125,6 +125,7 @@ namespace internal {
         const std::string& activation,
         const std::string& recurrent_activation)
     {
+        assertion(n_units > 0, "LSTM units must be > 0.");
         const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(
             weights.size() / (n_units * 4), n_units * 4,
             weights.data());
@@ -205,6 +206,7 @@ namespace internal {
         const std::string& activation,
         const std::string& recurrent_activation)
     {
+        assertion(n_units > 0, "GRU units must be > 0.");
         const std::size_t n_timesteps = input.shape().width_;
         const std::size_t n_features = input.shape().depth_;
 
@@ -300,6 +302,7 @@ namespace internal {
         const float_vec& bias,
         const std::string& activation)
     {
+        assertion(n_units > 0, "SimpleRNN units must be > 0.");
         const std::size_t n_timesteps = input.shape().width_;
         const std::size_t n_features = input.shape().depth_;
 

@@ -825,7 +825,10 @@ namespace internal {
         const std::string bias_axes = config["bias_axes"].is_null()
             ? std::string("")
             : std::string(config["bias_axes"]);
+        // Keras's output_shape excludes the batch dimension. Prepend -1 for
+        // the batch char so the layer can index it positionally against rhs.
         std::vector<int> output_shape;
+        output_shape.push_back(-1);
         for (const auto& dim : config["output_shape"])
             output_shape.push_back(dim.is_null() ? -1 : static_cast<int>(dim));
 

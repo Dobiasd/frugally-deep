@@ -195,20 +195,29 @@ namespace internal {
         }
 
         // Adds bias broadcast over the configured bias_axes (a subset of rhs).
+        // Keras stores the bias variable with its dims in rhs char order, not
+        // in the literal bias_axes string order (e.g. bias_axes='ed' on
+        // rhs='abde' still produces a (d, e)-shaped bias). Reorder the chars
+        // before computing strides so we read the right element.
         void add_bias(float_vec& out,
             const std::map<char, std::size_t>& char_size,
             const std::vector<std::size_t>& rhs_strides) const
         {
             if (bias_axes_.empty())
                 return;
+            std::string bias_chars;
+            for (char c : rhs_)
+                if (bias_axes_.find(c) != std::string::npos)
+                    bias_chars.push_back(c);
+
             const auto& bias_vals = *bias_.as_vector();
-            const auto bias_sizes = sizes_for_chars(bias_axes_, char_size);
+            const auto bias_sizes = sizes_for_chars(bias_chars, char_size);
             const auto bias_strides = compute_strides(bias_sizes);
 
             std::map<char, std::size_t> pos;
             for (std::size_t out_idx = 0; out_idx < out.size(); ++out_idx) {
                 decode_index(out_idx, rhs_, rhs_strides, pos);
-                out[out_idx] += bias_vals[encode_offset(bias_axes_, bias_strides, pos)];
+                out[out_idx] += bias_vals[encode_offset(bias_chars, bias_strides, pos)];
             }
         }
 

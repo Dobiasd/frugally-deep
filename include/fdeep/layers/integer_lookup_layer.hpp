@@ -28,15 +28,8 @@ namespace internal {
             , mask_token_(mask_token)
             , num_oov_indices_(num_oov_indices)
             , vocab_offset_((has_mask_token ? 1 : 0) + num_oov_indices)
-            , vocab_index_()
+            , vocab_index_(build_vocab_index(vocabulary, num_oov_indices))
         {
-            // Keras hashes OOV inputs across multiple OOV buckets via FarmHash,
-            // which fdeep does not currently replicate. Restrict to a single
-            // OOV bucket (the common case) to keep behavior bit-identical.
-            assertion(num_oov_indices_ <= 1,
-                "IntegerLookup with num_oov_indices > 1 is not supported.");
-            for (std::size_t i = 0; i < vocabulary.size(); ++i)
-                vocab_index_[vocabulary[i]] = i;
         }
 
     protected:
@@ -44,7 +37,22 @@ namespace internal {
         const std::int64_t mask_token_;
         const std::size_t num_oov_indices_;
         const std::size_t vocab_offset_;
-        std::unordered_map<std::int64_t, std::size_t> vocab_index_;
+        const std::unordered_map<std::int64_t, std::size_t> vocab_index_;
+
+        // num_oov_indices > 1 needs Keras's FarmHash, which fdeep does not
+        // currently replicate. num_oov_indices == 0 ("strict" mode) raises on
+        // OOV, also unsupported. Require exactly one OOV bucket.
+        static std::unordered_map<std::int64_t, std::size_t> build_vocab_index(
+            const std::vector<std::int64_t>& vocabulary, std::size_t num_oov_indices)
+        {
+            assertion(num_oov_indices == 1,
+                "IntegerLookup requires num_oov_indices == 1.");
+            std::unordered_map<std::int64_t, std::size_t> idx;
+            idx.reserve(vocabulary.size());
+            for (std::size_t i = 0; i < vocabulary.size(); ++i)
+                idx[vocabulary[i]] = i;
+            return idx;
+        }
 
         tensors apply_impl(const tensors& inputs) const override
         {
@@ -61,8 +69,7 @@ namespace internal {
                 if (it != vocab_index_.end()) {
                     out[i] = static_cast<float_type>(vocab_offset_ + it->second);
                 } else {
-                    // num_oov_indices_ <= 1 (asserted in ctor): OOV maps to 0,
-                    // shifted by 1 if a mask token occupies index 0.
+                    // OOV maps to 0, shifted by 1 if a mask token occupies index 0.
                     out[i] = static_cast<float_type>(has_mask_token_ ? 1 : 0);
                 }
             }

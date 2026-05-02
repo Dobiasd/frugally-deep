@@ -42,6 +42,8 @@ from keras.layers import ConvLSTM1D, ConvLSTM2D, ConvLSTM3D
 from keras.layers import RNN, LSTMCell, GRUCell, SimpleRNNCell, StackedRNNCells
 from keras.layers import Discretization, IntegerLookup, Masking
 from keras.layers import RandomBrightness, RandomFlip, RandomCrop
+from keras.layers import RandomContrast, RandomRotation, RandomTranslation, RandomZoom
+from keras.layers import RandomHue, RandomSaturation, RandomSharpness
 from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -546,6 +548,10 @@ def get_test_model_exhaustive() -> Model:
         num_key_value_heads=2, use_gate=True)(inputs[49], inputs[49], inputs[49]))
     outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=4,
         num_key_value_heads=4)(inputs[49], inputs[49], inputs[49]))
+    # num_query_heads == num_key_value_heads with distinct K/V seq lengths
+    # exercises the MHA-equivalence path with cross-attention shapes.
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=4,
+        num_key_value_heads=4)(inputs[49], inputs[50], inputs[51]))
     outputs.append(GroupQueryAttention(head_dim=3, num_query_heads=4,
         num_key_value_heads=2)(inputs[49], inputs[50], inputs[51]))
 
@@ -587,10 +593,21 @@ def get_test_model_exhaustive() -> Model:
     # Discretization on a float input.
     outputs.append(Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs[49]))
 
+    # IntegerLookup: scaled to int via Discretization so the input is float.
+    outputs.append(IntegerLookup(vocabulary=[0, 1, 2, 3])(
+        Discretization(bin_boundaries=[-1.0, 0.0, 1.0])(inputs[49])))
+
     # Training-only Random* augmentation layers (passed through at inference).
     outputs.append(RandomBrightness(factor=0.1)(inputs[22]))
     outputs.append(RandomFlip(mode='horizontal')(inputs[22]))
     outputs.append(RandomCrop(height=26, width=28)(inputs[22]))
+    outputs.append(RandomContrast(factor=0.1)(inputs[22]))
+    outputs.append(RandomRotation(factor=0.1)(inputs[22]))
+    outputs.append(RandomTranslation(0.1, 0.1)(inputs[22]))
+    outputs.append(RandomZoom(0.1)(inputs[22]))
+    outputs.append(RandomHue(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
+    outputs.append(RandomSaturation(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
+    outputs.append(RandomSharpness(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
 
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')
@@ -901,6 +918,9 @@ def get_test_model_recurrent() -> Model:
     rnn_seq = SimpleRNN(6, return_sequences=True)(inputs)
     rnn_last = SimpleRNN(5, activation='tanh')(rnn_seq)
     rnn_relu_no_bias = SimpleRNN(4, activation='relu', use_bias=False)(inputs)
+    rnn_state_out, rnn_state_h = SimpleRNN(3, return_state=True)(inputs)
+
+    gru_state_out, gru_state_h = GRU(4, return_state=True)(inputs)
 
     bidi_lstm_seq = Bidirectional(LSTM(4, return_sequences=True))(inputs)
     bidi_lstm_last_concat = Bidirectional(LSTM(3))(bidi_lstm_seq)
@@ -941,8 +961,8 @@ def get_test_model_recurrent() -> Model:
     outputs = [
         lstm_last, lstm_no_bias, lstm_relu, lstm_no_unit_forget,
         lstm_state_out, lstm_state_h, lstm_state_c,
-        gru_last, gru_no_bias,
-        rnn_last, rnn_relu_no_bias,
+        gru_last, gru_no_bias, gru_state_out, gru_state_h,
+        rnn_last, rnn_relu_no_bias, rnn_state_out, rnn_state_h,
         bidi_lstm_last_concat,
         bidi_lstm_sum,
         bidi_gru_mul,

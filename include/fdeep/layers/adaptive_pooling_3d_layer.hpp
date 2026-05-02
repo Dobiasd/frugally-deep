@@ -53,6 +53,7 @@ namespace internal {
         {
             if (in_size == 1)
                 return { 0, 1 };
+            assertion(out_size > 0, "AdaptivePooling output_size must be > 0.");
             const auto start = static_cast<std::size_t>(std::floor(
                 static_cast<double>(i * in_size) / static_cast<double>(out_size)));
             const auto end = static_cast<std::size_t>(std::ceil(

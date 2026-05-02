@@ -578,6 +578,11 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(EinsumDense('abcd,cde->abe', output_shape=(None, 5),
         bias_axes='e')(EinsumDense('abc,cde->abde',
             output_shape=(None, 3, 4))(inputs[49])))
+    # bias_axes deliberately not in rhs order: Keras still allocates the bias
+    # in rhs order ('de'), so this regression case ensures fdeep reads the
+    # right element when bias_axes characters are permuted.
+    outputs.append(EinsumDense('abc,cde->abde', output_shape=(None, 3, 4),
+        bias_axes='ed')(inputs[49]))
 
     # AdaptiveAvg/MaxPooling 1D/2D/3D variants.
     outputs.append(AdaptiveAveragePooling1D(output_size=3)(inputs[49]))

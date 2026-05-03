@@ -53,7 +53,8 @@ int sample_logits(const std::vector<float>& logits, float temperature,
         cand.resize(top_k);
     }
     float m = cand[0].first;
-    for (const auto& c : cand) m = std::max(m, c.first);
+    for (const auto& c : cand)
+        m = std::max(m, c.first);
     float total = 0.0f;
     for (auto& c : cand) {
         c.first = std::exp(c.first - m);
@@ -64,12 +65,13 @@ int sample_logits(const std::vector<float>& logits, float temperature,
     float acc = 0.0f;
     for (const auto& c : cand) {
         acc += c.first;
-        if (acc >= pick) return c.second;
+        if (acc >= pick)
+            return c.second;
     }
     return cand.back().second;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv)
 {
@@ -108,12 +110,15 @@ int main(int argc, char** argv)
     std::string line;
     while (true) {
         std::cout << "> " << std::flush;
-        if (!std::getline(std::cin, line)) break;
-        if (line.empty()) break;
+        if (!std::getline(std::cin, line))
+            break;
+        if (line.empty())
+            break;
 
         gpt.reset();
         const auto prompt_ids = tok.encode(line);
-        if (prompt_ids.empty()) continue;
+        if (prompt_ids.empty())
+            continue;
         if (prompt_ids.size() >= max_seq_len) {
             std::cerr << "[prompt is " << prompt_ids.size()
                       << " tokens; max_seq_len is " << max_seq_len
@@ -134,8 +139,10 @@ int main(int argc, char** argv)
             const int next_id = sample_logits(logits, temperature, top_k, rng);
             generated.push_back(next_id);
             std::cout << tok.decode({ next_id }) << std::flush;
-            if (next_id == tok.eos_token_id()) break;
-            if (gpt.cur_len() >= gpt.max_seq_len()) break;
+            if (next_id == tok.eos_token_id())
+                break;
+            if (gpt.cur_len() >= gpt.max_seq_len())
+                break;
             logits = gpt.step(next_id);
         }
         const auto t_gen1 = std::chrono::steady_clock::now();
@@ -144,9 +151,7 @@ int main(int argc, char** argv)
                   << std::chrono::duration<double>(t_pre1 - t_pre0).count() << " s, "
                   << "decode " << generated.size() << " tok "
                   << std::chrono::duration<double>(t_gen1 - t_gen0).count() << " s, "
-                  << (generated.empty() ? 0.0 :
-                          1000.0 * std::chrono::duration<double>(t_gen1 - t_gen0).count()
-                          / static_cast<double>(generated.size()))
+                  << (generated.empty() ? 0.0 : 1000.0 * std::chrono::duration<double>(t_gen1 - t_gen0).count() / static_cast<double>(generated.size()))
                   << " ms/tok]\n";
     }
     return 0;

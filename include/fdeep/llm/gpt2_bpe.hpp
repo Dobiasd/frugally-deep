@@ -71,7 +71,7 @@ namespace llm {
                     mapped[b] = true;
                 }
             };
-            add_range(0x21, 0x7E);  // '!'..'~'
+            add_range(0x21, 0x7E); // '!'..'~'
             add_range(0xA1, 0xAC);
             add_range(0xAE, 0xFF);
 
@@ -159,14 +159,30 @@ namespace llm {
                     if (text[i] == '\\' && i + 1 < n) {
                         const char esc = text[++i];
                         switch (esc) {
-                        case '"': out.push_back('"'); break;
-                        case '\\': out.push_back('\\'); break;
-                        case '/': out.push_back('/'); break;
-                        case 'b': out.push_back('\b'); break;
-                        case 'f': out.push_back('\f'); break;
-                        case 'n': out.push_back('\n'); break;
-                        case 'r': out.push_back('\r'); break;
-                        case 't': out.push_back('\t'); break;
+                        case '"':
+                            out.push_back('"');
+                            break;
+                        case '\\':
+                            out.push_back('\\');
+                            break;
+                        case '/':
+                            out.push_back('/');
+                            break;
+                        case 'b':
+                            out.push_back('\b');
+                            break;
+                        case 'f':
+                            out.push_back('\f');
+                            break;
+                        case 'n':
+                            out.push_back('\n');
+                            break;
+                        case 'r':
+                            out.push_back('\r');
+                            break;
+                        case 't':
+                            out.push_back('\t');
+                            break;
                         case 'u': {
                             if (i + 4 >= n) {
                                 throw std::runtime_error("vocab.json: bad \\u escape");
@@ -175,10 +191,14 @@ namespace llm {
                             for (int k = 0; k < 4; ++k) {
                                 const char h = text[++i];
                                 cp <<= 4;
-                                if (h >= '0' && h <= '9') cp |= static_cast<uint32_t>(h - '0');
-                                else if (h >= 'a' && h <= 'f') cp |= static_cast<uint32_t>(h - 'a' + 10);
-                                else if (h >= 'A' && h <= 'F') cp |= static_cast<uint32_t>(h - 'A' + 10);
-                                else throw std::runtime_error("vocab.json: bad hex digit");
+                                if (h >= '0' && h <= '9')
+                                    cp |= static_cast<uint32_t>(h - '0');
+                                else if (h >= 'a' && h <= 'f')
+                                    cp |= static_cast<uint32_t>(h - 'a' + 10);
+                                else if (h >= 'A' && h <= 'F')
+                                    cp |= static_cast<uint32_t>(h - 'A' + 10);
+                                else
+                                    throw std::runtime_error("vocab.json: bad hex digit");
                             }
                             if (cp >= 0xD800 && cp <= 0xDBFF && i + 6 < n
                                 && text[i + 1] == '\\' && text[i + 2] == 'u') {
@@ -187,10 +207,14 @@ namespace llm {
                                 for (int k = 0; k < 4; ++k) {
                                     const char h = text[j++];
                                     lo <<= 4;
-                                    if (h >= '0' && h <= '9') lo |= static_cast<uint32_t>(h - '0');
-                                    else if (h >= 'a' && h <= 'f') lo |= static_cast<uint32_t>(h - 'a' + 10);
-                                    else if (h >= 'A' && h <= 'F') lo |= static_cast<uint32_t>(h - 'A' + 10);
-                                    else throw std::runtime_error("vocab.json: bad hex digit");
+                                    if (h >= '0' && h <= '9')
+                                        lo |= static_cast<uint32_t>(h - '0');
+                                    else if (h >= 'a' && h <= 'f')
+                                        lo |= static_cast<uint32_t>(h - 'a' + 10);
+                                    else if (h >= 'A' && h <= 'F')
+                                        lo |= static_cast<uint32_t>(h - 'A' + 10);
+                                    else
+                                        throw std::runtime_error("vocab.json: bad hex digit");
                                 }
                                 if (lo >= 0xDC00 && lo <= 0xDFFF) {
                                     cp = 0x10000u + ((cp - 0xD800u) << 10) + (lo - 0xDC00u);
@@ -212,13 +236,15 @@ namespace llm {
                 if (i >= n) {
                     throw std::runtime_error("vocab.json: unterminated string");
                 }
-                ++i;  // consume closing quote
+                ++i; // consume closing quote
             };
 
             auto read_int = [&]() {
                 std::size_t start = i;
-                if (i < n && (text[i] == '-' || text[i] == '+')) ++i;
-                while (i < n && text[i] >= '0' && text[i] <= '9') ++i;
+                if (i < n && (text[i] == '-' || text[i] == '+'))
+                    ++i;
+                while (i < n && text[i] >= '0' && text[i] <= '9')
+                    ++i;
                 return std::stoi(text.substr(start, i - start));
             };
 
@@ -269,18 +295,20 @@ namespace llm {
                 if (first) {
                     first = false;
                     if (line.size() >= 1 && line[0] == '#') {
-                        continue;  // skip "#version: 0.2" header
+                        continue; // skip "#version: 0.2" header
                     }
                 }
-                if (line.empty()) continue;
+                if (line.empty())
+                    continue;
                 const std::size_t sp = line.find(' ');
-                if (sp == std::string::npos) continue;
+                if (sp == std::string::npos)
+                    continue;
                 merges.emplace_back(line.substr(0, sp), line.substr(sp + 1));
             }
             return merges;
         }
 
-    }  // namespace internal
+    } // namespace internal
 
     class gpt2_bpe_tokenizer {
     public:
@@ -324,7 +352,7 @@ namespace llm {
             std::string concat;
             for (int id : ids) {
                 if (id < 0 || static_cast<std::size_t>(id) >= inv_vocab_.size()) {
-                    continue;  // skip unknown
+                    continue; // skip unknown
                 }
                 concat += inv_vocab_[static_cast<std::size_t>(id)];
             }
@@ -344,7 +372,8 @@ namespace llm {
                 } else if ((c & 0xF8) == 0xF0) {
                     len = 4;
                 }
-                if (i + len > concat.size()) break;
+                if (i + len > concat.size())
+                    break;
                 const std::string ch = concat.substr(i, len);
                 auto it = unicode_to_byte_.find(ch);
                 if (it != unicode_to_byte_.end()) {
@@ -390,7 +419,7 @@ namespace llm {
             while (i < n) {
                 // Contractions: 's, 't, 're, 've, 'm, 'll, 'd
                 if (text[i] == '\'') {
-                    static const char* const contractions[] = {"'s", "'t", "'re", "'ve", "'m", "'ll", "'d"};
+                    static const char* const contractions[] = { "'s", "'t", "'re", "'ve", "'m", "'ll", "'d" };
                     bool matched = false;
                     for (const char* c : contractions) {
                         const std::size_t L = std::strlen(c);
@@ -401,7 +430,8 @@ namespace llm {
                             break;
                         }
                     }
-                    if (matched) continue;
+                    if (matched)
+                        continue;
                 }
 
                 // GPT-2 attaches an optional leading space to letters/digits/
@@ -413,14 +443,16 @@ namespace llm {
 
                 if (look < n && is_letter(static_cast<unsigned char>(text[look]))) {
                     std::size_t j = look;
-                    while (j < n && is_letter(static_cast<unsigned char>(text[j]))) ++j;
+                    while (j < n && is_letter(static_cast<unsigned char>(text[j])))
+                        ++j;
                     out.emplace_back(text.substr(start, j - start));
                     i = j;
                     continue;
                 }
                 if (look < n && is_digit(static_cast<unsigned char>(text[look]))) {
                     std::size_t j = look;
-                    while (j < n && is_digit(static_cast<unsigned char>(text[j]))) ++j;
+                    while (j < n && is_digit(static_cast<unsigned char>(text[j])))
+                        ++j;
                     out.emplace_back(text.substr(start, j - start));
                     i = j;
                     continue;
@@ -445,7 +477,8 @@ namespace llm {
                 // skips a character is leading_space).
                 if (is_space(static_cast<unsigned char>(text[i]))) {
                     std::size_t j = i;
-                    while (j < n && is_space(static_cast<unsigned char>(text[j]))) ++j;
+                    while (j < n && is_space(static_cast<unsigned char>(text[j])))
+                        ++j;
                     const std::size_t run = j - i;
                     // Emit the whole run except for a single trailing space
                     // before non-space content; that space attaches to the
@@ -471,18 +504,24 @@ namespace llm {
         // codepoints (each codepoint is one BPE "symbol" initially).
         void bpe_encode(const std::string& piece, std::vector<int>& out) const
         {
-            if (piece.empty()) return;
+            if (piece.empty())
+                return;
             // Split into codepoints.
             std::vector<std::string> symbols;
             std::size_t i = 0;
             while (i < piece.size()) {
                 const unsigned char c = static_cast<unsigned char>(piece[i]);
                 std::size_t len = 1;
-                if ((c & 0x80) == 0) len = 1;
-                else if ((c & 0xE0) == 0xC0) len = 2;
-                else if ((c & 0xF0) == 0xE0) len = 3;
-                else if ((c & 0xF8) == 0xF0) len = 4;
-                if (i + len > piece.size()) len = piece.size() - i;
+                if ((c & 0x80) == 0)
+                    len = 1;
+                else if ((c & 0xE0) == 0xC0)
+                    len = 2;
+                else if ((c & 0xF0) == 0xE0)
+                    len = 3;
+                else if ((c & 0xF8) == 0xF0)
+                    len = 4;
+                if (i + len > piece.size())
+                    len = piece.size() - i;
                 symbols.emplace_back(piece.substr(i, len));
                 i += len;
             }
@@ -498,7 +537,8 @@ namespace llm {
                         best_idx = k;
                     }
                 }
-                if (best_idx == symbols.size()) break;
+                if (best_idx == symbols.size())
+                    break;
                 symbols[best_idx] += symbols[best_idx + 1];
                 symbols.erase(symbols.begin() + static_cast<std::ptrdiff_t>(best_idx) + 1);
             }
@@ -514,7 +554,8 @@ namespace llm {
                         const unsigned char ub = static_cast<unsigned char>(ch);
                         const auto& enc = byte_to_unicode_[ub];
                         auto it2 = vocab_.find(enc);
-                        if (it2 != vocab_.end()) out.push_back(it2->second);
+                        if (it2 != vocab_.end())
+                            out.push_back(it2->second);
                     }
                 }
             }
@@ -537,5 +578,5 @@ namespace llm {
         std::unordered_map<std::pair<std::string, std::string>, int, pair_hash> merge_ranks_;
     };
 
-}  // namespace llm
-}  // namespace fdeep
+} // namespace llm
+} // namespace fdeep

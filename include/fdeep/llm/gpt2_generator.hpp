@@ -86,7 +86,7 @@ namespace llm {
             for (std::size_t step = 0; step < params.max_new_tokens; ++step) {
                 const std::size_t cur_len = prompt_ids.size() + step;
                 if (cur_len >= seq_len_) {
-                    break;  // out of room
+                    break; // out of room
                 }
 
                 fdeep::float_vec tokens_copy = tokens;
@@ -149,7 +149,8 @@ namespace llm {
                 candidates.emplace_back(logits[i], static_cast<int>(i));
             }
             const float inv_temp = 1.0f / p.temperature;
-            for (auto& c : candidates) c.first *= inv_temp;
+            for (auto& c : candidates)
+                c.first *= inv_temp;
 
             if (p.top_k > 0 && p.top_k < candidates.size()) {
                 std::partial_sort(candidates.begin(),
@@ -160,7 +161,8 @@ namespace llm {
             }
 
             float m = candidates[0].first;
-            for (const auto& c : candidates) m = std::max(m, c.first);
+            for (const auto& c : candidates)
+                m = std::max(m, c.first);
             float total = 0.0f;
             for (auto& c : candidates) {
                 c.first = std::exp(c.first - m);
@@ -185,5 +187,5 @@ namespace llm {
         std::size_t pad_token_id_;
     };
 
-}  // namespace llm
-}  // namespace fdeep
+} // namespace llm
+} // namespace fdeep

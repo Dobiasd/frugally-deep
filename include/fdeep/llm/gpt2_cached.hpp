@@ -61,15 +61,15 @@ namespace llm {
             char preset[64];
         };
 
-    }  // namespace internal
+    } // namespace internal
 
     struct gpt2_block_weights {
         // Pre-attention LayerNorm.
         std::vector<float> attn_norm_gamma;
         std::vector<float> attn_norm_beta;
         // Attention projections (Q/K/V flattened to (hidden, hidden)).
-        ColMatrix Wq, Wk, Wv;  // shape (hidden, hidden)
-        std::vector<float> bq, bk, bv;  // length hidden
+        ColMatrix Wq, Wk, Wv; // shape (hidden, hidden)
+        std::vector<float> bq, bk, bv; // length hidden
         // Output projection (hidden, hidden).
         ColMatrix Wo;
         std::vector<float> bo;
@@ -77,9 +77,9 @@ namespace llm {
         std::vector<float> ffn_norm_gamma;
         std::vector<float> ffn_norm_beta;
         // FFN.
-        ColMatrix W1;  // (hidden, intermediate)
+        ColMatrix W1; // (hidden, intermediate)
         std::vector<float> b1;
-        ColMatrix W2;  // (intermediate, hidden)
+        ColMatrix W2; // (intermediate, hidden)
         std::vector<float> b2;
     };
 
@@ -93,7 +93,7 @@ namespace llm {
             if (!in) {
                 throw std::runtime_error("could not open " + weights_path);
             }
-            internal::gpt2_header h{};
+            internal::gpt2_header h {};
             internal::read_exact(in, &h, sizeof(h), "header");
             if (h.magic != internal::GPT2_MAGIC) {
                 throw std::runtime_error("not a gpt2 weights file");
@@ -236,7 +236,7 @@ namespace llm {
 
         static float gelu_approx(float v)
         {
-            constexpr float c0 = 0.7978845608028654f;  // sqrt(2/pi)
+            constexpr float c0 = 0.7978845608028654f; // sqrt(2/pi)
             constexpr float c1 = 0.044715f;
             const float t = c0 * (v + c1 * v * v * v);
             return 0.5f * v * (1.0f + std::tanh(t));
@@ -287,7 +287,8 @@ namespace llm {
                     }
                     const float s = dot * scale;
                     scores[t] = s;
-                    if (s > max_score) max_score = s;
+                    if (s > max_score)
+                        max_score = s;
                 }
                 float total = 0.0f;
                 for (std::size_t t = 0; t < cur; ++t) {
@@ -344,16 +345,16 @@ namespace llm {
         std::size_t max_seq_len_ = 0;
         float layer_norm_epsilon_ = 1e-5f;
 
-        ColMatrix token_embedding_;     // (vocab, hidden)
-        ColMatrix position_embedding_;  // (max_position, hidden)
+        ColMatrix token_embedding_; // (vocab, hidden)
+        ColMatrix position_embedding_; // (max_position, hidden)
         std::vector<gpt2_block_weights> blocks_;
         std::vector<float> final_norm_gamma_, final_norm_beta_;
-        ColMatrix lm_head_;             // (hidden, vocab)
+        ColMatrix lm_head_; // (hidden, vocab)
 
-        std::vector<ColMatrix> cache_k_;  // num_layers x (max_seq_len, hidden)
+        std::vector<ColMatrix> cache_k_; // num_layers x (max_seq_len, hidden)
         std::vector<ColMatrix> cache_v_;
         std::size_t cur_len_ = 0;
     };
 
-}  // namespace llm
-}  // namespace fdeep
+} // namespace llm
+} // namespace fdeep

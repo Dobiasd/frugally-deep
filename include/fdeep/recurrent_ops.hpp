@@ -75,6 +75,15 @@ namespace internal {
         return static_cast<float_type>(0.5) * x * (static_cast<float_type>(1) + static_cast<float_type>(std::erf(x / std::sqrt(static_cast<float_type>(2)))));
     }
 
+    inline float_type gelu_approximate_activation(float_type x)
+    {
+        // 0.5 * x * (1 + tanh(sqrt(2/pi) * (x + 0.044715 * x^3)))
+        const float_type sqrt_2_over_pi = static_cast<float_type>(0.7978845608028654);
+        const float_type c = static_cast<float_type>(0.044715);
+        const float_type inner = sqrt_2_over_pi * (x + c * x * x * x);
+        return static_cast<float_type>(0.5) * x * (static_cast<float_type>(1) + std::tanh(inner));
+    }
+
     inline float_type softsign_activation(float_type x)
     {
         return x / (std::abs(x) + static_cast<float_type>(1));

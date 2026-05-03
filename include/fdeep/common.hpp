@@ -80,7 +80,7 @@ namespace internal {
     using RowMajorMatrixXf = Eigen::Matrix<float_type, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     using ArrayXf = Eigen::Array<float_type, Eigen::Dynamic, Eigen::Dynamic>;
     using ArrayXf1D = Eigen::Array<float_type, Eigen::Dynamic, 1>;
-    using MappedRowMajorMatrixXf = Eigen::Map<RowMajorMatrixXf, Eigen::Aligned>;
+    using MappedRowMajorMatrixXf = Eigen::Map<const RowMajorMatrixXf, Eigen::Unaligned>;
 
     inline float_type tanh_typed(float_type x)
     {

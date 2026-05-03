@@ -939,6 +939,23 @@ namespace internal {
         return m;
     }
 
+    inline MappedRowMajorMatrixXf eigen_row_major_mat_from_shared_values(std::size_t height,
+        std::size_t width, const float_type* data)
+    {
+        return MappedRowMajorMatrixXf(
+            data,
+            static_cast<EigenIndex>(height),
+            static_cast<EigenIndex>(width));
+    }
+
+    inline shared_float_vec eigen_row_major_mat_to_values(const RowMajorMatrixXf& m)
+    {
+        shared_float_vec result = fplus::make_shared_ref<float_vec>();
+        result->resize(static_cast<std::size_t>(m.rows() * m.cols()));
+        std::memcpy(result->data(), m.data(), result->size() * sizeof(float_type));
+        return result;
+    }
+
     inline tensor resize2d_nearest(const tensor& in_vol, const shape2& target_size)
     {
         tensor out_vol(tensor_shape(target_size.height_, target_size.width_, in_vol.shape().depth_), 0);

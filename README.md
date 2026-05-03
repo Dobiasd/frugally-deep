@@ -41,21 +41,31 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 
 * `Add`, `Concatenate`, `Subtract`, `Multiply`, `Average`, `Maximum`, `Minimum`, `Dot`
 * `AveragePooling1D/2D/3D`, `GlobalAveragePooling1D/2D/3D`
+* `AdaptiveAveragePooling1D/2D/3D`, `AdaptiveMaxPooling1D/2D/3D`
 * `TimeDistributed`
-* `Conv1D/2D/3D`, `SeparableConv2D`, `DepthwiseConv2D`
+* `Conv1D/2D/3D`, `SeparableConv2D`, `DepthwiseConv1D`, `DepthwiseConv2D`
 * `Conv1DTranspose`, `Conv2DTranspose`, `Conv3DTranspose`
 * `Cropping1D/2D/3D`, `ZeroPadding1D/2D/3D`, `CenterCrop`
-* `BatchNormalization`, `Dense`, `Flatten`, `Normalization`
+* `BatchNormalization`, `Dense`, `EinsumDense`, `Flatten`, `Normalization`
 * `Dropout`, `AlphaDropout`, `GaussianDropout`, `GaussianNoise`
 * `SpatialDropout1D`, `SpatialDropout2D`, `SpatialDropout3D`
-* `ActivityRegularization`, `LayerNormalization`, `UnitNormalization`
-* `RandomContrast`, `RandomFlip`, `RandomHeight`
-* `RandomRotation`, `RandomTranslation`, `RandomWidth`, `RandomZoom`
+* `ActivityRegularization`, `LayerNormalization`, `RMSNormalization`
+* `GroupNormalization`, `UnitNormalization`
+* Training-only image augmentation layers (passed through at inference):
+  `RandomBrightness`, `RandomContrast`, `RandomCrop`, `RandomFlip`, `RandomHue`,
+  `RandomGrayscale`, `RandomRotation`, `RandomTranslation`, `RandomZoom`,
+  `RandomShear`, `RandomSaturation`, `RandomPerspective`, `AutoContrast`,
+  `AugMix`, `CutMix`, `MixUp`, `RandAugment`, `Solarization`, `Equalization`
 * `MaxPooling1D/2D/3D`, `GlobalMaxPooling1D/2D/3D`
 * `UpSampling1D/2D/3D`, `Resizing`, `Rescaling`
 * `Reshape`, `Permute`, `RepeatVector`
 * `Embedding`, `CategoryEncoding`
-* `Attention`, `AdditiveAttention`, `MultiHeadAttention`
+* `Discretization`, `IntegerLookup`
+* `Masking` (passthrough at inference)
+* `Attention`, `AdditiveAttention`, `MultiHeadAttention`, `GroupedQueryAttention`
+* `LSTM`, `GRU`, `SimpleRNN`, `Bidirectional`
+* `RNN` wrapping `LSTMCell`/`GRUCell`/`SimpleRNNCell`/`StackedRNNCells`
+* `ConvLSTM1D`, `ConvLSTM2D`, `ConvLSTM3D`
 
 ### Also supported
 
@@ -71,15 +81,11 @@ Would you like to build/train a model using Keras/Python? And would you like to 
 ### Currently not supported are the following:
 
 `Lambda` ([why](FAQ.md#why-are-lambda-layers-not-supported)),
-`ConvLSTM1D`, `ConvLSTM2D`, `Discretization`,
-`GRUCell`, `Hashing`,
-`IntegerLookup`,
-`LocallyConnected1D`, `LocallyConnected2D`,
-`LSTMCell`, `Masking`,
-`RepeatVector`, `RNN`, `SimpleRNN`,
-`SimpleRNNCell`, `StackedRNNCells`, `StringLookup`, `TextVectorization`,
-`Bidirectional`, `GRU`, `LSTM`, `CuDNNGRU`, `CuDNNLSTM`,
-`ThresholdedReLU`, `temporal` models
+`Hashing`, `HashedCrossing`,
+`MelSpectrogram`, `STFTSpectrogram`,
+`StringLookup`, `TextVectorization`,
+stateful recurrent layers,
+`temporal` models
 
 Usage
 -----

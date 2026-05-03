@@ -31,6 +31,19 @@ from keras.layers import Normalization, Rescaling, Resizing
 from keras.layers import Permute, Reshape, RepeatVector
 from keras.layers import SeparableConv2D, DepthwiseConv2D
 from keras.layers import ZeroPadding3D, Cropping3D
+from keras.layers import LSTM, GRU, SimpleRNN, Bidirectional
+from keras.layers import DepthwiseConv1D, EinsumDense
+from keras.layers import RMSNormalization, GroupNormalization
+from keras.layers import AdaptiveAveragePooling1D, AdaptiveMaxPooling1D
+from keras.layers import AdaptiveAveragePooling2D, AdaptiveMaxPooling2D
+from keras.layers import AdaptiveAveragePooling3D, AdaptiveMaxPooling3D
+from keras.layers import GroupQueryAttention
+from keras.layers import ConvLSTM1D, ConvLSTM2D, ConvLSTM3D
+from keras.layers import RNN, LSTMCell, GRUCell, SimpleRNNCell, StackedRNNCells
+from keras.layers import Discretization, IntegerLookup, Masking
+from keras.layers import RandomBrightness, RandomFlip, RandomCrop
+from keras.layers import RandomContrast, RandomRotation, RandomTranslation, RandomZoom
+from keras.layers import RandomHue, RandomSaturation, RandomSharpness
 from keras.models import Model, load_model, Sequential
 
 __author__ = "Tobias Hermann"
@@ -528,6 +541,79 @@ def get_test_model_exhaustive() -> Model:
         num_heads=2, key_dim=3, value_dim=5,
         use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
 
+    # GroupedQueryAttention: shared Q/K/V seq, separate K/V seq, with/without gate.
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=6,
+        num_key_value_heads=2)(inputs[49], inputs[49], inputs[49]))
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=6,
+        num_key_value_heads=2, use_gate=True)(inputs[49], inputs[49], inputs[49]))
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=4,
+        num_key_value_heads=4)(inputs[49], inputs[49], inputs[49]))
+    # num_query_heads == num_key_value_heads with distinct K/V seq lengths
+    # exercises the MHA-equivalence path with cross-attention shapes.
+    outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=4,
+        num_key_value_heads=4)(inputs[49], inputs[50], inputs[51]))
+    outputs.append(GroupQueryAttention(head_dim=3, num_query_heads=4,
+        num_key_value_heads=2)(inputs[49], inputs[50], inputs[51]))
+
+    # DepthwiseConv1D variants on rank-2 sequence input.
+    outputs.append(DepthwiseConv1D(kernel_size=3, padding='same')(inputs[49]))
+    outputs.append(DepthwiseConv1D(kernel_size=2, padding='valid', strides=2)(inputs[49]))
+    outputs.append(DepthwiseConv1D(kernel_size=3, padding='same', use_bias=False)(inputs[49]))
+
+    # RMSNormalization / GroupNormalization on a (T, F=4) input.
+    outputs.append(RMSNormalization()(inputs[49]))
+    outputs.append(RMSNormalization(epsilon=1e-3)(inputs[49]))
+    outputs.append(GroupNormalization(groups=2)(inputs[49]))
+    outputs.append(GroupNormalization(groups=2, scale=False)(inputs[49]))
+    outputs.append(GroupNormalization(groups=4, center=False, epsilon=1e-4)(inputs[49]))
+    outputs.append(GroupNormalization(groups=1)(inputs[49]))  # = LayerNormalization
+    outputs.append(GroupNormalization(groups=4)(inputs[49]))  # = InstanceNormalization
+
+    # EinsumDense: Dense-equivalent, multi-head projection, no-bias, chained collapse.
+    outputs.append(EinsumDense('abc,cd->abd', output_shape=(None, 8),
+        bias_axes='d')(inputs[49]))
+    outputs.append(EinsumDense('abc,cde->abde', output_shape=(None, 3, 4),
+        bias_axes='de')(inputs[49]))
+    outputs.append(EinsumDense('abc,cd->abd', output_shape=(None, 6))(inputs[49]))
+    outputs.append(EinsumDense('abcd,cde->abe', output_shape=(None, 5),
+        bias_axes='e')(EinsumDense('abc,cde->abde',
+            output_shape=(None, 3, 4))(inputs[49])))
+    # bias_axes deliberately not in rhs order: Keras still allocates the bias
+    # in rhs order ('de'), so this regression case ensures fdeep reads the
+    # right element when bias_axes characters are permuted.
+    outputs.append(EinsumDense('abc,cde->abde', output_shape=(None, 3, 4),
+        bias_axes='ed')(inputs[49]))
+
+    # AdaptiveAvg/MaxPooling 1D/2D/3D variants.
+    outputs.append(AdaptiveAveragePooling1D(output_size=3)(inputs[49]))
+    outputs.append(AdaptiveMaxPooling1D(output_size=3)(inputs[49]))
+    outputs.append(AdaptiveAveragePooling1D(output_size=2)(inputs[49]))
+    outputs.append(AdaptiveAveragePooling2D(output_size=(3, 4))(inputs[22]))
+    outputs.append(AdaptiveMaxPooling2D(output_size=(3, 4))(inputs[22]))
+    outputs.append(AdaptiveMaxPooling2D(output_size=(13, 14))(inputs[22]))
+    outputs.append(AdaptiveAveragePooling3D(output_size=(2, 3, 3))(inputs[2]))
+    outputs.append(AdaptiveMaxPooling3D(output_size=(2, 3, 3))(inputs[2]))
+    outputs.append(AdaptiveAveragePooling3D(output_size=(7, 2, 3))(inputs[2]))
+
+    # Discretization on a float input.
+    outputs.append(Discretization(bin_boundaries=[-0.5, 0.0, 0.5, 1.0])(inputs[49]))
+
+    # IntegerLookup: scaled to int via Discretization so the input is float.
+    outputs.append(IntegerLookup(vocabulary=[0, 1, 2, 3])(
+        Discretization(bin_boundaries=[-1.0, 0.0, 1.0])(inputs[49])))
+
+    # Training-only Random* augmentation layers (passed through at inference).
+    outputs.append(RandomBrightness(factor=0.1)(inputs[22]))
+    outputs.append(RandomFlip(mode='horizontal')(inputs[22]))
+    outputs.append(RandomCrop(height=26, width=28)(inputs[22]))
+    outputs.append(RandomContrast(factor=0.1)(inputs[22]))
+    outputs.append(RandomRotation(factor=0.1)(inputs[22]))
+    outputs.append(RandomTranslation(0.1, 0.1)(inputs[22]))
+    outputs.append(RandomZoom(0.1)(inputs[22]))
+    outputs.append(RandomHue(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
+    outputs.append(RandomSaturation(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
+    outputs.append(RandomSharpness(factor=0.1, value_range=(0.0, 1.0))(inputs[22]))
+
     shared_conv = Conv2D(1, (1, 1),
                          padding='valid', name='shared_conv', activation='relu')
 
@@ -814,6 +900,100 @@ def get_test_model_sequential() -> Model:
     return model
 
 
+def get_test_model_recurrent() -> Model:
+    """Returns a test model exercising recurrent layers (LSTM, GRU, SimpleRNN,
+    Bidirectional, RNN with cells, ConvLSTM, Masking)."""
+    seq_len = 5
+    n_features = 4
+
+    inputs = Input(shape=(seq_len, n_features))
+
+    lstm_seq = LSTM(6, return_sequences=True)(inputs)
+    lstm_last = LSTM(7)(lstm_seq)
+    lstm_no_bias = LSTM(5, use_bias=False)(inputs)
+    lstm_relu = LSTM(4, activation='relu', recurrent_activation='hard_sigmoid')(inputs)
+    lstm_no_unit_forget = LSTM(4, unit_forget_bias=False)(inputs)
+    lstm_state_out, lstm_state_h, lstm_state_c = LSTM(3, return_state=True)(inputs)
+
+    gru_seq = GRU(5, return_sequences=True)(inputs)
+    gru_seq_no_reset_after = GRU(5, return_sequences=True, reset_after=False)(inputs)
+    gru_last = GRU(8, activation='relu', recurrent_activation='hard_sigmoid')(gru_seq)
+    gru_no_bias = GRU(4, use_bias=False)(gru_seq_no_reset_after)
+
+    rnn_seq = SimpleRNN(6, return_sequences=True)(inputs)
+    rnn_last = SimpleRNN(5, activation='tanh')(rnn_seq)
+    rnn_relu_no_bias = SimpleRNN(4, activation='relu', use_bias=False)(inputs)
+    rnn_state_out, rnn_state_h = SimpleRNN(3, return_state=True)(inputs)
+
+    gru_state_out, gru_state_h = GRU(4, return_state=True)(inputs)
+
+    bidi_lstm_seq = Bidirectional(LSTM(4, return_sequences=True))(inputs)
+    bidi_lstm_last_concat = Bidirectional(LSTM(3))(bidi_lstm_seq)
+    bidi_lstm_sum = Bidirectional(LSTM(3), merge_mode='sum')(inputs)
+    bidi_gru_mul = Bidirectional(GRU(4), merge_mode='mul')(inputs)
+    bidi_gru_ave = Bidirectional(GRU(4), merge_mode='ave')(inputs)
+    bidi_rnn_concat = Bidirectional(SimpleRNN(3, return_sequences=True))(inputs)
+
+    masked = Masking(mask_value=0.0)(inputs)
+
+    rnn_lstm = RNN(LSTMCell(4))(inputs)
+    rnn_gru = RNN(GRUCell(5), return_sequences=True)(inputs)
+    rnn_simple = RNN(SimpleRNNCell(3))(inputs)
+    rnn_stacked = RNN(StackedRNNCells([LSTMCell(6), GRUCell(4), SimpleRNNCell(3)]))(inputs)
+    rnn_stacked_seq = RNN(StackedRNNCells([LSTMCell(5), GRUCell(3)]),
+        return_sequences=True)(inputs)
+
+    inputs_clstm1d = Input(shape=(4, 6, 3))
+    inputs_clstm2d = Input(shape=(3, 5, 5, 3))
+    inputs_clstm3d = Input(shape=(2, 3, 4, 4, 3))
+    clstm1d = ConvLSTM1D(filters=2, kernel_size=3, padding='same')(inputs_clstm1d)
+    clstm1d_valid = ConvLSTM1D(filters=2, kernel_size=2, padding='valid',
+        return_sequences=True)(inputs_clstm1d)
+    clstm1d_dilated = ConvLSTM1D(filters=2, kernel_size=2, padding='same',
+        dilation_rate=2)(inputs_clstm1d)
+    clstm2d = ConvLSTM2D(filters=2, kernel_size=(3, 3), padding='same',
+        return_sequences=True)(inputs_clstm2d)
+    clstm2d_valid_no_bias = ConvLSTM2D(filters=3, kernel_size=(2, 2), padding='valid',
+        use_bias=False, activation='relu')(inputs_clstm2d)
+    # Two ConvLSTM2Ds chained: validates state handoff between successive temporal layers.
+    clstm2d_chained = ConvLSTM2D(filters=2, kernel_size=(2, 2), padding='same')(
+        ConvLSTM2D(filters=3, kernel_size=(3, 3), padding='same',
+            return_sequences=True)(inputs_clstm2d))
+    clstm3d = ConvLSTM3D(filters=2, kernel_size=(2, 2, 2), padding='same')(inputs_clstm3d)
+    clstm3d_valid = ConvLSTM3D(filters=2, kernel_size=(1, 2, 2), padding='valid',
+        return_sequences=True)(inputs_clstm3d)
+
+    outputs = [
+        lstm_last, lstm_no_bias, lstm_relu, lstm_no_unit_forget,
+        lstm_state_out, lstm_state_h, lstm_state_c,
+        gru_last, gru_no_bias, gru_state_out, gru_state_h,
+        rnn_last, rnn_relu_no_bias, rnn_state_out, rnn_state_h,
+        bidi_lstm_last_concat,
+        bidi_lstm_sum,
+        bidi_gru_mul,
+        bidi_gru_ave,
+        bidi_rnn_concat,
+        masked,
+        rnn_lstm, rnn_gru, rnn_simple,
+        rnn_stacked, rnn_stacked_seq,
+        clstm1d, clstm1d_valid, clstm1d_dilated,
+        clstm2d, clstm2d_valid_no_bias, clstm2d_chained,
+        clstm3d, clstm3d_valid,
+    ]
+
+    model = Model(inputs=[inputs, inputs_clstm1d, inputs_clstm2d, inputs_clstm3d],
+        outputs=outputs, name='test_model_recurrent')
+    model.compile(loss='mse', optimizer='adam')
+
+    training_data_size = 2
+    data_in = generate_input_data(training_data_size,
+        [(seq_len, n_features), (4, 6, 3), (3, 5, 5, 3), (2, 3, 4, 4, 3)])
+    initial_data_out = model.predict(data_in)
+    data_out = generate_output_data(training_data_size, initial_data_out)
+    model.fit(data_in, data_out, epochs=1)
+    return model
+
+
 def main() -> None:
     """Generate different test models and save them to the given directory."""
     if len(sys.argv) != 3:
@@ -829,6 +1009,7 @@ def main() -> None:
             'variable': get_test_model_variable,
             'autoencoder': get_test_model_autoencoder,
             'sequential': get_test_model_sequential,
+            'recurrent': get_test_model_recurrent,
         }
 
         if not model_name in get_model_functions:

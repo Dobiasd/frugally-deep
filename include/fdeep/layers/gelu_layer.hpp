@@ -17,16 +17,20 @@ namespace internal {
 
     class gelu_layer : public activation_layer {
     public:
-        explicit gelu_layer(const std::string& name)
+        explicit gelu_layer(const std::string& name, bool approximate = false)
             : activation_layer(name)
+            , approximate_(approximate)
         {
         }
 
     protected:
         tensor transform_input(const tensor& in_vol) const override
         {
-            return transform_tensor(gelu_activation, in_vol);
+            return approximate_
+                ? transform_tensor(gelu_approximate_activation, in_vol)
+                : transform_tensor(gelu_activation, in_vol);
         }
+        bool approximate_;
     };
 
 }

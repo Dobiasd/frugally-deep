@@ -1329,11 +1329,11 @@ namespace internal {
         const get_param_f&, const nlohmann::json& data,
         const std::string& name)
     {
+        bool approximate = false;
         if (json_obj_has_member(data, "config") && json_obj_has_member(data["config"], "approximate") && !data["config"]["approximate"].is_null()) {
-            const bool approximate = data["config"]["approximate"];
-            assertion(approximate == false, "Gelu with approximate = True is not supported.");
+            approximate = data["config"]["approximate"];
         }
-        return std::make_shared<gelu_layer>(name);
+        return std::make_shared<gelu_layer>(name, approximate);
     }
 
     inline activation_layer_ptr create_softsign_layer(
@@ -1473,6 +1473,9 @@ namespace internal {
         const std::size_t key_dim = data["config"]["key_dim"];
         const std::size_t value_dim = data["config"]["value_dim"];
         const bool use_bias = data["config"]["use_bias"];
+        const bool use_causal_mask = json_obj_has_member(data["config"], "use_causal_mask")
+            ? data["config"]["use_causal_mask"].get<bool>()
+            : false;
         const auto weight_shapes = create_vector<std::vector<std::size_t>>(fplus::bind_1st_of_2(
                                                                                create_vector<std::size_t, decltype(create_size_t)>, create_size_t),
             get_param(name, "weight_shapes"));
@@ -1485,7 +1488,8 @@ namespace internal {
             },
             weight_shapes, weight_values);
         return std::make_shared<multi_head_attention_layer>(name,
-            num_heads, key_dim, value_dim, use_bias, weights_and_biases);
+            num_heads, key_dim, value_dim, use_bias, use_causal_mask,
+            weights_and_biases);
     }
 
     inline layer_ptr create_lstm_layer(const get_param_f& get_param,

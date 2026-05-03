@@ -19,11 +19,13 @@ namespace internal {
     public:
         explicit multi_head_attention_layer(const std::string& name,
             std::size_t num_heads, std::size_t key_dim, std::size_t value_dim,
-            bool use_bias, const std::vector<tensor>& weights_and_biases)
+            bool use_bias, bool use_causal_mask,
+            const std::vector<tensor>& weights_and_biases)
             : layer(name)
             , num_heads_(num_heads)
             , key_dim_(key_dim)
             , value_dim_(value_dim)
+            , use_causal_mask_(use_causal_mask)
             , query_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 0, key_dim, name + "_query_dense"))
             , value_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 2, value_dim, name + "_value_dense"))
             , key_dense_(create_dense_layers(weights_and_biases, use_bias, num_heads, 1, key_dim, name + "_key_dense"))
@@ -88,10 +90,33 @@ namespace internal {
             // https://dmol.pub/dl/attention.html#multi-head-attention-block
             // https://github.com/keras-team/keras/blob/v2.14.0/keras/layers/attention/multi_head_attention.py
             // https://gist.github.com/sevagh/b71d253a347a9b59c026580625452fc5
-            const tensor scores = dot_product_tensors(query, transpose(key), std::vector<int>({ 2, 1 }), false);
+            tensor scores = dot_product_tensors(query, transpose(key), std::vector<int>({ 2, 1 }), false);
             const std::size_t query_size = query.shape().depth_;
-            const tensor distribution = softmax(transform_tensor(fplus::multiply_with(1 / std::sqrt(query_size)), scores));
+            scores = transform_tensor(fplus::multiply_with(1 / std::sqrt(query_size)), scores);
+            if (use_causal_mask_) {
+                apply_causal_mask(scores);
+            }
+            const tensor distribution = softmax(scores);
             return dot_product_tensors(distribution, value, std::vector<int>({ 2, 1 }), false);
+        }
+
+        static void apply_causal_mask(tensor& scores)
+        {
+            // Scores have shape (..., T, S) with width=T (query positions)
+            // and depth=S (key positions). Mask out s > t.
+            const auto& s = scores.shape();
+            const float_type neg_inf = -std::numeric_limits<float_type>::infinity();
+            for (std::size_t d5 = 0; d5 < s.size_dim_5_; ++d5) {
+                for (std::size_t d4 = 0; d4 < s.size_dim_4_; ++d4) {
+                    for (std::size_t y = 0; y < s.height_; ++y) {
+                        for (std::size_t t = 0; t < s.width_; ++t) {
+                            for (std::size_t k = t + 1; k < s.depth_; ++k) {
+                                scores.set_ignore_rank(tensor_pos(d5, d4, y, t, k), neg_inf);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     protected:
@@ -111,6 +136,7 @@ namespace internal {
         std::size_t num_heads_;
         std::size_t key_dim_;
         std::size_t value_dim_;
+        bool use_causal_mask_;
         std::vector<dense_layer> query_dense_;
         std::vector<dense_layer> value_dense_;
         std::vector<dense_layer> key_dense_;

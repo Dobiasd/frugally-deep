@@ -11,10 +11,20 @@ from typing import Tuple, Union, Mapping, List, Callable, Set, Any, TypeVar
 
 import numpy as np
 import numpy.typing  # pylint: disable=unused-import
+import keras
 from keras import backend as K, Layer
 from keras.layers import Input, Embedding, CategoryEncoding
 from keras.models import Model, load_model
 from keras.src import Functional
+
+
+@keras.saving.register_keras_serializable(package="fdeep")
+def gelu_approximate(x):  # type: ignore[no-untyped-def]
+    """Tanh-approximation form of GELU, registered so saved models that use
+    it can be loaded by this converter. The conversion step rewrites it to a
+    plain ``gelu`` activation with an extra ``approximate=True`` flag in the
+    layer config, which the C++ runtime picks up."""
+    return keras.activations.gelu(x, approximate=True)
 
 __author__ = "Tobias Hermann"
 __copyright__ = "Copyright 2017, Tobias Hermann"
@@ -968,6 +978,62 @@ def calculate_hash(model: Model) -> str:
     return hash_m.hexdigest()
 
 
+_ACTIVATION_FUNCTION_REWRITES = {
+    'fdeep>gelu_approximate': ('gelu', {'approximate': True}),
+}
+
+
+def rewrite_custom_activations(arch: Any) -> None:
+    """Walk the serialized architecture and replace registered custom
+    activation functions with a plain string activation plus extra config
+    flags, so the C++ runtime sees a known activation type."""
+    if isinstance(arch, dict):
+        cfg = arch.get('config')
+        if isinstance(cfg, dict):
+            act = cfg.get('activation')
+            if isinstance(act, dict) and act.get('class_name') == 'function':
+                rewrite = _ACTIVATION_FUNCTION_REWRITES.get(act.get('config'))
+                if rewrite is not None:
+                    new_name, extra = rewrite
+                    cfg['activation'] = new_name
+                    cfg.update(extra)
+        for v in arch.values():
+            rewrite_custom_activations(v)
+    elif isinstance(arch, list):
+        for v in arch:
+            rewrite_custom_activations(v)
+
+
+def inject_mha_call_kwargs(arch: Any, model: Model) -> None:
+    """``use_causal_mask`` is a per-call kwarg of ``MultiHeadAttention``, not a
+    layer config field, so ``model.to_json()`` doesn't include it. Look the
+    flag up from the layer's first inbound node and bake it into the JSON
+    config so the C++ runtime can read it."""
+    if isinstance(arch, dict):
+        if arch.get('class_name') == 'MultiHeadAttention':
+            cfg = arch.get('config') or {}
+            layer_name = cfg.get('name')
+            if layer_name:
+                try:
+                    layer = model.get_layer(layer_name)
+                except (ValueError, KeyError):
+                    layer = None
+                if layer is not None and layer._inbound_nodes:
+                    kwargs = layer._inbound_nodes[0].arguments.kwargs
+                    if kwargs.get('use_causal_mask'):
+                        cfg['use_causal_mask'] = True
+                    if kwargs.get('attention_mask') is not None:
+                        raise NotImplementedError(
+                            f"MultiHeadAttention layer {layer_name!r} was "
+                            "called with an explicit attention_mask, which "
+                            "the frugally-deep runtime does not yet support.")
+        for v in arch.values():
+            inject_mha_call_kwargs(v, model)
+    elif isinstance(arch, list):
+        for v in arch:
+            inject_mha_call_kwargs(v, model)
+
+
 def model_to_fdeep_json(model: Model, no_tests: bool = False) -> Mapping[str, Any]:
     """Convert any Keras model to the frugally-deep model format."""
 
@@ -983,6 +1049,8 @@ def model_to_fdeep_json(model: Model, no_tests: bool = False) -> Mapping[str, An
     json_output = {}
     print('Converting model architecture.')
     json_output['architecture'] = json.loads(model.to_json())
+    rewrite_custom_activations(json_output['architecture'])
+    inject_mha_call_kwargs(json_output['architecture'], model)
     json_output['image_data_format'] = K.image_data_format()
     json_output['input_shapes'] = list(map(get_layer_input_shape_tensor_shape, get_model_input_layers(model)))
     json_output['output_shapes'] = list(map(keras_shape_to_fdeep_tensor_shape, as_list(model.output_shape)))

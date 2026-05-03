@@ -5,6 +5,11 @@
 import sys
 from typing import Tuple, List, Union
 
+# convert_model lives next to this script; importing it pulls in the
+# ``gelu_approximate`` serializable activation that the converter then
+# rewrites to ``gelu`` with ``approximate=True``.
+from convert_model import gelu_approximate
+
 import numpy as np
 from keras import activations
 from keras.layers import ActivityRegularization
@@ -413,6 +418,8 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(Dense(3, use_bias=True)(inputs[14]))
     outputs.append(Dense(4, use_bias=False)(inputs[16]))
     outputs.append(Dense(4, use_bias=False, activation='tanh')(inputs[18]))
+    outputs.append(Dense(4, use_bias=True, activation='gelu')(inputs[18]))
+    outputs.append(Dense(4, use_bias=True, activation=gelu_approximate)(inputs[18]))
     outputs.append(Dense(4, use_bias=False)(inputs[20]))
 
     outputs.append(Reshape(((2 * 3 * 4 * 5 * 6),))(inputs[0]))
@@ -540,6 +547,20 @@ def get_test_model_exhaustive() -> Model:
     outputs.append(MultiHeadAttention(
         num_heads=2, key_dim=3, value_dim=5,
         use_bias=True, output_shape=None, attention_axes=None)(inputs[49], inputs[50], inputs[51]))
+
+    # use_causal_mask=True: triangular attention so position i only attends to <=i.
+    outputs.append(MultiHeadAttention(
+        num_heads=1, key_dim=2, value_dim=None,
+        use_bias=True, output_shape=None, attention_axes=None)(
+            inputs[50], inputs[50], use_causal_mask=True))
+    outputs.append(MultiHeadAttention(
+        num_heads=2, key_dim=3, value_dim=4,
+        use_bias=True, output_shape=None, attention_axes=None)(
+            inputs[50], inputs[50], inputs[50], use_causal_mask=True))
+    outputs.append(MultiHeadAttention(
+        num_heads=3, key_dim=2, value_dim=2,
+        use_bias=False, output_shape=None, attention_axes=None)(
+            inputs[50], inputs[50], use_causal_mask=True))
 
     # GroupedQueryAttention: shared Q/K/V seq, separate K/V seq, with/without gate.
     outputs.append(GroupQueryAttention(head_dim=4, num_query_heads=6,

@@ -123,9 +123,14 @@ namespace internal {
         const float_vec& recurrent_weights,
         const float_vec& bias,
         const std::string& activation,
-        const std::string& recurrent_activation)
+        const std::string& recurrent_activation,
+        const tensor* initial_h = nullptr,
+        const tensor* initial_c = nullptr)
     {
         assertion(n_units > 0, "LSTM units must be > 0.");
+        assertion(input.shape().width_ > 0, "LSTM sequence must not be empty.");
+        assertion((initial_h == nullptr) == (initial_c == nullptr),
+            "LSTM requires both hidden and cell initial states.");
         const MappedRowMajorMatrixXf W = eigen_row_major_mat_from_shared_values(
             weights.size() / (n_units * 4), n_units * 4,
             weights.data());
@@ -134,6 +139,15 @@ namespace internal {
 
         RowMajorMatrixXf h = RowMajorMatrixXf::Zero(1, static_cast<EigenIndex>(n_units));
         RowMajorMatrixXf c = RowMajorMatrixXf::Zero(1, static_cast<EigenIndex>(n_units));
+
+        if (initial_h != nullptr) {
+            assertion(initial_h->shape() == tensor_shape(n_units)
+                    && initial_c->shape() == tensor_shape(n_units),
+                "LSTM initial states must match the number of units.");
+            // Copy: the same input state can be shared by other graph nodes.
+            h = eigen_row_major_mat_from_shared_values(1, n_units, initial_h->as_vector()->data());
+            c = eigen_row_major_mat_from_shared_values(1, n_units, initial_c->as_vector()->data());
+        }
 
         const std::size_t n_timesteps = input.shape().width_;
         const std::size_t n_features = input.shape().depth_;

@@ -42,16 +42,17 @@ namespace internal {
     protected:
         tensors apply_impl(const tensors& inputs) const override
         {
+            assertion(inputs.size() == 1 || inputs.size() == 3, "Invalid number of input tensors.");
             const auto input_shapes = fplus::transform(fplus_c_mem_fn_t(tensor, shape, tensor_shape), inputs);
             assertion(inputs.front().shape().size_dim_5_ == 1
                     && inputs.front().shape().size_dim_4_ == 1
                     && inputs.front().shape().height_ == 1,
                 "size_dim_5, size_dim_4 and height dimension must be 1, but shape is '" + show_tensor_shapes(input_shapes) + "'");
-            assertion(inputs.size() == 1, "Invalid number of input tensors.");
-
             return lstm_impl(inputs.front(), n_units_, use_bias_,
                 return_sequences_, return_state_, weights_,
-                recurrent_weights_, bias_, activation_, recurrent_activation_);
+                recurrent_weights_, bias_, activation_, recurrent_activation_,
+                inputs.size() == 3 ? &inputs[1] : nullptr,
+                inputs.size() == 3 ? &inputs[2] : nullptr);
         }
 
         const std::size_t n_units_;

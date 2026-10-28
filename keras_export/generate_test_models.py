@@ -914,6 +914,11 @@ def get_test_model_recurrent() -> Model:
     lstm_relu = LSTM(4, activation='relu', recurrent_activation='hard_sigmoid')(inputs)
     lstm_no_unit_forget = LSTM(4, unit_forget_bias=False)(inputs)
     lstm_state_out, lstm_state_h, lstm_state_c = LSTM(3, return_state=True)(inputs)
+    lstm_initialized, lstm_initialized_h, lstm_initialized_c = LSTM(
+        3, return_sequences=True, return_state=True)(
+            inputs, initial_state=[lstm_state_h, lstm_state_c])
+    lstm_initialized_last = LSTM(3)(
+        inputs, initial_state=[lstm_initialized_h, lstm_initialized_c])
 
     gru_seq = GRU(5, return_sequences=True)(inputs)
     gru_seq_no_reset_after = GRU(5, return_sequences=True, reset_after=False)(inputs)
@@ -966,6 +971,7 @@ def get_test_model_recurrent() -> Model:
     outputs = [
         lstm_last, lstm_no_bias, lstm_relu, lstm_no_unit_forget,
         lstm_state_out, lstm_state_h, lstm_state_c,
+        lstm_initialized, lstm_initialized_h, lstm_initialized_c, lstm_initialized_last,
         gru_last, gru_no_bias, gru_state_out, gru_state_h,
         rnn_last, rnn_relu_no_bias, rnn_state_out, rnn_state_h,
         bidi_lstm_last_concat,

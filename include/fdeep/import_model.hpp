@@ -1719,24 +1719,38 @@ namespace internal {
         return std::make_shared<permute_layer>(name, dims);
     }
 
-    inline node create_node(const nlohmann::json& inbound_nodes_data)
+    inline node create_node(const nlohmann::json& inbound_nodes_data,
+        bool accepts_initial_state = false)
     {
         assertion(inbound_nodes_data["args"].is_array(), "node args need to be an array");
         std::vector<nlohmann::json> args = inbound_nodes_data["args"];
+        assertion(!args.empty(), "node args must not be empty");
         if (args.front().is_array()) {
             assertion(args.size() == 1, "invalid args format");
-            const std::vector<nlohmann::json> inner_args = args.front();
-            return node(fplus::transform(create_node_connection, inner_args));
-        } else {
-            return node(fplus::transform(create_node_connection, args));
+            args = args.front().get<std::vector<nlohmann::json>>();
         }
+        auto connections = fplus::transform(create_node_connection, args);
+        if (inbound_nodes_data.contains("kwargs")
+            && inbound_nodes_data["kwargs"].contains("initial_state")
+            && !inbound_nodes_data["kwargs"]["initial_state"].is_null()) {
+            const auto& states = inbound_nodes_data["kwargs"]["initial_state"];
+            assertion(accepts_initial_state, "initial_state is only supported for LSTM layers");
+            assertion(connections.size() == 1 && states.is_array() && states.size() == 2,
+                "LSTM requires a sequence and two initial states");
+            for (const auto& state : states)
+                connections.push_back(create_node_connection(state));
+        }
+        return node(connections);
     }
 
     inline nodes create_nodes(const nlohmann::json& data)
     {
         assertion(data["inbound_nodes"].is_array(), "no inbound nodes");
         const std::vector<nlohmann::json> inbound_nodes_data = data["inbound_nodes"];
-        return fplus::transform(create_node, inbound_nodes_data);
+        return fplus::transform([&data](const nlohmann::json& inbound_node) {
+            return create_node(inbound_node, data["class_name"] == "LSTM");
+        },
+            inbound_nodes_data);
     }
 
     inline layer_ptr create_embedding_layer(const get_param_f& get_param,
